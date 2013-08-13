@@ -562,3 +562,11 @@ Mdef.node_by_index(0).get_arg(\ffreqtab)
 ~ae.edit
 
 MIDIClient.init
+
+
+(
+	w = Window();
+	m = PopUpMenu(w).focusColor_(Color.clear);
+	w.front;
+
+)
