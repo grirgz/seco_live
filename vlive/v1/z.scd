@@ -16,15 +16,15 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fmfreq=40.1, spre
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
-)
-[1,2].extend(5,1)
+);
 
 (
 Pdef(~name, Pbind(
 	\instrument, ~name,
 	\degree, Pseq([0,2,4]+10,inf),
 	\freq, ~mybus.asMap,
-	\isRest, ~sceneset.seq.prythm(1),
+	//\isRest, ~sceneset.seq.prythm(1),
+	\isRest, Veco.main.seq.pryn(~name),
 	\fmfreq, Pseq([0.1,20,5,10],inf),
 	\freqtab, [[0.9,1.2,1.01,1.3, 0.99,0.997,1,1]*2],
 	\freqtab, [[0.9,1.2,1.01,1.3, 0.99,0.997,1,1]],
@@ -41,4 +41,4 @@ Pdef(~name, Pbind(
 	\amp, 0.04,
 	\dur, 1/4 * 1,
 ));
-)
+);

@@ -20,10 +20,8 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, spread=0.8, noise
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
-)
+);
 
-~mybus = Bus.control(s,1)
-~mybus.set(200)
 (
 Pdef(~name, Pbind(
 	\instrument, ~name,
@@ -36,4 +34,4 @@ Pdef(~name, Pbind(
 	\sustain, 0.1,
 	\dur, 1/4,
 ));
-)
+);

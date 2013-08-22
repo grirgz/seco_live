@@ -1,5 +1,5 @@
 
 (
-Pbindef(~name, \dur, 1)
+Pbindef(~name, \fmfreq, 0.1)
 
 )

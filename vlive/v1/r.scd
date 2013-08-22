@@ -17,7 +17,7 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, spread=0.8;
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
-)
+);
 
 (
 Pdef(~name, Pbind(
@@ -27,4 +27,4 @@ Pdef(~name, Pbind(
 	\sustain, 0.1,
 	\dur, 1/4,
 ));
-)
+);

@@ -16,23 +16,27 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fmfreq=40.1, spre
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
-)
-[1,2].extend(5,1)
+);
 
 (
 Pdef(~name, Pbind(
 	\instrument, ~name,
-	\octave, 2,
-	\freq, Pseq([200,100,50]/2,inf),
+	\freq, Pseq([200,100,50]*2,inf),
 	\degree, Pseq([0,2,4]+10,inf),
-	\isRest, ~sceneset.seq.prythm(1),
+	//\isRest, ~sceneset.seq.prythm(1),
+	\isRest, Veco.main.seq.pryn(~name),
 	\fmfreq, Pseq([0.1,20,5,10],inf),
+	\fmfreq, 200,
 	\freqtab, [[0.9,1.2,1.01,1.3, 0.99,0.997,1,1]],
 	\klanktab, [[0.9,1.2,1.01,1.3, 0.99,0.997,1,1] *30],
 	\amp, 0.1,
 	\dur, 1/4,
 ));
-)
+);
+
+// END
+
 Pdef(~name).play
 
 Pdef.defaultQuant = 4
+[1,2].extend(5,1)

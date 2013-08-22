@@ -8,7 +8,7 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=200, carrie
 	sig = sig * range + carrier;
 	Out.kr(out, sig);
 }).add;
-)
+);
 
 (
 Pdef(~name, Pbind(
@@ -19,5 +19,5 @@ Pdef(~name, Pbind(
 	\dur, 4.4,
 	\out, ~mybus,
 ));
-)
-Pdef(~name).quant = 1
+);
+Pdef(~name).quant = 1;

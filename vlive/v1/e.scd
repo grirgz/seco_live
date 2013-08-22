@@ -15,16 +15,16 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, spread=0.8, lpf=1
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
-)
+);
 
 (
 Pdef(~name, Pbind(
 	\instrument, ~name,
 	\degree, Pseq([0,2,4]+10,inf),
-	\isRest, ~sceneset.seq.prythm(1),
+	\isRest, Veco.main.seq.pryn(~name),
 	\lpf, Pseq([1300,500,1200],inf),
-	\release, Pseq([0.1,0.01],inf)
+	\release, Pseq([0.1,0.01],inf),
 	\sustain, 0.1,
 	\dur, 1/4,
 ));
-)
+);

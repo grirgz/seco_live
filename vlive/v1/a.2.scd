@@ -1,2 +1,2 @@
 
-Pbindef(~name, \dur, 1/4)
+Pbindef(~name, \fmfreq, 6)

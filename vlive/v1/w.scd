@@ -1,6 +1,5 @@
 ~name = \w;
 
-~myfxbus = Bus.audio(s,2);
 (
 Ndef(~name, { arg freq=200, pan=0, amp=0.1;
 	var sig;
@@ -10,5 +9,7 @@ Ndef(~name, { arg freq=200, pan=0, amp=0.1;
 }).play;
 );
 
-Ndef(~name).fadeTime = 1
+Ndef(~name).fadeTime = 1;
+
+// END
 Ndef(~name).source = { InFeedback.ar(~myfxbus, 2); }
