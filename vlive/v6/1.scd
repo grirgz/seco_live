@@ -51,10 +51,10 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 		ar = [ar];
 		Pseq([ar,ar],8);
 	}), 
-	\freq, 60,
-	\freq, Pseq([360,200,300,400]/2-50,inf),
-	\freq, Pseq([40,20,80,10],inf) + Pn(Pseq([Pseries(1,10,8*4), Pseries(8*4*10+1,-30,8*4)])),
-	\freq, Pseq([40,40,80,80],inf) + Pn(Pseries(1,1,8*2)),
+	//\freq, 60,
+	//\freq, Pseq([360,200,300,400]/2-50,inf),
+	//\freq, Pseq([40,20,80,10],inf) + Pn(Pseq([Pseries(1,10,8*4), Pseries(8*4*10+1,-30,8*4)])),
+	//\freq, Pseq([40,40,80,80],inf) + Pn(Pseries(1,1,8*2)),
 	\fmrange, Pseq([360,200,300,400].reverse,inf),
 	\fmrange, 30,
 	//\cartab, [[1,1,1,1, 1,1,1,1]] * Pwhite(0.1,2.0),

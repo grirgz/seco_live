@@ -1,10 +1,15 @@
 ~name = \a;
 
+//Veco(~name)[\get_node_player] = { arg self; Ndef(self.get_name) }
+
 (
-Pdef(~name, Pbind(
-	\instrument, \default,
-	\degree, Pseq([0,3,5,4],inf),
-	\dur, 1/4,
-	\amp, 0.1
-))
-);
+Ndef(~name, {
+    var t = PulseCount.ar(Impulse.ar(8e3));
+    HPF.ar(
+        (
+            ((t * 15) & (t >> [5,4]))
+        ) / 127-1 * 3
+        , 20
+    )
+})
+)
