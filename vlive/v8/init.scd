@@ -8,3 +8,4 @@ Veco.main.fadeout_time = 16;
 
 // END
 Pdef.defaultQuant = 1;
+s.volume.gui

@@ -12,5 +12,24 @@
 		}
 
 	}
-}
+};
+
+
+~newfx = { arg suffix;
+	var fxname = ~name+++suffix;
+	BusDef(fxname, \audio);
+
+	Veco(~name).play_node_hook = {
+		Ndef(fxname).play;
+	};
+
+	Veco(~name).stop_node_hook = {
+		Ndef(fxname).stop;
+	};
+};
+
+~isrest = { arg pat;
+	pat.collect { arg x; if(x == 1) { false } { true } }
+};
+
 );
