@@ -20,10 +20,12 @@
 	BusDef(fxname, \audio);
 
 	Veco(~name).play_node_hook = {
+		fxname.debug("play FX");
 		Ndef(fxname).play;
 	};
 
 	Veco(~name).stop_node_hook = {
+		fxname.debug("stop FX");
 		Ndef(fxname).stop;
 	};
 };
