@@ -4,3 +4,4 @@
 ~mybus.set(200);
 ~myfxbus = Bus.audio(s,2);
 Pdef.defaultQuant = 4
+TempoClock.default.tempo = 1

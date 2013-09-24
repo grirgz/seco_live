@@ -21,12 +21,13 @@
 
 	Veco(~name).play_node_hook = {
 		fxname.debug("play FX");
+		//Ndef(fxname).send;
 		Ndef(fxname).play;
 	};
 
 	Veco(~name).stop_node_hook = {
 		fxname.debug("stop FX");
-		Ndef(fxname).stop;
+		Ndef(fxname).end(Ndef(fxname).fadeTime);
 	};
 };
 

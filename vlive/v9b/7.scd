@@ -25,7 +25,7 @@ SynthDef(~name,{|out= 0 freq = 440 amp = 0.1 gate=1 attackTime= 0.2 fenvamount=0
 
 BusDef(~name+++\set_fxlfo2, \control);
 
-Ndef(~name+++\fx, { arg lfo=1;
+Ndef(~name+++\fx).isource_({ arg lfo=1;
 	var source, output;  
 	var chorus; 
 	//var lfo;

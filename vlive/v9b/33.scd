@@ -21,7 +21,7 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\degree, Pseq([0],inf),
 	\isRest, Veco(~name).isrest,
 	\dur, 1/4,
-	\amp, 0.1
+	\amp, 0.3
 ))
 );
 
