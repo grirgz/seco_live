@@ -42,10 +42,19 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\legato, 0.5,
 	\fratio, 2,
 	\dur, 1/8,
-	\amp, 0.4
-))
+	\amp, 0.4 * Pkey(\amp),
+) <> Veco(~name).mixer)
 );
 
 // END
 
 Pdef.defaultQuant
+
+Sdef(\bla, \myaudio, \audio)
+
+(
+	
+	"~/seco/seco/veco/sdef.scd".standardizePath.load;
+Sdef(\1, \mypreset, \preset, \default);
+Sdef(\1, \mypreset).get(0).edit;
+)

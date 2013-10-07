@@ -1,4 +1,4 @@
-~name = '2';
+~name = '7';
 
 (
 SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, pwidth=0.5, gate=1, sawamp=0.3, mixclip=0.5, rq=0.2|
@@ -53,7 +53,7 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	],inf).stutter(8),
 	\instrument, ~name,
 	\degree, Pseq([0],inf),
-	\isRest, Veco(~name).isrest,
+	\isRest, Veco(~name).isrest(16),
 	\legato, 0.5,
 	\fratio, 2,
 	\dur, 1/8,

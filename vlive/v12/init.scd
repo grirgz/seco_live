@@ -1,2 +1,2 @@
 
-TempoClock.default.tempo = 1.25;
+TempoClock.default.tempo = t = 1.25;
