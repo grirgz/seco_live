@@ -35,8 +35,16 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, pwidth=0.5, 
 	son = Pan2.ar(son, pan);
 	
 	OffsetOut.ar(out, son);
-}).store;
+}, metadata:(specs:(
+	env0: \env -> [4, ControlSpec(0.001,8,\exp, 0, 1), nil, nil, Env.new([9.5, 1, 0.5, 0], [0.105, 0.16, 00.2])],
+	env1: \env -> [3, ControlSpec(5,128,\lin, 0, 50), nil, nil, Env.new([210, 29, 59], [0.105, 0.29], [-4, -5])],
+	env2: \env -> [3, ControlSpec(5,128,\lin, 0, 50), nil, nil, Env.new([210, 29, 59], [0.105, 0.29], [-4, -5])],
+	env3: \env -> [3, ControlSpec(5,128,\lin, 0, 50), nil, nil, Env.new([210, 29, 59], [0.105, 0.29], [-4, -5])],
+
+))).add;
 );
+
+Sdef(~name, \mypreset, \preset, ~name);
 
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };

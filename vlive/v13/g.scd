@@ -1,7 +1,7 @@
 ~name = \g;
 
 (
-SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffscale=1;
 	var sig, sig1, sig2, sig3;
 	var freq2;
 	var freq3;
@@ -18,8 +18,8 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 	//sig = [sig, sig2,sig3].sum;
 	sig = SelectX.ar(LFNoise1.kr(1.01).range(0,2), [sig, sig2,sig3]);
 	sig.debug("sig1");
-	sig1 = RLPF.ar(sig, freq* Array.geom(8,1/2,1.002).scramble, 0.3);
-	sig2 = RLPF.ar(sig, freq* (Array.geom(8,1,1.002).scramble), 0.4);
+	sig1 = RLPF.ar(sig, ffscale * freq* Array.geom(8,1/2,1.002).scramble, 0.3);
+	sig2 = RLPF.ar(sig, ffscale  * freq* (Array.geom(8,1,1.002).scramble), 0.4);
 	sig = SelectX.ar(LFNoise1.kr(1.1).range(0,1), [sig1, sig2]);
 	sig3 = EnvGen.kr(Env([0,1,0],[0.01,0.01]), Impulse.kr([2,1/5])) * sig;
 	sig = SelectX.ar(LFNoise1.kr(1.1).range(0,1), [sig, sig3]);
@@ -33,6 +33,7 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 );
 
 Ndef(~name+++\lfo1, { XLine.kr(300,800,8)  });
+
 (
 ~dur = 1;
 Ndef(~name+++\lfo1, { LFSaw.kr(t / ~dur).range(1300,2800)  });

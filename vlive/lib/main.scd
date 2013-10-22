@@ -35,4 +35,17 @@
 	pat.collect { arg x; if(x == 1) { false } { true } }
 };
 
+~load_quick_quant_chooser = { arg quants;
+	var codepad;
+	var qp = ~veco.quickpad_controller;
+	quants = quants ?? [1/8,1/4,1/2,1,  2,4,8,16];
+	quants.do { arg quant, y;
+		codepad = qp.get_codepad(Point(0,y));
+		codepad.payload = { arg self;
+			quant.debug("setting Pdef.defaultQuant to");
+			Pdef.defaultQuant = quant;
+		};
+	}
+};
+
 );

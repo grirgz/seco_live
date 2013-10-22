@@ -27,6 +27,6 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\freqfactor, 2,
 	\decay, Pkey(\sustain),
 	\dur, 1/8,
-	\amp, 0.1
-))
+	\amp, 0.1 * Pkey(\amp),
+	) <> Veco(~name).mixer)
 );
