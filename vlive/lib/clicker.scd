@@ -52,3 +52,4 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 // END
 
 Pdef.defaultQuant
+Pdef(~name).play
