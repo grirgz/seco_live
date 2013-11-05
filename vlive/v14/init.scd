@@ -4,10 +4,12 @@ Pdef.defaultQuant = 4;
 Veco.load_lib("main.scd");
 ~load_quick_quant_chooser.();
 ~load_quick_editors.();
-Veco.load_file("1.scd");
+//Veco(\1).execute;
+Veco.load_file("synthpool.scd");
 
 
 // END
 
 Veco.main.fadeout_time = 16;
 
+Pdef.defaultQuant = 1;

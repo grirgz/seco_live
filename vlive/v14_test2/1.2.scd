@@ -12,8 +12,17 @@ BufDef(\march, "vipere/march.flac");
 Pdef(~name +++ \pre, 
 	Pbind(
 		\bufnum, ~buf,
+		\posenv, Pseq([
+			//[ Env([0.42,0.3903,0.3513],[0.3,0.4]) ],
+			[ Env([0.004,0.0009,0.0071].integrate.postln,[0.02,0.4]) ],
+		],inf),
 	) <>
-	Sdef(~name, \mypreset).pdef <> Pbind(
+//	~morph.(~name+++\morph2, 7.3, Sdef(~name, \mypreset).pdef <> Pbind(\amp, 0.1))
+
+	//~morphpat.(Sdef(~name, \mypreset).get(0).pbind , Sdef(~name, \mypreset).get(1).pbind , Plast(Pseries(0,1/32,32)))
+	~morphpat.(Sdef(~name, \mypreset).get(0).pbind , Sdef(~name, \mypreset).get(1).pbind , Pseg(Plast(Pseq([0,1])),~morphtime))
+	//Sdef(~name, \mypreset).pdef 
+	<> Pbind(
 	\freq, 100,
 	\pos, Pseq([0.0,0.01,0.02,0.03],inf),
 	\pos, Pseg(Pseq([0,0.1],inf),32)+0.5,
@@ -74,3 +83,5 @@ Pdef.all.do { arg x; x.postln; }
 
 Pdef('1.0.mypreset').source.asCompileString
 Pdef('1.0.mypreset').play
+
+Ndef(\plop, { Line.kr(1,[100,20]) })

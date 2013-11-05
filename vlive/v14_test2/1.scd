@@ -39,6 +39,7 @@ SynthDef(\oscsampler, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, pos
 
 BufDef(\moeten, "voices/02_moeten.flac");
 BufDef(\woodshop, "vipere/woodshop.flac");
+BufDef(\march, "vipere/march.flac");
 
 Sdef(~name, \mypreset, \preset, \oscsampler);
 

@@ -9,23 +9,10 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 	Out.ar(out, sig);
 }).add;
 
-
-~morph = { arg mainkey, lagtime, pat;
-	var base = pat.asStream.next(());
-	var bind = List.new;
-	var proxy;
-	base.keysValuesDo { arg key, val;
-		var ndefkey = "%.%".format(mainkey, key).asSymbol;
-		Ndef(ndefkey, { 
-			Line.kr(Ndef(ndefkey).kr, val, lagtime)
-		});
-		proxy = Ndef(ndefkey);
-		bind.add(key);
-		bind.add(proxy.bus.asMap);
-	};
-	Pbind(*bind)
-};
 )
+
+
+blend([Env.adsr(0.1,0.1,0.8,0.2)],[Env.adsr(0.7,0.7,0.5,0.4)],0.5).asCompileString
 
 
 Pdef(~name).play;
