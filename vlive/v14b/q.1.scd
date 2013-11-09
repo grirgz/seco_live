@@ -68,5 +68,7 @@ Sdef(~name, \mypreset).all[0][0] = nil
 
 Pdef.all.do { arg x; x.postln; }
 
+Ndef(~name+++\mixer).edit
+
 Pdef('1.0.mypreset').source.asCompileString
 Pdef('1.0.mypreset').play

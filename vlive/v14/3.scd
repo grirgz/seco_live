@@ -1,4 +1,4 @@
-~name = '3';
+~name= '3';
 
 BufDef(\moeten, "voices/02_moeten.flac");
 BufDef(\woodshop, "vipere/woodshop.flac");

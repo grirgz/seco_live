@@ -1,7 +1,5 @@
 
 (
-Veco(~name).make_mixer;
-Ndef(~name+++\fx).play(BusDef(~name+++\mixer));
 Ndef(~name+++\fx, { arg prelevel=1, bpfreq=200, rq=0.3, limlevel=0.9, delaytime=0.1, freqshift=0, rate=1, time=2, mixfx=1,
 					reclevel=1, kf1=50, kf2=150, kf3=200, kf4=100, kres=0.05, kamp=0.05, mixsat=1, lpfreq=500, hpfreq=20, inlevel=1, mixk=1,
 					mixdelay=1, gain=1;

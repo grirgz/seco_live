@@ -12,6 +12,7 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 );
 
 ~newfx.(\fx);
+Veco(~name).make_mixer;
 
 Ndef(~name+++\fx, {
 	var in = In.ar(BusDef(~name+++\fx),2);

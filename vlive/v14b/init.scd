@@ -14,17 +14,17 @@ Veco.load_file("synthpool.scd");
 "et l'init alors bordel".debug;
 
 
-~mixfx = { arg name, fx;
-	~name.debug("mixfx: name");
-	~newfx.(\fx);
-	Ndef(name+++\fx).isource = { arg send=0.2;
-		var in = InFeedback.ar(BusDef(name+++\fx), 2);
-		var sig;
-		sig = in;
-		Out.ar(fx, sig * send);
-		sig;
-	};
-};
+//~mixfx = { arg name, fx;
+//	~name.debug("mixfx: name");
+//	~newfx.(\fx);
+//	Ndef(name+++\fx).isource = { arg send=0.2;
+//		var in = InFeedback.ar(BusDef(name+++\fx), 2);
+//		var sig;
+//		sig = in;
+//		Out.ar(fx, sig * send);
+//		sig;
+//	};
+//};
 
 ~set_dels = { arg array;
 	var dels;

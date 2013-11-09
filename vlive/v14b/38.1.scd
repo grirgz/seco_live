@@ -1,7 +1,5 @@
 
 (
-Veco(~name).make_mixer;
-Ndef(~name+++\fx).play(BusDef(~name+++\mixer));
 Ndef(~name+++\fx,{|length = 1, fb = 0.8, sep = 0.012, mix=0.5, hpfreq=400, lpfreq=5000, noisefreq=12, delayfac=0,
 		offset=0, rotate=0, shift=0|
 	var input = InFeedback.ar(BusDef(~name+++\fx), 2);

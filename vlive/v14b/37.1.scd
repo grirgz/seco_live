@@ -2,9 +2,7 @@
 //b = Buffer.alloc(s, s.sampleRate * 0.125 * 9,2);
 (
 //Ndef(~name+++\fx, { arg in, mix=0.5, amp=1,
-Veco(~name).make_mixer;
-Ndef(~name+++\fx).play(BusDef(~name+++\mixer));
-Ndef(~name+++\fx, { arg mix=0.5, amp=1, del1=1, del2=1, del3=1, del4=1, del5=1, del6=1, del7=1, del8=1, fx2send=1;
+Ndef(~name+++\fx, { arg mix=0.5, amp=1, del1=1, del2=1, del3=1, del4=1, del5=1, del6=1, del7=1, del8=1;
 	var sigin, sig;
 	var delay = 0.125;
 	var numdelay = 8;
@@ -22,8 +20,8 @@ Ndef(~name+++\fx, { arg mix=0.5, amp=1, del1=1, del2=1, del3=1, del4=1, del5=1, 
 	//sig[0] = sig[0].sum;
 	//sig[1] = sig[1].sum;
 	sig.postln;
+	//sig.poll;
 	//sig = sig * EnvGen.ar(Env.asr(0.0001,1,0.0001),gate,doneAction:2);
-	Out.ar(~fx2, sig * fx2send);
 	sig = SelectX.ar(mix, [sigin, sig]);
 	//Out.ar(out, sig);
 });
@@ -33,6 +31,7 @@ Ndef(~name+++\fx, { arg mix=0.5, amp=1, del1=1, del2=1, del3=1, del4=1, del5=1, 
 // END
 Ndef(~name+++\mixer).edit
 Ndef(~name+++\mixer).play
+Ndef(~name+++\fx).play
 
 Ndef(\multitap8).edit
 Ndef(\fx2).edit

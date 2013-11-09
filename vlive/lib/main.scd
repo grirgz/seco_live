@@ -19,16 +19,32 @@
 	var fxname = ~name+++suffix;
 	BusDef(fxname, \audio);
 
-	Veco(~name).play_node_hook = {
+	Veco(~name).add_play_node_hook(\fx, {
 		fxname.debug("play FX");
 		//Ndef(fxname).send;
 		Ndef(fxname).play;
-	};
+	});
 
-	Veco(~name).stop_node_hook = {
+	Veco(~name).add_stop_node_hook(\fx, {
 		fxname.debug("stop FX");
 		Ndef(fxname).end(Ndef(fxname).fadeTime);
-	};
+	});
+};
+
+~newfxmix = { arg suffix;
+	var fxname = ~name+++suffix;
+	BusDef(fxname, \audio);
+
+	Veco(~name).add_play_node_hook(\fx, {
+		fxname.debug("play FX");
+		//Ndef(fxname).send;
+		Ndef(fxname).play(BusDef(~name+++\mixer));
+	});
+
+	Veco(~name).add_stop_node_hook(\fx, {
+		fxname.debug("stop FX");
+		Ndef(fxname).end(Ndef(fxname).fadeTime);
+	});
 };
 
 ~isrest = { arg pat;

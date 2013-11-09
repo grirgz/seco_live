@@ -7,6 +7,7 @@ Pdef(~name +++ \pre, Pbind(
 	\isRest, Veco(~namex).isrest(16),
 ));
 
+Ndef(~name+++\fx).play(BusDef(~name+++\mixer));
 Ndef(~name+++\fx, {
 	var in = In.ar(BusDef(~name+++\fx),2);
 	var sig;

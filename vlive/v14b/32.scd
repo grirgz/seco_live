@@ -12,8 +12,8 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\bufnum, BufDef(\kick).bufnum,
 	\degree, Pseq([0],inf),
 	//\out, BusDef(~name+++\fx),
-	//\out, ~fx1,
-	//\out, BusDef(~name+++\mixer),
+	//\out, ~fx3,
+	\out, BusDef(~name+++\mixer),
 	\isRest, Veco(~name).isrest(16),
 	\dur, 1/8,
 	\amp, 0.1 * Pkey(\amp),
@@ -24,3 +24,23 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 
 Ndef(~name+++\mixer).edit
 Ndef(~name+++\mixer).play
+
+(
+{
+		var name = ~name;
+		Ndef(name+++\mixer).isource = { arg send1=0, send2=0, send3=0, send4=0;
+			var in = InFeedback.ar(BusDef(name+++\mixer), 2);
+			var sig;
+			sig = in;
+
+			//make_out.(0, sig, send1);
+			//make_out.(1, sig, send2);
+			//make_out.(2, sig, send3);
+			//make_out.(3, sig, send4);
+			Out.ar(~fx1, sig );
+			sig;
+		};
+}.value;
+)
+~fx1
+BusDef('37fx')

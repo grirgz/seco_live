@@ -1,4 +1,5 @@
 ~name = \39;
 
-~newfx.(\fx);
+~newfxmix.(\fx);
+Veco(~name).make_mixer;
 
