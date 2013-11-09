@@ -5,6 +5,7 @@ BufDef(\moeten, "voices/02_moeten.flac");
 BufDef(\woodshop, "vipere/woodshop.flac");
 
 Sdef(~name, \mypreset, \preset, \oscsampler);
+Veco(~name).make_mixer;
 
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
@@ -13,6 +14,7 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\bufnum, BufDef(\moeten),
 	\bufnum, BufDef(\woodshop),
 	\degree, Pseq([0],inf),
+	//\out, BusDef(~name+++\fx),
 	\isRest, Veco(~name).isrest(32),
 	\dur, 1/8,
 	\amp, 0.31 * Pkey(\amp),

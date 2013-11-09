@@ -77,3 +77,5 @@ Pdef.all.do { arg x; x.postln; }
 
 Pdef('1.0.mypreset').source.asCompileString
 Pdef('1.0.mypreset').play
+
+{ SinOsc.ar(200) }.play
