@@ -48,3 +48,5 @@ Ndef(~name+++\fx,{|length = 1, fb = 0.8, sep = 0.012, mix=0.5, hpfreq=400, lpfre
 Ndef(~name+++\mixer).edit
 Ndef(~name+++\mixer).play
 N
+
+~fxgroup = Group.after

@@ -31,7 +31,8 @@ Ndef(~name+++\fx, { arg mix=0.5, amp=1, del1=1, del2=1, del3=1, del4=1, del5=1, 
 // END
 Ndef(~name+++\mixer).edit
 Ndef(~name+++\mixer).play
-Ndef(~name+++\fx).play
+Ndef(~name+++\fx).play(BusDef(~name+++\mixer))
+Ndef(~name+++\fx).stop
 
 Ndef(\multitap8).edit
 Ndef(\fx2).edit

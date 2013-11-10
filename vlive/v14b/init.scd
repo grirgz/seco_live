@@ -7,6 +7,16 @@ Veco.load_lib("main.scd");
 //Veco(\1).execute;
 Veco.load_file("synthpool.scd");
 
+~get_mixer_group = {
+	
+	if(~mixer_group.isPlaying.not) {
+		~mixer_group = Group.after;
+		~mixer_group.register(true);
+		~mixer_group.isPlaying;
+	};
+	~mixer_group;
+};
+
 ~fx1 = BusDef('37fx', \audio, 2);
 ~fx2 = BusDef('38fx', \audio, 2);
 ~fx3 = BusDef('39fx', \audio, 2);

@@ -11,8 +11,8 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 }).add;
 );
 
-~newfx.(\fx);
 Veco(~name).make_mixer;
+~newfxmix.(\fx);
 
 Ndef(~name+++\fx, {
 	var in = In.ar(BusDef(~name+++\fx),2);
@@ -34,3 +34,12 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\amp, 0.1 * Pkey(\amp),
 ) <> Veco(~name).mixer)
 );
+
+// END
+
+~mixer_gui.new(~veco)
+s.meter
+Server
+s
+a = Window.new;
+ServerMeterView.new(s, a, 0@0, 2,2) // BUUUUUUUUUUG

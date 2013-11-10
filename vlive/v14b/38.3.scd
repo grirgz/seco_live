@@ -16,3 +16,5 @@ Ndef(~name+++\fx,{|amp = 1, mix=0.5, maxdelay=0.1, delay=0.1, decay=0.5|
 Ndef(~name+++\mixer).edit
 Ndef(~name+++\mixer).play
 Ndef(~name+++\fx).quant=2
+Ndef(~name+++\fx).stop
+Ndef(~name+++\fx).play(BusDef(~name+++\mixer))
