@@ -8,21 +8,20 @@ Pdef(~name +++ \pre, Pbind(
 Pdef(~name+++\pre).quant=4;
 
 (
-//Ndef(~name+++\lfo1).send;
-//Ndef(~name+++\lfo1).quant=4;
-//Ndef(~name+++\fx).map(\ffreq, Ndef(~name+++\lfo1));
-//Ndef(~name+++\lfo1).unset(\choose);
+Ndef(~name+++\fx).play(BusDef(~name+++\mixer));
+Ndef(~name+++\lfo1).quant=4;
+Ndef(~name+++\fx).map(\ffreq, Ndef(~name+++\lfo1));
 Ndef(~name+++\lfo1).put(1, \set -> Pbind(
 	\freq, Pseq([
 		4,4,4,8,
 		4,4,4,8,
 		8,8,4,4,
-		8,8,4,4,
+		0,0,0,0,
 
 		4,6,4,8,
-		4,6,4,8,
+		0,0,0,0,
 		8,8,4,4,
-		8,8,4,4,
+		0,0,0,0,
 	],inf) * Pfunc({ ~num_beats }),
 	\choose, Pseq([
 		0,0,0,0,
@@ -57,6 +56,3 @@ Ndef(~name+++\fx).put(1, \set -> Pbind(
 Ndef(~name+++\fx).play;
 Ndef(~name+++\fx).edit
 Ndef(~name+++\fx).unset(\choose)
-NodeProxy
-Ndef(~name+++\lfo1).free
-Ndef(~name+++\fx).free

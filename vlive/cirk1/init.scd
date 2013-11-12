@@ -3,8 +3,9 @@ TempoClock.default.tempo = t = 1;
 Veco.main.board_size = Point(32,64);
 Pdef.defaultQuant = 4;
 Veco.load_lib("main.scd");
-~load_quick_quant_chooser.();
-~load_quick_editors.();
+~quick_project_a = "cirk1";
+~quick_project_b = "v14b";
+~load_standard_quickpad.();
 //Veco(\1).execute;
 Veco.load_file("synthpool.scd");
 

@@ -78,6 +78,34 @@
 	
 };
 
+~load_quick_project_switcher = {
+	var codepad;
+	var qp = ~veco.quickpad_controller;
+	codepad = qp.get_codepad(Point(2,0));
+	codepad.payload = { arg self;
+		"loadprojectA".debug;
+		if(~quick_project_a.notNil and: { ~last_loaded_quick_project != ~quick_project_a }) {
+			~last_loaded_quick_project = ~quick_project_a;
+			Veco.main.open_project_in_vim(~quick_project_a);
+		};
+	};
+	codepad = qp.get_codepad(Point(2,1));
+	codepad.payload = { arg self;
+		"loadprojectB".debug;
+		if(~quick_project_b.notNil and: { ~last_loaded_quick_project != ~quick_project_b }) {
+			~last_loaded_quick_project = ~quick_project_b;
+			Veco.main.open_project_in_vim(~quick_project_b);
+		};
+	};
+
+};
+
+~load_standard_quickpad = { arg self;
+	~load_quick_quant_chooser.();
+	~load_quick_editors.();
+	~load_quick_project_switcher.();
+};
+
 ControlSpec.specs[\spread] = \unipolar.asSpec;
 
 

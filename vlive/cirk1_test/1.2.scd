@@ -1,28 +1,27 @@
 Pdef(~name +++ \pre, Pbind(
 	\freq, Pseq([50,60,40],inf) + [0,1],
+	\freq, Pseq([50,40,80,60,80],inf) + [0,1],
 
 	//\freq, Pseq([50,60],inf) + 0,
 	\legato, 1,
-	\dur, Pseq([1/4,1/8,1/8]*8,inf);
+	\dur, Pseq([1/4,1/8,1/8,1/4,1/4]*8,inf);
 ));
 Pdef(~name+++\pre).quant=4;
 
 (
-//Ndef(~name+++\lfo1).send;
-//Ndef(~name+++\lfo1).quant=4;
-//Ndef(~name+++\fx).map(\ffreq, Ndef(~name+++\lfo1));
-//Ndef(~name+++\lfo1).unset(\choose);
+Ndef(~name+++\lfo1).quant=4;
+Ndef(~name+++\fx).map(\ffreq, Ndef(~name+++\lfo1));
 Ndef(~name+++\lfo1).put(1, \set -> Pbind(
 	\freq, Pseq([
 		4,4,4,8,
-		4,4,4,8,
+		0,0,0,0,
 		8,8,4,4,
-		8,8,4,4,
+		0,0,0,0,
 
 		4,6,4,8,
-		4,6,4,8,
+		0,0,0,0,
 		8,8,4,4,
-		8,8,4,4,
+		0,0,0,0,
 	],inf) * Pfunc({ ~num_beats }),
 	\choose, Pseq([
 		0,0,0,0,
@@ -42,21 +41,16 @@ Ndef(~name+++\fx).put(1, \set -> Pbind(
 	//	0,0,0,0,
 	//],inf),
 	\choose, Pseq([
-		0,0,0,0,
-		0,0,0,1,
-	],inf).stutter(4),
+		0,0,0,0, 2,0,0,2,
+		0,0,2,0, 0,0,2,1,
+	],inf).stutter(2),
 	\time, 2,
 	//\base, Pseq([5000,5000,5000,2000],inf),
 	//\time, Pseq([1,1,1,2],inf).stutter(4),
-	\dur, 1/2,
+	\dur, 1/4,
 ));
 );
 
 // END
 
 Ndef(~name+++\fx).play;
-Ndef(~name+++\fx).edit
-Ndef(~name+++\fx).unset(\choose)
-NodeProxy
-Ndef(~name+++\lfo1).free
-Ndef(~name+++\fx).free

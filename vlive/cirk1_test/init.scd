@@ -1,8 +1,10 @@
+
 TempoClock.default.tempo = t = 1;
 Veco.main.board_size = Point(32,64);
 Pdef.defaultQuant = 4;
 Veco.load_lib("main.scd");
-~load_standard_quickpad.();
+~load_quick_quant_chooser.();
+~load_quick_editors.();
 //Veco(\1).execute;
 Veco.load_file("synthpool.scd");
 
@@ -16,10 +18,16 @@ Veco.load_file("synthpool.scd");
 	~mixer_group;
 };
 
-~fx1 = BusDef('37fx', \audio, 2);
-~fx2 = BusDef('38fx', \audio, 2);
-~fx3 = BusDef('39fx', \audio, 2);
-~fx4 = BusDef('fx4', \audio, 2);
+~wobblefx = '1fx';
+~twobble = '1';
+~tfx1 = '36';
+~tfx2 = '37';
+~tfx3 = '38';
+~tfx4 = '39';
+~fx1 = BusDef(~tfx1+++'fx', \audio, 2);
+~fx2 = BusDef(~tfx2+++'fx', \audio, 2);
+~fx3 = BusDef(~tfx3+++'fx', \audio, 2);
+~fx4 = BusDef(~tfx4+++'fx', \audio, 2);
 "et l'init alors bordel".debug;
 
 

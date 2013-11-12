@@ -14,7 +14,7 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 }).add;
 );
 
-~newfxmix.(\fx);
+~newfx.(\fx);
 Veco(~name).make_mixer;
 ~num_beats = 1;
 
@@ -83,7 +83,6 @@ Ndef(~name+++\lfo1, { arg freq=4, base=2100, choose=0, loval=5, hival=1000, time
 		//EnvGen.kr(Env([0,1,0],[time,0]).circle, 1),
 	])
 });
-Ndef(~name+++\fx).map(\ffreq, Ndef(~name+++\lfo1));
 );
 
 
@@ -99,7 +98,7 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 ) <> Veco(~name).mixer)
 );
 
-
 // END
 
-Ndef(~name+++\lfo).end
+Ndef(~name+++\fx).play
+Ndef(~name+++\fx).quant
