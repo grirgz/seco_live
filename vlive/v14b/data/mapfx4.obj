@@ -1,0 +1,705 @@
+var o, p;
+o = [
+	ProxyNodeMap.prNew,  IdentityDictionary.prNew,  Array.prNew(32),  ProxyNodeMapSetting.prNew,  
+	ProxyNodeMapSetting.prNew,  ProxyNodeMapSetting.prNew,  Array.prNew(6),  Array.prNew(3),  
+	ControlName.prNew,  ControlName.prNew,  ControlName.prNew,  IdentityDictionary.prNew,  
+	Array.prNew(32),  Ndef.prNew,  s,  Bus.prNew,  
+	Monitor.prNew,  Array.prNew(3),  Array.prNew(1),  Array.prNew(1),  
+	Group.prNew,  Group.prNew,  Array.prNew(2),  Array.prNew,  
+	Array.prNew(2),  "a40",  "a41",  Group.prNew,  
+	Group.prNew,  Order.prNew,  Array.prNew(1),  SynthDefControl.prNew,  
+	{|amp = 1, mix=0.5, inmix=1, maxdelay=0.1, delay=0.1, decay=0.5|
+	var input = InFeedback.ar(BusDef(~name+++\fx), 2);
+	var output;
+	output = input;
+	output = SelectX.ar(inmix,[Silent.ar, output]);
+	output = CombL.ar(output, maxdelay, delay, decay);
+	Out.ar(~fx1, output * \sendfx1.kr(0));
+	output = SelectX.ar(mix,[input, output]);
+	output = output * amp;
+	output
+},  ProxySynthDef.prNew,  "temp__038fx_0",  Array.prNew(10),  
+	Array.prNew(10),  ControlName.prNew,  ControlName.prNew,  ControlName.prNew,  
+	ControlName.prNew,  ControlName.prNew,  ControlName.prNew,  ControlName.prNew,  
+	ControlName.prNew,  ControlName.prNew,  ControlName.prNew,  Array.prNew(43),  
+	Control.prNew,  Array.prNew(6),  OutputProxy.prNew,  OutputProxy.prNew,  
+	OutputProxy.prNew,  OutputProxy.prNew,  OutputProxy.prNew,  OutputProxy.prNew,  
+	Array.prNew(8),  BinaryOpUGen.prNew,  Array.prNew(2),  BinaryOpUGen.prNew,  
+	Array.prNew(2),  BinaryOpUGen.prNew,  Array.prNew(2),  BinaryOpUGen.prNew,  
+	Array.prNew(2),  BinaryOpUGen.prNew,  Array.prNew(2),  BinaryOpUGen.prNew,  
+	Array.prNew(2),  BinaryOpUGen.prNew,  Array.prNew(2),  BinaryOpUGen.prNew,  
+	Array.prNew(2),  BinaryOpUGen.prNew,  Array.prNew(2),  BinaryOpUGen.prNew,  
+	Array.prNew(2),  BinaryOpUGen.prNew,  Array.prNew(2),  BinaryOpUGen.prNew,  
+	Array.prNew(2),  InFeedback.prNew,  Array.prNew(1),  Array.prNew(2),  
+	OutputProxy.prNew,  OutputProxy.prNew,  DC.prNew,  Array.prNew(1),  
+	Array.prNew(1),  OutputProxy.prNew,  Select.prNew,  Array.prNew(3),  
+	Select.prNew,  Array.prNew(3),  Select.prNew,  Array.prNew(3),  
+	XFade2.prNew,  Array.prNew(4),  CombL.prNew,  Array.prNew(4),  
+	Select.prNew,  Array.prNew(3),  Select.prNew,  Array.prNew(3),  
+	XFade2.prNew,  Array.prNew(4),  BinaryOpUGen.prNew,  Array.prNew(2),  
+	Select.prNew,  Array.prNew(3),  XFade2.prNew,  Array.prNew(4),  
+	CombL.prNew,  Array.prNew(4),  Select.prNew,  Array.prNew(3),  
+	Select.prNew,  Array.prNew(3),  XFade2.prNew,  Array.prNew(4),  
+	BinaryOpUGen.prNew,  Array.prNew(2),  Control.prNew,  Array.prNew(1),  
+	OutputProxy.prNew,  Array.prNew(1),  BinaryOpUGen.prNew,  Array.prNew(2),  
+	BinaryOpUGen.prNew,  Array.prNew(2),  Out.prNew,  Array.prNew(3),  
+	Control.prNew,  Array.prNew(1),  OutputProxy.prNew,  Array.prNew(1),  
+	Control.prNew,  Array.prNew(1),  OutputProxy.prNew,  Array.prNew(1),  
+	BinaryOpUGen.prNew,  Array.prNew(2),  EnvGen.prNew,  Array.prNew(17),  
+	BinaryOpUGen.prNew,  Array.prNew(2),  BinaryOpUGen.prNew,  Array.prNew(2),  
+	Control.prNew,  Array.prNew(1),  OutputProxy.prNew,  Array.prNew(1),  
+	Out.prNew,  Array.prNew(3),  Dictionary.prNew,  Array.prNew(32),  
+	Set.prNew,  Array.prNew(16),  Array.prNew,  Array.prNew(1)
+];
+p = [
+	// ProxyNodeMap
+	0, [ settings: o[1],  upToDate: true,  
+		setArgs: o[6],  setnArgs: nil,  
+		mapArgs: nil,  mapnArgs: nil,  
+		mapaArgs: nil,  mapanArgs: nil,  
+		controlNames: o[7],  parents: o[11],  
+		proxy: o[13],  hasRates: false ],  
+	// IdentityDictionary
+	1, [ array: o[2],  size: 3,  
+		proto: nil,  parent: nil,  
+		know: false ],  
+	// Array
+	2, [ 'out',  o[3],  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		'fadeTime',  o[4],  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  'i_out',  o[5],  
+		nil,  nil,  nil,  nil ],  
+	// ProxyNodeMapSetting
+	3, [ key: 'out',  value: 40,  
+		busNumChannels: nil,  isMultiChannel: false,  
+		isMapped: false,  mappedRate: nil,  
+		rate: nil ],  
+	// ProxyNodeMapSetting
+	4, [ key: 'fadeTime',  value: 1,  
+		busNumChannels: nil,  isMultiChannel: false,  
+		isMapped: false,  mappedRate: nil,  
+		rate: nil ],  
+	// ProxyNodeMapSetting
+	5, [ key: 'i_out',  value: 40,  
+		busNumChannels: nil,  isMultiChannel: false,  
+		isMapped: false,  mappedRate: nil,  
+		rate: nil ],  
+	// Array
+	6, [ 'out',  40,  'fadeTime',  1,  
+		'i_out',  40 ],  
+	// Array
+	7, [ o[8],  o[9],  o[10] ],  
+	// ControlName
+	8, [ name: 'out',  index: nil,  
+		rate: nil,  defaultValue: 40,  
+		argNum: nil,  lag: 0.000000 ],  
+	// ControlName
+	9, [ name: 'fadeTime',  index: nil,  
+		rate: nil,  defaultValue: 1,  
+		argNum: nil,  lag: 0.000000 ],  
+	// ControlName
+	10, [ name: 'i_out',  index: nil,  
+		rate: nil,  defaultValue: 40,  
+		argNum: nil,  lag: 0.000000 ],  
+	// IdentityDictionary
+	11, [ array: o[12],  size: 0,  
+		proto: nil,  parent: nil,  
+		know: false ],  
+	// Array
+	12, [ nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil ],  
+	// Ndef
+	13, [ server: o[14],  bus: o[15],  
+		monitor: o[16],  parentGroup: nil,  
+		busArg: o[24],  busLoaded: true,  
+		group: o[27],  objects: o[29],  
+		nodeMap: o[0],  loaded: true,  
+		awake: true,  paused: false,  
+		clock: nil,  quant: nil,  
+		key: '38fx' ],  
+	// Bus
+	15, [ rate: 'audio',  index: 40,  
+		numChannels: 2,  server: o[14],  
+		mapSymbol: nil ],  
+	// Monitor
+	16, [ ins: o[17],  outs: o[18],  
+		amps: o[19],  vol: 1.000000,  
+		group: o[20],  synthIDs: o[22],  
+		synthAmps: o[23],  fadeTime: 0.020000,  
+		usedPlayN: false ],  
+	// Array
+	17, [ 40,  40,  40 ],  
+	// Array
+	18, [ 110 ],  
+	// Array
+	19, [ 1.000000 ],  
+	// Group
+	20, [ nodeID: 1806,  server: o[14],  
+		group: o[21],  isPlaying: true,  
+		isRunning: true ],  
+	// Group
+	21, [ nodeID: 1,  server: o[14],  
+		group: nil,  isPlaying: false,  
+		isRunning: false ],  
+	// Array
+	22, [ 1135,  1807 ],  
+	// Array
+	24, [ o[25],  o[26] ],  
+	// Group
+	27, [ nodeID: 1804,  server: o[14],  
+		group: o[28],  isPlaying: true,  
+		isRunning: true ],  
+	// Group
+	28, [ nodeID: 1,  server: o[14],  
+		group: nil,  isPlaying: false,  
+		isRunning: false ],  
+	// Order
+	29, [ array: o[30],  indices: o[159] ],  
+	// Array
+	30, [ o[31] ],  
+	// SynthDefControl
+	31, [ source: o[32],  channelOffset: 0,  
+		paused: false,  server: o[14],  
+		nodeID: 9267,  canReleaseSynth: true,  
+		canFreeSynth: true,  synthDef: o[33],  
+		parents: nil ],  
+	// ProxySynthDef
+	33, [ name: o[34],  func: nil,  
+		controls: o[35],  controlNames: nil,  
+		allControlNames: o[36],  controlIndex: 10,  
+		children: o[47],  constants: o[154],  
+		constantSet: o[156],  maxLocalBufs: nil,  
+		available: o[158],  variants: nil,  
+		widthFirstUGens: nil,  rewriteInProgress: nil,  
+		desc: nil,  metadata: nil,  
+		rate: 'audio',  numChannels: 2,  
+		canReleaseSynth: true,  canFreeSynth: true ],  
+	// Array
+	35, [ 1,  0.500000,  1,  0.100000,  
+		0.100000,  0.500000,  0,  1.000000,  
+		0.020000,  0 ],  
+	// Array
+	36, [ o[37],  o[38],  o[39],  o[40],  
+		o[41],  o[42],  o[43],  o[44],  
+		o[45],  o[46] ],  
+	// ControlName
+	37, [ name: 'amp',  index: 0,  
+		rate: 'control',  defaultValue: 1,  
+		argNum: 0,  lag: 0 ],  
+	// ControlName
+	38, [ name: 'mix',  index: 1,  
+		rate: 'control',  defaultValue: 0.500000,  
+		argNum: 1,  lag: 0 ],  
+	// ControlName
+	39, [ name: 'inmix',  index: 2,  
+		rate: 'control',  defaultValue: 1,  
+		argNum: 2,  lag: 0 ],  
+	// ControlName
+	40, [ name: 'maxdelay',  index: 3,  
+		rate: 'control',  defaultValue: 0.100000,  
+		argNum: 3,  lag: 0 ],  
+	// ControlName
+	41, [ name: 'delay',  index: 4,  
+		rate: 'control',  defaultValue: 0.100000,  
+		argNum: 4,  lag: 0 ],  
+	// ControlName
+	42, [ name: 'decay',  index: 5,  
+		rate: 'control',  defaultValue: 0.500000,  
+		argNum: 5,  lag: 0 ],  
+	// ControlName
+	43, [ name: 'sendfx1',  index: 6,  
+		rate: 'control',  defaultValue: 0,  
+		argNum: 6,  lag: 0.000000 ],  
+	// ControlName
+	44, [ name: 'gate',  index: 7,  
+		rate: 'control',  defaultValue: 1.000000,  
+		argNum: 0,  lag: 0.000000 ],  
+	// ControlName
+	45, [ name: 'fadeTime',  index: 8,  
+		rate: 'control',  defaultValue: 0.020000,  
+		argNum: 1,  lag: 0.000000 ],  
+	// ControlName
+	46, [ name: 'out',  index: 9,  
+		rate: 'control',  defaultValue: 0,  
+		argNum: 9,  lag: 0.000000 ],  
+	// Array
+	47, [ o[48],  o[57],  o[59],  o[61],  
+		o[63],  o[65],  o[67],  o[69],  
+		o[71],  o[73],  o[75],  o[77],  
+		o[79],  o[81],  o[86],  o[90],  
+		o[92],  o[94],  o[96],  o[98],  
+		o[100],  o[102],  o[104],  o[106],  
+		o[108],  o[110],  o[112],  o[114],  
+		o[116],  o[118],  o[120],  o[122],  
+		o[126],  o[128],  o[130],  o[132],  
+		o[136],  o[140],  o[142],  o[144],  
+		o[146],  o[148],  o[152] ],  
+	// Control
+	48, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 0,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		channels: o[49],  values: o[56] ],  
+	// Array
+	49, [ o[50],  o[51],  o[52],  o[53],  
+		o[54],  o[55] ],  
+	// OutputProxy
+	50, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 0,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[48],  outputIndex: 0,  
+		name: 'amp' ],  
+	// OutputProxy
+	51, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 0,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[48],  outputIndex: 1,  
+		name: 'mix' ],  
+	// OutputProxy
+	52, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 0,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[48],  outputIndex: 2,  
+		name: 'inmix' ],  
+	// OutputProxy
+	53, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 0,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[48],  outputIndex: 3,  
+		name: 'maxdelay' ],  
+	// OutputProxy
+	54, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 0,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[48],  outputIndex: 4,  
+		name: 'delay' ],  
+	// OutputProxy
+	55, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 0,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[48],  outputIndex: 5,  
+		name: 'decay' ],  
+	// Array
+	56, [ 1,  0.500000,  1,  0.100000,  
+		0.100000,  0.500000,  0,  1.000000 ],  
+	// BinaryOpUGen
+	57, [ synthDef: o[33],  inputs: o[58],  
+		rate: 'control',  synthIndex: 1,  
+		specialIndex: 19,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: 'round' ],  
+	// Array
+	58, [ o[52],  2 ],  
+	// BinaryOpUGen
+	59, [ synthDef: o[33],  inputs: o[60],  
+		rate: 'control',  synthIndex: 2,  
+		specialIndex: 21,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: 'trunc' ],  
+	// Array
+	60, [ o[52],  2 ],  
+	// BinaryOpUGen
+	61, [ synthDef: o[33],  inputs: o[62],  
+		rate: 'control',  synthIndex: 3,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '+' ],  
+	// Array
+	62, [ o[59],  1 ],  
+	// BinaryOpUGen
+	63, [ synthDef: o[33],  inputs: o[64],  
+		rate: 'control',  synthIndex: 4,  
+		specialIndex: 2,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '*' ],  
+	// Array
+	64, [ o[52],  2 ],  
+	// BinaryOpUGen
+	65, [ synthDef: o[33],  inputs: o[66],  
+		rate: 'control',  synthIndex: 5,  
+		specialIndex: 1,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '-' ],  
+	// Array
+	66, [ o[63],  1 ],  
+	// BinaryOpUGen
+	67, [ synthDef: o[33],  inputs: o[68],  
+		rate: 'control',  synthIndex: 6,  
+		specialIndex: 44,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: 'fold2' ],  
+	// Array
+	68, [ o[65],  1 ],  
+	// BinaryOpUGen
+	69, [ synthDef: o[33],  inputs: o[70],  
+		rate: 'control',  synthIndex: 7,  
+		specialIndex: 19,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: 'round' ],  
+	// Array
+	70, [ o[51],  2 ],  
+	// BinaryOpUGen
+	71, [ synthDef: o[33],  inputs: o[72],  
+		rate: 'control',  synthIndex: 8,  
+		specialIndex: 21,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: 'trunc' ],  
+	// Array
+	72, [ o[51],  2 ],  
+	// BinaryOpUGen
+	73, [ synthDef: o[33],  inputs: o[74],  
+		rate: 'control',  synthIndex: 9,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '+' ],  
+	// Array
+	74, [ o[71],  1 ],  
+	// BinaryOpUGen
+	75, [ synthDef: o[33],  inputs: o[76],  
+		rate: 'control',  synthIndex: 10,  
+		specialIndex: 2,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '*' ],  
+	// Array
+	76, [ o[51],  2 ],  
+	// BinaryOpUGen
+	77, [ synthDef: o[33],  inputs: o[78],  
+		rate: 'control',  synthIndex: 11,  
+		specialIndex: 1,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '-' ],  
+	// Array
+	78, [ o[75],  1 ],  
+	// BinaryOpUGen
+	79, [ synthDef: o[33],  inputs: o[80],  
+		rate: 'control',  synthIndex: 12,  
+		specialIndex: 44,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: 'fold2' ],  
+	// Array
+	80, [ o[77],  1 ],  
+	// InFeedback
+	81, [ synthDef: o[33],  inputs: o[82],  
+		rate: 'audio',  synthIndex: 13,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		channels: o[83] ],  
+	// Array
+	82, [ 28 ],  
+	// Array
+	83, [ o[84],  o[85] ],  
+	// OutputProxy
+	84, [ synthDef: o[33],  inputs: nil,  
+		rate: 'audio',  synthIndex: 13,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[81],  outputIndex: 0,  
+		name: nil ],  
+	// OutputProxy
+	85, [ synthDef: o[33],  inputs: nil,  
+		rate: 'audio',  synthIndex: 13,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[81],  outputIndex: 1,  
+		name: nil ],  
+	// DC
+	86, [ synthDef: o[33],  inputs: o[87],  
+		rate: 'audio',  synthIndex: 14,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		channels: o[88] ],  
+	// Array
+	87, [ 0 ],  
+	// Array
+	88, [ o[89] ],  
+	// OutputProxy
+	89, [ synthDef: o[33],  inputs: nil,  
+		rate: 'audio',  synthIndex: 14,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[86],  outputIndex: 0,  
+		name: nil ],  
+	// Select
+	90, [ synthDef: o[33],  inputs: o[91],  
+		rate: 'audio',  synthIndex: 15,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	91, [ o[57],  o[89],  o[84] ],  
+	// Select
+	92, [ synthDef: o[33],  inputs: o[93],  
+		rate: 'audio',  synthIndex: 16,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	93, [ o[57],  o[89],  o[85] ],  
+	// Select
+	94, [ synthDef: o[33],  inputs: o[95],  
+		rate: 'audio',  synthIndex: 17,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	95, [ o[61],  o[89],  o[84] ],  
+	// XFade2
+	96, [ synthDef: o[33],  inputs: o[97],  
+		rate: 'audio',  synthIndex: 18,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	97, [ o[90],  o[94],  o[67],  1.000000 ],  
+	// CombL
+	98, [ synthDef: o[33],  inputs: o[99],  
+		rate: 'audio',  synthIndex: 19,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	99, [ o[96],  o[53],  o[54],  o[55] ],  
+	// Select
+	100, [ synthDef: o[33],  inputs: o[101],  
+		rate: 'audio',  synthIndex: 20,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	101, [ o[69],  o[84],  o[98] ],  
+	// Select
+	102, [ synthDef: o[33],  inputs: o[103],  
+		rate: 'audio',  synthIndex: 21,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	103, [ o[73],  o[84],  o[98] ],  
+	// XFade2
+	104, [ synthDef: o[33],  inputs: o[105],  
+		rate: 'audio',  synthIndex: 22,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	105, [ o[100],  o[102],  o[79],  1.000000 ],  
+	// BinaryOpUGen
+	106, [ synthDef: o[33],  inputs: o[107],  
+		rate: 'audio',  synthIndex: 23,  
+		specialIndex: 2,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '*' ],  
+	// Array
+	107, [ o[104],  o[50] ],  
+	// Select
+	108, [ synthDef: o[33],  inputs: o[109],  
+		rate: 'audio',  synthIndex: 24,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	109, [ o[61],  o[89],  o[85] ],  
+	// XFade2
+	110, [ synthDef: o[33],  inputs: o[111],  
+		rate: 'audio',  synthIndex: 25,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	111, [ o[92],  o[108],  o[67],  1.000000 ],  
+	// CombL
+	112, [ synthDef: o[33],  inputs: o[113],  
+		rate: 'audio',  synthIndex: 26,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	113, [ o[110],  o[53],  o[54],  o[55] ],  
+	// Select
+	114, [ synthDef: o[33],  inputs: o[115],  
+		rate: 'audio',  synthIndex: 27,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	115, [ o[69],  o[85],  o[112] ],  
+	// Select
+	116, [ synthDef: o[33],  inputs: o[117],  
+		rate: 'audio',  synthIndex: 28,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	117, [ o[73],  o[85],  o[112] ],  
+	// XFade2
+	118, [ synthDef: o[33],  inputs: o[119],  
+		rate: 'audio',  synthIndex: 29,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	119, [ o[114],  o[116],  o[79],  1.000000 ],  
+	// BinaryOpUGen
+	120, [ synthDef: o[33],  inputs: o[121],  
+		rate: 'audio',  synthIndex: 30,  
+		specialIndex: 2,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '*' ],  
+	// Array
+	121, [ o[118],  o[50] ],  
+	// Control
+	122, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 31,  
+		specialIndex: 6,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		channels: o[123],  values: o[125] ],  
+	// Array
+	123, [ o[124] ],  
+	// OutputProxy
+	124, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 31,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[122],  outputIndex: 0,  
+		name: nil ],  
+	// Array
+	125, [ 0 ],  
+	// BinaryOpUGen
+	126, [ synthDef: o[33],  inputs: o[127],  
+		rate: 'audio',  synthIndex: 32,  
+		specialIndex: 2,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '*' ],  
+	// Array
+	127, [ o[98],  o[124] ],  
+	// BinaryOpUGen
+	128, [ synthDef: o[33],  inputs: o[129],  
+		rate: 'audio',  synthIndex: 33,  
+		specialIndex: 2,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '*' ],  
+	// Array
+	129, [ o[112],  o[124] ],  
+	// Out
+	130, [ synthDef: o[33],  inputs: o[131],  
+		rate: 'audio',  synthIndex: 34,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	131, [ 26,  o[126],  o[128] ],  
+	// Control
+	132, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 35,  
+		specialIndex: 7,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		channels: o[133],  values: o[135] ],  
+	// Array
+	133, [ o[134] ],  
+	// OutputProxy
+	134, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 35,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[132],  outputIndex: 0,  
+		name: nil ],  
+	// Array
+	135, [ 1.000000 ],  
+	// Control
+	136, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 36,  
+		specialIndex: 8,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		channels: o[137],  values: o[139] ],  
+	// Array
+	137, [ o[138] ],  
+	// OutputProxy
+	138, [ synthDef: o[33],  inputs: nil,  
+		rate: 'control',  synthIndex: 36,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[136],  outputIndex: 0,  
+		name: nil ],  
+	// Array
+	139, [ 0.020000 ],  
+	// BinaryOpUGen
+	140, [ synthDef: o[33],  inputs: o[141],  
+		rate: 'control',  synthIndex: 37,  
+		specialIndex: 10,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '<=' ],  
+	// Array
+	141, [ o[138],  0 ],  
+	// EnvGen
+	142, [ synthDef: o[33],  inputs: o[143],  
+		rate: 'control',  synthIndex: 38,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	143, [ o[134],  1,  0.000000,  o[138],  
+		2,  o[140],  2,  1,  
+		-99,  1.000000,  1.000000,  3,  
+		0,  0.000000,  1.000000,  3,  
+		0 ],  
+	// BinaryOpUGen
+	144, [ synthDef: o[33],  inputs: o[145],  
+		rate: 'audio',  synthIndex: 39,  
+		specialIndex: 2,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '*' ],  
+	// Array
+	145, [ o[106],  o[142] ],  
+	// BinaryOpUGen
+	146, [ synthDef: o[33],  inputs: o[147],  
+		rate: 'audio',  synthIndex: 40,  
+		specialIndex: 2,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		operator: '*' ],  
+	// Array
+	147, [ o[120],  o[142] ],  
+	// Control
+	148, [ synthDef: o[33],  inputs: nil,  
+		rate: 'scalar',  synthIndex: 41,  
+		specialIndex: 9,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		channels: o[149],  values: o[151] ],  
+	// Array
+	149, [ o[150] ],  
+	// OutputProxy
+	150, [ synthDef: o[33],  inputs: nil,  
+		rate: 'scalar',  synthIndex: 41,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil,  
+		source: o[148],  outputIndex: 0,  
+		name: nil ],  
+	// Array
+	151, [ 0 ],  
+	// Out
+	152, [ synthDef: o[33],  inputs: o[153],  
+		rate: 'audio',  synthIndex: 42,  
+		specialIndex: 0,  antecedents: nil,  
+		descendants: nil,  widthFirstAntecedents: nil ],  
+	// Array
+	153, [ o[150],  o[144],  o[146] ],  
+	// Dictionary
+	154, [ array: o[155],  size: 7 ],  
+	// Array
+	155, [ nil,  nil,  nil,  nil,  
+		0.000000,  1,  3.000000,  6,  
+		28.000000,  0,  2.000000,  2,  
+		-99.000000,  5,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		26.000000,  4,  1.000000,  3 ],  
+	// Set
+	156, [ array: o[157],  size: 7 ],  
+	// Array
+	157, [ nil,  nil,  0.000000,  3.000000,  
+		28.000000,  2.000000,  -99.000000,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  26.000000,  1.000000 ],  
+	// Array
+	159, [ 0 ]
+];
+prUnarchive(o,p);

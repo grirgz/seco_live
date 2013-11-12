@@ -1,0 +1,46 @@
+var o, p;
+o = [
+	ProxyNodeMap.prNew,  IdentityDictionary.prNew,  Array.prNew(32),  ProxyNodeMapSetting.prNew,  
+	IdentityDictionary.prNew,  Array.prNew(32)
+];
+p = [
+	// ProxyNodeMap
+	0, [ settings: o[1],  upToDate: false,  
+		setArgs: nil,  setnArgs: nil,  
+		mapArgs: nil,  mapnArgs: nil,  
+		mapaArgs: nil,  mapanArgs: nil,  
+		controlNames: nil,  parents: o[4],  
+		proxy: nil,  hasRates: false ],  
+	// IdentityDictionary
+	1, [ array: o[2],  size: 1,  
+		proto: nil,  parent: nil,  
+		know: false ],  
+	// Array
+	2, [ nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		'fadeTime',  o[3],  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil ],  
+	// ProxyNodeMapSetting
+	3, [ key: 'fadeTime',  value: 4,  
+		busNumChannels: nil,  isMultiChannel: false,  
+		isMapped: false,  mappedRate: nil,  
+		rate: nil ],  
+	// IdentityDictionary
+	4, [ array: o[5],  size: 0,  
+		proto: nil,  parent: nil,  
+		know: false ],  
+	// Array
+	5, [ nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil,  
+		nil,  nil,  nil,  nil ]
+];
+prUnarchive(o,p);

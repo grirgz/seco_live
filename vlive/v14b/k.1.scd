@@ -3,11 +3,11 @@ Pdef(~name +++ \pre, Pbind(
 	\degree, Pseq([1,0,-2,4, 0,-1,6,0],inf).stutter(1),
 	\octave, 3,
 	\dur, 1/8,
-	\mtranspose, Pstep(Pseq([0,2],inf),2),
+	//\mtranspose, Pstep(Pseq([0,2],inf),2),
+	\mtranspose, Pseq([0,2],inf).stutter(16),
 	\isRest, Veco(~namex).isrest(16),
 ));
 
-Ndef(~name+++\fx).play(BusDef(~name+++\mixer));
 Ndef(~name+++\fx, {
 	var in = In.ar(BusDef(~name+++\fx),2);
 	var sig;

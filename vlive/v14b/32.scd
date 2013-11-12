@@ -21,6 +21,7 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 );
 
 // END
+BufferPool.reset
 
 Ndef(~name+++\mixer).edit
 Ndef(~name+++\mixer).play

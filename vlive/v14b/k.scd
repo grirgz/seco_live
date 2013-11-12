@@ -35,6 +35,9 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 ) <> Veco(~name).mixer)
 );
 
+Pdef(~name+++\pre).quant = [8, 0,0,4];
+Pdef(~name).quant = [8, 0,0,4];
+
 // END
 
 ~mixer_gui.new(~veco)

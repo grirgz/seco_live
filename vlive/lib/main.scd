@@ -157,4 +157,15 @@ ControlSpec.specs[\spread] = \unipolar.asSpec;
 	rout
 };
 
+~save_object = { arg name, object;
+	if(object.notNil) {
+		object.writeArchive(Veco.main.data_path +/+ name ++ ".obj");
+	};
+};
+~load_object = { arg name;
+	var res = Object.readArchive(Veco.main.data_path +/+ name ++ ".obj");
+	if(res.isNil) { name.debug("load_object: nil!!!"); 1.lskjd };
+	res;
+};
+
 );
