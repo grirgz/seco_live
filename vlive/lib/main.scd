@@ -48,6 +48,23 @@
 	});
 };
 
+~newlfo = { arg suffix;
+	var name = ~name;
+	var fxname = name+++suffix;
+	BusDef(fxname, \audio);
+
+	Veco(name).add_play_node_hook(\fx, {
+		fxname.debug("play FX");
+		//Ndef(fxname).send;
+		Ndef(fxname).play(BusDef(name+++\mixer));
+	});
+
+	Veco(name).add_stop_node_hook(\fx, {
+		fxname.debug("stop FX");
+		Ndef(fxname).end(Ndef(fxname).fadeTime);
+	});
+};
+
 ~isrest = { arg pat;
 	pat.collect { arg x; if(x == 1) { false } { true } }
 };
@@ -192,8 +209,18 @@ ControlSpec.specs[\spread] = \unipolar.asSpec;
 };
 ~load_object = { arg name;
 	var res = Object.readArchive(Veco.main.data_path +/+ name ++ ".obj");
-	if(res.isNil) { name.debug("load_object: nil!!!"); 1.lskjd };
+	if(res.isNil) { name.debug("load_object: nil!!!"); 1.cantLoadNilObject };
 	res;
+};
+
+~get_mixer_group = {
+	
+	if(~mixer_group.isPlaying.not) {
+		~mixer_group = Group.after;
+		~mixer_group.register(true);
+		~mixer_group.isPlaying;
+	};
+	~mixer_group;
 };
 
 );

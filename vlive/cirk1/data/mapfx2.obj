@@ -53,7 +53,7 @@ o = [
 ];
 p = [
 	// ProxyNodeMap
-	0, [ settings: o[1],  upToDate: true,  
+	0, [ settings: o[1],  upToDate: false,  
 		setArgs: o[6],  setnArgs: nil,  
 		mapArgs: nil,  mapnArgs: nil,  
 		mapaArgs: nil,  mapanArgs: nil,  
@@ -78,7 +78,7 @@ p = [
 		isMapped: false,  mappedRate: nil,  
 		rate: nil ],  
 	// ProxyNodeMapSetting
-	4, [ key: 'fadeTime',  value: 4,  
+	4, [ key: 'fadeTime',  value: 1,  
 		busNumChannels: nil,  isMultiChannel: false,  
 		isMapped: false,  mappedRate: nil,  
 		rate: nil ],  
@@ -88,7 +88,7 @@ p = [
 		isMapped: false,  mappedRate: nil,  
 		rate: nil ],  
 	// Array
-	6, [ 'out',  72,  'fadeTime',  4,  
+	6, [ 'out',  72,  'fadeTime',  1,  
 		'i_out',  72 ],  
 	// Array
 	7, [ o[8],  o[9],  o[10] ],  
@@ -98,7 +98,7 @@ p = [
 		argNum: nil,  lag: 0.000000 ],  
 	// ControlName
 	9, [ name: 'fadeTime',  index: nil,  
-		rate: nil,  defaultValue: 4,  
+		rate: nil,  defaultValue: 1,  
 		argNum: nil,  lag: 0.000000 ],  
 	// ControlName
 	10, [ name: 'i_out',  index: nil,  
@@ -143,7 +143,7 @@ p = [
 	// Array
 	19, [ 1.000000 ],  
 	// Group
-	20, [ nodeID: 4754,  server: o[14],  
+	20, [ nodeID: 6598,  server: o[14],  
 		group: o[21],  isPlaying: true,  
 		isRunning: true ],  
 	// Group
@@ -151,11 +151,11 @@ p = [
 		group: nil,  isPlaying: false,  
 		isRunning: false ],  
 	// Array
-	22, [ 4755 ],  
+	22, [ 6599 ],  
 	// Array
 	23, [ o[24],  o[25] ],  
 	// Group
-	26, [ nodeID: 4752,  server: o[14],  
+	26, [ nodeID: 6597,  server: o[14],  
 		group: o[27],  isPlaying: true,  
 		isRunning: true ],  
 	// Group
@@ -169,7 +169,7 @@ p = [
 	// SynthDefControl
 	30, [ source: o[31],  channelOffset: 0,  
 		paused: false,  server: o[14],  
-		nodeID: 4753,  canReleaseSynth: true,  
+		nodeID: 7460,  canReleaseSynth: true,  
 		canFreeSynth: true,  synthDef: o[32],  
 		parents: nil ],  
 	// ProxySynthDef
@@ -179,10 +179,10 @@ p = [
 		children: o[46],  constants: o[153],  
 		constantSet: o[155],  maxLocalBufs: nil,  
 		available: o[157],  variants: nil,  
-		widthFirstUGens: nil,  rewriteInProgress: nil,  
-		desc: nil,  metadata: nil,  
-		rate: 'audio',  numChannels: 2,  
-		canReleaseSynth: true,  canFreeSynth: true ],  
+		widthFirstUGens: nil,  desc: nil,  
+		metadata: nil,  rate: 'audio',  
+		numChannels: 2,  canReleaseSynth: true,  
+		canFreeSynth: true ],  
 	// Array
 	34, [ 1,  0.500000,  1,  0.100000,  
 		0.100000,  0.500000,  0,  1.000000,  

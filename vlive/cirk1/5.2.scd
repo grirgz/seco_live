@@ -2,11 +2,12 @@ BufDef(\march, "vipere/march.flac");
 (
 //Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,8.9)).range(0,0.02) + 0.45  });
 //Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,1.9)).range(0,0.02) + 0.15  });
-~buf = BufDef(\moeten);
 ~buf = BufDef(\march);
+~buf = BufDef(\moeten);
 Ndef(~name+++\lfo1).quant = Pdef.defaultQuant;
 //Ndef(~name+++\lfo1, { Phasor.kr(0, (1/SampleRate.ir).poll *1, 0, 0.81) + 0.1 + LFPulse.kr(8).range(0,0.0001).lag(0.1)});
-Ndef(~name+++\lfo1, { arg freq=8, maxrange=0.01, difrange=0.01; LFPulse.kr(freq * t).range(maxrange+difrange,maxrange).lag(0.051)});
+//Ndef(~name+++\lfo1, { arg freq=8, maxrange=0.01, difrange=0.01; LFPulse.kr(freq * t).range(maxrange+difrange,maxrange).lag(0.051)});
+Ndef(~name+++\lfo1, { arg freq=8, maxrange=0.01, difrange=0.01; LFSaw.kr(freq * t).range(maxrange,difrange+maxrange).lag(0.051)});
 Ndef(~name+++\lfo1).put(1, \set -> Pbind(
 	\freq, Pseq([8,8,16,4]/8,inf),
 	\freq, Pseq([
@@ -20,14 +21,15 @@ Ndef(~name+++\lfo1).put(1, \set -> Pbind(
 		8,8,4,4,
 		0,0,0,0,
 	],inf),
+	//\freq, 0.01,
 	\maxrange, Pseq([
 		0.01,0.01,0.01,0.02,
 	],inf),
 	\difrange, Pseq([
 		0.01,0.01,0.1,0.02,
 	],inf),
-	\maxrange, 0.01,
-	\difrange, 0.01,
+	\maxrange, 0.0101,
+	\difrange, 0.0011,
 	\dur, 1/2,
 ));
 //Ndef(~name+++\lfo1, { 0.1 + LFPulse.kr(1).range(0,0.0008).lag(0.4)});
@@ -36,9 +38,11 @@ Ndef(~name+++\lfo1).put(1, \set -> Pbind(
 //Ndef(~name+++\lfo2, { LFSaw.kr(SinOsc.kr(1.12).range(0.01,4.9)).range(0.0001,0.0012)  });
 Pdef(~name +++ \pre, 
 	Pbind(
-		\range, Ndef(~name+++\lfo1),
-		\freq, Pseq([50,50,60,40],inf).stutter(16),
-		\ffreq, Pseq([1000,2000,3000,5000],inf) - Pseq([500,700,0],inf),
+		//\range, Ndef(~name+++\lfo1),
+		\freq, Pseq([50,50,60,40]*2,inf).stutter(16),
+		//\ffreq, Pseq([1000,2000,3000,5000],inf) - Pseq([500,700,0],inf),
+		//\ffreq, Pkey(\freq) * 6 + Pseq([50,70,0],inf),
+		\ffreq, Pkey(\freq) * 8,
 		\rq, Pseq([
 			0.1,2,0.3,5,
 			0.1,0.2,0.3,5,
@@ -87,7 +91,7 @@ Pdef(~name +++ \pre,
 	\adsr, Pseq([
 		[ Env.adsr(0.01,0.3,0.5,0.21) ],
 	],inf),
-	\legato, 1.0,
+	\legato, 0.5,
 	\amp, 1 * Pkey(\amp),
 ));
 )

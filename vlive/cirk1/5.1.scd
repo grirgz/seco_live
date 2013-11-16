@@ -62,7 +62,7 @@ Pdef(~name +++ \pre,
 	\adsr, Pseq([
 		[ Env.adsr(0.01,0.3,0.5,0.21) ],
 	],inf),
-	\legato, 4.0,
+	\legato, 2.0,
 	\amp, 1 * Pkey(\amp),
 ));
 )

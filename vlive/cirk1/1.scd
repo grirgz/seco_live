@@ -14,30 +14,41 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 }).add;
 );
 
-~newfxmix.(\fx);
+(
+
+{
+
+	var name = ~name;
+	var suffix = \fx;
+	var fxname = name+++suffix;
+	BusDef(fxname, \audio);
+
+	Veco(name).add_play_node_hook(\fx, {
+		fxname.debug("play FX");
+		//Ndef(fxname).send;
+		Ndef(name+++\lfo1, Library.at(name+++\lfo1));
+		Ndef(fxname, Library.at(name+++\fx)).play(BusDef(name+++\mixer));
+	});
+
+	Veco(name).add_stop_node_hook(\fx, {
+		fxname.debug("stop FX");
+		Ndef(fxname).end(Ndef(fxname).fadeTime);
+		Ndef(name+++\lfo1).free;
+	});
+}.value;
+);
+//~newfxmix.(\fx);
 Veco(~name).make_mixer;
 ~num_beats = 1;
-
-//(
-//Ndef(~name+++\fx).isource= { arg ffreq=300, rq=0.3, choose=1, freqshift=40, time=2;
-//	var in = In.ar(BusDef(~name+++\fx),2);
-//	var sig;
-//	var sig1,sig2,sig3,sig4,sig5;
-//	var ramp;
-//	sig = in;
-//	sig1 = RLPF.ar(sig, ffreq, rq);
-//	ramp = Sweep.kr(Impulse.kr(1/time), 1/time * freqshift) * -1;
-//	sig2 = FreqShift.ar(sig, ramp);
-//	sig = SelectX.ar(choose, [sig1, sig2]);
-//	sig;
-//};
-//);
-
 Ndef(~name+++\fx).quant=4;
 
+
 (
-Ndef(~name+++\fx, { arg ffreq=300, rq=0.3, choose=1, freqshift=40, time=2, stutter=2;
-	var in = In.ar(BusDef(~name+++\fx),2);
+{
+var name = ~name;
+
+Library.put(~name+++\fx, { arg ffreq=300, rq=0.3, choose=0, freqshift=40, time=2, stutter=2;
+	var in = In.ar(BusDef(name+++\fx),2);
 	var sig;
 	var sig1,sig2,sig3,sig4,sig5;
 	var ramp;
@@ -75,7 +86,7 @@ Ndef(~name+++\fx, { arg ffreq=300, rq=0.3, choose=1, freqshift=40, time=2, stutt
 	//sig = sig2;
 	sig;
 });
-Ndef(~name+++\lfo1, { arg freq=4, base=2100, choose=0, loval=5, hival=1000, time=1; 
+Library.put(~name+++\lfo1, { arg freq=4, base=2100, choose=0, loval=5, hival=1000, time=1; 
 	Select.kr(choose, [
 		SinOsc.kr(freq).range(5,base), 
 		//Line.kr(loval, hival, time)
@@ -83,7 +94,11 @@ Ndef(~name+++\lfo1, { arg freq=4, base=2100, choose=0, loval=5, hival=1000, time
 		//EnvGen.kr(Env([0,1,0],[time,0]).circle, 1),
 	])
 });
+Ndef(~name+++\lfo1, Library.at(~name+++\lfo1));
+Ndef(~name+++\fx, Library.at(~name+++\fx));
 Ndef(~name+++\fx).map(\ffreq, Ndef(~name+++\lfo1));
+
+}.value;
 );
 
 
@@ -103,3 +118,5 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 // END
 
 Ndef(~name+++\lfo).end
+Veco.main.mode_push_again = \replay
+Veco.main.mode_push_again = \stop

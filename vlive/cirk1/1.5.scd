@@ -3,9 +3,9 @@ Pdef(~name +++ \pre, Pbind(
 	\isRest, Veco(~namex).isrest(32),
 
 	//\freq, Pseq([50,60],inf) + 0,
-	\legato, 1.4,
+	\legato, 2.4,
 	\adsr, Pseq([
-		[ Env.adsr(0.1,0.1,0.8,0.4) ],
+		[ Env.adsr(0.01,0.1,0.8,0.004) ],
 	],inf),
 	\dur, Pseq([1/8],inf);
 ));
