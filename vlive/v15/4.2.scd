@@ -1,3 +1,17 @@
+Pdef(~name, Pbind(
+	\instrument, \singrain,
+	\freq, 100,
+	\ffreq, 100,
+	//\ii, i,
+	//\amp, 1/~n,
+	\amp, 0.1,
+	//\dur, Pdefn(~name+++\period) / (i + 1),
+	\dur, 1,
+	\legato, 0.8,
+	\legato, 2,
+));
+
+// END
 
 (
 ~n = 48;

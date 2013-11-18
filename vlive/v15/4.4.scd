@@ -1,3 +1,22 @@
+Pdef(~name, Pbind(
+	\instrument, \singrain,
+	\freq, Pseq([
+		100,50,60,50,
+		100,50,60,50,
+		100,50,60,70,
+		100,50,160,50,
+	],inf),
+	\ffreq, 1100,
+	\isRest, Veco(~namex).isrest(32),
+	//\ii, i,
+	//\amp, 1/~n,
+	\amp, 0.1,
+	//\dur, Pdefn(~name+++\period) / (i + 1),
+	\dur, 1/8,
+	\legato, 0.8
+));
+
+// END
 
 (
 ~n = 48;

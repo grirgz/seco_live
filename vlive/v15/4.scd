@@ -1,14 +1,33 @@
 ~name = \4;
 
 (
-SynthDef(\singrain, { |freq = 440, amp = 0.2, sustain = 1|
-	  var sig;
-	  sig = SinOsc.ar(freq, 0, amp) * EnvGen.kr(Env.perc(0.01, sustain), doneAction: 2);
-	  Out.ar(0, sig ! 2);
+SynthDef(\singrain, { |freq = 440, amp = 0.2, sustain = 1, spread=0.8, pan=0, ffreq=190, rq=0.3, tsustain=1, t_trig=1, mixrlp=0.5, doneAction=2|
+	  var sig, sig2;
+	  var tsus;
+	  //sig = LFSaw.ar(freq * [1,1.07,[1.02,1.03]], 0) * EnvGen.kr(Env.perc(0.01, sustain), doneAction: 2);
+	  sig = LFSaw.ar(freq * [1,1.07,[1.02,1.03]], 0) ;
+	  sig2 = RLPF.ar(sig, ffreq.lag(0.4), rq);
+	  sig = SelectX.ar(mixrlp, [sig, sig2]);
+	  sig = BPeakEQ.ar(sig, freq: [50,1000,5000,10000], rq: 1.001, db: [1,9,8,7], mul: 1, add: 0);
+	  sig = sig.sum;
+	  sig.postln;
+
+	  tsus = Trig.ar(t_trig, tsustain);
+	  sig = sig * EnvGen.kr(Env.perc(0.01, sustain), tsus, doneAction: doneAction);
+	  sig = Splay.ar(sig, spread, amp, pan);
+	  Out.ar(0, sig);
 }).add;
 )
 
 // END
+
+(
+SynthDef(\singrain, { |freq = 440, amp = 0.2, sustain = 1|
+	  var sig;
+	  sig = SinOsc.ar(freq , 0, amp) * EnvGen.kr(Env.perc(0.01, sustain), doneAction: 2);
+	  Out.ar(0, sig ! 2);
+}).add;
+)
 
 (
 SynthDef(\singrain, { |freq = 440, ffreq=500, amp = 0.2, ii=1, sustain = 1, spread=0.8, pan=0|
