@@ -1,0 +1,229 @@
+(
+~buf = BufDef(\moeten);
+~buf = BufDef(\march);
+Ndef(~name+++\lfo1).quant = Pdef.defaultQuant;
+Ndef(~name+++\lfo3).quant = Pdef.defaultQuant;
+//Ndef(~name+++\lfo1, { arg freq=1, fmin=50, fmax=7000; LFPulse.kr(freq * t).range(fmin,fmax).lag(0.051)});
+Ndef(~name+++\lfo1, { arg freq=1, fmin=50, fmax=7000; fmin.lag(0.11)});
+Ndef(~name+++\lfo1).put(1, \set -> Pbind(
+	\freq, Pseq([4,1,16,1,32,8,1,1],inf),
+	\freq, 8,
+	\fmax, 7000,
+	\fmin, 50,
+	\fmin, Pseq([
+		50, 50, 50, 50, 
+		50, 50, 50, 50, 
+		50, 50, 50, 50, 
+		50, 50, 50, 50, 
+
+		50, 50, 50, 50, 
+		750, 50, 50, 50, 
+		50, 50, 50, 50, 
+		5000, 50, 50, 50, 
+	],inf),
+	\fmin, Pseq([
+		300,50,400,50,
+		500,50,600,50
+
+	],inf),
+	\fmin, Pseq([
+		3000,5000,400,50,
+		3000,1000,400,50,
+
+		3000,5000,400,15050,
+		3000,1000,400,50,
+
+	],inf),
+	\fmin, Pseq([
+		300,50,400,50,
+		500,50,600,50
+
+	],inf),
+	\dur, 1/8,
+));
+//Ndef(~name+++\lfo3, { arg freq=20, flag=0.1; freq.lag(flag)});
+Ndef(~name+++\lfo3, { arg freq=20, flag=0.1; SinOsc.kr(freq).range(1,100)});
+Ndef(~name+++\lfo3).put(1, \set -> Pbind(
+	\freq, Pseq([
+		1,2,1,1,
+		0.5,0.5,0.1,0.1,
+		0.01, 0.01, 0.01, 0.01,
+		0.4, 0.4, 0.4, 0.4,
+	]*10,inf),
+	\freq, Pseq([
+		1,2,0.1,0.2,
+		40,20,0.1,0.2,
+
+		1,2,0.1,0.2,
+		10,2,0.1,0.2,
+	],inf),
+	\freq, Pseg(Pseq([1,300],inf), Pseq([8,0],inf)),
+
+	\flag, Pseq([
+		0.1,0.1,0.2,0.1,
+		1.0, 1.0, 0.0, 1.0,
+		0.1,0.1,0.2,0.1,
+		0.1,0.1,0.2,0.1,
+	],inf),
+	\dur, 1/8,
+));
+Ndef(~name+++\lfo4, { arg val=0.1, flag=0.1; val.lag(flag)});
+Ndef(~name+++\lfo4).put(1, \set -> Pbind(
+	\val, 0.01,
+	\val, Pseq([
+		0.1,0.1,0.1,0.1002,
+		0.2,0.1,0.1,0.1002,
+		0.3,0.302,0.1,0.1002,
+		0.2,0.1,0.1,0.1002,
+	],inf) * 0.001 + 0.1,
+	\val, Pseq([
+		4.9,0.0,0.1,0.4002,
+		0.5,0.9,0.8,0.4002,
+
+		0.2,0.1,0.1,0.4002,
+		0.5,0.9,0.8,0.4002,
+	],inf) * 0.001 + 0.2,
+	\val, Pseq([
+		0.0,0.0,0.1,0.4002,
+	],inf) * 0.1 + 0.2,
+	\val, Pseq([
+		0,0,0.2,0.2,
+	],inf) * 0.1 + 0.2,
+	\val, Pseq([
+		0,0,0.5,0.1,
+		0,0.1,0.5,0.1,
+		0.01,0.1,0.5,0.1,
+		0.5,0.1,0.2,0.1,
+	],inf) * 0.1 + 0.2,
+	\val, Pseq([
+		5,0,5,0, 5,5,0,0,
+		5,5,0,0, 5,5,0,0,
+		5,0,5,0, 5,5,0,0,
+		5,5,5,0, 5,0,5,5,
+	],inf) * 0.01 + 0.8 + Pwhite(0,0.001),
+	\val, Pseq([
+		5,0,5,0, 5,5,0,0,
+		5,5,0,0, 5,5,0,0,
+		5,0,5,0, 5,5,0,0,
+		5,5,5,0, 5,0,5,5,
+	],inf) * 0.01 + 0.8 + Pwhite(0,0.001),
+	\flag, 0.9,
+	\flag, Pseq([
+		0.1,0.5,0.1,0.8,
+		0.1,0.1,0.9,0.8,
+	],inf),
+	\dur, 1/8,
+));
+Pdef(~name +++ \pre, 
+	Pbind(
+		\ffreq, Ndef(~name+++\lfo1),
+		\freq, Ndef(~name+++\lfo3).bus.asMap,
+		//\lpmix, 1,
+		\pos, Ndef(~name+++\lfo4),
+		//\freq, 3,
+		\range, Pseg(Pseq([0.0001,0.0008,0.1],inf), Pseq([7,1,0],inf)),
+		\range, Pseg(Pseq([
+			0.0001,0.0002,0.001,0.001,
+			0.0001,0.0002,0.0001,0.001,
+		],inf), Pseq([1],inf)),
+		\range, 0.00001,
+		//\ffreq, 500,
+		\bufnum, ~buf,
+	) <>
+	Sdef(~name, \mypreset).pdef <> Pbind(
+		\range, 0.0001,
+	\legato, 1.0,
+	\dur, 1/8,
+	\amp, 1 * Pkey(\amp),
+));
+)
+
+// END
+
+Sdef(~name, \mypreset).rebuild
+Sdef(~namex, \mypreset).edit
+Sdef(~namex, \mypreset).rebuild(true)
+a = IdentityDictionary.new; a.putPairs( Sdef(~namex, \mypreset).specs ); a[\fshift]
+Sdef(~namex, \mypreset).get(0,0)
+Sdef(~name, \mypreset).active_subindex
+Sdef(~name, \mypreset).all[0][0] = nil
+~score_storage.all['1'][\mypreset] = nil
+
+Pdef.all.do { arg x; x.postln; }
+
+Pdef('1.0.mypreset').source.asCompileString
+Pdef('1.0.mypreset').play
+//Ndef(~name+++\lfo1, { 0.1 + LFPulse.kr(1).range(0,0.0008).lag(0.4)});
+//Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,8.9)).range(0,1.02) + 0.45  });
+//Ndef(~name+++\lfo1, { LFSaw.kr(1.18).range(0,1.02) + 10.45  });
+//Ndef(~name+++\lfo2, { LFSaw.kr(SinOsc.kr(1.12).range(0.01,4.9)).range(0.0001,0.0012)  });
+(
+//Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,8.9)).range(0,0.02) + 0.45  });
+//Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,1.9)).range(0,0.02) + 0.15  });
+~buf = BufDef(\march);
+~buf = BufDef(\moeten);
+Ndef(~name+++\lfo1).quant = Pdef.defaultQuant;
+Ndef(~name+++\lfo3).quant = Pdef.defaultQuant;
+//Ndef(~name+++\lfo1, { Phasor.kr(0, (1/SampleRate.ir).poll *1, 0, 0.81) + 0.1 + LFPulse.kr(8).range(0,0.0001).lag(0.1)});
+Ndef(~name+++\lfo1, { arg freq=1; LFPulse.kr(freq * t).range(50,7500).lag(0.051)});
+Ndef(~name+++\lfo1).put(1, \set -> Pbind(
+	\freq, Pseq([1,1,16,1,1,8,1,1],inf),
+	\dur, 1/2,
+));
+Ndef(~name+++\lfo3, { arg freq=20; freq.lag(0.101)});
+Ndef(~name+++\lfo3).put(1, \set -> Pbind(
+	\freq, Pseq([2,2,16,1]*10,inf),
+	\dur, 1/2,
+));
+Pdef(~name +++ \pre, 
+	Pbind(
+		\ffreq, Ndef(~name+++\lfo1),
+		\freq, Ndef(~name+++\lfo3).bus.asMap,
+
+	) <>
+	
+	Sdef(~name, \mypreset).pdef <> Pbind(
+	\freq, 100,
+	\pos, Pseq([0.0,0.01,0.02,0.03],inf),
+	\pos, Pseg(Pseq([0,0.1],inf),32)+0.5,
+	\pos, 0.412,
+	\posenv, Pseq([
+		//[ Env([0.42,0.3903,0.3513],[0.3,0.4]) ],
+		[ Env([0.001,0.002,0.004].integrate.postln,[0.01,0.1]) ],
+		[ Env([0.001,0.003,0.004].integrate.postln,[0.01,0.1]) ],
+		[ Env([0.001,0.0013,0.004].integrate.postln,[0.01,0.1]) ],
+	],inf),
+	\fshift, 0,
+	\fshift, Pseq([0,48,-40],inf),
+	\fshift, -148,
+	\lpmix, 0.11,
+	\rq, 0.4,
+	\posenv, Pseq([
+		//[ Env([0.42,0.3903,0.3513],[0.3,0.4]) ],
+		[ Env([0.004,0.0009,0.0071].integrate.postln,[0.02,0.4]) ],
+	],inf),
+	//\pos, Ndef(~name+++\lfo1),
+	//\pos, Pseq([0,0.1,0.5],inf) + Pwhite(0,0.01),
+	//\finepos, Ndef(~name+++\lfo1),
+	//\range, Pseg(Pseq([0.001,0.21],inf),8),
+	//\range, Ndef(~name+++\lfo2),
+	\range, 0.0001,
+	\ffreq, Pseq([100,300,200,200],inf),
+	\ffreq, Pseq([60,70,100,120],inf),
+	\ffreq, Pseq([1000,3000,200,2000],inf),
+	\bufnum, ~buf,
+	\ffreqtab, Pn(Plazy({
+		[{ 2.rand } ! 8]
+	})),
+	\ffreqtab, Pseq([
+		[[2.3,3.2,0.1,0.1, 0.2,0.8,1.2,1.5]],
+	],inf),
+	\ffreqtab, Pseq([[Array.series(8,0.5,0.1).postln]],inf),
+	\ffreqtab, Pseq([[Array.geom(8,0.1,1.2).postln]],inf),
+	\adsr, Pseq([
+		[ Env.adsr(0.01,0.3,0.5,0.21) ],
+	],inf),
+	\legato, 16.0,
+	\amp, 1 * Pkey(\amp),
+));
+)
