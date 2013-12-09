@@ -21,6 +21,9 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=5200, rq=0.3, hpfreq=2
 //	Pulse.kr(4.73).range(0.5,1)*300 + sig/5;
 //});
 
+// TODO: use t, and set in in init
+~tempo = TempoClock.default.tempo;
+
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
 Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\instrument, ~name,

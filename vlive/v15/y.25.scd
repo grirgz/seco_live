@@ -78,6 +78,11 @@ Pdef(~name +++ \pre,
 
 // END
 
+~veco === Veco.main
+Sdef.all
+~score_storage.all.keysValuesDo { arg key, val, i; key.debug(i) }
+~score_storage.all[\y][\mypreset].all[24].vals
+
 Sdef(~name, \mypreset).rebuild
 Sdef(~namex, \mypreset).edit
 Sdef(~namex, \mypreset).rebuild(true)

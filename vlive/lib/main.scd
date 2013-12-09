@@ -14,6 +14,7 @@
 	}
 };
 
+~swing = (1 + (0.06 * Pseq([-1,1],inf)));
 
 ~newfx = { arg suffix;
 	var fxname = ~name+++suffix;

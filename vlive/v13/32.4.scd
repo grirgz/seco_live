@@ -17,6 +17,19 @@ Pdef(~name +++ \pre, Pbind(
 		0,2,4,4, 0,0,-2,1,
 		0,0,1,1, 0,0,-2,1,
 	],inf).stutter(4),
+	\degree, Pseq([
+		0,0,0,0,
+		0,0,1b,1, 
+
+		0,0,0,0,
+		0,0,1b,1, 
+
+		0,1,0,0,
+		0,0,1b,1, 
+
+		0,0,0,0,
+		0,0,2,1, 
+	],inf).stutter(4),
 	\octave, [3,4],
 	\isRest, false,
 	\oscmix, Ndef(~name+++\lfo2),

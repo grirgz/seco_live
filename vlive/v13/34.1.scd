@@ -1,4 +1,4 @@
-(
+
 Ndef(~name+++\lfo1, { 
 	var gate = Impulse.kr(1/4);
 	//var env = EnvGen.ar(Env([200,300,150,250],[1.4,1.4,1]),gate,doneAction:0);

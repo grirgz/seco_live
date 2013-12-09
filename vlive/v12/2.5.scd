@@ -1,5 +1,5 @@
 
-Pdef(~name +++ \pre, Sdef(~namex, \mypreset).pbind <> Pbind(
+Pdef(~name +++ \pre, Sdef(~name, \mypreset).pdef <> Pbind(
 	\freq, 100,
 ));
 

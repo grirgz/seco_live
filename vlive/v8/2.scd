@@ -26,7 +26,9 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\instrument, ~name,
 	\degree, Pseq([0],inf),
 	\isRest, Veco(~name).isrest,
-	\sustain, 1,
+	//\sustain, 1,
+	//\sustain, 0.1,
+	\legato, 1,
 	\dur, 1/2,
 	\amp, 0.1
 ))

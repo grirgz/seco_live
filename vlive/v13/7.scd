@@ -14,8 +14,14 @@ SynthDef(~name, { arg out=0, gate=1, freq=100, offset=0.005, doneAction=2, amp=0
 	sig = sig * aEnv;
 	sig = Splay.ar(sig, 0.8, amp);
 	Out.ar(out, sig);
-}).add;
+}, metadata:(specs:(
+	fenv: \env -> [nil, \unipolar.asSpec, nil, nil, Env([0,1,0], [0.01,0.1], [-9,9])],
+	ffenv: \env -> [nil, \freq.asSpec, nil, nil, Env([0,1,0], [0.01,0.1], [-9,9])],
+	offset: ControlSpec(0.000001,0.1,\exp, 0,0.001),
+	//	duration: ControlSpec(0.001,4,\lin, 0, 1)
+))).add;
 
+Sdef(~name, \mypreset, \preset, ~name);
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
 Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
@@ -27,3 +33,7 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	//\bla, Pfunc({ arg ev; ev[\amp].postln; }),
 ) <> Veco(~name).mixer)
 );
+// END
+
+Sdef(~name, \mypreset).rebuild(true)
+Sdef(~name, \mypreset).edit

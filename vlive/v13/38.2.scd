@@ -8,7 +8,21 @@ Pdef(~name +++ \pre, Pbind(
 		0,2,4,4, 0,0,-2,1,
 		0,0,1,1, 0,0,-2,1,
 	],inf).stutter(4),
+	\degree, Pseq([
+		0,0,0,0,
+		0,0,1b,1, 
+
+		0,0,0,0,
+		0,0,1b,1, 
+
+		0,1,0,0,
+		0,0,1b,1, 
+
+		0,0,0,0,
+		0,0,2,1, 
+	],inf).stutter(4),
 	//\freq, 
+	\scale, Scale.minor,
 	\minfreq, 50,
 	\isRest, Veco(~namex).isrest(16),
 	\decaytime, 1.0,
