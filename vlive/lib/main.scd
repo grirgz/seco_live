@@ -126,6 +126,72 @@
 
 ControlSpec.specs[\spread] = \unipolar.asSpec;
 
+~spawnclip = { arg node_uname, clip_index;
+	var tr = node_uname;
+	switch(clip_index,
+		nil, {
+			// NOOP
+		},
+		\r, {
+			Veco(tr).stop_node(true);
+		}, 
+		{
+			if(clip_index.class == Symbol) {
+				// NOOP
+			} {
+				Veco(tr).get_clip_by_index(clip_index).response_on;
+			};
+		}
+	);
+};
+
+~clipspawner = {
+	~add_stop_clipspawner.();
+	Pbind(
+		\clipspawner, Pfunc{ arg ev; 
+			ev.postln; ev[\track].do{ arg tr, x;
+				var clip = ev[\clip];
+				if(clip.class == Array) {
+					clip = clip[x]
+				};
+				~spawnclip.(tr, clip);
+			}; 
+			1;
+		},
+	)
+};
+
+~add_stop_clipspawner = {
+	var name = ~name;
+	[name].debug("XXX=========add_stop_clipspawner");
+	Veco(name).add_stop_node_hook(\clipspawner, { 
+		var tracks = Veco(name).lib.tracks;
+		//topEnvironment[\tpercs].debug("add_stop_node_hook: tpercs");
+		[name, tracks].debug("=========add_stop_clipspawner");
+		tracks.do { arg track;
+			Veco(track).stop_node;
+		};
+	});
+};
+
+~spawnclips = { arg clips;
+	clips.pairsDo { arg tr,clip;
+		~spawnclip.(tr, clip);
+	}
+};
+
+~spawn_cliprow = { arg index;
+	if(index.isSequenceableCollection) {
+		Veco(~name).lib.tracks.collect { arg uname, i;
+			~spawnclip.(uname, index[i])
+		}
+	} {
+		Veco(~name).lib.tracks.collect { arg uname;
+			~spawnclip.(uname, index)
+		}
+	}
+
+};
 
 
 ~morph = { arg mainkey, lagtime, pat;

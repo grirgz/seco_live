@@ -1,0 +1,12 @@
+~name = \t;
+
+Veco(~name).lib.tracks = nil;
+
+Pdef(~name, 
+	~clipspawner.() <>
+	Pdef(~name+++pre) <> Pbind(
+		isRest, true,
+			rack, Veco(~name).lib.tracks,
+		dur, 4,
+	)
+);

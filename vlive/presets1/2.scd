@@ -21,7 +21,8 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pdef(\chords) <> Pbind(
 	\instrument, ~name,
 	\degree, Pseq([0],inf),
 	\isRest, Veco(~name).isrest(16),
-	\dur, 1/4 * ~swing,
+	//\dur, 1/4 * ~swing,
+	\dur, 1/4 ,
 	\amp, 0.1 * Pkey(\amp),
 	) <> Veco(~name).mixer)
 );

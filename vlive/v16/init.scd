@@ -8,3 +8,4 @@ Veco.load_lib("main.scd");
 
 Veco.main.fadeout_time = 16;
 
+Veco.force_init
