@@ -27,3 +27,43 @@ Sdef(~name, \mypreset).all.indices
 Sdef(~name, \mypreset).get(0).vals.keysValuesDo{ arg k,v; v.get_val.debug(k) };
 Sdef(~name, \mypreset).get(0, 0).vals.keysValuesDo{ arg k,v; v.get_val.debug(k) };
 ~score_storage.all[\y][\mypreset].all[0][0].vals.keysValuesDo{ arg k,v; v.get_val.debug(k) };
+
+
+////////////////////////////////////
+
+VecoLib.load_lib
+Veco.force_init;
+
+(
+SynthDef(\testme, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=300, rq=0.3;
+	var sig, sig1, sig2, sig3;
+	sig = LFSaw.ar(freq);
+	sig = RLPF.ar(sig, ffreq, rq);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+
+PresetDef(\plop, \testme)
+PresetDef(\plop).edit
+
+(
+MIDIBoard.define(1, [
+	\k1, 1,
+	\k2, 2,
+	\but1, 35,
+]);
+)
+
+MIDIBoard.map(\k1, PresetDef(\plop), \freq);
+MIDIBoard.map(\k4, PresetDef(\plop), \freq);
+MIDIBoard.map(\but1, { "connard".postln; });
+
+(
+Pdef(\pd, PresetDef(\plop).pbind <> Pbind(
+	\instrument, \testme,
+	\dur, 1,
+)).play
+)
+
