@@ -34,6 +34,8 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.46, fratio=2.5, dist=17.7, s
 	OffsetOut.ar(out, son);
 }).add;
 
+Sdef(~name, \mypreset, \preset, ~name);
+
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
 Pdef(~name, Pdef(~name +++ \pre) <> Pbind(

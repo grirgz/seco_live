@@ -20,6 +20,7 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\amp, 0.31 * Pkey(\amp),
 ) <> Veco(~name).mixer)
 );
+Pdef(~name).quant = [1,0,0]
 
 // END
 

@@ -7,7 +7,7 @@ Ndef(~name+++\lfo1, { arg freq=1, fmin=50, fmax=5000; LFPulse.kr(freq * t).range
 Ndef(~name+++\lfo1).put(1, \set -> Pbind(
 	\freq, Pseq([4,1,16,1,32,8,1,1],inf),
 	\freq, 1/4,
-	\fmax, Pseq([50,52],inf).stutter(4)*8+Sdef(~namex, \psfmax).vals[\fmax].vpattern,
+	//\fmax, Pseq([50,52],inf).stutter(4)*8+Sdef(~namex, \psfmax).vals[\fmax].vpattern,
 	\fmax, Pseq([5000,5200],inf).stutter(4),
 	\fmin, 50,
 	\fmin, Pseq([

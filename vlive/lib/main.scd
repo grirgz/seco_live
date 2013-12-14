@@ -85,7 +85,7 @@
 
 ~load_quick_editors = { arg self;
 	var codepad;
-	var qp = ~veco.quickpad_controller;
+	var qp = Veco.main.quickpad_controller;
 	codepad = qp.get_codepad(Point(1,0));
 	codepad.payload = { arg self;
 		{

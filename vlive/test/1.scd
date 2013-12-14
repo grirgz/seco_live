@@ -48,3 +48,17 @@ b=Bus.audio(s,1);
 	}
 }.fork;
 )
+
+
+
+
+(
+var out, mod_index = 1;
+n = 512;
+a = Array.fill(n, { |i| i * 2pi/n });  // linear advancing phase
+m = sin(a);  // modulator
+p = a + (m * mod_index);  // modulated phase input
+c = sin(p);  // carrier
+out = [a, m, p, c];
+out.lace(out.size * n).plot(numChannels: out.size);
+)

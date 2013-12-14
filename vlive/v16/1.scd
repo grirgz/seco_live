@@ -13,9 +13,12 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5|
 	
 	son = LFPulse.ar(env1m, 0, 0.5, 1, -0.5);
 	son = son + WhiteNoise.ar(1);
-	son = LPF.ar(son, env1m*fratio, env0);
-	son = son + SinOsc.ar(env1m, 0.5, env0);
+	//son = LPF.ar(son, env1m*fratio, env0);
+	//son = son + SinOsc.ar(env1m, 0.5, env0);
+	son = LPF.ar(son, env1m*fratio);
+	son = son + SinOsc.ar(env1m, 0.5);
 	
+	son = son * env0;
 	son = son * 1.2;
 	son = son.clip2(1);
 

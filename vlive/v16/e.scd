@@ -41,6 +41,7 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.2, freq=200, doneA
 }).add;
 );
 
+Pdef(~name).quant = 8;
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
 Pdef(~name, Pdef(~name +++ \pre) <> Pbind(

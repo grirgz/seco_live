@@ -8,9 +8,9 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.2, freq=200, doneA
 	var modfreq;
 	//sig = Silent.ar;
 	//sig = LFSaw.kr(freq) * LFSaw.kr(freq+0.1) * LFSaw.kr(freq+(SinOsc.kr(1)*0.01));
-	env = EnvGen.ar(Env([1, 0.0201,0.0001],[0.07,1.4]),gate,doneAction:0);
-	env1 = EnvGen.ar(Env([1, 0.0201,1.9001],[0.07,1.4]),gate,doneAction:0);
-	env2 = EnvGen.ar(Env([1, 0.0201,1.9001,0.8],[0.17,0.4,0.6]),gate,doneAction:0);
+	env = EnvGen.ar(\env.kr(Env([1, 0.0201,0.0001],[0.07,1.4])),gate,doneAction:0);
+	env1 = EnvGen.ar(\env1.kr(Env([1, 0.0201,1.9001],[0.07,1.4])),gate,doneAction:0);
+	env2 = EnvGen.ar(\env2.kr(Env([1, 0.0201,1.9001,0.8],[0.17,0.4,0.6])),gate,doneAction:0);
 	//sig = LFSaw.kr(freq) * LFSaw.kr(freq+(LFNoise1.kr(1)*4.001));
 	//sig = LFSaw.ar(freq * [1,1.001]) * SinOsc.ar(freq+(env*4.1));
 	oscmix= env1;
