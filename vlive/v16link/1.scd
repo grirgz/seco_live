@@ -1,5 +1,29 @@
 ~name = '1';
 
+SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=500, rq=0.3;
+	var sig, sig1, sig2, sig3;
+	sig = LFSaw.ar(freq);
+	sig = RLPF.ar(sig, ffreq, rq);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,1.4)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+
+Sdef(~name, \mynotes, \notes);
+
+(
+if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
+Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
+	\instrument, ~name,
+	\degree, Pseq([0],inf),
+	//\isRest, Veco(~name).isrest(32),
+	\dur, 1/4,
+	\amp, 0.4 * Pkey(\amp),
+) <> Veco(~name).mixer)
+);
+
+// END
+
 (
 SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5|
 	var env0, env1, env1m, son;
@@ -39,4 +63,3 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\amp, 0.4 * Pkey(\amp),
 ) <> Veco(~name).mixer)
 );
-

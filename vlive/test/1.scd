@@ -15,7 +15,7 @@ SynthDef(\singrains,
 		Out.ar(0,Pan2.ar(sig*env,pan)*amp);
 		Out.ar(effectBus,sig*env*amp);
 	}
-).add;
+).dumpUGens;
 
 SynthDef(\reverb,
 	{
@@ -24,9 +24,10 @@ SynthDef(\reverb,
 		input=In.ar(inBus,1);
 		Out.ar(0,Pan2.ar(Mix.ar(GVerb.ar(input,100,revtime:4)),pan)*0.2);
 	}
-).add;
+).dumpUGens;
 b=Bus.audio(s,1);
 )
+
 
 //singrains, die immer schneller werden
 (
