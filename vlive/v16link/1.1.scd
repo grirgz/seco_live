@@ -7,6 +7,7 @@ Pdef(~name +++ \pre, Sdef(~name, \mynotes).pbind <> Pbind(
 
 Sdef(~name, \mynotes).record;
 
+s.latency = 0
 
 
 Veco.force_init
@@ -107,4 +108,35 @@ a.recorder
 		},
 	) <>  Pseq(~notes) <> Pdef(~name);
 ~patt.play
+)
+
+
+
+s.latency = 0.2
+
+(
+	~ev = (
+		freq: 120,
+		type: \on,
+		latency: \a,
+	);
+	~ev.play;
+	
+)
+
+
+Event
+
+
+(
+MIDIdef.cc(\pianocontrol, { arg ... args;
+	args.debug("args");
+	
+}, nil, nil, nil)
+)
+(
+MIDIdef.noteOn(\pianocontrol, { arg ... args;
+	args.debug("argsX");
+	
+}, nil, nil, nil)
 )
