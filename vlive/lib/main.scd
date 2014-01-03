@@ -1,5 +1,8 @@
 
 (
+
+Veco.load_lib("piano.scd");
+
 ~degcps = { arg deg, octave=5, root=(60.midicps); Scale.major.degreeToFreq(deg, 60.midicps, octave-5); };
 
 
