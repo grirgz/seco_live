@@ -142,7 +142,7 @@ ControlSpec.specs[\spread] = \unipolar.asSpec;
 			if(clip_index.class == Symbol) {
 				// NOOP
 			} {
-				Veco(tr).get_clip_by_index(clip_index).response_on;
+				Veco(tr).get_clip_by_index(clip_index).response_on_play;
 			};
 		}
 	);
@@ -263,7 +263,47 @@ ControlSpec.specs[\spread] = \unipolar.asSpec;
 							res_ev[key] = blend(ev1[key], ev2[key], morph)
 						}
 					};
-					res_ev.debug("res_ev");
+					//res_ev.debug("res_ev");
+					in = res_ev.yield;
+				}
+			}
+		}
+	};
+	rout
+};
+
+~lmorphpat = { arg pat_list, mpat;
+	var spat1, spat2, smpat;
+	var ev1, ev2, morph;
+	var res_ev;
+	var rout;
+	var exclu = Set[\dur, \instrument, \isRest];
+	//var inclu = Set[\ffreq];
+	var str_list;
+	var val_list;
+	var list;
+	var size;
+	str_list = pat_list.collect(_.asStream);
+	size = pat_list.size;
+	smpat = mpat.asStream;
+	rout = Prout { arg in;
+		block { arg break;
+			loop {
+				in = in.deepCopy;
+				morph = smpat.next;
+				val_list = str_list.collect { arg spat; spat.next(in); };
+				if(val_list.any({ arg x; x.isNil }) or: { morph.isNil }) { 
+					break.value;
+				} {
+					ev1 = val_list[0];
+					res_ev = in.deepCopy;
+					ev1.keys.difference(exclu).do { arg key;
+						list = val_list.collect { arg x; x[key] };
+						if(ev1[key].isNumber or: {ev1[key].isSequenceableCollection}) {
+							res_ev[key] = list.blendAt(morph*size)
+						}
+					};
+					//res_ev.debug("res_ev");
 					in = res_ev.yield;
 				}
 			}

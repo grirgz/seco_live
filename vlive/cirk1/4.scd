@@ -26,6 +26,8 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5|
 }).store;
 );
 
+Veco(~name).make_mixer;
+
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
 Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
