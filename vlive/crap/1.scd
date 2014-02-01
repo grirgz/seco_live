@@ -1,4 +1,796 @@
 
+(
+var n = 2, baseFreq = 45.midicps;
+var lsin, rsin, arg1, arg2, sig;
+var bus, busIndex, scale, freq, freqIndex, amp;
+var responder;
+
+scale = Scale.nikriz.ratios * baseFreq;
+
+bus = Bus.control( s, 2 * n  );
+bus.setn( { 1.0.rand2 } ! ( 2 * n ) );
+busIndex = bus.index;
+
+freq = Bus.control( s, n );
+freqIndex = freq.index;
+
+responder = OSCFunc({ | id |
+	freq.setAt( id[2] , scale.choose * 1.rrand( 3 ) );
+},'/tr', s.addr);
+
+CmdPeriod.doOnce { [ bus, freq, responder ].free; };
+
+n.do {|i|
+	freq.setn( { scale.choose  * rrand( 1, 3) } ! n );
+	{
+		#arg1, arg2 = In.kr( 2 * i +  busIndex, 2 );
+
+		#lsin, rsin = SinOsc.kr( [ arg1, arg2 ], { 2.0.rrand(20.0) } ! 2  * [ arg2, arg1 ] ); 
+
+		sig = Formant.ar( 
+			LFNoise0.kr( 0.05, 2.5, 7) * arg1, 
+			arg2,
+			500.0.rrand(700) 
+		);
+
+		ReplaceOut.kr( 2 * i  + busIndex, [ rsin, lsin ] );
+
+		sig = Pluck.ar( 
+			BrownNoise.ar(0.5), 
+			sig, 
+			0.025, 
+			freq.kr( 1, i ).reciprocal, 
+			3.7
+		) * 0.6;
+
+		amp = Line.kr( dur: rrand( 1.0, 20.0) ) * max( 0, LFNoise1.kr( 0.05, 0.6, 0.4 ) ) ;
+		sig =  sig * amp;
+		SendTrig.kr( amp <= 0, i, i );
+
+		Pan2.ar( sig, 0.8.rand2 )
+	}.play
+}
+)
+
+(
+
+SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, t_trig=1,
+		arg1=100, arg2=200, decay=0.01, flag=0.1, pluckdecay=3.1;
+	var sig;
+	sig = Formant.ar( 
+		LFNoise0.kr( 0.05, 2.5, 7) * arg1, 
+		arg2,
+		500.0.rrand(700) 
+	) * Trig.kr(t_trig, decay);
+
+
+	sig = Pluck.ar( 
+		BrownNoise.ar(0.5), 
+		sig, 
+		0.025, 
+		freq.reciprocal.lag(flag), 
+		pluckdecay
+	) * 0.6;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.4,0.1,0.8,7.1)),t_trig,doneAction:0);
+	EnvGen.ar(Env.adsr(0.4,0.1,0.8,7.1),gate,doneAction:2);
+	sig = LeakDC.ar(sig);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
+~baseFreq = 220;
+~scale = Scale.nikriz.ratios * ~baseFreq;
+//~scale = Scale.dorian.ratios * ~baseFreq;
+//~scale = Scale.minor.ratios * ~baseFreq;
+
+8.do { arg nn;
+	var nnn = nn+1;
+
+Pdef(\plop+++nn, Pmono(
+	//\instrument, \plop,
+	\plop,
+	\arg1, 100,
+	\arg2, Pwhite(40,4000),
+	\arg2, 3000,
+	\decay, Pwhite(0.01,0.1),
+	\decay, 0.01*nnn,
+	\decay, 0.1/nnn,
+	\adsr, Pseq([
+		[ Env.adsr(0.1,0.1,0.8,3.3) ],
+	],inf), 
+	\freq, Pwhite(100,1500),
+	\freq, Prand([100,1500,200,500,100],inf) * 0.7,
+	\freq, Prand([100,1500,200,500,100],inf) * 1,
+	\freq, Prand([100,1000,200,500,300,1000],inf) * 1,
+	\freq, Pseq([100,1500,200,500,2000,100,250],inf),
+	\freq, Pseq([
+		100,1500,200,500,
+	],inf),
+	\freq, Pseq([
+		100,1500,200,500,
+		100,1500,200,500,
+		100,1500,200,500,
+		1000,100,1000,
+	],inf) * Pseq([1.7,0.2,0.7,0.5],inf) * 1.0,
+	\freq, Pseq([
+		90,250,470,
+		110,150,270,
+
+		90,150,270,
+		110,750,270,
+	],inf) * Pseq([
+		3,1,4,1.5,
+		6,4,0.8,1.5,
+	],inf) * Pseq([1,0.8,0.5,1.2],inf).stutter(32),
+	\freq, Pseq([
+		//Pser([100,1000],16),
+		//Pser([100,2000],16),
+		//Pser([200,1000*nnn],16),
+
+		Pser([200,100]*nnn,16),
+		Pser([200,400]*nnn,16),
+		Pser([20,40]*nnn,16),
+		//100*nnn
+	],inf),
+	\freq, Pseq([
+		//200*log(nnn+1)
+		Pser([Pfuncn({~scale.foldAt(nn)},1)],inf) * Pseq([1,2,1/6],1).stutter(16),
+
+		Pser([200,100]*nnn,16),
+		Pser([200,400]*nnn,16),
+		Pser([20,40]*nnn,16),
+
+		Pser([log(nnn+7)*200],32),
+	],inf),
+	\flag, Pseq([
+		Prand([
+
+		//Pser([1,0.1,1,0.1],16),
+		//Pser([1,0.1,1,0.1]/2+0.3,16),
+		0.05*nnn,
+		0.1,
+		//0.7*nnn,
+		],inf)
+		//Pser([1.12],16),
+		//Pser([0.08],16),
+
+	],inf),
+	\lag, Pseg(Pseq([0,0.31],inf), 8)*nn,
+	\arg2, Pkey(\freq),
+	\arg1, Pkey(\freq),
+	\sustain, 0.4,
+	\dur, Pwhite(0.1,0.4) * 0.8,
+	\dur, Pseq([0.5,1,1,0.5],inf) * 0.2,
+	\dur, Pseq([0.5,1,1,0.5],inf) * Pseg(Pseq([3,0.2,0.1],inf), 16),
+	\amp, min(1,Pkey(\dur)*3) * 1.7
+)).play;
+
+}
+)
+
+log(2)
+
+MIDIClient.init
+MIDIClient.restart
+MIDIClient.sources
+NdefGui
+VecoLib.load_lib
+Veco.force_init
+
+//load the Synth
+
+(
+k = ControlSpec(5, -128, \lin);
+e = ControlSpec(0.01, 0.5, \exp);
+p = ControlSpec(65536, 0.25, \exp);
+c = ControlSpec(-23, 0, \lin);
+h = ControlSpec(1/2, 2/1, \exp);
+
+SynthDef(\Motorklang, {arg speed=0.0, time=0.0, rpm=0.0, t_tr=1;
+	var sig, speedch, rpmch;
+		speedch = EnvGen.kr(Env([0, speed], [time]), t_tr);
+		rpmch = EnvGen.kr(Env([0, h.map(rpm/6000);], [time]), t_tr);
+		sig = Mix.fill(8, {arg i;
+			var freq, aspeed, env, curve1, curve2, phase;
+			curve1 = k.map(speedch).max(1);
+			aspeed = p.map(speedch/75) * curve1;
+			env = e.map(speedch/75);
+			curve2 = c.map(speedch/75);
+			freq = 300 + (i/4);
+			phase = i/8;
+			Mix.fill(32, {arg i;
+				var freqsq;
+				freqsq = ((((i+1)*freq).cpsmidi*rpmch) - (freq.cpsmidi*rpmch-freq.cpsmidi)).midicps.min(22050);
+				SinOsc.ar(freqsq, 0, 0.1/(i+1))
+				*
+				EnvGen.ar(Env.perc(env, 1-env, 1, curve2),
+					Impulse.ar(freq*(1+i)/aspeed, phase), timeScale: 1/(freq*(1+i)/aspeed));
+				});
+			});
+		Out.ar(0, Mix.new(sig) ! 2);
+	}).load(s);
+)
+
+//Test it
+(
+x = Synth(\Motorklang);
+x.set(\speed, 40, \rpm, 3000, \time, 0, \t_tr, 1);
+)
+x.free
+
+//A simple interface to check the sound limits of the engine
+
+(
+x = Synth.newPaused(\Motorklang);
+w = Window.new("Motor", Rect(150, 266, 950, 300)).front;
+q = StaticText(w, Rect(835, 20, 100, 100));
+y = StaticText(w, Rect(838, 140, 100, 100));
+q.string = "km/h";
+y.string = "rpm";
+c = NumberBox(w, Rect(830, 90, 40, 20));
+n = NumberBox(w, Rect(830, 210, 40, 20));
+b = ControlSpec(0, 75, \linear, 0.1);
+m = ControlSpec(0, 6000, \linear, 1);
+a = Slider(w, Rect(50, 75, 700, 50)).value_(0).action_({
+		x.run.set(\speed, b.map(a.value), \t_tr, 1);
+		c.string_(b.map(a.value).asString)});
+d = Slider(w, Rect(50, 200, 700, 50)).value_(0).action_({
+		x.run.set(\rpm, m.map(d.value), \t_tr, 1);
+		n.string_(m.map(d.value).asString)});
+c.value = 0;
+n.value = 0;
+)
+
+(
+
+// a slightly modified version of the excellent example patch by James Harkins.
+
+// I added some grid lines for the samples, an adjustable sampling rate, and changed some colors.
+
+// Jascha Narveson
+
+
+
+var screen = Window.screenBounds,
+
+	height = (screen.height - 120).asInteger,
+
+	width = (screen.width - 120).asInteger,
+
+win = Window(\aliasing, Rect.aboutPoint(screen.center, width / 2, height / 2 + 60)).background_(Color.white),
+
+	sinPts = 400, sampPts = 20, sr,
+
+	freq = 1, fsl,
+
+	sinColor = Color.red, sampColor = Color.blue, lineColor = Color.grey;
+
+
+
+win.drawHook = {
+
+	var pt;
+
+	pt = Point(0, height/2);
+
+	Pen.color_(sampColor)
+
+		.moveTo(pt);
+
+	(1..sampPts).do { |x|
+
+		Pen.moveTo(pt);
+
+		pt = Point(x * (width / sampPts), sin(x * freq / sampPts * 2pi).linlin(-1, 1, height, 0));
+
+		Pen.lineTo(pt).stroke
+
+			.fillRect(Rect.aboutPoint(pt, 3, 3));
+
+	};
+
+
+
+	Pen.color_(sinColor)
+
+		.moveTo(Point(0, height/2));
+
+	(1..sinPts).do { |x|
+
+		Pen.lineTo(Point(
+
+			x * (width / sinPts),
+
+			sin(x * freq / sinPts * 2pi).linlin(-1, 1, height, 0)
+
+		));
+
+	};
+
+
+
+	Pen.stroke;
+
+
+
+	Pen.color_(lineColor);
+
+	(1..sinPts).do({|x|
+
+		var xpos = x * (width / sampPts);
+
+		Pen.moveTo(Point(xpos, 0));
+
+		Pen.lineTo(Point(xpos, height));
+
+		Pen.stroke;
+
+	});
+
+
+
+};
+
+
+
+fsl = EZSlider(
+
+	win,
+
+	Rect(5, height + 10, width-10, 20),
+
+	"freq of input wave (red):",
+
+	ControlSpec(1, 40, 'lin', 0, 20),
+
+	{|slider| freq = slider.value; win.refresh },
+
+	1,
+
+	labelWidth: 200,
+
+	initAction: true
+
+);
+
+
+
+sr = EZSlider(
+
+	win,
+
+	Rect(5, height + 30, width-10, 20),
+
+	"samp rate (output wave in blue):",
+
+	ControlSpec(1, 44, 'lin', 1, 20),
+
+	{|slider| sampPts = slider.value; win.refresh },
+
+	1,
+
+	labelWidth: 200,
+
+	initAction: true
+
+);
+
+win.front;
+
+)
+(
+var screen = Window.screenBounds,
+	height = (screen.height * 0.8).asInteger,
+	width = (screen.width * 0.8).asInteger,
+	win = Window(\aliasing, Rect.aboutPoint(screen.center, width / 2, height / 2 + 20)),
+	sinPts = 400, sampPts = 20,
+	freq = 1, fsl,
+	sinColor = Color.red, sampColor = Color.black;
+
+win.drawHook = {
+	var pt;
+	pt = Point(0, height/2);
+	Pen.color_(sampColor)
+		.moveTo(pt);
+	(1..sampPts).do { |x|
+		Pen.moveTo(pt);
+		pt = Point(x * (width / sampPts), sin(x * freq / sampPts * 2pi).linlin(-1, 1, height, 0));
+		Pen.lineTo(pt).stroke
+			.fillRect(Rect.aboutPoint(pt, 3, 3));		
+	};
+
+	Pen.color_(sinColor)
+		.moveTo(Point(0, height/2));
+	(1..sinPts).do { |x|
+		Pen.lineTo(Point(
+			x * (width / sinPts),
+			sin(x * freq / sinPts * 2pi).linlin(-1, 1, height, 0)
+		));
+	};
+	Pen.stroke;
+};
+
+fsl = EZSlider(win, Rect(5, height+10, width-10, 20), "freq:", [1, 20], { |view| freq = view.value; win.refresh }, 1, initAction: true);
+
+win.front;
+)
+
+
+MIDIIn.connectAll;
+MIDIOut.connectAll;
+MIDIClient.sources;
+MIDIIn.findPort ("Launchpad")
+~launchpad_device_id = MIDIIn.findPort ("Launchpad S-Launchpad S MIDI 1", "Launchpad S-Launchpad S MIDI 1").uid
+~icon_device_id = MIDIIn.findPort ("iCON iControls V2.00-iCON iControls V2.00 MIDI 1", "iCON iControls V2.00-iCON iControls V2.00 MIDI 1").uid
+MIDIClient.destinations;
+~launchpad_in_device_endpoint = MIDIEndPoint("Launchpad S-Launchpad S MIDI 1", "Launchpad S-Launchpad S MIDI 1")
+MIDIOut(0).connect( MIDIClient.destinations.detectIndex { arg x; x.device == "Launchpad S-Launchpad S MIDI 1" } ) // good
+
+VecoLib.load_lib
+Veco.force_init
+
+
+
+MIDIClient.list
+MIDIIn.connect(0, ~launchpad_device_id)
+MIDIIn.connect(0, ~icon_device_id)
+MIDIOut.connect(~launchpad_in_device_id, 0)
+MIDIIn.connect( ~launchpad_in_device_id, 0)
+MIDIOut(0).connect(), MIDIClient.destinations.detect { arg x; x.device == "Launchpad S-Launchpad S MIDI 1" }.uid ).connect
+MIDIOut(0, 10).connect
+MIDIOut.newByName("Launchpad S-Launchpad S MIDI 1", "Launchpad S-Launchpad S MIDI 1").connect(2)
+MIDIOut(0,~launchpad_in_device_endpoint.uid)
+MIDIClient.destinations.detect { arg x; x.device == "Launchpad S-Launchpad S MIDI 1" }.uid
+
+1
+kkkjkk
+
+(
+
+q = q ? ();
+
+
+q.numChans = 2; 
+
+
+// add a sound source
+
+ProxyChain.add(
+
+\dust, \mix -> { |dens=20, dustdec=0.02, dustfreq= 600| 
+
+Ringz.ar(Dust.ar(dens).lag(0.0001), dustfreq, dustdec)  ! 2
+
+}
+
+);
+
+
+// an association with \filter becomes a filter,
+
+// and creates a wet/dry balance on the output.
+
+// several funcs can be added as key1, func1, key2, type -> func2, etc.
+
+ProxyChain.add(	
+
+\ringmod, \filter -> { |in, randrate=5| 
+
+//in.asArray[0] // force mono inputs
+in
+
+* SinOsc.ar(LFNoise0.kr([randrate, randrate]).exprange(300, 3000)).sum 
+
+}, 
+
+\dist, \filter -> { |in, drive=10, amp=0.2| 
+	//(in.asArray[0]
+	(in
+	* drive).clip2(0.5) * amp }
+
+);
+
+// an association with \filterIn also becomes a filter,
+
+// but creates the wet/dry balance control on the filter input, 
+
+// on on the output like \filter. this can be useful for delays, reverbs etc.
+
+ProxyChain.add(
+
+\riseComb5, \filterIn -> { arg in, delay = 0.023, dlDrift = 0.02, spread=0.5, mypan=0, 
+
+decayRise=0.5, decayFall=100;
+
+var delayscales = 2 ** ((0 .. q.numChans - 1) * 2 / (q.numChans - 1) - 1 * spread); 
+
+var dels = delayscales.scramble.collect { |dscale| 
+
+var timedrift = LFDNoise3.kr(0.3, dlDrift, 1) * dscale;
+
+var ampcomp = (20 * decayRise).dbamp * (decayFall ** -0.25);
+
+var combs; 
+
+in = in.asArray[0] * ampcomp.lag(0.2);
+
+combs = (decayFall * [ 1, decayRise]).collect { |decay| 
+
+CombL.ar(in, 1, delay * dscale, decay * delay) 
+
+};
+
+combs[0] - combs[1];	// combs come in slowly, like formlet. 
+
+};
+
+Splay.ar(dels, 1,1,mypan);
+
+}, 
+
+\ampFin, \filter -> { |in, drive=1, ampLimit=1, lAmp=1| 
+
+Limiter.ar(in * drive, ampLimit) * lAmp;
+
+}
+
+);
+
+
+// add specs for the controls used (for NodeProxyEditor).
+
+Spec.add(\dens, [0.1, 1000, \exp]);
+
+Spec.add(\dustamp, [0, 1, \amp]);
+
+Spec.add(\dustdec, [0.0001, 0.1, \exp]); 
+
+Spec.add(\dustfreq, \freq); 
+
+
+Spec.add(\dt, [0.001, 0.2, \exp]); 
+
+Spec.add(\dc, [0.01, 100, \exp]); 
+
+
+Spec.add(\drive, [1, 100, \exp]); 
+
+
+Spec.add(\spread, [0, 1, \amp]); 
+
+Spec.add(\decayRise, [0, 0.9, \amp]); 
+
+Spec.add(\decayFall, [1, 1000, \exp]); 
+
+Spec.add(\dlDrift, [0, 0.1, \amp]); 
+Spec.add(\mypan, \bipolar.asSpec); 
+
+
+s.boot;
+
+)
+
+// the functions can be sources (func, \mix -> func) 
+
+// or	 filters (\filter -> func, \filterIn -> func)
+
+(
+
+	c = ProxyChain(\alpha2, [\dust, \ringmod, \dist, \riseComb5, \test]);
+
+	c.play;// play the proxy
+
+	g = c.gui(22);		// make a gui for it with 12 slots - see ProxyChainGui
+
+
+)
+
+ProxyChain(\alpha2).proxy.set(\delay, 1)
+
+
+// these methods are passed through to the proxy:
+
+c.play;
+
+c.stop;
+
+c.playN;
+
+c.end(2);
+
+
+
+*from(proxy, slotNames)make a proxychain from an existing N	odeProxy or Ndef.
+
+Ndef(\bla).ar(2);
+
+ProxyChain.from(Ndef(\bla), [\dust, \ringmod, \dist, \riseComb5, \test]);
+
+ProxyChain(\bla).play;
+
+ProxyChain(\bla).add(\dust);
+
+
+ProxyChain.all;
+
+
+add(key, wet)add a sou	nd or filter function, wet is dry/wet balance
+
+
+c.add(\dust, 0.123);
+
+c.add(\dust, 0.2);
+
+c.add(\ringmod, 0.5);
+
+c.add(\dist, 1);
+
+
+
+// the automatically generated mix/wet balance names are
+
+// "mix" for sources and "wet" for filters, with an added 
+
+// index of 10, 20, 30, etc. 
+
+
+ProxyChain(\xyz, [
+
+	\dust, // the first node is a source, so "mix", and here: "mix10",
+
+	\ringmod, // filters become "wet", so here, "wet20"
+
+	\dist// and "wet30";
+
+
+]);
+
+
+
+c.proxy.fadeTime = 	2;
+
+c.add(\riseComb5, 0.2);// \filterIn not show correctly in NodeProx	yEditor yet.
+
+
+// add a local version of a source -
+
+// this overrides the global version of \dust.
+
+(
+
+	c.add(\dust, nil, \mix -> { |dens=20, dustdec=0.02, dustfreq= 600| 
+	
+	Ringz.ar(Dust.ar(dens).lag(0.0001), dustfreq * [0.62, 1, 1.62], dustdec).mean 
+
+});
+
+
+)
+
+c.sources.postcs;
+
+c.sources.put(\dust, nil);// back to global dust
+
+c.add(\dust);
+
+c.sources.postcs;
+
+
+remove(ke	y)remove a sound or filter function.
+
+c.remove(\dist);// nodemap remo		ves settings as well, so ...
+
+c.remove(\ringmod);
+
+c.remove(\riseComb5);// sometimes misses current value - why?
+
+
+c.slotNames;// all slotnames t		hat are available, in the order they are in;
+
+c.slotsInUse;// which on	es are playing now?
+
+
+c.remove(\dust);
+
+
+
+gui(name, buttonList, nSliders)
+
+make a ProxyChainGui window for controlling the slots, and possible additional functions.
+
+
+// by default, buttonList nil is replaced with control buttons for all slots.
+
+c.gui(20);
+
+
+// if specified, can be friendlier
+
+(
+
+	g = c.gui(20,
+	
+	[ 
+	
+	[ \generators, 	\label  ],  // a label only
+
+[ \dust, \slotCtl, 0.25  ], // a control for a slot, starting level
+
+
+[ '1 > 1', \label  ],  
+
+[ \ringmod, \slotCtl  ], // 0 - dry  by default
+
+[ \dist, \slotCtl, 1  ], // 1 - all wet
+
+
+[ '1 > 5', \label  ],  
+
+[ \riseComb5, \slotCtl  ], 
+
+[  ],
+
+// extras:
+
+// e.g. an editor with more space for controls
+
+[\phatEdit, \extra, { c.makeEdit('Test', 40)  } ],
+
+// or maybe bigger buttons play, end buttons
+
+[\play, \extra, { c.playN  } ], 	
+
+[\end, \extra, { c.end(2, true)  } ],
+
+]
+
+)
+
+
+)
+
+
+
+
+
+
+60/4.0
+(
+
+	Spec.add(\dens, [1, 1000, \exp]);
+
+	Spec.add(\ring, [0.0001, 100, \exp]);
+
+
+	a = Ndef(\a, { |freq=300, dens=10, ring = 0.03, amp= 0.25| 
+	
+	Ringz.ar(Dust.ar(dens ! 2, (1/dens.max(1)).sqrt * amp), (freq * [1.01, 0.99]).lag(0.2), ring) 
+
+}).play;
+
+
+// make a preset for Ndef(\a)
+
+// - stored by the Ndef's name in NdefPreset.all
+
+z = NdefPreset(Ndef(\a));
+
+
+w = Window("NdefPreset test", Rect(200, 200, 420, 250)).front;
+
+w.addFlowLayout;
+
+// a gui for the NdefPreset
+
+g = ProxyPresetGui(z, parent: w);
+
+// and one for the Ndef
+
+b = NdefGui(a, 8, parent: w);
+
+
+)
+
 //create buffer. I want the equation z = 2*(((x/100)**2) + ((abs(sin(10*y))/50)**(1/3)))-1
 //over a 100 by 50 area
 

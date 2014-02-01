@@ -1,6 +1,8 @@
 Pdef(~name +++ \pre, 
 	//Sdef(~name, \mypreset).morph(\morph, [0,1,2]) 
+
 	Sdef(~name, \mypreset).pbind
+	<> ~patfx.(\modsnare)
 	<> Pbind(
 	\fratio, Pseq([1.5,2.3,2.7,2.1,1.8],inf).stutter(1),
 	\fratio, 4,

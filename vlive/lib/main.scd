@@ -1,10 +1,114 @@
 
 (
 
-Veco.load_lib("piano.scd");
+//Veco.load_lib("piano.scd");
+Veco.load_lib("icon.scd");
+Veco.load_lib("midi.scd");
+Veco.load_lib("specs.scd");
 
 ~degcps = { arg deg, octave=5, root=(60.midicps); Scale.major.degreeToFreq(deg, 60.midicps, octave-5); };
 
+~addfx = { arg key, delta, fun;
+	var pos;
+	Ndef(key).add(fun);
+	pos = Ndef(key).objects.lastIndex;
+	TempoClock.default.sched(delta, {
+		Ndef(key).removeAt(pos);
+	})
+};
+
+~addnotefx = { arg key, fun;
+	var pos;
+	Ndef(key).add(fun);
+	pos = Ndef(key).objects.lastIndex;
+	Veco(~namex).response_off_hook = {
+		Ndef(key).removeAt(pos);
+	}
+};
+
+~addnotefx_delay = { arg key, delay, fun;
+	var pos;
+	Ndef(key).add(fun);
+	pos = Ndef(key).objects.lastIndex;
+	Veco(~namex).response_off_hook = {
+		//Ndef(key).removeAt(pos);
+		
+		TempoClock.default.sched(delay, {
+			Ndef(key).removeAt(pos);
+		})
+	}
+};
+
+~patfx = { arg key;
+    Prout { arg in;
+		var pat;
+		var ev, str;
+		var chain = List.new;
+		var get_ev = { arg input;
+			var to_remove = List.new;
+			chain.do { arg str, idx;
+				var vinput;
+				vinput = str.next(input);
+				if(vinput.notNil) {
+					input = vinput
+				} {
+					to_remove.add(idx);
+				};
+			};
+			to_remove.reverse.do { arg idx;
+				chain.removeAt(idx)
+			};
+			input;
+		};
+		inf.do {
+			if(currentEnvironment[key].notNil) {
+				str = currentEnvironment[key].asStream;
+				chain.add(str);
+				currentEnvironment[key] = nil;
+			};
+			//chain.debug("chain");
+			ev = get_ev.(in);
+			in = ev.yield;
+        };
+        nil;
+    };
+};
+
+~patfxref = { arg fx_inject;
+    Prout { arg in;
+		var pat;
+		var ev, str;
+		var chain = List.new;
+		var get_ev = { arg input;
+			var to_remove = List.new;
+			chain.do { arg str, idx;
+				var vinput;
+				vinput = str.next(input);
+				if(vinput.notNil) {
+					input = vinput
+				} {
+					to_remove.add(idx);
+				};
+			};
+			to_remove.reverse.do { arg idx;
+				chain.removeAt(idx)
+			};
+			input;
+		};
+		inf.do {
+			if(fx_inject.value.notNil) {
+				pat = fx_inject.value;
+				str = pat.asStream;
+				chain.add(str);
+				fx_inject.value = nil;
+			};
+			//chain.debug("chain");
+			ev = get_ev.(in);
+			in = ev.yield;
+        };
+        nil;
+    };
+};
 
 ~cdegcps = { arg tab, deg, octave=5, root=(60.midicps); 
 	tab.collect { arg val;

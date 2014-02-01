@@ -1,3 +1,11 @@
+~quant = 1;
+TempoClock.default.play ({
+	Ndef('39fx').set(\sinfreq, 1);
+	nil;
+}, ~quant);
+// END
+
+Veco.force_init
 ~quant = 1/2;
 ~wobblefx = '38fx';
 TempoClock.default.play ({
@@ -14,6 +22,3 @@ Veco(~namex).response_off_hook = {
 	}, [~quant, 1/2]);
 };
 
-// END
-
-Veco.force_init

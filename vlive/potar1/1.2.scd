@@ -1,4 +1,6 @@
 Pdef(~name +++ \pre, 
+	~patfx.(\modkick) 
+	<>
 	~lmorphpat.(
 		[
 			Sdef(~name, \mypreset).getsub(0).pbind,
@@ -9,7 +11,8 @@ Pdef(~name +++ \pre,
 		//Sdef(~name, \morph).vals[\morph].valpattern
 		Sdef(~name, \morph).get_active_score.vals[\morph].valpattern
 	)
-	<> Pbind(
+	<>
+	Pbind(
 		\name, ~name,
 		\dur, Pfunc{ arg ev;
 			2 ** Sdef(ev[\name], \morph).get_active_score.vals[\mdur].get_val * (1/16)
@@ -24,6 +27,7 @@ Pdef(~name +++ \pre,
 Sdef(~name, \mypreset).edit
 Sdef(~name, \mypreset).rebuild(true)
 Sdef(~name, \mypreset).delete(0)
+~mypatmod
 
 ~score_storage.all[\1][\morph]
 

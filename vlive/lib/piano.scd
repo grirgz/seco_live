@@ -1,5 +1,5 @@
 
-MIDIdef.noteOn(\test, { arg ... args; args.debug("plop"); });
+//MIDIdef.noteOn(\test, { arg ... args; args.debug("piano.scd: test"); });
 
 (
 MIDIBoard.define(0, [

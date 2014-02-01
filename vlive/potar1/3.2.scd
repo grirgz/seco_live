@@ -1,4 +1,6 @@
 Pdef(~name +++ \pre, 
+	~patfx.(\modhihat)
+	<>
 	Pbind(
 		\instrument, ~name,
 		\degree, Pseq([0],inf),

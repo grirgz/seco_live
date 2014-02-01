@@ -1,5 +1,13 @@
 ~name = '4';
 
+8.do { arg x;
+
+	Veco(~name).get_clip_by_index(x).response_mode = \play; // retrigger clip play it again instead of stopping it
+}
+
+// END
+Pdef(~name).clear
+
 (
 SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, rq=0.32, fratio=2.3;
 	var sig, sig1, sig2, sig3;
