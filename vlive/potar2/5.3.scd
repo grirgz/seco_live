@@ -1,0 +1,16 @@
+Pdef(~name +++ \pre, Pbind(
+	\freq, Pseq([1700,1100,500],inf),
+	\freq, Pseq([170,110,50],inf),
+	\freq, Pseq([170,110,50,4000],inf),
+	\freq, Place([50,60,50,[100,90,100,78]],inf).stutter(8),
+	\freq, 1100,
+	\freq, Pseq([1700,1100],inf),
+	\decay, 0.05,
+	\decay, 0.45,
+	\isRest, Veco(~namex).isrest(16),
+	\legato, 0.4,
+	\legato, Pseq([1,0.2,0.1,0.5],inf),
+	\legato, 1.0,
+	\amp, 2 * Pkey(\amp),
+	\dur, 1/8,
+));

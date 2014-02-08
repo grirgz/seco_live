@@ -6,6 +6,55 @@ Veco.load_lib("icon.scd");
 Veco.load_lib("midi.scd");
 Veco.load_lib("specs.scd");
 
+~midi = { arg key, default, spec;
+	var preset;
+	spec = spec ?? \widefreq.asSpec;
+	spec.postln;
+	preset = PresetDef.force(key, [\val, spec]);
+	if(default.notNil) {
+		preset.set_val(\val, default)
+	};
+	preset.vals[\val].set_bus_mode(true);
+	MIDIBoard.map(key, preset, \val);
+	if(key.asString[0] == $k) {
+		if(Veco(~name).lib.macros.isNil) {
+			Veco(~name).lib.macros = List.newClear(18);
+		};
+		if(Veco(~name).lib.macros.isSequenceableCollection) {
+			Veco(~name).lib.macros[ key.asString[1].digit ] = [PresetDef(key), \val];
+		};
+	};
+	preset.vals[\val];
+};
+
+~penv = { arg env;
+	Ptuple( env.asArray ).collect{ arg x; [x] }
+};
+
+~insert_beat = { arg key;
+	var env = currentEnvironment;
+	var gate = key+++\gate;
+	env[gate] = 1;
+	env[key] = Pbind(\isRest, Pseq([false],inf), \bla, Pfunc({ env[gate] }));
+	Veco(~namex).response_off_hook = { env[gate] = nil };
+	Veco(~namex).response_mode = \play;
+};
+
+~patfx_gate = { arg key, pat;
+	var env = currentEnvironment;
+	var gate = key+++\gate;
+	env[gate] = 1;
+	env[key] = pat <> Pbind(\bla, Pfunc({ env[gate] }));
+	Veco(~namex).response_off_hook = { env[gate] = nil };
+	Veco(~namex).response_mode = \play;
+};
+
+~ndef_to_macros = { arg key;
+	Ndef(key).controlNames.collect { arg con, x;
+		[Ndef(key), con.name]
+	}
+};
+
 ~degcps = { arg deg, octave=5, root=(60.midicps); Scale.major.degreeToFreq(deg, 60.midicps, octave-5); };
 
 ~addfx = { arg key, delta, fun;

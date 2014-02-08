@@ -85,8 +85,9 @@
 	},
 
 	map_node_macro_to_knobs: { arg self, node;
-		8.do { arg mx;
-			if(node.lib.macros.notNil) {
+		if(node.lib.macros.notNil) {
+			var macros = node.lib.macros.value;
+			8.do { arg mx;
 				var mapping = node.lib.macros[mx];
 				var key = (\k++(mx+1)).asSymbol;
 				[x, mapping, mx].debug("map_node_by_rel_index");
@@ -136,19 +137,22 @@
 		var ofx = 0;
 		ofx.debug("map_faders_to_fx_vol");
 		[~tfx1, ~tfx2, ~tfx3, ~tfx4].do { arg uname, x;
-			var node = self.main.get_node_by_uname(uname);
+			var node;
 			var ndef;
-			if(node.is_present) {
-				ndef = Ndef((uname++'mixer').asSymbol);
-				if(ndef.source.notNil) {
-					MIDIBoard.map((\s++(x+1)).asSymbol, Ndef((uname++'mixer').asSymbol), self.mixer_key, self.level_spec);
+			if(uname.notNil) {
+				node = self.main.get_node_by_uname(uname);
+				if(node.is_present) {
+					ndef = Ndef((uname++'mixer').asSymbol);
+					if(ndef.source.notNil) {
+						MIDIBoard.map((\s++(x+1)).asSymbol, Ndef((uname++'mixer').asSymbol), self.mixer_key, self.level_spec);
+					} {
+						debug("TODO: set node amp");
+						MIDIBoard.unmap((\s++(x+1)).asSymbol);
+						//MIDIBoard.map((\s++(x+1)).asSymbol, Ndef((uname++'mixer').asSymbol), \amp, \unipolar.asSpec);
+					}
 				} {
-					debug("TODO: set node amp");
 					MIDIBoard.unmap((\s++(x+1)).asSymbol);
-					//MIDIBoard.map((\s++(x+1)).asSymbol, Ndef((uname++'mixer').asSymbol), \amp, \unipolar.asSpec);
 				}
-			} {
-				MIDIBoard.unmap((\s++(x+1)).asSymbol);
 			}
 		} 
 	},

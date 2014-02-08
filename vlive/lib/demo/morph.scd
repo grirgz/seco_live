@@ -1,3 +1,24 @@
+Sdef(~name, \morph, \preset, [\morph, \unipolar.asSpec]);
+
+Pdef(~name +++ \pre, 
+	~lmorphpat.(
+		[
+			Sdef(~name, \mypreset).getsub(0).pbind,
+			Sdef(~name, \mypreset).getsub(1).pbind,
+			Sdef(~name, \mypreset).getsub(2).pbind,
+		],
+		//Pseq([0,0.5,1],inf)
+		Sdef(~name, \morph).get_active_score.vals[\morph].valpattern
+	)
+	<> Pbind(
+		\name, ~name,
+		\env0, [ Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.1], [-4, -2, -4]) ],
+		\env1, [ Env.new([120, 59, 29], [0.005, 0.29], [-4, -5]) ],
+	)
+);
+
+
+
 (
 ~name = "saw";
 SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=300, rq=0.3;
