@@ -37,6 +37,7 @@ Pdef(~name, ~patfx.(\modskank) <> Pdef(~name +++ \pre) <> Pbind(
 	\degree, Pseq([0],inf),
 	\isRest, Veco(~name).isrest,
 	\dur, 1/8,
+	\time, Ptime(),
 	\amp, 0.1 * Pkey(\amp),
 ) <> Veco(~name).mixer)
 );	

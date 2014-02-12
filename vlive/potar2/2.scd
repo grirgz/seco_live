@@ -69,7 +69,7 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, fratio=1.5, rq=0.5, fratiob=2, dmix=0.
 ))).add;
 
 Veco(~name).make_mixer;
-Sdef.force(~name, \mypreset, \preset, ~name);
+Sdef(~name, \mypreset, \preset, ~name);
 
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };

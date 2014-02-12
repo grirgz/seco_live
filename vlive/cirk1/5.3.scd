@@ -36,13 +36,15 @@ Ndef(~name+++\lfo1).put(1, \set -> Pbind(
 //Ndef(~name+++\lfo2, { LFSaw.kr(SinOsc.kr(1.12).range(0.01,4.9)).range(0.0001,0.0012)  });
 Pdef(~name +++ \pre, 
 	Pbind(
-		\range, Ndef(~name+++\lfo1),
-		\freq, Pseq([50,50,60,40],inf).stutter(16),
-		\ffreq, Pseq([1000,2000,3000,5000],inf) - Pseq([500,700,0],inf),
-		\rq, Pseq([
-			0.1,2,0.3,5,
-			0.1,0.2,0.3,5,
-		]/10,inf).stutter(2),
+		\pos, ~midi.(\k1, 0.1, ControlSpec(0.001,1,\exp, 0,0.1)).vpattern,
+		\dur, 1,
+	//	\range, Ndef(~name+++\lfo1),
+	//	\freq, Pseq([50,50,60,40],inf).stutter(16),
+	//	\ffreq, Pseq([1000,2000,3000,5000],inf) - Pseq([500,700,0],inf),
+	//	\rq, Pseq([
+	//		0.1,2,0.3,5,
+	//		0.1,0.2,0.3,5,
+	//	]/10,inf).stutter(2),
 
 	) <>
 	

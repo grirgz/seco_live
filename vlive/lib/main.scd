@@ -5,57 +5,116 @@
 Veco.load_lib("icon.scd");
 Veco.load_lib("midi.scd");
 Veco.load_lib("specs.scd");
+Veco.load_lib("launchers.scd");
+//Veco.load_lib("trigpad.scd");
 
-~midi = { arg key, default, spec;
-	var preset;
-	spec = spec ?? \widefreq.asSpec;
-	spec.postln;
-	preset = PresetDef.force(key, [\val, spec]);
-	if(default.notNil) {
-		preset.set_val(\val, default)
-	};
-	preset.vals[\val].set_bus_mode(true);
-	MIDIBoard.map(key, preset, \val);
-	if(key.asString[0] == $k) {
-		if(Veco(~name).lib.macros.isNil) {
-			Veco(~name).lib.macros = List.newClear(18);
+);
+
+//////////////////////////////////////////////////// Trigpads
+
+(
+~set_exec_zone = { arg rect;
+	rect.width.debug("rect");
+	rect.width.do { arg x;
+		rect.height.do { arg y;
+			[x,y].debug("set_exec_zone");
+			Veco.main.clip.abspos_to_buf(Point(x,y)+rect.origin).response_mode = \exec;
+		}
+	}
+
+};
+
+~set_fake_clip_row = { arg row, fun, start=0, len=8;
+	
+	len.do { arg x;
+		var pos = Point(x+start, row);
+		var clip = Veco.main.clip.abspos_to_buf(pos);
+		var name = clip.node_uname;
+		var namex = clip.uname;
+		var index = row;
+		clip[\execute] = { arg self;
+			fun.(clip, name, namex, index, x);
 		};
-		if(Veco(~name).lib.macros.isSequenceableCollection) {
-			Veco(~name).lib.macros[ key.asString[1].digit ] = [PresetDef(key), \val];
-		};
-	};
-	preset.vals[\val];
-};
-
-~penv = { arg env;
-	Ptuple( env.asArray ).collect{ arg x; [x] }
-};
-
-~insert_beat = { arg key;
-	var env = currentEnvironment;
-	var gate = key+++\gate;
-	env[gate] = 1;
-	env[key] = Pbind(\isRest, Pseq([false],inf), \bla, Pfunc({ env[gate] }));
-	Veco(~namex).response_off_hook = { env[gate] = nil };
-	Veco(~namex).response_mode = \play;
-};
-
-~patfx_gate = { arg key, pat;
-	var env = currentEnvironment;
-	var gate = key+++\gate;
-	env[gate] = 1;
-	env[key] = pat <> Pbind(\bla, Pfunc({ env[gate] }));
-	Veco(~namex).response_off_hook = { env[gate] = nil };
-	Veco(~namex).response_mode = \play;
-};
-
-~ndef_to_macros = { arg key;
-	Ndef(key).controlNames.collect { arg con, x;
-		[Ndef(key), con.name]
+		clip.is_present = true;
 	}
 };
 
-~degcps = { arg deg, octave=5, root=(60.midicps); Scale.major.degreeToFreq(deg, 60.midicps, octave-5); };
+~clip_fx_gate = { arg buskey, clip, fxindex, xfadeon=1, xfadeoff=0.5;
+
+	index = clip.get_index;
+	name = clip.node_uname;
+	namex = clip.uname;
+	Ndef(name+++\mixer).put(fxindex, \filter -> { arg in; Out.ar(BusDef(buskey), in); in; });
+	Ndef(name+++\mixer).set(\xfade, xfadeon);
+
+	//[buskey,name, index,namex, ~namex, xfadeon,xfadeoff, offset].debug("delire!!!");
+	Veco(namex).response_off_hook = {
+		//var index = Veco.main.uname_to_index(name);
+		Ndef(name+++\mixer).set(\xfade, xfadeoff);
+		index.debug("remove!!");
+		//Ndef(\mangle).removeAt(index)
+		Ndef(name+++\mixer).removeAt(fxindex);
+	};
+	Veco(namex).response_mode = \exec;
+};
+
+~fx_gate = { arg buskey, name, index, namex, xfadeon=1, xfadeoff=0.5, offset=100;
+
+	index = index ?? ~index;
+	name = name ?? ~name;
+	namex = namex ?? "%.%".format(name, index+1).asSymbol;
+	index = index + offset;
+	Ndef(name+++\mixer).put(index, \filter -> { arg in; Out.ar(BusDef(buskey), in); in; });
+	Ndef(name+++\mixer).set(\xfade, xfadeon);
+
+	//[buskey,name, index,namex, ~namex, xfadeon,xfadeoff, offset].debug("delire!!!");
+	Veco(namex).response_off_hook = {
+		//var index = Veco.main.uname_to_index(name);
+		Ndef(name+++\mixer).set(\xfade, xfadeoff);
+		index.debug("remove!!");
+		//Ndef(\mangle).removeAt(index)
+		Ndef(name+++\mixer).removeAt(index);
+	};
+	Veco(namex).response_mode = \exec;
+};
+
+~insert_beat = { arg key, namex;
+	var env = currentEnvironment;
+	var gate;
+	namex = namex ?? ~namex;
+	gate = key+++\gate +++ namex;
+	env[gate] = 1;
+	env[key] = Pbind(\isRest, Pseq([false],inf), \bla, Pfunc({ env[gate] }));
+	Veco(namex).response_off_hook = { env[gate] = nil };
+	Veco(namex).response_mode = \exec;
+};
+
+~insert_beat_quant = { arg key, quant=1;
+	var env = currentEnvironment;
+	var gate;
+	var namex;
+	namex = ~namex;
+	gate = key+++\gate +++ namex;
+	Veco(namex).response_mode = \exec;
+
+	env[gate] = 1;
+	TempoClock.default.play ({
+		env[key] = Pbind(\isRest, Pseq([false],inf), \bla, Pfunc({ env[gate] }));
+	},quant);
+
+	Veco(namex).response_off_hook = { env[gate] = nil };
+};
+
+~patfx_gate = { arg key, pat, namex;
+	var env = currentEnvironment;
+	var gate;
+	namex = namex ?? ~namex;
+	gate = key+++\gate +++ namex;
+	env[gate] = 1;
+	env[key] = pat <> Pbind(\bla, Pfunc({ env[gate] }));
+	Veco(namex).response_off_hook = { env[gate] = nil };
+	Veco(namex).response_mode = \exec;
+};
 
 ~addfx = { arg key, delta, fun;
 	var pos;
@@ -158,6 +217,68 @@ Veco.load_lib("specs.scd");
         nil;
     };
 };
+
+);
+
+
+//////////////////////////////////////////////////// Macros
+
+(
+~midi = { arg key, default, spec;
+	var preset;
+	spec = spec ?? \widefreq.asSpec;
+	spec.postln;
+	preset = PresetDef.force(key, [\val, spec]);
+	if(default.notNil) {
+		preset.set_val(\val, default)
+	};
+	preset.vals[\val].set_bus_mode(true);
+	~set_macro.(key, preset, \val, spec);
+	preset.vals[\val];
+};
+
+~set_macro = { arg key, obj, member, spec;
+	MIDIBoard.map(key, obj, member, spec);
+	if(Veco(~name).lib.macros.isNil) {
+		Veco(~name).lib.macros = List.newClear(20);
+	};
+	if(Veco(~name).lib.macros.isSequenceableCollection and: {key.asString[0] == $k} ) {
+		Veco(~name).lib.macros[ key.asString[1].digit -1 ] = [obj, member, spec];
+	};
+	
+};
+
+~ndef_to_macros = { arg key;
+	Ndef(key).controlNames.collect { arg con, x;
+		[Ndef(key), con.name]
+	}
+};
+
+);
+
+
+
+//////////////////////////////////////////////////// 
+
+(
+
+//~set_exec_zone.(Rect(0,32,8,32+8));
+
+//(
+//8.do { arg x;
+//	8.do { arg y;
+//		Veco.main.clip.abspos_to_buf(Point(x,y)+Point(0,32)).response_mode = \exec;
+//	}
+//}
+//);
+
+~penv = { arg env;
+	Ptuple( env.asArray ).collect{ arg x; [x] }
+};
+
+
+~degcps = { arg deg, octave=5, root=(60.midicps); Scale.major.degreeToFreq(deg, 60.midicps, octave-5); };
+
 
 ~cdegcps = { arg tab, deg, octave=5, root=(60.midicps); 
 	tab.collect { arg val;
@@ -275,6 +396,7 @@ Veco.load_lib("specs.scd");
 };
 
 ~load_standard_quickpad = { arg self;
+	~load_standard_launchers.();
 	~load_quick_quant_chooser.();
 	~load_quick_editors.();
 	~load_quick_project_switcher.();

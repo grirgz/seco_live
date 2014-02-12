@@ -27,7 +27,9 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 		fxname.debug("play FX");
 		//Ndef(fxname).send;
 		Ndef(name+++\lfo1, Library.at(name+++\lfo1));
-		Ndef(fxname, Library.at(name+++\fx)).play(BusDef(name+++\mixer));
+		if(Ndef(fxname).isPlaying.not) {
+			Ndef(fxname, Library.at(name+++\fx)).play(BusDef(name+++\mixer));
+		}
 	});
 
 	Veco(name).add_stop_node_hook(\fx, {
@@ -86,9 +88,9 @@ Library.put(~name+++\fx, { arg ffreq=300, rq=0.3, choose=0, freqshift=40, time=2
 	//sig = sig2;
 	sig;
 });
-Library.put(~name+++\lfo1, { arg freq=4, base=2100, choose=0, loval=5, hival=1000, time=1; 
+Library.put(~name+++\lfo1, { arg freq=4, base=2100, choose=0, loval=5, hival=1000, time=1, lof=5; 
 	Select.kr(choose, [
-		SinOsc.kr(freq).range(5,base), 
+		SinOsc.kr(freq).range(lof,base), 
 		//Line.kr(loval, hival, time)
 		Sweep.kr(Impulse.kr(1/time), 1/time) * base + 50,
 		//EnvGen.kr(Env([0,1,0],[time,0]).circle, 1),

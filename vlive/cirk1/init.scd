@@ -19,6 +19,8 @@ Veco.load_file("synthpool.scd");
 	~mixer_group;
 };
 
+~set_exec_zone.(Rect(0,32,8,32+8));
+
 ~wobblefx = '1fx';
 ~twobble = '1';
 ~tfx1 = '36';

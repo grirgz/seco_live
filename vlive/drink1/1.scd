@@ -30,7 +30,7 @@ Veco(~name).make_mixer;
 
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
-Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
+Pdef(~name, ~patfx.(\modkick) <> Pdef(~name +++ \pre) <> Pbind(
 	\instrument, ~name,
 	\env0, [ Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.1], [-4, -2, -4]) ],
 	\env1, [ Env.new([120, 59, 29], [0.005, 0.29], [-4, -5]) ],
@@ -41,4 +41,5 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\amp, 0.4 * Pkey(\amp),
 ) <> Veco(~name).mixer)
 );
+
 

@@ -1,4 +1,5 @@
-Pdef(~name +++ \pre, Pbind(
+Pdef(~name+++\rhy, Pbind());
+Pdef(~name +++ \pre, Pdef(~name+++\rhy) <> Pbind(
 	\degree, Pseq([
 		[0,2,4],
 	],inf),
@@ -15,7 +16,6 @@ Pdef(~name +++ \pre, Pbind(
 	\ffreq, ~cdegcps.(Pseq([0,4,3,4]+14,inf)),
 	\ffreq, 440*2,
 	\dur, 1/8,
-	\time, Ptime(),
 	\sustain, ~midi.(\k3, 0.1, ControlSpec(0.01,1,\exp,0,0.1)).valpattern,
 	\distmix, ~midi.(\k4, 0.1, \unipolar.asSpec).vpattern,
 	\ffreq, Ndef(~name+++\lfo1, { SinOsc.ar(t/2).range(1400,12000) }),
@@ -31,3 +31,4 @@ Pdef(~name +++ \pre, Pbind(
 
 a = List.new
 a[14] = 4
+Veco.force_init

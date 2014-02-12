@@ -1,4 +1,27 @@
+/////////// create fake clips
 
+
+8.do { arg x;
+	var clip = Veco(~name).get_clip_by_index(x);
+	clip.is_present = true;
+	clip[\execute] = { arg self;
+		x.debug("resp!!!!!!!!!!!!!!!!!");
+		Ndef('32fx').set(\delay, 1/(2**x))
+	}
+}
+
+(
+3.do { arg x;
+	var row = 33;
+	var node = Veco.main.clip.abspos_to_buf(Point(x, row));
+	node[\execute] = { arg self;
+		Ndef(~fxcomb+++\fx).set(\delay, 1/8*(2**x))
+	};
+	node.is_present = true;
+}
+)
+
+/////////// //////////////
 ~newfxmix.(\fx);
 Veco(~name).make_mixer;
 Veco(~name).add_stop_node_hook(\fx, { "rah".debug("rahxx") }); // disable stop fx

@@ -37,7 +37,7 @@ Veco(~name).make_mixer;
 
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
-Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
+Pdef(~name, ~patfx.(\mod+++~name) <> Pdef(~name +++ \pre) <> Pbind(
 	\instrument, ~name,
 	\bufnum, BufDef(\moeten),
 	\bufnum, BufDef(\woodshop),

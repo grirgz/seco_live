@@ -26,3 +26,9 @@ Pdef(~name +++ \pre, Pbind(
 	],inf),
 	\dur, Pkey(\dur) * ~swing1,
 ));
+
+// END
+
+Ndef(~name+++\mixer).set(\xfade, 0.5)
+Ndef(~name+++\mixer).set(\xfade, 0)
+Ndef(~name+++\mixer).set(\xfade, 1)
