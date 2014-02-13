@@ -2,7 +2,7 @@
 
 (
 SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, pos=0, finepos=0, range=0.01,
-						lpmix=0.5, ffreq=500, rq=0.1, spread=0.8, fshift=0;
+						lpmix=0.5, ffreq=500, rq=0.1, spread=0.8, fshift=0, timeScale=1;
 	var ou, ou2;
 	var osc;
 	var bufsig;
@@ -10,7 +10,7 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, pos=0, fi
 	var ffreqtab;
 	osc = SinOsc.ar(freq*[1.001,0.999,1]);
 	//osc = osc.sum;
-	pos = EnvGen.kr(\posenv.kr(Env([1,0,0,0,0.5], [0.2,0.1,0.1,0.1])),gate) + pos;
+	pos = EnvGen.kr(\posenv.kr(Env([1,0,0,0,0.5], [0.2,0.1,0.1,0.1])),gate,timeScale:timeScale) + pos;
 	phase = osc * range + pos + finepos;
 
 	bufsig = BufRd.ar(2, bufnum, phase*BufFrames.ir(bufnum), 1);
@@ -27,10 +27,12 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, pos=0, fi
 }, metadata:(specs:(
 	finepos: ControlSpec(-0.001,0.001,\lin, 0, 1),
 	range: ControlSpec(-0.01,0.01,\lin, 0, 1),
+	posenv: \env -> [5, ControlSpec(0.001,1,\exp, 0, 1), nil, nil, Env([1,0,0,0,0.5], [0.2,0.1,0.1,0.1])],
 	//pos: \bipolar,
 ))).add;
 );
 
+Sdef(~name, \mypreset, \preset, ~name);
 BufDef(\moeten, "voices/02_moeten.flac");
 BufDef(\woodshop, "vipere/woodshop.flac");
 Veco(~name).make_mixer;

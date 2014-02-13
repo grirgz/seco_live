@@ -54,6 +54,7 @@ Pdef(~name,
 
 // END
 
+
 SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, pos=0, finepos=0, range=0.01;
 	var ou;
 	var osc;

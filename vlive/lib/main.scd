@@ -10,6 +10,23 @@ Veco.load_lib("launchers.scd");
 
 );
 
+(
+
+	~toggle_trig = { arg name, fun1, fun2;
+		var env = currentEnvironment;
+		if( env[name+++\toggle] == 1) {
+			"fun2trig!".debug;
+			fun2.(1);
+			env[name+++\toggle] = 0;
+		} {
+			"fun1trig!".debug;
+			fun1.(0);
+			env[name+++\toggle] = 1;
+		};
+	};
+
+);
+
 //////////////////////////////////////////////////// Trigpads
 
 (
@@ -41,6 +58,7 @@ Veco.load_lib("launchers.scd");
 
 ~clip_fx_gate = { arg buskey, clip, fxindex, xfadeon=1, xfadeoff=0.5;
 
+	var index, name, namex;
 	index = clip.get_index;
 	name = clip.node_uname;
 	namex = clip.uname;
@@ -116,6 +134,24 @@ Veco.load_lib("launchers.scd");
 	Veco(namex).response_mode = \exec;
 };
 
+~patfx_on = { arg key, pat, namex;
+	var env = currentEnvironment;
+	var gate;
+	namex = namex ?? ~namex;
+	gate = key+++\on +++ namex;
+	env[gate] = 1;
+	env[key] = pat <> Pbind(\bla, Pfunc({ env[gate] }));
+	Veco(namex).response_mode = \exec;
+};
+
+~patfx_off = { arg key, pat, namex;
+	var env = currentEnvironment;
+	var gate;
+	namex = namex ?? ~namex;
+	gate = key+++\on +++ namex;
+	env[gate] = nil;
+};
+
 ~addfx = { arg key, delta, fun;
 	var pos;
 	Ndef(key).add(fun);
@@ -179,7 +215,10 @@ Veco.load_lib("launchers.scd");
 			in = ev.yield;
         };
         nil;
-    };
+    }
+	<> Pbind(
+		\time, Ptime(),
+	)
 };
 
 ~patfxref = { arg fx_inject;
@@ -257,6 +296,86 @@ Veco.load_lib("launchers.scd");
 );
 
 
+
+////////////////////////////////////////////////////  clips
+
+(
+
+~spawnclip = { arg node_uname, clip_index;
+	var tr = node_uname;
+	switch(clip_index,
+		nil, {
+			// NOOP
+		},
+		\r, {
+			Veco(tr).stop_node(true);
+		}, 
+		\p, {
+			Veco(tr).play_node;
+		}, 
+		{
+			if(clip_index.class == Symbol) {
+				// NOOP
+			} {
+				if(Veco(tr).is_playing.not or: { Veco(tr).active_clip_index != clip_index }) {
+					Veco(tr).get_clip_by_index(clip_index).response_on_play;
+				} {
+					"already playing"
+				}
+			};
+		}
+	);
+};
+
+~clipspawner = {
+	~add_stop_clipspawner.();
+	Pbind(
+		\clipspawner, Pfunc{ arg ev; 
+			ev.postln; ev[\track].do{ arg tr, x;
+				var clip = ev[\clip];
+				if(clip.class == Array) {
+					clip = clip[x]
+				};
+				~spawnclip.(tr, clip);
+			}; 
+			1;
+		},
+	)
+};
+
+~add_stop_clipspawner = {
+	var name = ~name;
+	[name].debug("XXX=========add_stop_clipspawner");
+	Veco(name).add_stop_node_hook(\clipspawner, { 
+		var tracks = Veco(name).lib.tracks;
+		//topEnvironment[\tpercs].debug("add_stop_node_hook: tpercs");
+		[name, tracks].debug("=========add_stop_clipspawner");
+		tracks.do { arg track;
+			Veco(track).stop_node;
+		};
+	});
+};
+
+~spawnclips = { arg clips;
+	clips.pairsDo { arg tr,clip;
+		~spawnclip.(tr, clip);
+	}
+};
+
+~spawn_cliprow = { arg index;
+	if(index.isSequenceableCollection) {
+		Veco(~name).lib.tracks.collect { arg uname, i;
+			~spawnclip.(uname, index[i])
+		}
+	} {
+		Veco(~name).lib.tracks.collect { arg uname;
+			~spawnclip.(uname, index)
+		}
+	}
+
+};
+
+);
 
 //////////////////////////////////////////////////// 
 
@@ -404,72 +523,6 @@ Veco.load_lib("launchers.scd");
 
 ControlSpec.specs[\spread] = \unipolar.asSpec;
 
-~spawnclip = { arg node_uname, clip_index;
-	var tr = node_uname;
-	switch(clip_index,
-		nil, {
-			// NOOP
-		},
-		\r, {
-			Veco(tr).stop_node(true);
-		}, 
-		{
-			if(clip_index.class == Symbol) {
-				// NOOP
-			} {
-				Veco(tr).get_clip_by_index(clip_index).response_on_play;
-			};
-		}
-	);
-};
-
-~clipspawner = {
-	~add_stop_clipspawner.();
-	Pbind(
-		\clipspawner, Pfunc{ arg ev; 
-			ev.postln; ev[\track].do{ arg tr, x;
-				var clip = ev[\clip];
-				if(clip.class == Array) {
-					clip = clip[x]
-				};
-				~spawnclip.(tr, clip);
-			}; 
-			1;
-		},
-	)
-};
-
-~add_stop_clipspawner = {
-	var name = ~name;
-	[name].debug("XXX=========add_stop_clipspawner");
-	Veco(name).add_stop_node_hook(\clipspawner, { 
-		var tracks = Veco(name).lib.tracks;
-		//topEnvironment[\tpercs].debug("add_stop_node_hook: tpercs");
-		[name, tracks].debug("=========add_stop_clipspawner");
-		tracks.do { arg track;
-			Veco(track).stop_node;
-		};
-	});
-};
-
-~spawnclips = { arg clips;
-	clips.pairsDo { arg tr,clip;
-		~spawnclip.(tr, clip);
-	}
-};
-
-~spawn_cliprow = { arg index;
-	if(index.isSequenceableCollection) {
-		Veco(~name).lib.tracks.collect { arg uname, i;
-			~spawnclip.(uname, index[i])
-		}
-	} {
-		Veco(~name).lib.tracks.collect { arg uname;
-			~spawnclip.(uname, index)
-		}
-	}
-
-};
 
 
 ~morph = { arg mainkey, lagtime, pat;

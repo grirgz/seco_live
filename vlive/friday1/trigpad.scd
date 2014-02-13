@@ -1,5 +1,34 @@
 
 (
+		~set_exec_zone.(Rect(0,32, 16,64));
+		Veco.main.clip.response_launcher_on_hook = { arg self, pos, opos, mod;
+			var ev;
+			var funs;
+			[pos, opos, mod].debug("response_launcher_on_hook===");
+			ev = ~launcher_lib;
+			funs = [
+				{Veco.main.clip_offset = Point(0,0)},
+				{Veco.main.clip_offset = Point(8,0)},
+				{ev.no_pane; Veco.main.clip_offset = Point(Veco.main.clip_offset.x,32+4)},
+				{
+					ev.mid_pane; 
+					Veco.main.clip_offset = Point(Veco.main.clip_offset.x,		32+4);
+					Veco.main.pane_offset = Point(Veco.main.clip_offset.x+8,	32+4);
+				},
+
+				{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32)},
+				{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32+4)},
+				{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32+8)},
+				{ev.no_pane},
+			];
+
+			funs[pos.y].value;
+			Veco.main.clip.render_state;
+
+		};
+);
+
+(
 ~set_fake_clip_row.(33, { arg clip, name, namex, index, x;
 	//Ndef(~fxcomb+++\fx).set(\delaytime, 1/(2**x)/t)
 	index.debug("kkjkkkk");

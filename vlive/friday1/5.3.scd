@@ -1,7 +1,7 @@
 
 (
 Veco.do { arg name, namex;
-	Pdef(~name +++ \pre, DebugPbind(
+	Pdef(~name +++ \pre, Pbind(
 		\freq, Pseq([
 			100,200,50,60,
 			80,200,50,60,
