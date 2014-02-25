@@ -10,6 +10,19 @@ Veco.load_lib("launchers.scd");
 
 );
 
+
+(
+		~matrix_ctrl.set_fxlist([
+			BusDef('fx1'),
+			BusDef('fx2'),
+			BusDef('fx3'),
+			//BusDef('fx4'),
+		]);
+	~load_fx_matrix_editor = {
+		~matrix_view.activate_display(~matrix_ctrl);
+	};
+);
+
 (
 
 	~toggle_trig = { arg name, fun1, fun2;
@@ -49,11 +62,22 @@ Veco.load_lib("launchers.scd");
 		var name = clip.node_uname;
 		var namex = clip.uname;
 		var index = row;
-		clip[\execute] = { arg self;
+		clip[\execute_hook] = { arg self;
 			fun.(clip, name, namex, index, x);
 		};
-		clip.is_present = true;
 	}
+};
+
+~clear_fake_clip_row = { arg row, start=0, len=8;
+	len.do { arg x;
+		var pos = Point(x+start, row);
+		var clip = Veco.main.clip.abspos_to_buf(pos);
+		var name = clip.node_uname;
+		var namex = clip.uname;
+		var index = row;
+		clip[\execute_hook] = nil;
+	}
+
 };
 
 ~clip_fx_gate = { arg buskey, clip, fxindex, xfadeon=1, xfadeoff=0.5;
@@ -144,7 +168,7 @@ Veco.load_lib("launchers.scd");
 	Veco(namex).response_mode = \exec;
 };
 
-~patfx_off = { arg key, pat, namex;
+~patfx_off = { arg key, namex;
 	var env = currentEnvironment;
 	var gate;
 	namex = namex ?? ~namex;
@@ -377,6 +401,267 @@ Veco.load_lib("launchers.scd");
 
 );
 
+////////////////////////////////////////////////////  quickpad
+
+(
+
+~load_quick_quant_chooser = { arg quants;
+	var codepad;
+	var qp = ~veco.quickpad_controller;
+	quants = quants ?? [1/8,1/4,1/2,1,  2,4,8,16];
+	quants.do { arg quant, y;
+		codepad = qp.get_codepad(Point(0,y));
+		codepad.payload = { arg self;
+			quant.debug("setting Pdef.defaultQuant to");
+			Pdef.defaultQuant = quant;
+		};
+	}
+};
+
+~load_quick_editors = { arg self;
+	var codepad;
+	var qp = Veco.main.quickpad_controller;
+	codepad = qp.get_codepad(Point(1,0));
+	codepad.payload = { arg self;
+		{
+			~namex.debug("edit namex");
+			Sdef(~namex, \mypreset).edit;
+		}.defer;
+	};
+
+	codepad = qp.get_codepad(Point(1,1));
+	codepad.payload = { arg self;
+		//{
+			//~load_fx_matrix_editor.();
+		~matrix_view.skip_first_time = true;
+		~matrix_view.activate_display(~matrix_ctrl);
+		//}.defer(1);
+	};
+	
+};
+
+~load_quick_mode_chooser = { arg self;
+	var codepad;
+	var qp = Veco.main.quickpad_controller;
+	codepad = qp.get_codepad(Point(7,0));
+	codepad.payload = { arg self;
+		//{
+			if(Veco.main.clip_response_mode == \toggle) {
+				Veco.main.clip_response_mode = \play;
+				debug("set Clip response mode = play");
+			} {
+				Veco.main.clip_response_mode = \toggle;
+				debug("set Clip response mode = toggle");
+			}
+		//}.defer;
+	};
+	
+};
+
+~load_quick_project_switcher = {
+	var codepad;
+	var qp = ~veco.quickpad_controller;
+	codepad = qp.get_codepad(Point(2,0));
+	codepad.payload = { arg self;
+		"loadprojectA".debug;
+		if(~quick_project_a.notNil and: { ~last_loaded_quick_project != ~quick_project_a }) {
+			~last_loaded_quick_project = ~quick_project_a;
+			Veco.main.open_project_in_vim(~quick_project_a);
+		};
+	};
+	codepad = qp.get_codepad(Point(2,1));
+	codepad.payload = { arg self;
+		"loadprojectB".debug;
+		if(~quick_project_b.notNil and: { ~last_loaded_quick_project != ~quick_project_b }) {
+			~last_loaded_quick_project = ~quick_project_b;
+			Veco.main.open_project_in_vim(~quick_project_b);
+		};
+	};
+
+};
+
+
+~load_standard_quickpad = { arg self;
+	~load_standard_launchers.();
+	~load_quick_quant_chooser.();
+	~load_quick_editors.();
+	~load_quick_project_switcher.();
+	~load_quick_mode_chooser.();
+};
+
+);
+
+////////////////////////////////////////////////////  morph
+
+(
+
+// lag each key of a pattern
+~morph = { arg mainkey, lagtime, pat;
+	var base = pat.asStream.next(());
+	var bind = List.new;
+	var proxy;
+	var bus;
+	base.keysValuesDo { arg key, val;
+		var ndefkey = "%.%".format(mainkey, key).asSymbol;
+		[key, val].debug("morph:val");
+		if(val.isArray) {
+			var asize;
+			var aval;
+			aval = val[0];
+			aval = aval.asArray;
+			asize = aval.size;
+			Ndef(ndefkey, { 
+				blend(Ndef(ndefkey).kr(asize), aval, Line.kr(0, 1, lagtime))
+			});
+			if(val[0].class == Env) {
+				bus = val;
+			} {
+				proxy = Ndef(ndefkey);
+				bus = [proxy.busArg];
+			}
+		} {
+			Ndef(ndefkey, { 
+				Line.kr(Ndef(ndefkey).kr, val, lagtime)
+			});
+			proxy = Ndef(ndefkey);
+			bus = proxy.bus.asMap;
+		};
+		bind.add(key);
+		bind.add(bus);
+	};
+	Pbind(*bind)
+};
+
+
+// pattern morphing
+~morphpat = { arg pat1, pat2, mpat;
+	var spat1, spat2, smpat;
+	var ev1, ev2, morph;
+	var res_ev;
+	var rout;
+	var exclu = Set[\dur, \instrument, \isRest];
+	//var inclu = Set[\ffreq];
+	spat1 = pat1.asStream;
+	spat2 = pat2.asStream;
+	smpat = mpat.asStream;
+	rout = Prout { arg in;
+		block { arg break;
+			loop {
+				in = in.deepCopy;
+				ev1 = spat1.next(in);
+				ev2 = spat2.next(in);
+				morph = smpat.next;
+				if(ev1.isNil or: { ev2.isNil or: { morph.isNil }}) { 
+					break.value;
+				} {
+					res_ev = in.deepCopy;
+					ev1.keys.difference(exclu).do { arg key;
+					//ev1.keys.select({ arg x; inclu.includes(x) }).do { arg key;
+						//res_ev[key] = (ev1[key] * morph) + (ev2[key] * (1 - morph));
+						if(ev1[key].isNumber or: {ev1[key].isSequenceableCollection}) {
+							res_ev[key] = blend(ev1[key], ev2[key], morph)
+						}
+					};
+					//res_ev.debug("res_ev");
+					in = res_ev.yield;
+				}
+			}
+		}
+	};
+	rout
+};
+
+// pattern morphing with a list and the key is a valuepattern
+~lmorphpat = { arg pat_list, mpat;
+	var spat1, spat2, smpat;
+	var ev1, ev2, morph;
+	var res_ev;
+	var rout;
+	var exclu = Set[\dur, \instrument, \isRest];
+	//var inclu = Set[\ffreq];
+	var str_list;
+	var val_list;
+	var list;
+	var size;
+	str_list = pat_list.collect(_.asStream);
+	size = pat_list.size;
+	smpat = mpat.asStream;
+	rout = Prout { arg in;
+		block { arg break;
+			loop {
+				in = in.deepCopy;
+				morph = smpat.next;
+				val_list = str_list.collect { arg spat; spat.next(in); };
+				if(val_list.any({ arg x; x.isNil }) or: { morph.isNil }) { 
+					break.value;
+				} {
+					ev1 = val_list[0];
+					res_ev = in.deepCopy;
+					ev1.keys.difference(exclu).do { arg key;
+						list = val_list.collect { arg x; x[key] };
+						if(ev1[key].isNumber or: {ev1[key].isSequenceableCollection}) {
+							res_ev[key] = list.blendAt(morph*size)
+						}
+					};
+					//res_ev.debug("res_ev");
+					in = res_ev.yield;
+				}
+			}
+		}
+	};
+	rout
+};
+
+// pattern morphing with a list and the key is in the input pattern
+~ilmorphpat = { arg pat_list, inkey;
+	var spat1, spat2, smpat;
+	var ev1, ev2, morph;
+	var res_ev;
+	var rout;
+	var exclu = Set[\dur, \instrument, \isRest];
+	//var inclu = Set[\ffreq];
+	var str_list;
+	var val_list;
+	var list;
+	var size;
+	str_list = pat_list.collect(_.asStream);
+	size = pat_list.size;
+	rout = Prout { arg in;
+		block { arg break;
+			loop {
+				in = in.deepCopy;
+				morph = in[inkey];
+				//morph.debug("ilmorphpat:morph");
+				val_list = str_list.collect { arg spat; spat.next(in); };
+				if(val_list.any({ arg x; x.isNil }) or: { morph.isNil }) { 
+					break.value;
+				} {
+					ev1 = val_list[0];
+					res_ev = in.deepCopy;
+					ev1.keys.difference(exclu).do { arg key;
+						list = val_list.collect { arg x; x[key] };
+						if(ev1[key].isNumber or: {ev1[key].isSequenceableCollection}) {
+							res_ev[key] = list.blendAt(morph*size)
+						}
+					};
+					//res_ev.debug("ilmorphpat: res_ev");
+					in = res_ev.yield;
+				}
+			}
+		}
+	};
+	rout
+};
+
+// set ndef to a 3gt
+~morph_to = { arg key, gen;
+	Ndef(~name+++key, gen.value({Ndef(~name+++key).kr}));
+};
+
+);
+
+//////////////////////////////////////////////////// 
+//////////////////////////////////////////////////// 
 //////////////////////////////////////////////////// 
 
 (
@@ -466,179 +751,10 @@ Veco.load_lib("launchers.scd");
 	pat.collect { arg x; if(x == 1) { false } { true } }
 };
 
-~load_quick_quant_chooser = { arg quants;
-	var codepad;
-	var qp = ~veco.quickpad_controller;
-	quants = quants ?? [1/8,1/4,1/2,1,  2,4,8,16];
-	quants.do { arg quant, y;
-		codepad = qp.get_codepad(Point(0,y));
-		codepad.payload = { arg self;
-			quant.debug("setting Pdef.defaultQuant to");
-			Pdef.defaultQuant = quant;
-		};
-	}
-};
-
-~load_quick_editors = { arg self;
-	var codepad;
-	var qp = Veco.main.quickpad_controller;
-	codepad = qp.get_codepad(Point(1,0));
-	codepad.payload = { arg self;
-		{
-			~namex.debug("edit namex");
-			Sdef(~namex, \mypreset).edit;
-		}.defer;
-	};
-	
-};
-
-~load_quick_project_switcher = {
-	var codepad;
-	var qp = ~veco.quickpad_controller;
-	codepad = qp.get_codepad(Point(2,0));
-	codepad.payload = { arg self;
-		"loadprojectA".debug;
-		if(~quick_project_a.notNil and: { ~last_loaded_quick_project != ~quick_project_a }) {
-			~last_loaded_quick_project = ~quick_project_a;
-			Veco.main.open_project_in_vim(~quick_project_a);
-		};
-	};
-	codepad = qp.get_codepad(Point(2,1));
-	codepad.payload = { arg self;
-		"loadprojectB".debug;
-		if(~quick_project_b.notNil and: { ~last_loaded_quick_project != ~quick_project_b }) {
-			~last_loaded_quick_project = ~quick_project_b;
-			Veco.main.open_project_in_vim(~quick_project_b);
-		};
-	};
-
-};
-
-~load_standard_quickpad = { arg self;
-	~load_standard_launchers.();
-	~load_quick_quant_chooser.();
-	~load_quick_editors.();
-	~load_quick_project_switcher.();
-};
 
 ControlSpec.specs[\spread] = \unipolar.asSpec;
 
 
-
-~morph = { arg mainkey, lagtime, pat;
-	var base = pat.asStream.next(());
-	var bind = List.new;
-	var proxy;
-	var bus;
-	base.keysValuesDo { arg key, val;
-		var ndefkey = "%.%".format(mainkey, key).asSymbol;
-		[key, val].debug("morph:val");
-		if(val.isArray) {
-			var asize;
-			var aval;
-			aval = val[0];
-			aval = aval.asArray;
-			asize = aval.size;
-			Ndef(ndefkey, { 
-				blend(Ndef(ndefkey).kr(asize), aval, Line.kr(0, 1, lagtime))
-			});
-			if(val[0].class == Env) {
-				bus = val;
-			} {
-				proxy = Ndef(ndefkey);
-				bus = [proxy.busArg];
-			}
-		} {
-			Ndef(ndefkey, { 
-				Line.kr(Ndef(ndefkey).kr, val, lagtime)
-			});
-			proxy = Ndef(ndefkey);
-			bus = proxy.bus.asMap;
-		};
-		bind.add(key);
-		bind.add(bus);
-	};
-	Pbind(*bind)
-};
-
-
-// pattern morphing
-~morphpat = { arg pat1, pat2, mpat;
-	var spat1, spat2, smpat;
-	var ev1, ev2, morph;
-	var res_ev;
-	var rout;
-	var exclu = Set[\dur, \instrument, \isRest];
-	//var inclu = Set[\ffreq];
-	spat1 = pat1.asStream;
-	spat2 = pat2.asStream;
-	smpat = mpat.asStream;
-	rout = Prout { arg in;
-		block { arg break;
-			loop {
-				in = in.deepCopy;
-				ev1 = spat1.next(in);
-				ev2 = spat2.next(in);
-				morph = smpat.next;
-				if(ev1.isNil or: { ev2.isNil or: { morph.isNil }}) { 
-					break.value;
-				} {
-					res_ev = in.deepCopy;
-					ev1.keys.difference(exclu).do { arg key;
-					//ev1.keys.select({ arg x; inclu.includes(x) }).do { arg key;
-						//res_ev[key] = (ev1[key] * morph) + (ev2[key] * (1 - morph));
-						if(ev1[key].isNumber or: {ev1[key].isSequenceableCollection}) {
-							res_ev[key] = blend(ev1[key], ev2[key], morph)
-						}
-					};
-					//res_ev.debug("res_ev");
-					in = res_ev.yield;
-				}
-			}
-		}
-	};
-	rout
-};
-
-~lmorphpat = { arg pat_list, mpat;
-	var spat1, spat2, smpat;
-	var ev1, ev2, morph;
-	var res_ev;
-	var rout;
-	var exclu = Set[\dur, \instrument, \isRest];
-	//var inclu = Set[\ffreq];
-	var str_list;
-	var val_list;
-	var list;
-	var size;
-	str_list = pat_list.collect(_.asStream);
-	size = pat_list.size;
-	smpat = mpat.asStream;
-	rout = Prout { arg in;
-		block { arg break;
-			loop {
-				in = in.deepCopy;
-				morph = smpat.next;
-				val_list = str_list.collect { arg spat; spat.next(in); };
-				if(val_list.any({ arg x; x.isNil }) or: { morph.isNil }) { 
-					break.value;
-				} {
-					ev1 = val_list[0];
-					res_ev = in.deepCopy;
-					ev1.keys.difference(exclu).do { arg key;
-						list = val_list.collect { arg x; x[key] };
-						if(ev1[key].isNumber or: {ev1[key].isSequenceableCollection}) {
-							res_ev[key] = list.blendAt(morph*size)
-						}
-					};
-					//res_ev.debug("res_ev");
-					in = res_ev.yield;
-				}
-			}
-		}
-	};
-	rout
-};
 
 ~save_object = { arg name, object;
 	if(object.notNil) {

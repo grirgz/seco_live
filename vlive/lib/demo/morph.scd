@@ -1,3 +1,18 @@
+
+
+////////////////////////////////////////
+
+~morph_to.(\mod2, { arg from;  {XLine.kr(from.value,500,10)}});
+~morph_to.(\mod1, { arg from;  {XLine.kr(from.value,9,10)}});
+
+(
+~morph_to = { arg key, gen;
+	Ndef(~name+++key, gen.value({Ndef(~name+++key).kr}));
+}
+)
+
+////////////////////////////////////////
+
 Sdef(~name, \morph, \preset, [\morph, \unipolar.asSpec]);
 
 Pdef(~name +++ \pre, 
@@ -32,6 +47,7 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 
 )
 
+////////////////////////////////////////
 
 blend([Env.adsr(0.1,0.1,0.8,0.2)],[Env.adsr(0.7,0.7,0.5,0.4)],0.5).asCompileString
 

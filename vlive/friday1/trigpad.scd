@@ -28,12 +28,17 @@
 		};
 );
 
+// END
+
 (
 ~set_fake_clip_row.(33, { arg clip, name, namex, index, x;
-	//Ndef(~fxcomb+++\fx).set(\delaytime, 1/(2**x)/t)
-	index.debug("kkjkkkk");
-	[name, namex, index].debug("set_fake_clip_row");
-	~clip_fx_gate.('34fx', clip, 33);
+	if()
+	~toggle_trig.(namex, {
+
+		~patfx_on.(name+++\patfx, Pbind(\isRest, true), namex)
+	}, {
+		~patfx_off.(name+++\patfx, namex)
+	});
 });
 
 2.do { arg fx;
@@ -55,7 +60,6 @@
 }
 );
 
-// END
 
 ~set_fake_clip_row.(33, { arg clip, name, namex, index, x;
 	Ndef(~fxcomb+++\fx).set(\delaytime, 1/(2**x)/t)

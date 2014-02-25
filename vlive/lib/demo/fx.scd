@@ -1,3 +1,40 @@
+
+MIDIBoard.map(\c5, { ~midi_macro_manager.map_node_macro_to_knobs(Veco('32')) });
+MIDIBoard.map(\c6, { ~midi_macro_manager.map_node_macro_to_knobs(Veco('33')) });
+MIDIBoard.map(\c7, { ~midi_macro_manager.map_node_macro_to_knobs(Veco('34')) });
+MIDIBoard.map(\c8, { ~midi_macro_manager.map_node_macro_to_knobs(Veco('35')) });
+
+/////////////////////////////////////////////////////////////////////////////// mobile
+~name = '36';
+
+~fxname = 'fx1'
+~newfxmix.(\fx); // fx using mixer
+//~newfx.(\fx); // fx
+Veco(~name).make_mixer; // mixer
+
+//////////// clip
+
+(
+Ndef(~name+++\fx).put(0, { arg mix=0.5; 
+	var sigin, sig;
+	sigin = InFeedback.ar(BusDef(~fxname), 2);
+	sigin;
+});
+Ndef(~name+++\fx).put(100, \filter -> { arg in, maxdelaytime=0.1, delaytime=0.1, decaytime=0.5;
+	CombN.ar(in, maxdelaytime, delaytime, decaytime) + in;
+});
+);
+
+Veco(~name).lib.macros = ~ndef_to_macros.(~name+++\fx) ++ [ ]; 
+
+// END
+
+Ndef(~name+++\mixer).edit
+Ndef(~name+++\mixer).play
+Ndef(~name+++\fx).play(BusDef(~name+++\mixer))
+Ndef(~name+++\fx).stop
+
+
 /////////////////////////////////////////////////////////////////////////////// modern
 ~name = '36';
 
