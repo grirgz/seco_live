@@ -2,10 +2,11 @@ TempoClock.default.tempo = t = 75/60;
 Veco.main.board_size = Point(16,64);
 Pdef.defaultQuant = 4;
 Veco.load_lib("main.scd");
-Veco.exec_file("trigpad.scd");
 Veco.load_lib("synth.scd");
 
 ~load_standard_quickpad.();
+
+Veco.exec_file("trigpad.scd");
 
 (
 ~matrix_ctrl.set_fxlist([
@@ -13,6 +14,7 @@ Veco.load_lib("synth.scd");
 	BusDef('fx2'),
 	BusDef('fx3'),
 	BusDef('fx4'),
+	BusDef('fx5'),
 ]);
 );
 

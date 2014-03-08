@@ -4,7 +4,7 @@ Pdef(~name +++ \pre,
 
 		\mbufnum, BufDef.mono(\ukraine),
 		\dur, 16,
-		\legato, 0.8,
+		\legato, 1.0,
 	) <>
 	
 	Sdef(~name, \mypreset).pbind <> 
@@ -15,4 +15,5 @@ Pdef(~name +++ \pre,
 
 // END
 
+785*2
 Sdef(~name, \mypreset).pbind.asStream.next(Event.default);

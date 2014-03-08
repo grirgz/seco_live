@@ -10,8 +10,59 @@ Veco.load_lib("launchers.scd");
 
 );
 
+(
+~play_timeline = { arg timeline, quant=4;
+	Task({
+		var play_subtimeline;
+		var clock = TempoClock.default;
+		var start_time = clock.beats;
+		block { arg break;
+		
+			"--start of timeline".debug;
+			play_subtimeline = { arg timeline;
+				var current_time = 0;
+				var wait_time = 0;
+				timeline.clump(2).do { arg part;
+					var time, fun;
+					#time, fun = part;
+					wait_time = time - current_time;
+					if(wait_time < 0) {
+						"error in timing".postln;
+						break.value;
+					};
+					wait_time.wait;
+					if(fun.isSequenceableCollection) {
+						play_subtimeline.(fun)
+					} {
+						[clock.beats - start_time, clock.beats].debug("TIMELINE");
+						fun.value;
+					};
+					current_time = current_time + wait_time;
+				}
+			};
+			play_subtimeline.(timeline);
+			"------end of timeline".debug;
+	
+		}
+	}).play(quant:Quant(quant, -1))
+};
+);
 
 (
+~present_nodes_do = { arg offset=54, len=8, fun;
+	len.do { arg x;
+		var node;
+		var index;
+		index = offset + x;
+		node = Veco.main.get_node_by_index(index);
+		if(node.is_present) {
+			fun.(index, node, x);
+		}
+	
+	}
+};
+
+
 		~matrix_ctrl.set_fxlist([
 			BusDef('fx1'),
 			BusDef('fx2'),
@@ -40,9 +91,37 @@ Veco.load_lib("launchers.scd");
 
 );
 
+//////////////////////////////////////////////////// Env mod
+
+(
+
+~mul_release = { arg key, mul=1;
+	Pfunc({ arg ev;
+		var env = ev[key][0];
+		var times;
+		env = env.deepCopy;
+		env.asCompileString.debug("env1");
+		times = env.times;
+		times[env.times.size-1] = times[env.times.size-1] * mul;
+		env.times = times;
+		env.asCompileString.debug("env2");
+		[env];
+	})
+};
+~emul_release = { arg key, mul;
+	Pbind(
+		key, ~mul_release.(key, mul)
+	)
+};
+);
+
 //////////////////////////////////////////////////// Trigpads
 
 (
+~pkey1 = { arg key, repeat=1;
+	Pfuncn({ arg ev; ev[key] },repeat)
+};
+
 ~set_exec_zone = { arg rect;
 	rect.width.debug("rect");
 	rect.width.do { arg x;
@@ -158,6 +237,13 @@ Veco.load_lib("launchers.scd");
 	Veco(namex).response_mode = \exec;
 };
 
+~patfx_insert = { arg key, pat, namex;
+	var env = currentEnvironment;
+	namex = namex ?? ~namex;
+	env[key] = pat ;
+	Veco(namex).response_mode = \exec;
+};
+
 ~patfx_on = { arg key, pat, namex;
 	var env = currentEnvironment;
 	var gate;
@@ -175,6 +261,28 @@ Veco.load_lib("launchers.scd");
 	gate = key+++\on +++ namex;
 	env[gate] = nil;
 };
+
+~patfx_mute = { arg key, namex;
+	var env = currentEnvironment;
+	var gate;
+	gate = key+++\mute;
+	env[gate] = 1;
+	env[key] = Pbind(\isRest, true, \bla, Pfunc({ env[gate] }));
+	if(namex.notNil) {
+		Veco(namex).response_mode = \exec;
+	}
+};
+
+~patfx_unmute = { arg key, namex;
+	var env = currentEnvironment;
+	var gate;
+	gate = key+++\mute;
+	env[gate] = nil;
+	if(namex.notNil) {
+		Veco(namex).response_mode = \exec;
+	}
+};
+
 
 ~addfx = { arg key, delta, fun;
 	var pos;
@@ -207,7 +315,7 @@ Veco.load_lib("launchers.scd");
 	}
 };
 
-~patfx = { arg key;
+~classic_patfx = { arg key;
     Prout { arg in;
 		var pat;
 		var ev, str;
@@ -244,6 +352,73 @@ Veco.load_lib("launchers.scd");
 		\time, Ptime(),
 	)
 };
+
+~quant_patfx = { arg key;
+    Prout { arg in;
+		var pat;
+		var ev, str;
+		var chain = List.new;
+		var get_ev = { arg input;
+			var to_remove = List.new;
+			chain.do { arg str, idx;
+				var vinput;
+				vinput = str.next(input);
+				if(vinput.notNil) {
+					input = vinput
+				} {
+					to_remove.add(idx);
+				};
+			};
+			to_remove.reverse.do { arg idx;
+				chain.removeAt(idx)
+			};
+			input;
+		};
+		inf.do {
+			if(currentEnvironment[key].notNil) {
+				var quant;
+				var quant_key = key+++\quant;
+				str = currentEnvironment[key].asStream;
+				quant = currentEnvironment[quant_key];
+				if(quant.notNil) {
+					var time = in[\time];
+					var target_time = time % quant;
+					var trash;
+					var trash_str;
+					var current_time = 0;
+					block { arg break;
+						100.do {
+							//trash_str = str.deepCopy;
+							//trash = trash_str.next(in);
+							trash = str.next(in);
+							if(current_time >= target_time) {
+								str = Pseq([trash, str]).asStream;
+								break.value;
+							};
+							if(trash.isNil) {
+								break.value;
+							};
+							//str = trash_str;
+							current_time = current_time + trash[\dur];
+						}
+					}
+				};
+				chain.add(str);
+				currentEnvironment[key] = nil;
+				currentEnvironment[quant_key] = nil;
+			};
+			//chain.debug("chain");
+			ev = get_ev.(in);
+			in = ev.yield;
+        };
+        nil;
+    }
+	<> Pbind(
+		\time, Ptime(),
+	)
+};
+
+~patfx = ~quant_patfx;
 
 ~patfxref = { arg fx_inject;
     Prout { arg in;
@@ -342,7 +517,12 @@ Veco.load_lib("launchers.scd");
 				// NOOP
 			} {
 				if(Veco(tr).is_playing.not or: { Veco(tr).active_clip_index != clip_index }) {
-					Veco(tr).get_clip_by_index(clip_index).response_on_play;
+					var clip = Veco(tr).get_clip_by_index(clip_index);
+					if(clip.response_mode == \exec) {
+						clip.response_on;
+					} {
+						clip.response_on_play;
+					}
 				} {
 					"already playing"
 				}
@@ -436,6 +616,20 @@ Veco.load_lib("launchers.scd");
 		~matrix_view.skip_first_time = true;
 		~matrix_view.activate_display(~matrix_ctrl);
 		//}.defer(1);
+	};
+
+	codepad = qp.get_codepad(Point(1,2));
+	codepad.payload = { arg self;
+		{
+			Ndef(~name+++\fx).edit;
+		}.defer;
+	};
+
+	codepad = qp.get_codepad(Point(1,3));
+	codepad.payload = { arg self;
+		{
+			Ndef(~name+++\mixer).edit;
+		}.defer;
 	};
 	
 };

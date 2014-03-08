@@ -1,76 +1,70 @@
+
 ~name = '8';
 
-(
-SynthDef(\oscsampler2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, pos=0, finepos=0, range=0.01,
-						lpmix=0.5, ffreq=500, rq=0.1, spread=0.8, fshift=0;
-	// env longer
-	var ou, ou2;
-	var osc;
-	var bufsig;
-	var phase;
-	var ffreqtab;
-	osc = SinOsc.ar(freq*[1.001,0.999,1]);
-	//osc = osc.sum;
-	pos = EnvGen.kr(\posenv.kr(Env([1,0,0.5,0.2, 0.2], [0.2,0.1,0.1,0.1])),gate) + pos;
-	phase = osc * range + pos + finepos;
+SynthDef(~name, { | out=0, decay = 3, amp = 0.1, freqfactor = 1, doneAction=2, delayfactor=1, shift=(-200), freq2=3000, noisefreq=0.5,
+			fbase=4000, fscale=3, fbase2 = 3000, fscale2 = 1, freqfactor2 = 1, decay2=2, gate=1,
+			dbase2=0.01, dscale2=0.5,
+			dbase=0.100, dscale=0.9,
+			oscmix=0.5, oscfreq=400, ffreq=900, rq=0.3|
+	var sig = WhiteNoise.ar;
+	var sig2;
+	var sig3;
+	var del = 0;
+	var sigo;
+	sig = DC.ar(0);
+	sigo = sig;
+	sig3 = LFSaw.ar(oscfreq*\freqtab.kr(Array.geom(8,1,1.4)));
+	sig3 = RLPF.ar(sig3, ffreq*\ffreqtab.kr(Array.geom(8,0.25,1.2)), rq);
+	sigo = sig3;
+	//sig3 = sig3 * 0.01;
+	sig = sig;
+	sig = LPF.ar(sig, (fbase*fscale*freqfactor).clip(10,15000));
+	//sig = sig + DelayC.ar(sig, 0.1,LFNoise2.ar(1/2).range(0.001,0.01)*delayfactor);
+	del = sig + DelayC.ar(sig, 0.1,LFNoise2.ar(noisefreq) * dscale*dbase+dbase);
+	del = FreqShift.ar(del, shift);
+	sig = sig + sig3;
+	sig = sig + del;
+	sig = HPF.ar(sig, (fbase*freqfactor).clip(10,15000), 0.05);
+	sig2 = sig;
 
-	bufsig = BufRd.ar(2, bufnum, phase*BufFrames.ir(bufnum), 1);
-	bufsig = bufsig.sum;
-	ou = bufsig;
-	ou = ou * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
-	ffreqtab = \ffreqtab.kr(1!8);
-	ou = FreqShift.ar(ou, fshift);
-	ou2 = RLPF.ar(ou, ffreq * ffreqtab, rq);
-	ou = SelectX.ar(lpmix, [ou, ou2]);
-	ou = Splay.ar(ou, spread, amp, pan);
-	
-	Out.ar(out, ou);
-}, metadata:(specs:(
-	finepos: ControlSpec(-0.001,0.001,\lin, 0, 1),
-	range: ControlSpec(-0.01,0.01,\lin, 0, 1),
-	//pos: \bipolar,
-))).store;
-);
+	sig = LPF.ar(sigo, (fbase2*fscale2*freqfactor2).clip(10,15000));
+	//sig = sig + DelayC.ar(sig, 0.1,LFNoise2.ar(1/2).range(0.001,0.01)*delayfactor);
+	del = sig + DelayC.ar(sig, 0.1,LFNoise2.ar(noisefreq) * dscale2*dbase2+dbase2);
+	del = FreqShift.ar(del, shift);
+	sig = sig + del;
+	sig = HPF.ar(sig, (fbase*freqfactor2).clip(10,15000), 0.05);
+	sig = sig * EnvGen.kr(Env.perc(0.01,decay2), doneAction:0);
 
-BufDef(\moeten, "voices/02_moeten.flac");
-BufDef(\woodshop, "vipere/woodshop.flac");
+
+
+	//sig = sig + sig2;
+	sig = SelectX.ar(oscmix, [sig, sig2]);
+	sig = Limiter.ar(sig, 1);
+
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.01,0.8,0.8)), gate, doneAction:doneAction);
+	Out.ar(out, 15 * sig.dup * amp);
+}, metadata: (
+	specs: (
+		shift: ControlSpec.new((-2000),2000, \lin, 0, 0)
+	)
+)).add;
+
+Ndef(~name+++\lfo1).quant = 1/2;
+Sdef(~name, \mypreset, \preset, ~name);
+Veco(~name).make_mixer;
 
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
 Pdef(~name, 
 	~patfx.(~name+++\patfx) <>
-	
 	Pdef(~name +++ \pre) <> Pbind(
-	\instrument, \oscsampler2,
-	\bufnum, BufDef(\moeten),
-	\bufnum, BufDef(\woodshop),
+	\instrument, ~name,
+	\isRest, Veco(~name).isrest(16),
 	\degree, Pseq([0],inf),
-	\isRest, Veco(~name).isrest,
-	\legato, 0.9,
+	\legato, 0.8,
+	\freqfactor, 2,
+	\decay, Pkey(\sustain),
 	\dur, 1/8,
-	\amp, 0.21 * Pkey(\amp),
+	\amp, 0.05 * Pkey(\amp),
 ) <> Veco(~name).mixer)
 );
-
-// END
-
-SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, pos=0, finepos=0, range=0.01;
-	var ou;
-	var osc;
-	var bufsig;
-	var phase;
-	osc = SinOsc.ar(freq*[1.001,0.999,1]);
-	//osc = osc.sum;
-	phase = osc * range + pos + finepos;
-
-	bufsig = BufRd.ar(2, bufnum, phase*BufFrames.ir(bufnum), 1);
-	bufsig = bufsig.sum;
-	ou = bufsig;
-	ou = ou * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	ou = Pan2.ar(ou, pan, amp);
-	Out.ar(out, ou);
-}, metadata:(specs:(
-	finepos: ControlSpec(-0.001,0.001,\lin, 0, 1),
-	range: ControlSpec(-0.01,0.01,\lin, 0, 1),
-	//pos: \bipolar,
-))).store;

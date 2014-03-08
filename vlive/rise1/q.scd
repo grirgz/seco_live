@@ -32,7 +32,7 @@ Veco(~name).make_mixer;
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
 Pdef(~name, 
 	
-	~patfx.(~name+++\patfx) <> 
+	~quant_patfx.(~name+++\patfx) <> 
 	Pdef(~name +++ \pre) <> Pbind(
 	\instrument, ~name,
 	\env0, [ Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.1], [-4, -2, -4]) ],

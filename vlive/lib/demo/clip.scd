@@ -1,3 +1,8 @@
+/////////// un/muting clips
+
+[\g, \h, \i].do { arg name; ~patfx_unmute.(name+++'patfx'); }
+[\g, \h, \i].do { arg name; ~patfx_mute.(name+++'patfx'); }
+
 /////////// create fake clips
 
 

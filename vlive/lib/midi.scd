@@ -374,80 +374,87 @@
 	},
 
 	make_view: { arg self;
-		self.window = Window.new;
-		self.vlayout = VLayout.new;
-		self.knob_views = Dictionary.new;
-		self.window.onClose = self.window.onClose.addFunc { 
-			self.release_all_responders;
-		};
-		self.window.view.keyDownAction = { arg ... args;
-			if(args[1] == $j) {
-				self.refresh_knobs;
+		Task({
+
+			self.window = Window.new;
+			self.vlayout = VLayout.new;
+			self.knob_views = Dictionary.new;
+			self.window.onClose = self.window.onClose.addFunc { 
+				self.release_all_responders;
 			};
-			if(args[3].dump == 27) {
-				"kk".debug;
-				self.window.close;
-			};
-			args.debug("keyDownAction");
-		};
-		[\k, \s].do { arg prefix;
-			var hlayout = HLayout.new;
-			self.vlayout.add(hlayout);
-			9.do { arg x;
-				var butlay = VLayout.new;
-				var knob = Knob.new;
-				var label = StaticText.new;
-				var val_label = StaticText.new;
-				var control;
-				var key;
-				var view;
-				var size = Point(70,180);
-				var font;
-				x = x+1;
-				key = (prefix++x).asSymbol;
-				control = self.get_control(key);
-
-				view = View.new;
-				font = Font.default;
-				font.size = 11;
-
-				view.minSize = size;
-				view.maxSize = size;
-
-				self.knob_views[key] = (
-					knob: knob,
-					label: label,
-					val_label: val_label,
-					control: control,
-				);
-
-				[key, control].debug("make_view: control");
-				[key, control.target].debug("make_view: control");
-				[key, control.target_get].debug("make_view: control");
-
-				//label.string = control.target_string;
-				//label.string = "kjk\ndkjf\nkjkj";
-				label.font = font;
-				label.align = \center;
-				//val_label.string = control.target_get.asFloat.asStringPrec(self.string_precision);
-				val_label.font = font;
-				val_label.align = \center;
-				//knob.value = control.target_norm_get;
-				knob.action = { arg knob;
-					control.target_norm_set(knob.value);
-					val_label.string = control.target_get.asFloat.asStringPrec(self.string_precision);
+			self.window.view.keyDownAction = { arg ... args;
+				if(args[1] == $j) {
+					self.refresh_knobs;
 				};
-				self.update_knob(key, control);
+				if(args[3].dump == 27) {
+					"kk".debug;
+					self.window.close;
+				};
+				args.debug("keyDownAction");
+			};
+			[\k, \s].do { arg prefix;
+				var hlayout = HLayout.new;
+				self.vlayout.add(hlayout);
+				9.do { arg x;
+					var butlay = VLayout.new;
+					var knob = Knob.new;
+					var label = StaticText.new;
+					var val_label = StaticText.new;
+					var control;
+					var key;
+					var view;
+					var size = Point(70,180);
+					var font;
+					x = x+1;
+					key = (prefix++x).asSymbol;
+					control = self.get_control(key);
 
-				view.layout = butlay;
-				hlayout.add(view);
-				butlay.add(label);
-				butlay.add(knob);
-				butlay.add(val_label);
-			}
-		};
-		self.window.layout = self.vlayout;
-		self.window.front;
+					view = View.new;
+					font = Font.default;
+					font.size = 11;
+
+					view.minSize = size;
+					view.maxSize = size;
+
+					self.knob_views[key] = (
+						knob: knob,
+						label: label,
+						val_label: val_label,
+						control: control,
+					);
+
+					[key, control].debug("make_view: control");
+					[key, control.target].debug("make_view: control");
+					[key, control.target_get].debug("make_view: control");
+
+					//label.string = control.target_string;
+					//label.string = "kjk\ndkjf\nkjkj";
+					label.font = font;
+					label.align = \center;
+					//val_label.string = control.target_get.asFloat.asStringPrec(self.string_precision);
+					val_label.font = font;
+					val_label.align = \center;
+					//knob.value = control.target_norm_get;
+					knob.action = { arg knob;
+						control.target_norm_set(knob.value);
+						val_label.string = control.target_get.asFloat.asStringPrec(self.string_precision);
+					};
+					self.update_knob(key, control);
+
+					view.layout = butlay;
+					hlayout.add(view);
+					butlay.add(label);
+					butlay.add(knob);
+					butlay.add(val_label);
+
+					0.01.wait;
+
+				}
+			};
+			self.window.layout = self.vlayout;
+			self.window.front;
+
+		}).play(AppClock);
 		
 	},
 

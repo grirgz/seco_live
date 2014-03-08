@@ -50,6 +50,38 @@ SynthDef(\stereosampler, {| out = 0, amp=0.1, bufnum = 0, gate = 1, pos = 0, spe
 }, metadata:(specs:(
 	bufnum: (numchan: 2)
 ))).store;
+
+SynthDef(\stereosampler_stutter, {| out = 0, amp=0.1, bufnum = 0, gate = 1, pos = 0, speed = 1, loop=0, doneAction=2, pan=0, reprate=4, envmix=1|
+
+	var player,env;
+	var trigger=1;
+	trigger = Impulse.kr(reprate);
+	env =  EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:doneAction);
+	player = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufFrames.kr(bufnum)), doneAction:doneAction, loop: loop);
+	player = Pan2.ar(player, pan, amp * 2);
+	player = player * SelectX.kr(envmix, [1,env]);
+	Out.ar(out, player);
+
+}, metadata:(specs:(
+	bufnum: (numchan: 2)
+))).store;
+
+SynthDef(\stereosampler_sec, {| out = 0, amp=0.1, buf = 0, gate = 1, start=0, end=1, speed = 1, loop=0|
+
+	var player,env;
+	var rate;
+	var bufnum = buf;
+	env =  EnvGen.kr(Env([0,1,1,0],[0.01,(end-start)/speed,0.1]), gate, doneAction:2);
+	//BufFrames.kr(bufnum).poll;
+	rate = BufRateScale.kr(bufnum) * speed;
+	player = PlayBuf.ar(2, bufnum, rate, 1, startPos: (start*BufSampleRate.kr(bufnum)), doneAction:2, loop: loop);
+	player = player * env * amp;
+	Out.ar(out, player);
+
+}, metadata:(specs:(
+	bufnum: (numchan: 2)
+))).store;
+
 SynthDef(\zegrainer, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, mbufnum,
 						gdur=12, trate=100, time_stretch=1, pos=0, pitch_stretch = 1, 
 						randframes=0.01, randrate=1, doneAction=2, finepos=0,

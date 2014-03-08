@@ -12,8 +12,11 @@ Ndef(~name+++\fx).put(0, { arg mix=0.5;
 	sigin;
 });
 
-Veco(~name).lib.macros = {
-	~ndef_to_macros.(~name+++\fx) ++ [ ]; 
+Veco.do { arg name;
+
+	Veco(~name).lib.macros = {
+		~ndef_to_macros.(name+++\fx) ++ [ ]; 
+	};
 };
 
 // END

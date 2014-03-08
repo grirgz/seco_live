@@ -1,6 +1,6 @@
 
 (
-		~set_exec_zone.(Rect(0,32, 16,64));
+		~set_exec_zone.(Rect(0,32, 32,64));
 		Veco.main.clip.response_launcher_on_hook = { arg self, pos, opos, mod;
 			var ev;
 			var funs;
@@ -9,11 +9,15 @@
 			funs = [
 				{Veco.main.clip_offset = Point(0,0)},
 				{Veco.main.clip_offset = Point(8,0)},
-				{ev.no_pane; Veco.main.clip_offset = Point(Veco.main.clip_offset.x,32+4)},
+				{Veco.main.clip_offset = Point(16,0)},
+				//{ev.no_pane; Veco.main.clip_offset = Point(Veco.main.clip_offset.x,32+4)},
 				{
+					var x;
+					//x = Veco.main.clip_offset.x;
+					x = 0;
 					ev.mid_pane; 
-					Veco.main.clip_offset = Point(Veco.main.clip_offset.x,		32+4);
-					Veco.main.pane_offset = Point(Veco.main.clip_offset.x+8,	32+4);
+					Veco.main.clip_offset = Point(x,		32+4);
+					Veco.main.pane_offset = Point(x+8,	32+4);
 				},
 
 				{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32)},
@@ -28,17 +32,12 @@
 		};
 );
 
-// END
-
 (
 ~set_fake_clip_row.(33, { arg clip, name, namex, index, x;
-	if()
-	~toggle_trig.(namex, {
-
-		~patfx_on.(name+++\patfx, Pbind(\isRest, true), namex)
-	}, {
-		~patfx_off.(name+++\patfx, namex)
-	});
+	//Ndef(~fxcomb+++\fx).set(\delaytime, 1/(2**x)/t)
+	index.debug("kkjkkkk");
+	[name, namex, index].debug("set_fake_clip_row");
+	~clip_fx_gate.('34fx', clip, 33);
 });
 
 2.do { arg fx;
@@ -60,6 +59,7 @@
 }
 );
 
+// END
 
 ~set_fake_clip_row.(33, { arg clip, name, namex, index, x;
 	Ndef(~fxcomb+++\fx).set(\delaytime, 1/(2**x)/t)
