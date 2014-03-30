@@ -1,1 +1,1 @@
-Veco.save('b.1').stepseq = [ 0, 0, 0, 0, 0, 0, 0, 0 ];
+Veco.save('b.1').stepseq = [ 1, 0, 0, 1, 1, 0, 0, 0 ];

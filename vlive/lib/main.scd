@@ -649,6 +649,18 @@ Veco.load_lib("launchers.scd");
 			}
 		//}.defer;
 	};
+	codepad = qp.get_codepad(Point(7,1));
+	codepad.payload = { arg self;
+		//{
+			if(Veco.main.clip[\response_launcher_on_hook].isNil) {
+				~load_standard_launchers.();
+				debug("set Clip launcher mode = select page");
+			} {
+				Veco.main.clip[\response_launcher_on_hook] = nil;
+				debug("set Clip launcher mode = launch row");
+			}
+		//}.defer;
+	};
 	
 };
 
@@ -912,10 +924,11 @@ Veco.load_lib("launchers.scd");
 	var fxname = name+++suffix;
 	BusDef(fxname, \audio);
 
+	// FIXME: should be suffix instead of \fx
 	Veco(name).add_play_node_hook(\fx, {
 		fxname.debug("play FX");
 		//Ndef(fxname).send;
-		Ndef(fxname).play(BusDef(name+++\mixer));
+		Ndef(fxname).play(BusDef(name+++\mixer).index);
 	});
 
 	Veco(name).add_stop_node_hook(\fx, {
@@ -929,14 +942,14 @@ Veco.load_lib("launchers.scd");
 	var fxname = name+++suffix;
 	BusDef(fxname, \audio);
 
-	Veco(name).add_play_node_hook(\fx, {
-		fxname.debug("play FX");
-		//Ndef(fxname).send;
-		Ndef(fxname).play(BusDef(name+++\mixer));
-	});
+	//Veco(name).add_play_node_hook(\fx, {
+	//	fxname.debug("play LFO");
+	//	//Ndef(fxname).send;
+	//	//Ndef(fxname).play
+	//});
 
-	Veco(name).add_stop_node_hook(\fx, {
-		fxname.debug("stop FX");
+	Veco(name).add_stop_node_hook(suffix, {
+		fxname.debug("stop LFO");
 		Ndef(fxname).end(Ndef(fxname).fadeTime);
 	});
 };
