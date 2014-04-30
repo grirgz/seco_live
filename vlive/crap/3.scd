@@ -1,5 +1,6 @@
 
-
+~d = Dictionary.new;
+~d[[\bla, \plop]] = 4
 
 // alex mclean's vocable synthesis
 

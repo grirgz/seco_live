@@ -52,7 +52,7 @@ Pdef(~name +++ \pre,
 		//\pitch_stretch, Pseg(Pseq([0.1,4],inf),16),
 		//\pos, ~midi.(\k1, nil, ControlSpec(0,0.1,'lin',0,0)).vpattern + 0.3,
 		\legato, Pseq([Pser([1],15), 0.9],inf),
-		\amp, Pkey(\amp) * 2,
+		\amp, Pkey(\amp) * 1/3,
 		\ffreq, 1000,
 	) <>
 	

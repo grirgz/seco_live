@@ -1,3 +1,13 @@
+/////////// edit fx
+(
+Veco.do { arg name;
+	{
+		Ndef(name+++\fx).edit;
+	}.defer;
+}
+);
+
+///////////////////
 
 MIDIBoard.map(\c5, { ~midi_macro_manager.map_node_macro_to_knobs(Veco('32')) });
 MIDIBoard.map(\c6, { ~midi_macro_manager.map_node_macro_to_knobs(Veco('33')) });

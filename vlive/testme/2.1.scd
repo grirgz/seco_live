@@ -1,3 +1,3 @@
 Pdef(~name +++ \pre, Pbind(
-	\freq, 100,
+	\freq, 400,
 ));

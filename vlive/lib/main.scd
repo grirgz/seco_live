@@ -10,6 +10,23 @@ Veco.load_lib("launchers.scd");
 
 );
 
+
+(
+	~set_out_bus = { arg name, bus;
+		if(bus.class == Bus) {
+			bus = bus.index;
+		};
+		Veco(name).master_bus = bus;
+		Ndef(name+++\mixer).play(bus, 2);
+	};
+	~dPdef = { arg name;
+		if(Pdef(name).source.isNil) {
+			Pdef(name, Pbind())
+		};
+		Pdef(name);
+	}
+);
+
 (
 ~play_timeline = { arg timeline, quant=4;
 	Task({
@@ -94,17 +111,40 @@ Veco.load_lib("launchers.scd");
 //////////////////////////////////////////////////// Env mod
 
 (
+~kmul_release = { arg key, mulkey=\mul_release;
+	Pfunc({ arg ev;
+		var env;
+		var times;
+		var mul;
+		if(ev[key].isNil) {
+			ev.debug("kmul_release: ev");
+			"Error: kmul_release: env not found".postln;
+			nil;
+		} {
+			env = ev[key][0];
+			times;
+			mul = ev[mulkey];
+			env = env.deepCopy;
+			//env.asCompileString.debug("env1");
+			times = env.times;
+			times[env.times.size-1] = times[env.times.size-1] * mul;
+			env.times = times;
+			//env.asCompileString.debug("env2");
+			[env];
+		};
+	})
+};
 
 ~mul_release = { arg key, mul=1;
 	Pfunc({ arg ev;
 		var env = ev[key][0];
 		var times;
 		env = env.deepCopy;
-		env.asCompileString.debug("env1");
+		//env.asCompileString.debug("env1");
 		times = env.times;
 		times[env.times.size-1] = times[env.times.size-1] * mul;
 		env.times = times;
-		env.asCompileString.debug("env2");
+		//env.asCompileString.debug("env2");
 		[env];
 	})
 };
@@ -492,6 +532,22 @@ Veco.load_lib("launchers.scd");
 	}
 };
 
+~map_ndef_to_knobs = { arg key, bindings, exclude;
+	bindings = bindings ?? (1..8).collect(\k+++_);
+	block { arg break;
+		var x = 0;
+		Ndef(key).controlNames.collect { arg con;
+			[exclude, con.name.dump,exclude.includes(con.name).not ].debug("exclude");
+			if(exclude.includes(con.name).not) {
+				MIDIBoard.map(bindings[x], *[Ndef(key), con.name]);
+				x = x+1;
+				if(x >= bindings.size) { break.value };
+			};
+		}
+	}
+
+};
+
 );
 
 
@@ -501,35 +557,75 @@ Veco.load_lib("launchers.scd");
 (
 
 ~spawnclip = { arg node_uname, clip_index;
+	// accept node indexes too
 	var tr = node_uname;
+	if(tr.class != Symbol) {
+		tr = Veco.main.get_node_by_index(tr).uname;
+	};
+	tr.debug("hian1");
 	switch(clip_index,
 		nil, {
 			// NOOP
+	tr.debug("hian2");
 		},
 		\r, {
 			Veco(tr).stop_node(true);
+	tr.debug("hian3");
 		}, 
 		\p, {
 			Veco(tr).play_node;
+	tr.debug("hian4");
 		}, 
 		{
 			if(clip_index.class == Symbol) {
 				// NOOP
+	tr.debug("hian5");
 			} {
 				if(Veco(tr).is_playing.not or: { Veco(tr).active_clip_index != clip_index }) {
 					var clip = Veco(tr).get_clip_by_index(clip_index);
+	tr.debug("hian6");
 					if(clip.response_mode == \exec) {
 						clip.response_on;
+	tr.debug("hian7");
 					} {
 						clip.response_on_play;
+	tr.debug("hian8");
 					}
 				} {
+	tr.debug("hian9");
 					"already playing"
 				}
 			};
 		}
 	);
 };
+
+~clip_pspawner = 
+	Pbind(
+		\isRest, true,
+		\clipspawner, Pfunc{ arg ev; 
+			var tracks;
+			ev.debug("clip_pspawner");
+			tracks = ev[\track];
+			tracks.debug("whatA");
+			if(tracks.isNil) {
+				"Error: clip_pspawner: track is nil".postln;
+			} {
+				if(tracks.class != Array) {
+					tracks = [tracks]
+				};
+				tracks.do{ arg tr, x;
+					var clip = ev[\clip];
+					if(clip.class == Array) {
+						clip = clip[x]
+					};
+					~spawnclip.(tr, clip);
+				}; 
+			};
+			1;
+		},
+	);
+
 
 ~clipspawner = {
 	~add_stop_clipspawner.();
@@ -739,7 +835,7 @@ Veco.load_lib("launchers.scd");
 };
 
 
-// pattern morphing
+// pattern morphing and the key is a valuepattern
 ~morphpat = { arg pat1, pat2, mpat;
 	var spat1, spat2, smpat;
 	var ev1, ev2, morph;
@@ -790,7 +886,7 @@ Veco.load_lib("launchers.scd");
 	var list;
 	var size;
 	str_list = pat_list.collect(_.asStream);
-	size = pat_list.size;
+	size = pat_list.size - 1;
 	smpat = mpat.asStream;
 	rout = Prout { arg in;
 		block { arg break;
@@ -831,7 +927,7 @@ Veco.load_lib("launchers.scd");
 	var list;
 	var size;
 	str_list = pat_list.collect(_.asStream);
-	size = pat_list.size;
+	size = pat_list.size - 1;
 	rout = Prout { arg in;
 		block { arg break;
 			loop {
@@ -909,6 +1005,7 @@ Veco.load_lib("launchers.scd");
 
 	Veco(~name).add_play_node_hook(\fx, {
 		fxname.debug("play FX");
+		debug("what");
 		//Ndef(fxname).send;
 		Ndef(fxname).play;
 	});
@@ -928,7 +1025,7 @@ Veco.load_lib("launchers.scd");
 	Veco(name).add_play_node_hook(\fx, {
 		fxname.debug("play FX");
 		//Ndef(fxname).send;
-		Ndef(fxname).play(BusDef(name+++\mixer).index);
+		Ndef(fxname).play(BusDef(name+++\mixer, \audio).index);
 	});
 
 	Veco(name).add_stop_node_hook(\fx, {

@@ -22,6 +22,9 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, pos=0, fi
 	ou2 = RLPF.ar(ou, ffreq * ffreqtab, rq);
 	ou = SelectX.ar(lpmix, [ou, ou2]);
 	ou = Splay.ar(ou, spread, amp, pan);
+	//ou = FreeVerb2.ar(ou[0], ou[1], 0.72, 2.2, 0.7);
+	//ou = Greyhole.ar(ou);
+	//DetectSilence.ar(ou, doneAction:2);
 	
 	Out.ar(out, ou);
 }, metadata:(specs:(

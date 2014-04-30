@@ -42,9 +42,9 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, fratio=1.5, rq=0.5, fratiob=2, dmix=0.
 	sondist = sondist * driveamp;
 	son = SelectX.ar(distmix, [son , sondist]);
 
-	son = son * amp;
 	son = Pan2.ar(son, pan);
-	DetectSilence.ar(son, doneAction:2);
+	DetectSilence.ar(son, 0.05, doneAction:2);
+	son = son * amp;
 	
 	OffsetOut.ar(out, son);
 }, metadata:(specs:(
@@ -56,6 +56,7 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, fratio=1.5, rq=0.5, fratiob=2, dmix=0.
 	env1c: \env -> [3, ControlSpec(5,128,\lin, 0, 50), nil, nil, Env.new([80, 19, 70], [0.05, 0.09], [-4, 5])],
 ))).add;
 
+Sdef(~name, \mypreset, \preset, ~name);
 
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };

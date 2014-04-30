@@ -45,8 +45,8 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, fratio=1.5, rq=0.5, fratiob=2, dmix=0.
 	sondist = sondist * driveamp;
 	son = SelectX.ar(distmix, [son , sondist]);
 
+	DetectSilence.ar(son, amp:0.1, time:0.1, doneAction:2);
 	son = son * amp;
-	DetectSilence.ar(son, amp:0.1, time:0.01, doneAction:2);
 	son = Pan2.ar(son, pan);
 	
 	//OffsetOut.ar(out, son);

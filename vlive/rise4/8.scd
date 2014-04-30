@@ -1,0 +1,2 @@
+
+~tbits1 = ~name;

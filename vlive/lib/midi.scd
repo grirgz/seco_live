@@ -224,7 +224,7 @@
 );
 
 
-~class_midi_macro_manager_view = (
+~class_midi_macro_manager_view_base = (
 	string_precision: 6,
 
 	new: { arg self, controller;
@@ -242,7 +242,10 @@
 				key = (prefix++x).asSymbol;
 				control = MIDIBoard.controls[key];
 				self.responder_anchor[key] = ();
+				// FIXME: what ?? anchor is an event ??
+				// yes, onClose is called on the event
 				~make_class_responder.(self, self.responder_anchor[key], control, [
+				//~make_class_responder.(self, self.window, control, [
 					\new_map, \map, \free_map, \val,
 				])
 			}
@@ -307,6 +310,7 @@
 		var control = MIDIBoard.controls[key];
 		[sender.name].debug("free_map responder");
 		self.responder_anchor[sender.name].onClose;
+		[sender.name].debug("free_map responder xx");
 		self.update_knob(key, control);
 	},
 
@@ -320,7 +324,7 @@
 	val: { arg self, sender;
 		var key = sender.name;
 		var control = MIDIBoard.controls[key];
-		[sender.name].debug("map responder");
+		//[sender.name].debug("val responder");
 		self.update_knob(key, control);
 	},
 
@@ -332,17 +336,8 @@
 
 	get_control: { arg self, key;
 		var control = MIDIBoard.controls[key];
-		if(control.isNil 
-			or: { control.target.isNil 
-			or: { control.target_norm_get.isNil  
-			or: { control.target_get.isNil }
-			or: { control.target_spec.isNil }
-		 }}) {
-			control = (
-				target_string: "_",
-				target_get: 0,
-				target_norm_get: 0,
-			);
+		if(control.is_mapped.not) {
+			control = VecoLib.lib[\void_controller]
 		};
 		if(control.target_string.isNil) {
 			control.debug("control");
@@ -354,7 +349,7 @@
 	update_knob: { arg self, key, control;
 		var knob = self.knob_views[key];
 
-		[key, control.target_string].debug("update_knob");
+		//[key, control.target_string].debug("update_knob");
 		control = self.get_control(key);
 		//var target_string;
 		control = control.deepCopy;
@@ -363,13 +358,13 @@
 		};
 
 		{
-			"kj".debug;
+			//"kj".debug;
 			knob.label.string = control.target_string.tr($ , $\n);
-			"1kj".debug;
+			//"1kj".debug;
 			knob.val_label.string = control.target_get.asFloat.asStringPrec(self.string_precision);
-			"2kj".debug;
+			//"2kj".debug;
 			knob.knob.value = control.target_norm_get;
-			"3kj".debug;
+			//"3kj".debug;
 		}.defer;
 	},
 
@@ -424,8 +419,8 @@
 					);
 
 					[key, control].debug("make_view: control");
-					[key, control.target].debug("make_view: control");
-					[key, control.target_get].debug("make_view: control");
+					[key, control.target].debug("make_view: control.target");
+					[key, control.target_get].debug("make_view: control.target_get");
 
 					//label.string = control.target_string;
 					//label.string = "kjk\ndkjf\nkjkj";
@@ -458,7 +453,71 @@
 		
 	},
 
+
 );
+
+~class_midi_macro_manager_view = (
+	parent: ~class_midi_macro_manager_view_base,
+
+	update_knob: { arg self, key;
+		//debug("update_knob: no more method! hahahahah");
+		self.knob_views[key].update_view;
+
+	},
+
+	make_view: { arg self;
+		Task({
+
+			self.window = Window.new;
+			self.vlayout = VLayout.new;
+			self.knob_views = Dictionary.new;
+			self.window.onClose = self.window.onClose.addFunc { 
+				self.release_all_responders;
+			};
+			self.window.view.keyDownAction = { arg ... args;
+				if(args[1] == $j) {
+					self.refresh_knobs;
+				};
+				if(args[3].dump == 27) {
+					"kk".debug;
+					self.window.close;
+				};
+				args.debug("keyDownAction");
+			};
+			[\k, \s].do { arg prefix;
+				var hlayout = HLayout.new;
+				self.vlayout.add(hlayout);
+				9.do { arg x;
+
+					var view;
+					var control;
+					var key = (prefix ++ (x+1)).asSymbol;
+					var cview;
+					var size = Point(70,180);
+
+					view = View.new;
+					view.minSize = size;
+					view.maxSize = size;
+
+					cview = VecoLib.lib[\class_rack_control_scalar_knob_view].new(MIDIBoard.controls[key], self);
+					view.layout = cview.make_layout;
+					self.knob_views[key] = cview;
+
+					hlayout.add(view);
+
+					0.01.wait;
+
+				}
+			};
+			self.window.layout = self.vlayout;
+			self.window.front;
+
+		}).play(AppClock);
+		
+	},
+
+);
+
 
 ~midi_macro_manager !? (_.destructor);
 ~midi_macro_manager = ~class_midi_macro_manager.new;

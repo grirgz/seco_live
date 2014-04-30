@@ -16,7 +16,7 @@ Ndef(~name+++\fx, {
 	var sig1,sig2,sig3,sig4,sig5;
 	sig = in;
 	//sig = CombL.ar(sig, 1/8,1/32,0.5) + sig;
-	sig = FreeVerb.ar(sig, 0.9, 0.1);
+	sig = FreeVerb.ar(sig, 0.9, 2.1);
 
 	sig;
 });
