@@ -1,3 +1,15 @@
+
+Pdef(~name +++ \pre, Sdef(~name, \mypreset).busmorph([0,1,2,3]) <> Pbind(
+	\dur, 1/8,
+	\isRest, Veco(~namex).isrest(16),
+	\freq, 100,
+));
+
+Sdef(~name, \mypreset_morph_default).edit
+MIDIBoard.map(\k1, Sdef(~name, \mypreset_morph_default), \morph)
+
+////
+
 Sdef(~name, \mypreset).busmorph([0,1],0);
 Sdef(~name, \mypreset).busmorph([2,3],1); 
 Pdef(~name +++ \pre, Sdef(~name, \mypreset).superbusmorph([0,1]) <> Pbind(

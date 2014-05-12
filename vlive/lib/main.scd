@@ -504,6 +504,7 @@ Veco.load_lib("launchers.scd");
 (
 ~midi = { arg key, default, spec;
 	var preset;
+	spec = spec.asSpec;
 	spec = spec ?? \widefreq.asSpec;
 	spec.postln;
 	preset = PresetDef.force(key, [\val, spec]);
@@ -515,14 +516,16 @@ Veco.load_lib("launchers.scd");
 	preset.vals[\val];
 };
 
-~set_macro = { arg key, obj, member, spec;
+~set_macro = { arg key, obj, member, spec, register=true;
 	MIDIBoard.map(key, obj, member, spec);
-	if(Veco(~name).lib.macros.isNil) {
-		Veco(~name).lib.macros = List.newClear(20);
-	};
-	if(Veco(~name).lib.macros.isSequenceableCollection and: {key.asString[0] == $k} ) {
-		Veco(~name).lib.macros[ key.asString[1].digit -1 ] = [obj, member, spec];
-	};
+	if(register == true) {
+		if(Veco(~name).lib.macros.isNil) {
+			Veco(~name).lib.macros = List.newClear(20);
+		};
+		if(Veco(~name).lib.macros.isSequenceableCollection and: {key.asString[0] == $k} ) {
+			Veco(~name).lib.macros[ key.asString[1].digit -1 ] = [obj, member, spec];
+		};
+	}
 	
 };
 

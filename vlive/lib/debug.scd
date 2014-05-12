@@ -1,3 +1,11 @@
+Sdef(~name, \mypreset).get_active_score.edit
+Sdef(~name, \mypreset).get_active_score.score_view
+Sdef(~name, \mypreset).get_active_score.score_view.control_views
+
+
+////////////////////////////////////////////
+
+
 MIDIBoard.controls[\loop]
 MIDIBoard.map(\loop, { "plop".postln; });
 (

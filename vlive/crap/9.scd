@@ -1,3 +1,88 @@
+
+ // __1
+{{({|i|x=i+1;SinOsc.ar(30*x+LFNoise2.ar(0.1).range(-2,2),0,LFNoise2.ar(0.5)*(Line.ar(0,0.1,99.rand)/(x*0.2)))}!rrand(9,28)).sum}!2}.play
+
+// __2
+play{{({|i|x=i+1;y=LFNoise2.ar(0.1);f=77*(x/2)+y.range(-2,2);LPF.ar(Saw.ar(f,y*(Line.ar(0,0.2,99.rand)/(x*0.3))),f*3)}!rrand(9,28)).sum}!2}
+
+
+Pbind([\freq, \bla, 0.1], [100,200,300,1.0]).play
+
+	Pdef(\x, Pbind(
+		\instrument, \default,
+		\degree, Pwalk([0,2,3,4], Prand([1,2,-1,-2],inf)),
+		\dur, 1/8,
+	)).play
+
+
+(
+
+	Pdef(\x,
+
+		Pspawner({ arg sp;
+			var dur = 1/2;
+			10.do { arg x;
+				x = x+1;
+				sp.par(
+					Pbind(
+						\degree, x,
+						\sustain, dur,
+						\dur, x*2,
+					)
+				);
+				dur.wait;
+			};
+		})
+	).play
+);
+
+(
+
+	Pdef(\x,
+
+		Pspawner({ arg sp;
+			var dur = 1/2;
+			10.do { arg x;
+				x = x+1;
+				sp.par(
+					Pbind(
+						\degree, 24.rand,
+						\octave, 3,
+						\sustain, dur,
+						\dur, 4.0.rand + 1,
+					)
+				);
+				8.wait;
+			};
+		})
+	).play
+);
+
+
+(
+
+	Pdef(\x,
+
+		Pspawner({ arg sp;
+			var dur = 1/2;
+			40.do { arg x;
+				x = x+1;
+				sp.par(
+					Pbind(
+						\degree, 24.rand,
+						\freq, (107.0.rand + 10).midicps,
+						\octave, 3,
+						\sustain, dur.rand + 1/8,
+						\dur, 4,
+						\lag, 16.rand * 1/6,
+					)
+				);
+				1.wait;
+			};
+		})
+	).play
+);
+
 (
 //fundamental pitch triad
 ~notes = [45,55,60].midicps;
