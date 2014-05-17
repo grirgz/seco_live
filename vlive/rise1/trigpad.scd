@@ -64,6 +64,7 @@
 
 // END
 
+~set_fake_clip_row
 (
 // mute/unmute
 ~set_fake_clip_row.(33, { arg clip, name, namex, index, x;

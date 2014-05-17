@@ -40,12 +40,12 @@ SynthDef(~name, { arg out=0, gate=1, ffreq = 200, freqfac=15, freq=8000, amp=0.1
 );
 
 (
+Ndef(~name+++\xbus).set(\xbus, BusDef(~name+++\xbus, \audio, 1));
 	Ndef(~name+++\xbus, { arg xbus;
 		var x = PulseCount.ar(Impulse.ar(8e3));
 		//x.poll;
 		Out.ar(xbus, x);
 	});
-Ndef(~name+++\xbus).set(\xbus, BusDef(~name+++\xbus, \audio, 1));
 Pdef(~name+++\pre, Pbind(
 	\instrument, ~name,
 	\time, Ptime(),

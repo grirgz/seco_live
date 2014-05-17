@@ -16,7 +16,7 @@ Pdef(~name +++ \pre, Pbind(
 	},
 	\isRest, Pkey(\isRest1),
 	\env0, [ Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.1], [-4, -2, -4]) ],
-	\env1, [ Env.new([120, 59, 29], [0.005, 0.29], [-4, -5]) ],
+	\env1, [ Env.new([100, 39, 99], [0.5, 0.29], [-4, -5]) ],
 	\amp, Pfunc({ arg ev;
 		var amp = ev[\amp];
 		if( ev[\isRest1] and: ev[\isRest2].not ) {

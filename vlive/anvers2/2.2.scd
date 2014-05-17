@@ -2,6 +2,9 @@ Ndef(~name+++\lfo1).quant = 2;
 Pdef(~name +++ \pre, 
 	Pbind(
 		//\fratioc, Pwhite(0.1,1),
+		\isRest, Pseq([1].extend(8,0),inf).coin.not,
+		\isRest, Pseq([1, 0.3, 0.1, 0, 0.3,0,0.5,0.5],inf).coin.not,
+		\dmix, Pseq([1,0,0.5,0.5],inf),
 
 	) <>
 

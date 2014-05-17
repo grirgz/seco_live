@@ -27,49 +27,16 @@ Ndef(~name+++\lfo1).put(1, \set -> Pbind(
 Ndef(~name+++\lfo3, { arg freq=20, flag=0.1; freq.lag(flag)});
 Ndef(~name+++\lfo3).put(1, \set -> Pbind(
 	\freq, Pseq([
-		16,2,16,1,
-		16,2,16,1,
-		14,16,16,16,
-		14,16,16,16,
-	]*10,inf),
-	\freq, 1000,
-	\freq, Pseq([
-		1000, 1000, 1000, 1000,
-		1,2,1,1,
-	],inf),
-	\freq, Pseq([
-		100, 100, 100, 100,
-		1,2,1,1,
-	],inf),
-	\flag, Pseq([
-		0.0, 0.0, 0.0, 0.0,
-		1.0, 1.0, 1.0, 1.0,
-		0.4, 1.0, 0.4, 1.0,
-		1.0, 1.0, 1.0, 1.0,
-	],inf),
-	\freq, Pseq([
-		1,2,1,1,
-		0.5,0.5,0.1,0.1,
-		0.01, 0.01, 0.01, 0.01,
-		0.4, 0.4, 0.4, 0.4,
-	]*10,inf),
-	\freq, Pseq([
-		1000, 1000, 1000, 1000,
-		1,2,1,1,
-		1000, 10, 1, 1000,
-		0.5,0.5,0.1,0.1,
-		10, 10, 1, 1000,
-		0.01, 0.01, 0.01, 0.01,
-		1,2,1,1,
-		0.4, 0.4, 0.4, 0.4,
-	],inf),
-	\freq, Pseq([
 		10,40,10,10,
 		100,10,10,10,
 		10,40,10,10,
 		1000, 1000,910,1000,
 	],inf),
-	\freq,Pseq([1000,200],inf),
+	\freq,Pseq([
+		1000,200,
+		100,Pwhite(200,440.0,1),
+		Pwhite(20,1440.0,4),
+	],inf),
 	\flag, Pseq([
 		1.0, 1.0, 0.0, 1.0,
 	],inf),
@@ -81,6 +48,10 @@ Pdef(~name +++ \pre,
 		\ffreq, Ndef(~name+++\lfo1),
 		\freq, Ndef(~name+++\lfo3).bus.asMap,
 		\range, Pseg(Pseq([0.0001,0.0008,0.1],inf), Pseq([7,1,0],inf)),
+		\legato, 0.1,
+		\adsr, Pseq([
+			[ Env.adsr(0.1,0.1,0.8,0.1) ],
+		],inf),
 		\bufnum, ~buf,
 		\amp, 18 * Pkey(\amp),
 	) <>
@@ -89,7 +60,10 @@ Pdef(~name +++ \pre,
 			Pseq([0.2+0.7.rand],16)
 		}).loop,
 	\dur, 1/8,
-	\dur, PdurStutter(Prand([8,2],inf),1),
+	\dur, PdurStutter(Pseq([
+		Prand([4,2],16),
+		Prand([8,4,16],16),
+	],inf),1)
 ));
 )
 

@@ -79,7 +79,7 @@ if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
 Pdef(~name, 
 	~patfx.(~name+++\patfx) <> 
 	Pdef(~name +++ \pre) <> Pbind(
-	\instrument, ~name,
+	\instrument, \trisnare,
 	\degree, Pseq([0],inf),
 	\release, 0.4,
 	\isRest, Veco(~name).isrest,

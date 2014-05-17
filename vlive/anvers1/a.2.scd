@@ -41,6 +41,7 @@ Pdef(~name+++\pre, Pspawner({ arg sp;
 				\env1, [ Env.new([120, 59, 29], [0.005, 0.29], [-4, -5]) ],
 				\dur, Pn(1/8,beats*dur*cover ),
 				//\pos, 1.0.rand,
+				\amp, 1.1,
 				\legato, 1.1,
 				\ffreq, (100.0.rand + 10).midicps,
 				\isRest, Pseq(

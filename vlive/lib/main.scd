@@ -8,10 +8,67 @@ Veco.load_lib("specs.scd");
 Veco.load_lib("launchers.scd");
 //Veco.load_lib("trigpad.scd");
 
+MIDIBoard.map(\s9, s.volume, \volume);
 );
 
 
 (
+~changetempo = { arg dur, tempo;
+	Task({
+		var times = dur.round * 2;
+		var clock = TempoClock.default;
+		var itempo = clock.tempo;
+		times.do { arg x;
+			var settempo = blend(itempo, tempo, x/times);
+			clock.tempo = settempo;
+			(dur/times).wait;
+		}
+
+
+	}).play(TempoClock.new)
+
+};
+	~patmod = { arg pat, size ... args;
+		Prout({
+			//var pat = pat.asStream;
+			var arr;
+			var str = pat.asStream.debug("PAT");
+			loop {
+				arr = str.nextN(size);
+				args.clump(2).do { arg x;
+					arr.overWrite(x[1], x[0])
+				};
+				Pseq(arr,1).embedInStream;
+			}
+		})
+	};
+~seqmod = { arg arr ... args;
+	var size;
+	size = arr.size;
+	args.clump(2).do { arg x;
+		x[1].do { arg val, y;
+			arr[x[0]+y] = val;
+		}
+	};
+	args.postln;
+	arr;
+};
+
+~kill_nodes_by_name = { arg name;
+	s.getQueryTree({ arg data; 
+		//data.asCompileString.postln;
+		data.keys.postln;
+		data.children[0].children.postln;
+		data.children[0].children.do { arg child;
+			[name, child.defName, child.id].debug("free?");
+			if(child.defName == name) {
+				[name, child.defName, child.id].debug("free!!!!!");
+				s.sendMsg("/n_free", child.id);
+			}
+		};
+	})
+	
+};
 	~set_out_bus = { arg name, bus;
 		if(bus.class == Bus) {
 			bus = bus.index;

@@ -18,24 +18,6 @@ Veco.exec_file("trigpad.scd");
 ]);
 );
 
-~fx_do = { arg offset=54, len=8, fun;
-	len.do { arg x;
-		var node;
-		var index;
-		index = offset + x;
-		node = Veco.main.get_node_by_index(index);
-		if(node.is_present) {
-			fun.(index, node, x);
-		}
-	
-	}
-};
-
-~fx_do.(56,8, { arg index, node, x;
-	[index, node.uname].debug("index");
-	MIDIBoard.map(\c+++(x+1), { ~midi_macro_manager.map_node_macro_to_knobs(node) });
-});
-
 
 // END
 
@@ -62,3 +44,22 @@ Veco.main.fadeout_time = 16;
 )
 
 BusDef('fx1')
+
+~fx_do = { arg offset=54, len=8, fun;
+	len.do { arg x;
+		var node;
+		var index;
+		index = offset + x;
+		node = Veco.main.get_node_by_index(index);
+		if(node.is_present) {
+			fun.(index, node, x);
+		}
+	
+	}
+};
+
+~fx_do.(56,8, { arg index, node, x;
+	[index, node.uname].debug("index");
+	MIDIBoard.map(\c+++(x+1), { ~midi_macro_manager.map_node_macro_to_knobs(node) });
+});
+

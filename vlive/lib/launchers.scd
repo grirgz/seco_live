@@ -23,13 +23,23 @@
 			funs = [
 				{Veco.main.clip_offset = Point(0,0)},
 				{Veco.main.clip_offset = Point(8,0)},
-				{ev.no_pane; Veco.main.clip_offset = Point(Veco.main.clip_offset.x,32)},
-				{ev.mid_pane; Veco.main.clip_offset = Point(Veco.main.clip_offset.x,0)},
+				{Veco.main.clip_offset = Point(16,0)},
+				{Veco.main.clip_offset = Point(24,0)},
 
-				{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32)},
-				{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32+4)},
-				{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32+8)},
-				{ev.no_pane},
+				{Veco.main.clip_offset = Point(0,8)},
+				{Veco.main.clip_offset = Point(8,8)},
+				{Veco.main.clip_offset = Point(16,8)},
+				{Veco.main.clip_offset = Point(24,8)},
+
+				//{Veco.main.clip_offset = Point(0,0)},
+				//{Veco.main.clip_offset = Point(8,0)},
+				//{ev.no_pane; Veco.main.clip_offset = Point(Veco.main.clip_offset.x,32)},
+				//{ev.mid_pane; Veco.main.clip_offset = Point(Veco.main.clip_offset.x,0)},
+
+				//{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32)},
+				//{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32+4)},
+				//{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32+8)},
+				//{ev.no_pane},
 			];
 
 			funs[pos.y].value;

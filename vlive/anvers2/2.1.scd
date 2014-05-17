@@ -2,6 +2,9 @@ Ndef(~name+++\lfo1).quant = 2;
 Pdef(~name +++ \pre, 
 	Pbind(
 		//\fratioc, Pwhite(0.1,1),
+		\fratioc, 2,
+		\fratiob, 2,
+		\timeScale, 0.5,
 
 	) <>
 

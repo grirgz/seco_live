@@ -1,3 +1,10 @@
+(
+	Ndef(~name+++\lfo1, { arg freq=2; SinOsc.kr(freq*t).range(50,3100)  });
+	Ndef(~name+++\lfo1).put(1, \set -> Pbind(
+		\freq, Pseq([1,4,8,4,8],inf),
+		\dur, Pseq([4,2],inf),
+	));
+	Ndef(~name+++\lfo1).quant = 4;
 Pdef(~name +++ \pre, Pbind(
 	\freq, Pseq([
 		//[400,100],
@@ -11,9 +18,11 @@ Pdef(~name +++ \pre, Pbind(
 	\isRest, false,
 	\amp, Pkey(\amp) * 4,
 	\isRest, Pseq([1,0.5,1,0.5],inf).coin.not,
+	\ffreq, Ndef(~name+++\lfo1),
 	\legato, 1,
 	\isRest, Pseq([
 		1,0.8,1,0.8,
 		0,0,0.1,0.1,
 	],inf).coin.not,
 ));
+)

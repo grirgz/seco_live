@@ -1,3 +1,24 @@
+////////////// ndef track
+
+Veco(~name).make_mixer;
+~newfxmix.(\fx);
+Veco(~name)[\is_playing] = { arg self; Ndef(self.get_name+++\fx).isPlaying };
+
+//
+
+
+(
+Ndef(~name+++\fx, { arg freq=500, pan=0, amp=0.1, spread=0.8;
+	var sig;
+	sig = LFSaw.ar(freq * SinOsc.kr([1,2,4]) + freq);
+	sig = RLPF.ar(sig,  SinOsc.kr([1,2,4]*10.3) + 1 * freq * 1.4);
+	sig = Impulse.ar(CuspN.ar(1) + 1 * 50);
+	sig = Ringz.ar(sig,  CuspN.ar(4) * 0.1 + 1 * 1500, SinOsc.kr(1).range(0.3,1)/10);
+	sig = sig * 0.6;
+	sig = Splay.ar(sig, spread, amp, pan);
+});
+);
+
 /////////// start or stop clips with a pattern
 
 (

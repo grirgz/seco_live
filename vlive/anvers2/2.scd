@@ -21,11 +21,11 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, fratio=1.5, rq=0.5, fratiob=2, dmix=0.
 	env1b = EnvGen.ar(\env1b.kr(Env.new([120, 39, 21], [0.005, 0.29], [4, -5])), timeScale: timeScale);
 	env1mb = env1b.midicps;
 	
-	son = WhiteNoise.ar(1);
+	son = Dust.ar(19500);
 	son = BPF.ar(son, env1m*fratio, rq);
 	son = son * env0;
 
-	sonc = WhiteNoise.ar(1);
+	sonc = Dust.ar(9100);
 	sonc = BPF.ar(sonc, env1mc*fratioc, rqc);
 	sonc = sonc * env0c;
 	//son = son + SinOsc.ar(env1m, 0.5, env0);

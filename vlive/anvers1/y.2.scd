@@ -76,7 +76,7 @@ Pdef(~name +++ \preset1, Pbind(
 	//		0.2,0.5,0.3,0.4
 	//	].collect(_.coin),1)
 	//}).loop,
-	\amp, 4 * Pkey(\amp),
+	\amp, 8 * Pkey(\amp),
 ));
 
 Veco.do { arg name;
