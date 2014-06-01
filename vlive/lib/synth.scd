@@ -13,7 +13,9 @@ SynthDef(\oscsampler, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, pos
 	var ffreqtab;
 	osc = SinOsc.ar(freq*[1.001,0.999,1]);
 	//osc = osc.sum;
-	pos = EnvGen.kr(\posenv.kr(Env([1,0,0.5], [0.2,0.1])),gate) + pos;
+	pos = EnvGen.kr(\posenv.kr(Env([0.01,0,0.5], [0.2,0.1])),gate) + pos;
+	//pos = EnvGen.kr((Env([0.0,0.1,0.5], [4.2,0.1])),gate) + pos;
+	//pos = 0.2;
 	phase = osc * range + pos + finepos;
 
 	bufsig = BufRd.ar(2, bufnum, phase*BufFrames.ir(bufnum), 1);

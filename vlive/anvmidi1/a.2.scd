@@ -66,6 +66,7 @@ Pdef(~name +++ \pre, PmonoArtic(\oscsampler,
 		Pser([1],1),
 		Pser([0,0,0,0],4),
 	],inf).coin.not,
+	\isRest, false,
 	\legato, Pseq([1,0.4,1,0.3, Pn(1,4)],inf),
 	\legato, Pseq([
 		Pser([1,1,1,1],32-4),

@@ -1,5 +1,4 @@
 
-
 Ndef(~name).ar(2);
 Ndef(~name).play(BusDef(~name+++\mixer));
 //Ndef(~name).edit

@@ -13,6 +13,18 @@ MIDIBoard.map(\s9, s.volume, \volume);
 
 
 (
+~envNdefq = { arg name, env;
+	Ndef(name).quant = Pdef.defaultQuant;
+	Ndef(name, { arg val=1; EnvGen.kr(env.circle) * val });
+};
+~envNdef = { arg name, env;
+	Ndef(name, { arg val=1; EnvGen.kr(env.circle) * val });
+};
+~switchsplit = { arg arr, split, size, repeat=inf;
+	//Pswitch1(arr, prob*size)
+	//[(split*size).floor, ( 1-split*size +0.5).floor, (split*size).floor+ ( 1-split*size +0.5).floor].debug("switchsplit");
+	Pswitch1(arr, Pseq([Pn(0,(split*size).floor), Pn(1, (1-split*size +0.5).floor)],repeat))
+};
 ~changetempo = { arg dur, tempo;
 	Task({
 		var times = dur.round * 2;
@@ -209,6 +221,9 @@ MIDIBoard.map(\s9, s.volume, \volume);
 	Pbind(
 		key, ~mul_release.(key, mul)
 	)
+};
+~penv = { arg env;
+	Ptuple( env.asArray ).collect{ arg x; [x] }
 };
 );
 
@@ -1037,10 +1052,6 @@ MIDIBoard.map(\s9, s.volume, \volume);
 //	}
 //}
 //);
-
-~penv = { arg env;
-	Ptuple( env.asArray ).collect{ arg x; [x] }
-};
 
 
 ~degcps = { arg deg, octave=5, root=(60.midicps); Scale.major.degreeToFreq(deg, 60.midicps, octave-5); };
