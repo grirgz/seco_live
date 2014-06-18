@@ -93,41 +93,40 @@ Pdef(~name +++ \base,
 );
 
 Pdef(~name +++ \pre, 
-	Ppar([
-
-		Pbind(
-			\instrument, \oscsampler,
-			\ffreq, Ndef(~name+++\lfo1),
-			\freq, Ndef(~name+++\lfo3).bus.asMap,
-			\ffreq, Pseq([5000,200,1000],inf).stutter(8),
-			\freq, 1000 * Pkey(\xfreq),
-			\range, Pseg(Pseq([0.0001,0.0008,0.1],inf), Pseq([7,1,0],inf)),
-			\range, Pseq([0.0001,0.1],inf).stutter(8),
-			\bufnum, ~buf,
-		)
-		<> Pdef(~name+++\base) 
-		,
-
-		//////////////////
 
 		Pbind(
 			\instrument, ~name,
 			\ffreq, Pseq([50,100,80,200],inf).stutter(8) * Pseq([0.5,1,1.5]*8,inf),
-			\ffreq, 7000,
 			\ffreq, Pseq([5000,6000,500,600],inf).stutter(8),
 			\ffreq, Pseq([100,200,100,250],inf).stutter(1),
 			\legato, 0.9,
 			\degree, 0,
-			\freq, 10 * Pkey(\xfreq),
-			\freq, ~envNdefq.(~name+++\lfo5, Env([100,800,500],[1/16])).asMap,
-			\mtranspose, 0,
-			\octave, 4,
 			\adsr, Pseq([
 				[ Env.dadsr(0.02,0.11,0.3,0.4,0.1) ],
 			],inf),
+			\note, Pseq([
+				Pser([10,12],16),
+				Pser([12,9,12],16),
+				Pser([0,12,8],16),
+				Pser([0,7],16),
+			],inf),
+			\note, Pseq([
+				Pser([5,5,5,10],16),
+				Pser([4],16),
+				Pser([3],16),
+				Pser([2],16),
+			],inf),
+			\ffreq, Pkey(\freq) * Pseq([2,3,4,2],inf),
+			\isRest, Pseq([
+				1,0,1,0.2,
+				1,0.91,1,1,
+				1,0,0.2,0.5,
+				1,1,0.5,0,
+			],inf).coin.not,
+			\octave,3,
+			//* Pseq([1/3,2/3,1]*440,inf).stutter(6),
+			\dur, 1/4,
 		)
-		<> Pdef(~name+++\base) 
-	])
 
 );
 )

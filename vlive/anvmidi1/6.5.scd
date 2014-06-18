@@ -92,3 +92,40 @@ Pdef(~name +++ \pre, Pbind(
 )
 
 prob*size
+
+
+~f.("Pdef(\dfkjflk
+sdfdksj	
+	j)")
+
+
+
+	~fun = {arg code; code.postln;}
+// silly but simple: understand a Saw for every SinOsc
+this.preProcessor = { |code| code.postln };
+
+{ SinOsc.ar(200) * 0.1 }.play;
+
+preProcessor = nil; // reset to nil.
+
+
+(
+	var text = "Tous ces nombres paraissent bien concrets";
+	t = TextView(bounds: Rect(300, 400));
+	t.string = text;
+	t.front;
+	fork {
+		loop {
+			        2.0.rand.wait;
+					defer {
+						            t.setFont(Font("Times", rrand(12, 48)), rand(text.size - 1), rrand(3, 17));
+									            t.setStringColor(Color.rand, rand(text.size - 1), rrand(3, 17));
+
+												        
+					}
+					    
+		}
+
+	};
+
+)

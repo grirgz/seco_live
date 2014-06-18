@@ -9,6 +9,9 @@ Veco.load_lib("launchers.scd");
 //Veco.load_lib("trigpad.scd");
 
 MIDIBoard.map(\s9, s.volume, \volume);
+if(s.volume.volume == 0) {
+	s.volume.volume = 0.0001;
+};
 );
 
 

@@ -1,5 +1,3 @@
-~buf = BufDef(\moeten);
-~buf = BufDef(\march);
 ~buf = BufDef(\ukraine);
 Ndef(~name+++\lfo1).quant = Pdef.defaultQuant;
 Ndef(~name+++\lfo3).quant = Pdef.defaultQuant;
@@ -78,17 +76,31 @@ Ndef(~name+++\lfo3).put(1, \set -> Pbind(
 Pdef(~name +++ \base,
 
 	Pbind(
-		//\amp, 1 * Pkey(\amp),
-		\amp, 1,
+		\amp, 1 * Pkey(\amp),
+		//\amp, 1,
 		\dur, 1/2,
 		\isRest, false,
 		\xfreq, Pseq([
 			Pser([8],16),
 			Pser([6],8),
-			Pser([8],16-8),
+			Pser([6 * (2**(3/12))],8),
 		],inf),
 		\xffreq, 2,
 		\isRest, Pseq([1,1,0,1],inf).coin.not,
+		\legato, 0.5,
+		\isRest, Pseq([
+			0,1,1,0,
+			1,1,0,1,
+			1,1,1,1,
+			1,1,1,1,
+		],inf).coin.not,
+		\legato, Pseq([
+			6,4,9,4,
+			6,4,9,4,
+			9,9,9,9,
+			9,9,9,9,
+
+		],inf)/10,
 	)
 );
 
@@ -116,10 +128,8 @@ Pdef(~name +++ \pre,
 			\ffreq, 7000,
 			\ffreq, Pseq([5000,6000,500,600],inf).stutter(8),
 			\ffreq, Pseq([100,200,100,250],inf).stutter(1),
-			\legato, 0.9,
 			\degree, 0,
 			\freq, 10 * Pkey(\xfreq),
-			\freq, ~envNdefq.(~name+++\lfo5, Env([100,800,500],[1/16])).asMap,
 			\mtranspose, 0,
 			\octave, 4,
 			\adsr, Pseq([

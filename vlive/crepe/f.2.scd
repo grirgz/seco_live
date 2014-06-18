@@ -119,7 +119,6 @@ Pdef(~name +++ \pre,
 			\legato, 0.9,
 			\degree, 0,
 			\freq, 10 * Pkey(\xfreq),
-			\freq, ~envNdefq.(~name+++\lfo5, Env([100,800,500],[1/16])).asMap,
 			\mtranspose, 0,
 			\octave, 4,
 			\adsr, Pseq([
