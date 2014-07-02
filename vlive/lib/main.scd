@@ -600,6 +600,9 @@ if(s.volume.volume == 0) {
 		if(Veco(~name).lib.macros.isSequenceableCollection and: {key.asString[0] == $k} ) {
 			Veco(~name).lib.macros[ key.asString[1].digit -1 ] = [obj, member, spec];
 		};
+		if(Veco(~name).lib.macros.isSequenceableCollection and: {key.asString[0] == $s} ) {
+			Veco(~name).lib.macros[ key.asString[1].digit -1 + 8 ] = [obj, member, spec];
+		};
 	}
 	
 };

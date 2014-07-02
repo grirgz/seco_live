@@ -2,6 +2,8 @@
 
 Pdef(~name +++ \pre, 
 	Pbind(
+		\dur, 1/8,
+		\legato, 0.2,
 		\mbufnum, BufDef.mono(\crepe),
 		\amp, 94 * Pkey(\amp) * 0.4,
 		//\lag, -0.01,

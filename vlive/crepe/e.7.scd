@@ -13,7 +13,8 @@ Pdef(~name +++ \pre,
 	Pbind(
 		\pos, 0.014 + Pseq([0,1,0,2],inf).stutter(8)/100,
 		\pos, 0.389,
-		\freq, 187,
+		\pos, 0.109,
+		\freq, 17,
 		\range, 0.0000001,
 		\posenv, Pseq([
 			//[ Env([0.42,0.3903,0.3513],[0.3,0.4]) ],
@@ -33,12 +34,11 @@ Pdef(~name +++ \pre,
 			1,0.2,0.7,0,
 		],inf).coin.collect({ arg x; 
 			if(x) {
-				[ Env([0.00,0.007,0].integrate.postln,[0.41,0.1]) ]
+				[ Env([0.00,0.027,0].integrate.postln,[0.41,0.1]) ]
 			} {
-				[ Env([0.00,0.001,0].integrate.postln,[0.11,0.1]) ]
+				[ Env([0.00,0.004,0].integrate.postln,[0.11,0.1]) ]
 			} 
 		}),
-		\legato, 0.2,
 		\legato, Pseq([
 			0,0,0,0,
 			0.8,0,0.7,0.2,
@@ -49,24 +49,46 @@ Pdef(~name +++ \pre,
 				0.1
 			} 
 		}) + Pseq([0,0.2],inf).stutter(4),
-		\isRest, false,
 		\isRest, Pseq([
 			1,1,1,1,
 			1,0.5,1,0.5,
 			1,1,1,1,
 			1,1,0.9,1,
 		],inf).coin.not,
+		\isRest, false,
 		\finepos, 0,
 		\dur, 1/4,
-		\fshift, 0,
+		\fshift, Pseg(Pseq([-1000,0,100,1000,100,-50,0,50,200],inf).stutter(4),1),
 		\legato, Pseq([0.4,0.2,0.8,0.2],inf) * Pseg(Pseq([0.5,1],inf),8),
+		\legato, 0.2,
+		\legato, Pseq([
+			Prand([
+				Pseq([
+					0.2,0.2,0.2,0.2,
+					0.2,0.2,Prand([0.1,0.5,0.6],1),0.6,
+				]),
+				Pseq([
+					0.2,0.2,0.2,0.2,
+					0.7,0.2,Prand([0.1,0.5,0.6],1),0.6,
+				]),
+				Pseq([
+					0.2,0.2,0.7,0.2,
+					0.2,0.2,Prand([0.1,0.5,0.6],1),0.6,
+				]),
+
+			])
+		],inf),
+		\fshift, Pseq([
+			0,100,0,500,
+			50,200,50,200,
+		],inf) + Pwhite(-100.0,100),
 		\lpmix, 0,
 		\ffreq, 1000,
 		\amp, 34.0 * Pkey(\amp),
-		\amp, Pkey(\amp) * Pseq([
-			0.5,0.2,1,0.2,
-			0.7,0.4,1,0.2,
-		],inf) + Pwhite(0.0,0.1),
+		//\amp, Pkey(\amp) * Pseq([
+		//	0.5,0.2,1,0.2,
+		//	0.7,0.4,1,0.2,
+		//],inf) + Pwhite(0.0,0.1),
 
 	) <>
 	
