@@ -16,6 +16,23 @@ if(s.volume.volume == 0) {
 
 
 (
+~restbyfreq = { arg seq, repeat=inf, moffset = 0;
+	Prout({
+		repeat.do { arg x;
+			x = x+1 + moffset;
+			Pseq(
+				seq.collect { arg val;
+					var offset;
+					offset = (val % 1) * 10;
+					val = val.asInteger;
+					val == 0 or: { (x+offset) % val != 0 }
+				//}.debug("restbyfreq")
+				}
+			).embedInStream;
+		}
+		
+	})
+};
 ~envNdefq = { arg name, env;
 	Ndef(name).quant = Pdef.defaultQuant;
 	Ndef(name, { arg val=1; EnvGen.kr(env.circle) * val });
