@@ -26,7 +26,6 @@ if(s.volume.volume == 0) {
 					offset = (val % 1) * 10;
 					val = val.asInteger;
 					val == 0 or: { (x+offset) % val != 0 }
-				//}.debug("restbyfreq")
 				}
 			).embedInStream;
 		}
@@ -858,7 +857,7 @@ if(s.volume.volume == 0) {
 	
 };
 
-~load_quick_project_switcher = {
+~load_quick_project_switcher_OLD = {
 	var codepad;
 	var qp = ~veco.quickpad_controller;
 	codepad = qp.get_codepad(Point(2,0));
@@ -878,6 +877,18 @@ if(s.volume.volume == 0) {
 		};
 	};
 
+};
+
+~load_quick_project_switcher = {
+	var codepad;
+	var qp = ~veco.quickpad_controller;
+	8.do { arg slot;
+		codepad = qp.get_codepad(Point(6,slot));
+		codepad.payload = { arg self;
+			slot.debug("switch_project_slot ============================= ------------------ =========================");
+			Veco.switch_project_slot(slot);
+		};
+	}
 };
 
 
@@ -1093,6 +1104,28 @@ if(s.volume.volume == 0) {
 
 ~swing = (1 + (0.06 * Pseq([-1,1],inf)));
 
+~mode_ndef = { arg suffix=\fx;
+	var name = ~name;
+	var fxname = ~name +++ suffix;
+	Veco(~name).make_mixer;
+	Veco(~name).add_play_node_hook(\fx, {
+		fxname.debug("play FX");
+		debug("what");
+		//Ndef(fxname).send;
+		Ndef(fxname).play(BusDef(name+++\mixer, \audio).index);
+	});
+
+	Veco(~name)[\is_playing] = { arg self;
+		Ndef(fxname).isPlaying;
+	};
+
+	Veco(~name).add_stop_node_hook(\fx, {
+		fxname.debug("stop FX");
+		Ndef(fxname).end(Ndef(fxname).fadeTime);
+	});
+	
+};
+
 ~newfx = { arg suffix;
 	var fxname = ~name+++suffix;
 	BusDef(fxname, \audio);
@@ -1121,6 +1154,29 @@ if(s.volume.volume == 0) {
 		//Ndef(fxname).send;
 		Ndef(fxname).play(BusDef(name+++\mixer, \audio).index);
 	});
+
+	Veco(name).add_stop_node_hook(\fx, {
+		fxname.debug("stop FX");
+		Ndef(fxname).end(Ndef(fxname).fadeTime);
+	});
+};
+
+~newfxchannel = { arg suffix=\fx;
+	var name = ~name;
+	var fxname = name+++suffix;
+	BusDef(fxname, \audio);
+	Veco(~name).make_mixer;
+
+	// FIXME: should be suffix instead of \fx
+	Veco(name).add_play_node_hook(\fx, {
+		fxname.debug("play FX");
+		//Ndef(fxname).send;
+		Ndef(fxname).play(BusDef(name+++\mixer, \audio).index);
+	});
+
+	Veco(~name)[\is_playing] = { arg self;
+		Ndef(fxname).isPlaying;
+	};
 
 	Veco(name).add_stop_node_hook(\fx, {
 		fxname.debug("stop FX");

@@ -1,5 +1,6 @@
 ~name = '1';
 
+"hekehk".debug("node1");
 (
 SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
 	var sig, sig1, sig2, sig3;

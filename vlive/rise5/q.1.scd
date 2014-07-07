@@ -13,3 +13,6 @@ Ndef(~name+++\fx, { arg freq=200, pan=0, amp=0.1;
 	sig = Pan2.ar(sig, pan, amp);
 }).play;
 );
+
+// END
+Ndef(~name+++\fx).stop

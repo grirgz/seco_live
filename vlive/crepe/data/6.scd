@@ -1,1 +1,1 @@
-Veco.save('6').amp_level = 1;
+Veco.save('crepe-6').amp_level = 1;

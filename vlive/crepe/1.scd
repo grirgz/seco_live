@@ -2,6 +2,9 @@
 
 Veco(~name).make_mixer;
 
+"hello".postln;
+~name.debug("name");
+
 (
 SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0.01, spread=0.8, timeScale=1|
 	var env0, env1, env1m, son;
@@ -27,7 +30,7 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0.01
 	son = Splay.ar(son, spread, amp, pan);
 	
 	OffsetOut.ar(out, son);
-}).store;
+}).add;
 );
 
 (
@@ -55,7 +58,7 @@ SynthDef(~name+++\2, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan
 	son = Splay.ar(son, spread, amp, pan);
 	
 	OffsetOut.ar(out, son);
-}).store;
+}).add;
 );
 
 (

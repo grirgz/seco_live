@@ -22,7 +22,7 @@ Pdef(~name+++\base, Pbind(
 Pdef(~name +++ \pre, 
 	Ppar([
 		Pdef(~name+++\base) <> Pbind(
-			\instrument, '1',
+			\instrument, Veco('1').uname,
 			\env0, [ Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.41], [-4, -2, -4]) ],
 			\env1, [ Env.new([110, 73, 29], [0.005, 0.09], [-4, -5]) ],
 			\fratio, 1,

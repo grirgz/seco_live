@@ -83,7 +83,7 @@ Pdef(~name +++ \pre,
 				[20,10,0,2],2,1,8,
 				[10,[1,0]],2,4,[8,10,4,12],
 			]/10,inf).stutter(4),
-			\amp, 10.0 * Pkey(\amp),
+			\amp, 3.0 * Pkey(\amp),
 			//\freq, 487 + Pseq([1,0.6,0.8,1.2],inf),
 			\degree, Pseq([
 				0,1,2,1,
@@ -102,6 +102,10 @@ Pdef(~name +++ \pre,
 				0,3,-5,0,
 				0,3,-2,0,
 			],inf).stutter(1),
+	\freq, Pstep(Pseq([
+		1100,900,2000,600,
+
+	],inf),2)/7.9,
 			\scale, Scale.dorian,
 			\octave, 3,
 			\range, 0.00021,
@@ -119,7 +123,7 @@ Pdef(~name +++ \pre,
 
 				1.8,0.48,3.9,0.45,
 				4,2,3,4,
-			],inf).stutter(1) *1.4,
+			],inf).stutter(1) *0.2,
 			\dur, 1/3,
 			\isRest, false,
 			\adsr, Pseq([

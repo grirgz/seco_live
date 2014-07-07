@@ -14,6 +14,10 @@ Pdef(~name +++ \pre, Pbind(
 	],inf).coin.not,
 ));
 
+"hhhhh".debug("kkjkj");
+
 // END
 
 [0.6]
+Pdef(~name).play
+Ndef(~name+++\mixer).play
