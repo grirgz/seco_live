@@ -1,7 +1,7 @@
 
 
 (
-		~set_exec_zone.(Rect(0,32, 16,64));
+		~set_exec_zone.(Rect(0,32, 32+16,64));
 		Veco.main.clip.response_launcher_on_hook = { arg self, pos, opos, mod;
 			var ev;
 			var funs;

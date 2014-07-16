@@ -1,6 +1,7 @@
 
 //~icon_device_id
 (
+MIDIBoard.permanent = true;
 MIDIBoard.define([0, ~icon_device_id], [
 	\left, \note -> 91,
 	\right, \note -> 92,
@@ -52,7 +53,6 @@ MIDIBoard.define([0, ~icon_device_id], [
 	\c9, \note -> 49,
 
 ]);
-MIDIBoard.permanent = true;
 );
 
 

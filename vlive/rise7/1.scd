@@ -1,5 +1,6 @@
 ~name = '1';
 
+Veco(~name).mixer_mode = \premix3;
 Veco(~name).make_mixer;
 
 (
@@ -29,6 +30,8 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0.01
 	OffsetOut.ar(out, son);
 }).store;
 );
+
+
 
 (
 SynthDef(~name+++\2, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0.01, spread=0.8, timeScale=1|
@@ -72,3 +75,8 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 ) <> Veco(~name).mixer)
 );
 
+// END
+
+Veco(~name).mixer.asStream.next(Event.default)
+
+~fx1

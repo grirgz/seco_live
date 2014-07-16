@@ -7,7 +7,7 @@
 	"score",
 ].do { arg file;
 	("Loading " ++ file ++".scd...").inform;
-	(~veco_dir_path +/+ file++".scd").load;
+	(Veco.extension_path +/+ file++".scd").load;
 };
 "Done loading.".inform;
 ~codepads = ~class_codepads.new;

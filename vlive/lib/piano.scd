@@ -2,6 +2,7 @@
 //MIDIdef.noteOn(\test, { arg ... args; args.debug("piano.scd: test"); });
 
 (
+MIDIBoard.permanent = true;
 MIDIBoard.define(0, [
 	\home, 34,
 	\left, 35,
@@ -48,7 +49,6 @@ MIDIBoard.define(0, [
 	\a8, \note -> [46, 9],
 
 ]);
-MIDIBoard.permanent = true;
 );
 
 (

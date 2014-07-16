@@ -2,17 +2,17 @@
 //b = Buffer.alloc(s, s.sampleRate * 0.125 * 9,2);
 (
 //Ndef(~name+++\fx, { arg in, mix=0.5, amp=1,
-Ndef(~name+++\fx, { arg mix=0.5, amp=1, del1=1, del2=1, del3=1, del4=1, del5=1, del6=1, del7=1, del8=1;
+Ndef(~name+++\fx, { arg mix=0.5, preamp=1, amp=1, delay= 0.5, tail=5;
 	var sigin, sig;
-	var delay = 0.125;
 	var numdelay = 8;
 	var bufnum;
-	sigin = InFeedback.ar(BusDef(~name+++\fx, \audio), 2);
+	sigin = InFeedback.ar(\inbus.kr(BusDef(\zero)), 2);
+	sigin = sigin * preamp;
 	//sigin = SinOsc.ar(200) !2;
 	//bufnum = b;
 	sig = sigin;
 	sig = sig * SinOsc.ar(100);
-	sig = CombL.ar(sig, delay,delay,1)+sig;
+	sig = CombL.ar(sig, delay,delay,tail)+sig;
 	//sig = sigin;
 	//sig[0] = DelayN.ar(sig[0], delays, delays) * [del1, del2, del3, del4, del5, del6, del7, del8];
 	//sig[1] = DelayN.ar(sig[1], delays, delays) * [del1, del2, del3, del4, del5, del6, del7, del8];
@@ -22,12 +22,16 @@ Ndef(~name+++\fx, { arg mix=0.5, amp=1, del1=1, del2=1, del3=1, del4=1, del5=1, 
 	//sig.poll;
 	//sig = sig * EnvGen.ar(Env.asr(0.0001,1,0.0001),gate,doneAction:2);
 	sig = SelectX.ar(mix, [sigin, sig]);
+	sig = sig * amp;
 	//Out.ar(out, sig);
 });
 )
 
 
 // END
+
+~set_macro.(\k1, Ndef(~name+++\fx), \delay, \delay.asSpec)
+
 Ndef(~name+++\mixer).edit
 Ndef(~name+++\mixer).play
 Ndef(~name+++\fx).play(BusDef(~name+++\mixer))

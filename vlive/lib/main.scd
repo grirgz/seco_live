@@ -1,6 +1,8 @@
 
 (
 
+s.volume.play;
+
 //Veco.load_lib("piano.scd");
 Veco.load_lib("icon.scd");
 Veco.load_lib("midi.scd");
@@ -16,6 +18,75 @@ if(s.volume.volume == 0) {
 
 
 (
+~set_next_clip = { arg time, index;
+	if(~enable_clip_automation != false) {
+		Veco.do { arg name, namex;
+			Task({
+				Veco.main.clip.update_display;
+				namex.debug("init task1");
+				(time-0.5).wait;
+				//(Pdef.defaultQuant/2).wait;
+				[namex, index].debug("play next row!!!");
+				~spawn_cliprow.(index, name);
+				nil;
+			}).play(quant:Pdef.defaultQuant);
+		}
+	}
+};
+
+~make_fx = {
+	Ndef(~name+++\fx).put(0, { arg preamp=1;
+		var sigin;
+		sigin = InFeedback.ar(\inbus.kr(BusDef(\zero)), 2);
+		sigin = sigin * preamp;
+		sigin;
+	});
+};
+
+~edit_fx = { arg self, suffix=\fx;
+	Veco.do { arg name, namex;
+		Veco(namex).response_mode = \exec;
+		{
+			Ndef(name+++suffix).edit;
+		}.defer;
+	}
+};
+
+~define_effects_OLD = { arg fxs;
+	fxs.do { arg fx, x;
+		x = x + 1;
+		currentEnvironment[\tfx+++x] = Veco(fx).uname+++\fx;
+		currentEnvironment[\fx+++x] = BusDef(Veco(fx).uname+++\fx,\audio);
+	}
+
+};
+
+4.do { arg x; BusDef(Veco.main.name+++\fx+++x, \audio) };
+
+~define_effects = { arg fxs, size=inf;
+	fxs.do { arg fx, x;
+		var uname;
+		x = x + 1;
+		uname = Veco(fx).uname;
+		uname.debug("define_effectsa");
+		if(x <= size) {
+			var bus;
+				uname.debug("define_effectsxVa");
+				(Veco.main.name+++\fx+++x).debug("dkj");
+			bus  = BusDef(Veco.main.name+++\fx+++x, \audio);
+				uname.debug("define_effectsxta");
+			currentEnvironment[\fx+++x] = bus;
+			currentEnvironment[\tfx+++x] = uname+++\fx;
+				uname.debug("define_effectsyu");
+			Ndef(uname+++\fx).set(\inbus, bus);
+				uname.debug("define_effectsx");
+		} {
+		uname.debug("define_effects1");
+			Ndef(uname).set(\inbus, BusDef(\zero));
+		uname.debug("define_effects2");
+		}
+	}
+};
 ~restbyfreq = { arg seq, repeat=inf, moffset = 0;
 	Prout({
 		repeat.do { arg x;
@@ -414,6 +485,24 @@ if(s.volume.volume == 0) {
 	}
 };
 
+~patfx_toggle_mute = { arg key, namex;
+	var env = currentEnvironment;
+	var gate;
+	gate = key+++\mute;
+	if(env[gate].notNil) {
+		env[gate] = nil;
+		if(namex.notNil) {
+			Veco(namex).response_mode = \exec;
+		}
+	} {
+		env[gate] = 1;
+		env[key] = Pbind(\isRest, true, \bla, Pfunc({ env[gate] }));
+		if(namex.notNil) {
+			Veco(namex).response_mode = \exec;
+		}
+	}
+};
+
 
 ~addfx = { arg key, delta, fun;
 	var pos;
@@ -681,12 +770,17 @@ if(s.volume.volume == 0) {
 				if(Veco(tr).is_playing.not or: { Veco(tr).active_clip_index != clip_index }) {
 					var clip = Veco(tr).get_clip_by_index(clip_index);
 	tr.debug("hian6");
-					if(clip.response_mode == \exec) {
-						clip.response_on;
-	tr.debug("hian7");
+					if(clip.is_present.not) {
+						// TODO: make a mode where non existing clip continue playing
+						Veco(tr).stop_node;
 					} {
-						clip.response_on_play;
-	tr.debug("hian8");
+						if(clip.response_mode == \exec) {
+							clip.response_on;
+		tr.debug("hian7");
+						} {
+							clip.response_on_play;
+		tr.debug("hian8");
+						}
 					}
 				} {
 	tr.debug("hian9");
@@ -759,13 +853,14 @@ if(s.volume.volume == 0) {
 	}
 };
 
-~spawn_cliprow = { arg index;
+~spawn_cliprow = { arg index, name;
+	name = name ?? ~name;
 	if(index.isSequenceableCollection) {
-		Veco(~name).lib.tracks.collect { arg uname, i;
+		Veco(name).lib.tracks.collect { arg uname, i;
 			~spawnclip.(uname, index[i])
 		}
 	} {
-		Veco(~name).lib.tracks.collect { arg uname;
+		Veco(name).lib.tracks.collect { arg uname;
 			~spawnclip.(uname, index)
 		}
 	}
@@ -813,15 +908,17 @@ if(s.volume.volume == 0) {
 
 	codepad = qp.get_codepad(Point(1,2));
 	codepad.payload = { arg self;
+		var name = ~name;
 		{
-			Ndef(~name+++\fx).edit;
+			Ndef(name+++\fx).edit;
 		}.defer;
 	};
 
 	codepad = qp.get_codepad(Point(1,3));
 	codepad.payload = { arg self;
+		var name = ~name;
 		{
-			Ndef(~name+++\mixer).edit;
+			Ndef(name+++\mixer).edit;
 		}.defer;
 	};
 	
@@ -1075,6 +1172,69 @@ if(s.volume.volume == 0) {
 //////////////////////////////////////////////////// 
 //////////////////////////////////////////////////// 
 
+//////////////////////////////////////////////////// channel modes
+
+(
+
+~pdef_channel = { arg suffix=\fx;
+	Veco(~name).make_mixer;
+};
+
+~pdef_fx_channel = { arg suffix=\fx;
+	var name = ~name;
+	var fxname = name+++suffix;
+	BusDef(fxname, \audio);
+
+	// FIXME: should be suffix instead of \fx
+	Veco(name).add_play_node_hook(\fx, {
+		fxname.debug("play FX");
+		//Ndef(fxname).send;
+		Ndef(fxname).play(BusDef(name+++\mixer, \audio).index);
+	});
+
+	Veco(name).add_stop_node_hook(\fx, {
+		fxname.debug("stop FX");
+		Ndef(fxname).end(Ndef(fxname).fadeTime);
+	});
+
+};
+
+~ndef_channel = { arg suffix=\fx;
+	var name = ~name;
+	var fxname = ~name +++ suffix;
+	Veco(~name).make_mixer;
+	Veco(~name).add_play_node_hook(\fx, {
+		fxname.debug("play FX");
+		debug("what");
+		//Ndef(fxname).send;
+		Ndef(fxname).play(BusDef(name+++\mixer, \audio).index);
+	});
+
+	Veco(~name)[\is_playing] = { arg self;
+		Ndef(fxname).isPlaying;
+	};
+
+	Veco(~name).add_stop_node_hook(\fx, {
+		fxname.debug("stop FX");
+		//Ndef(fxname).fadeTime.debug("aRRRG");
+		Ndef(fxname).end(Ndef(fxname).fadeTime);
+	});
+	
+};
+
+~fx_channel = { arg suffix=\fx;
+	var name = ~name;
+	var fxname = name+++suffix;
+	BusDef(fxname, \audio);
+	~ndef_channel.(suffix);
+
+};
+
+
+
+);
+
+//////////////////////////////////////////////////// 
 (
 
 //~set_exec_zone.(Rect(0,32,8,32+8));
@@ -1104,27 +1264,6 @@ if(s.volume.volume == 0) {
 
 ~swing = (1 + (0.06 * Pseq([-1,1],inf)));
 
-~mode_ndef = { arg suffix=\fx;
-	var name = ~name;
-	var fxname = ~name +++ suffix;
-	Veco(~name).make_mixer;
-	Veco(~name).add_play_node_hook(\fx, {
-		fxname.debug("play FX");
-		debug("what");
-		//Ndef(fxname).send;
-		Ndef(fxname).play(BusDef(name+++\mixer, \audio).index);
-	});
-
-	Veco(~name)[\is_playing] = { arg self;
-		Ndef(fxname).isPlaying;
-	};
-
-	Veco(~name).add_stop_node_hook(\fx, {
-		fxname.debug("stop FX");
-		Ndef(fxname).end(Ndef(fxname).fadeTime);
-	});
-	
-};
 
 ~newfx = { arg suffix;
 	var fxname = ~name+++suffix;

@@ -58,6 +58,7 @@ SynthDef(~name+++\snare, { |out=0, amp=0.1, pan=0, fratio=1.5, rq=0.5, fratiob=2
 
 ))).add;
 
+Veco(~name).mixer_mode = \premix3;
 Veco(~name).make_mixer;
 
 

@@ -10,7 +10,8 @@ Ndef(~name+++\fx, { arg mix=0.5, amp=1, del1=1, del2=1, del3=1, del4=1, del5=1, 
 	var delays = (1..numdelay) * delay;
 	bufnum = LocalBuf(s.sampleRate * delay * (numdelay+2), 2);
 	bufnum.clear;
-	sigin = InFeedback.ar(BusDef(~name+++\fx, \audio), 2);
+	sigin = InFeedback.ar(\inbus.kr(BusDef(\zero)), 2);
+	//sigin = InFeedback.ar(BusDef(~name+++\fx, \audio), 2);
 	//sigin = SinOsc.ar(200) !2;
 	//bufnum = b;
 	sig = MultiTap.ar(Ref( (1..numdelay) * delay), Ref([del1, del2, del3, del4, del5, del6, del7, del8]), sigin, 1, 0, bufnum);

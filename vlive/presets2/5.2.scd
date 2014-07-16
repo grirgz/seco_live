@@ -23,7 +23,7 @@ Ndef(~name+++\fx, { arg amp=0.8, pan=0, freq=200, mbufnum,
 	ou = ou & LFTri.ar(7.2,0,101);
 	ou = ou | LFTri.ar(7.5,0,101);
 	ou = ou & LFTri.ar(177.1 * [1,1.1,1.01,1.5],0,101);
-	ou = ou * 0.017;
+	ou = ou * 0.007;
 	//ou = RLPF.ar(ou, 2000);
 	//baseffreq = baseffreq * LFNoise1.ar(1).range(0.7,1);
 	//ou = DelayC.ar(ou, 0.1,0.001+LFNoise1.ar(1/8).range(0,0.001)) + ou;

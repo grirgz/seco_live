@@ -19,7 +19,7 @@ Ndef(~name+++\fx, { arg amp=0.8, pan=0, freq=200, mbufnum,
 
 	ou = LFTri.ar(140,0,4) & LFTri.ar(SinOsc.kr(1,0,0.4,1)*7.1,0,13);
 	ou = ou | LFTri.ar(70.1,0,11) | SinOsc.ar(LFNoise1.kr(8,500,100),0,5);
-	ou = ou * 0.37;
+	ou = ou * 0.077;
 	ou = RLPF.ar(ou, 2000 * LFNoise1.kr(1,3,3.5).poll);
 	//baseffreq = baseffreq * LFNoise1.ar(1).range(0.7,1);
 	//ou = DelayC.ar(ou, 0.1,0.001+LFNoise1.ar(1/8).range(0,0.001)) + ou;

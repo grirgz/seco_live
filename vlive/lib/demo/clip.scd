@@ -1,11 +1,30 @@
+
+////////////// channel fx track
+
+
+~fx_channel.();
+~make_fx.();
+
+// clip
+
+
+Ndef(~name+++\fx).put(50, \filter -> { arg in;
+	var sig = in;
+	
+	sig = Greyhole.ar(sig, 
+		\delay.kr(1/4),\damp.kr(0.1),\size.kr(1), \diff.kr(0.707) , \feedback.kr(0.8), \modDepth.kr(0.1), \modFreq.kr(2)
+	);
+
+	sig;
+})
+
+
+
 ////////////// ndef track
 
-Veco(~name).make_mixer;
-~newfxmix.(\fx);
-Veco(~name)[\is_playing] = { arg self; Ndef(self.get_name+++\fx).isPlaying };
+~ndef_channel.();
 
-//
-
+// clip
 
 (
 Ndef(~name+++\fx, { arg freq=500, pan=0, amp=0.1, spread=0.8;
@@ -18,6 +37,37 @@ Ndef(~name+++\fx, { arg freq=500, pan=0, amp=0.1, spread=0.8;
 	sig = Splay.ar(sig, spread, amp, pan);
 });
 );
+
+////////////// pdef track
+
+~pdef_channel.();
+
+(
+SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
+Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
+	\instrument, ~name,
+	\degree, Pseq([0],inf),
+	\isRest, Veco(~name).isrest,
+	\dur, 1/4,
+	\amp, 0.1 * Pkey(\amp),
+) <> Veco(~name).mixer)
+);
+
+// clip
+
+Pdef(~name +++ \pre, Pbind(
+	\freq, 100,
+));
 
 /////////// start or stop clips with a pattern
 
@@ -55,16 +105,77 @@ Pdef(~name+++\cs,
 /////////// edit fx
 (
 Veco.do { arg name;
+	Veco(~name).response_mode = \exec;
 	{
 		Ndef(name+++\fx).edit;
 	}.defer;
 }
 );
 
+//////////////////////////////////////////////////////////// patfx
+
 /////////// un/muting clips
 
 [\g, \h, \i].do { arg name; ~patfx_unmute.(name+++'patfx'); }
 [\g, \h, \i].do { arg name; ~patfx_mute.(name+++'patfx'); }
+
+/////////// insert beat
+
+(
+if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
+Pdef(~name, 
+	~patfx.(~name+++\patfx) <>
+	Pdef(~name +++ \pre) <> Pbind(
+	\instrument, ~name,
+	\env0, [ Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.1], [-4, -2, -4]) ],
+	\env1, [ Env.new([120, 59, 29], [0.005, 0.29], [-4, -5]) ],
+	\degree, Pseq([0],inf),
+	\isRest, Veco(~name).isrest,
+	\fratio, 2,
+	\dur, 1/8,
+	\amp, 0.4 * Pkey(\amp),
+) <> Veco(~name).mixer)
+);
+
+(
+		~set_exec_zone.(Rect(0,32, 32+16,64));
+		Veco.main.clip.response_launcher_on_hook = { arg self, pos, opos, mod;
+			var ev;
+			var funs;
+			[pos, opos, mod].debug("response_launcher_on_hook===");
+			ev = ~launcher_lib;
+			funs = [
+				{Veco.main.clip_offset = Point(0,Veco.main.clip_offset.y)},
+				{Veco.main.clip_offset = Point(8,Veco.main.clip_offset.y)},
+				{Veco.main.clip_offset = Point(16,Veco.main.clip_offset.y)},
+				{Veco.main.clip_offset = Point(24,Veco.main.clip_offset.y)},
+				{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32)},
+				{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32+4)},
+				{ev.mid_pane; Veco.main.pane_offset = Point(Veco.main.clip_offset.x,32+8)},
+				{ev.no_pane},
+			];
+
+			funs[pos.y].value;
+			Veco.main.clip.render_state;
+
+		};
+);
+
+(
+1.do { arg x;
+	var row = 32;
+	~set_fake_clip_row.(row, { arg clip, name, namex, index;
+		~insert_beat.(name+++\patfx)
+	}, 0, 32);
+	row = row + 1;
+	~set_fake_clip_row.(row, { arg clip, name, namex, index;
+		~patfx_toggle_mute.(name+++\patfx)
+	}, 0, 32);
+}
+);
+
+
+//////////////////////////////////////////////////////////// 
 
 /////////// create fake clips
 

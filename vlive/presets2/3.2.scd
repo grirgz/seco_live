@@ -58,6 +58,7 @@ Ndef(~name+++\fx).fadeTime=1;
 
 // END
 
+Ndef(~name+++\fx).play;
 Ndef(~name+++\fx, \zegrainer2).play;
 Ndef(~name+++\fx).set( \mbufnum, BufDef.mono(\ukraine))
 Ndef(~name+++\fx).set( \pos, 0.1)
