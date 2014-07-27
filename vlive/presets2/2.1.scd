@@ -52,6 +52,7 @@ Ndef(~name+++\fx).set( \mbufnum, BufDef.mono(\ukraine))
 Ndef(~name+++\fx).set( \pos, 0.1)
 Ndef(~name+++\fx).set( \amp, 0.4)
 Ndef(~name+++\fx).set( \time_stretch, 0.4)
+Ndef(~name+++\fx).set(\pitch_stretch, 2);
 
 
 Ndef(~name+++\fx2).clear

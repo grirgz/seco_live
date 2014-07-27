@@ -18,7 +18,45 @@ if(s.volume.volume == 0) {
 
 
 (
+~frozzer = { arg pat, reppat;
+	Prout({
+
+		var oldval;
+		pat = pat.asStream;
+		reppat = reppat.asStream;
+		10000.do {
+			var val = pat.next;
+			var repval = reppat.next;
+			if(repval == 1 or: { repval == true }) {
+				if(oldval.notNil) {
+					oldval.yield;
+				} {
+					val.yield;
+				}
+			} {
+				oldval = val;
+				val.yield;
+			};
+		}
+	})
+};
 ~set_next_clip = { arg time, index;
+	if(~enable_clip_automation != false) {
+		Veco.do { arg name, namex;
+			Tdef(name, {
+				Veco.main.clip.update_display;
+				//namex.debug("======================= init task1");
+				(time-0.5).wait;
+				//(Pdef.defaultQuant/2).wait;
+				//[namex, index].debug("======================== play next row!!!");
+				~spawn_cliprow.(index, name);
+				0.wait; // to avoid bug
+			});
+		}
+	}
+};
+
+~set_next_clip_standalone = { arg time, index;
 	if(~enable_clip_automation != false) {
 		Veco.do { arg name, namex;
 			Task({
@@ -76,6 +114,7 @@ if(s.volume.volume == 0) {
 			bus  = BusDef(Veco.main.name+++\fx+++x, \audio);
 				uname.debug("define_effectsxta");
 			currentEnvironment[\fx+++x] = bus;
+			currentEnvironment[\tnfx+++x] = uname;
 			currentEnvironment[\tfx+++x] = uname+++\fx;
 				uname.debug("define_effectsyu");
 			Ndef(uname+++\fx).set(\inbus, bus);
@@ -853,14 +892,15 @@ if(s.volume.volume == 0) {
 	}
 };
 
-~spawn_cliprow = { arg index, name;
+~spawn_cliprow = { arg index, name, tracks;
 	name = name ?? ~name;
+	tracks = tracks ?? Veco(name).lib.tracks;
 	if(index.isSequenceableCollection) {
-		Veco(name).lib.tracks.collect { arg uname, i;
+		tracks.collect { arg uname, i;
 			~spawnclip.(uname, index[i])
 		}
 	} {
-		Veco(name).lib.tracks.collect { arg uname;
+		tracks.collect { arg uname;
 			~spawnclip.(uname, index)
 		}
 	}
@@ -1176,6 +1216,23 @@ if(s.volume.volume == 0) {
 
 (
 
+~tdef_channel = { arg suffix=\fx;
+	var name = ~name;
+	var fxname = ~name +++ suffix;
+	Veco(name).add_play_node_hook(\fx, {
+		Tdef(name).play;
+	});
+
+	Veco(name)[\is_playing] = { arg self;
+		Tdef(name).isPlaying;
+	};
+
+	Veco(name).add_stop_node_hook(\fx, {
+		Tdef(name).stop;
+	});
+	
+};
+
 ~pdef_channel = { arg suffix=\fx;
 	Veco(~name).make_mixer;
 };
@@ -1197,6 +1254,29 @@ if(s.volume.volume == 0) {
 		Ndef(fxname).end(Ndef(fxname).fadeTime);
 	});
 
+};
+
+~ndef_control_channel = { arg suffix=\fx;
+	var name = ~name;
+	var fxname = ~name +++ suffix;
+	Veco(~name).make_mixer;
+	Veco(~name).add_play_node_hook(\fx, {
+		fxname.debug("play FX");
+		debug("what");
+		//Ndef(fxname).send;
+		Ndef(fxname).play(BusDef(name+++\mixer, \audio).index);
+	});
+
+	Veco(~name)[\is_playing] = { arg self;
+		Ndef(fxname).isPlaying;
+	};
+
+	Veco(~name).add_stop_node_hook(\fx, {
+		fxname.debug("stop FX");
+		//Ndef(fxname).fadeTime.debug("aRRRG");
+		Ndef(fxname).end(Ndef(fxname).fadeTime);
+	});
+	
 };
 
 ~ndef_channel = { arg suffix=\fx;
@@ -1248,15 +1328,15 @@ if(s.volume.volume == 0) {
 //);
 
 
-~degcps = { arg deg, octave=5, root=(60.midicps); Scale.major.degreeToFreq(deg, 60.midicps, octave-5); };
+~degcps = { arg deg, octave=5, root=(60.midicps), scale=Scale.major; scale.degreeToFreq(deg, root, octave-5); };
 
 
-~cdegcps = { arg tab, deg, octave=5, root=(60.midicps); 
+~cdegcps = { arg tab, octave=5, root=(60.midicps), scale; 
 	tab.collect { arg val;
 		if(val >= 0) {
-			~degcps.(val % 7, octave + (val/7).asInteger)
+			~degcps.(val % 7, octave + (val/7).asInteger, root, scale)
 		} {
-			~degcps.(val % 7, octave + (val-7/7).asInteger)
+			~degcps.(val % 7, octave + (val-7/7).asInteger, root, scale)
 		}
 
 	}
