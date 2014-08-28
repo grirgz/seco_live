@@ -1,3 +1,64 @@
+//////////// start and stop
+
+// ndef
+
+Ndef(Veco('a').uname+++\fx).stop; // stop
+Ndef(Veco('a').uname+++\fx).stop(fadeTime:8); // stop with fadeTime
+Ndef(Veco(5).uname+++\fx).end(8); // stop with fadeTime and board show node not playing
+
+// pdef
+
+Pdef(Veco('a').uname).stop; // stop
+Pdef(Veco('a').uname).xstop(8); // stop with fadeTime
+
+// node
+
+Veco(5).stop_node(false) // stop immediatly
+Veco(5).stop_node(true) // stop with quant
+
+Veco(Point(5,11)).play_node // like pushing button: start selected clip with quant, if already playing, play it again
+Veco(5).fadeout(2) // fadeout the pattern in two seconds (not implemented for ndef currently)
+
+Veco(5).response_on // like pushing button: start selected clip with quant, if already playing, stop it
+Veco(5).active_clip_index // selected clip
+Veco(Point(5,11)).response_on_play // like pushing button: start selected clip with quant, if already playing, play it again
+Veco(Point(5,11)).response_off // like releasing button: do nothing unless there is a hook defined for this clip
+
+//////////// timeline clip (launch row then next row)
+
+// node
+
+~tdef_channel.();
+
+Veco(~name).lib.tracks = [1,2,3,4,5,6,7];
+Tdef(~name).quant = Pdef.defaultQuant
+
+(
+Veco.do { arg name;
+	Veco(name).lib[\reset_tracks] = {
+		Ndef(~tfx1).put(60, nil);
+		Veco(name).lib.tracks.do { arg tr;
+			Ndef(Veco(tr).uname+++\mixer).set(\amp, 1);
+			Ndef(Veco(tr).uname+++\mixer).set(\send1, 0);
+		};
+		Veco(~tnfx1).play_node;
+	};
+	Veco(name).lib.reset_tracks;
+};
+)
+
+// clip
+
+Veco.do { arg name, namex, index;
+	Veco(name).lib.reset_tracks;
+	~spawn_cliprow.(index);
+	Tdef(name, {
+		Veco.main.clip.update_display;
+		4.wait;
+		~spawnclip.(name, index+1);
+		0.wait;
+	});
+};
 
 ////////////// channel fx track
 

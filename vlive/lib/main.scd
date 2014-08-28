@@ -1,7 +1,7 @@
 
 (
 
-s.volume.play;
+// s.volume.play; // not found in 3.7
 
 //Veco.load_lib("piano.scd");
 Veco.load_lib("icon.scd");
@@ -784,17 +784,26 @@ if(s.volume.volume == 0) {
 ~spawnclip = { arg node_uname, clip_index;
 	// accept node indexes too
 	var tr = node_uname;
+	[node_uname, clip_index].debug("spawnclip: node_uname, clip_index");
 	if(tr.class != Symbol) {
 		tr = Veco.main.get_node_by_index(tr).uname;
 	};
 	tr.debug("hian1");
+	if(clip_index.isNil) {
+		clip_index = \nil;
+	};
 	switch(clip_index,
-		nil, {
+		\nil, {
 			// NOOP
+	[node_uname, clip_index].debug("spawnclip: hian2: WTF: node_uname, clip_index");
 	tr.debug("hian2");
 		},
 		\r, {
 			Veco(tr).stop_node(true);
+	tr.debug("hian3");
+		}, 
+		\rr, {
+			Veco(tr).stop_node(false);
 	tr.debug("hian3");
 		}, 
 		\p, {
@@ -809,9 +818,10 @@ if(s.volume.volume == 0) {
 				if(Veco(tr).is_playing.not or: { Veco(tr).active_clip_index != clip_index }) {
 					var clip = Veco(tr).get_clip_by_index(clip_index);
 	tr.debug("hian6");
+	[node_uname, clip_index, clip.uname].debug("hian6: clip_index");
 					if(clip.is_present.not) {
 						// TODO: make a mode where non existing clip continue playing
-						Veco(tr).stop_node;
+						Veco(tr).stop_node(true);
 					} {
 						if(clip.response_mode == \exec) {
 							clip.response_on;
@@ -1328,7 +1338,11 @@ if(s.volume.volume == 0) {
 //);
 
 
-~degcps = { arg deg, octave=5, root=(60.midicps), scale=Scale.major; scale.degreeToFreq(deg, root, octave-5); };
+~degcps = { arg deg, octave=5, root, scale; 
+	root = root ?? 60.midicps;
+	scale = scale ?? Scale.major;
+	scale.degreeToFreq(deg, root, octave-5); 
+};
 
 
 ~cdegcps = { arg tab, octave=5, root=(60.midicps), scale; 

@@ -7,5 +7,7 @@ BufDef(\march, "vipere/march.flac");
 // END
 
 BufDef.mono(\oeuf, "field/oeuf.flac");
+BufDef(\oeuf, "field/oeuf.flac");
 BufDef.mono(\crepe, "field/crepe.flac");
 BufDef(\crepe, "field/crepe.flac");
+BufDef(\oeuf, "field/oeuf.flac");

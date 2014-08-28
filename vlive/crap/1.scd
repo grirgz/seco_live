@@ -1,4 +1,7 @@
 
+Main.version
+a = MIDIOut(0)
+a.noteOn(0,6, 0x0f)
 (
 var n = 2, baseFreq = 45.midicps;
 var lsin, rsin, arg1, arg2, sig;

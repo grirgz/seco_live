@@ -47,4 +47,28 @@
 
 		};
 	};
+	~load_launchers_relative_xjump = {
+
+		Veco.main.clip.response_launcher_on_hook = { arg self, pos, opos, mod;
+			var ev;
+			var funs;
+			[pos, opos, mod].debug("response_launcher_on_hook===");
+			ev = ~launcher_lib;
+			funs = [
+				{Veco.main.clip_offset = Point(0,Veco.main.clip_offset.y)},
+				{Veco.main.clip_offset = Point(8,Veco.main.clip_offset.y)},
+				{Veco.main.clip_offset = Point(16,Veco.main.clip_offset.y)},
+				{Veco.main.clip_offset = Point(24,Veco.main.clip_offset.y)},
+
+				{Veco.main.clip_offset = Point(0,8)},
+				{Veco.main.clip_offset = Point(8,8)},
+				{Veco.main.clip_offset = Point(16,8)},
+				{Veco.main.clip_offset = Point(24,8)},
+			];
+
+			funs[pos.y].value;
+			Veco.main.clip.render_state;
+
+		};
+	};
 );

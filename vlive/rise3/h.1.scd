@@ -74,3 +74,5 @@ Pdef(~name +++ \pre,
 // END
 
 Sdef(~name, \mypreset).pbind.asStream.next(Event.default);
+
+{ SinOsc.ar(200)!2 }.play
