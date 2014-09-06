@@ -34,9 +34,10 @@ Ndef(~name+++\fx, { arg amp=0.5, pan=0, freq=200, mbufnum,
 
 	pos = phasor * BufDur.kr(bufnum) + finepos ;
 	ou = TGrains.ar(2, clk, bufnum, pitch_stretch, pos % BufDur.kr(bufnum), dur, pan, 1);
-	ou1 = HPF.ar(ou, 1000);
+	ou1 = HPF.ar(ou, 3000);
 	//ou1 = ou;
-	ou2 = LPF.ar(ou1, 2000);
+	ou2 = LPF.ar(ou1, 4000);
+	ou2 = LPF.ar(ou2, 4000);
 	ou = ou2;
 	ou = ou * Duty.kr(1/2/~t,0,Dseq([
 		1,0,0,0, 1,1,0,0,

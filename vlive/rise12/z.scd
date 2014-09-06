@@ -1,6 +1,6 @@
 
 (
-SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+SynthDef(~name+++\hardhat, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
 	var sig, sig1, sig2, sig3, sig4, sig5;
 	sig1 = LFTri.ar(111);
 	sig1 = FreqShift.ar(sig1, 175);
@@ -13,12 +13,12 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 	sig3 = PinkNoise.ar(1);
 	sig3 = BRF.ar(sig3, [100,800,300,400]*2).sum;
 	sig3 = LPF.ar(sig3, [5000,6000,100,10000]*2);
-	sig3 = sig3 * EnvGen.ar(Env.perc(0.0001,0.251), gate);
+	sig3 = sig3 * EnvGen.ar(Env.perc(0.0001,0.151), gate);
 
 	sig4 = WhiteNoise.ar(1);
 	sig4 = BRF.ar(sig3, [100,800,300,400]*2).sum;
 	sig4 = LPF.ar(sig3, [5000,6000,100,10000]*1);
-	sig4 = sig3 * EnvGen.ar(Env.perc(0.0001,0.351), gate);
+	sig4 = sig3 * EnvGen.ar(Env.perc(0.0001,0.151), gate);
 
 	sig = sig1 + sig2 + sig3 + sig4;
 	sig = (HPF.ar(sig,100)*14).distort + LPF.ar(sig, 100);
@@ -201,6 +201,46 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 	//sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.00001,0.1,0.1,0.2,1,\sqr)),gate,doneAction:doneAction);
 	sig = Splay.ar(sig, spread, amp, pan);
 	DetectSilence.ar(sig, 0.001,0.1,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+SynthDef(~name ++ \harm, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3, sig4, sig5;
+	sig1 = LFTri.ar(111);
+	sig1 = FreqShift.ar(sig1, 175);
+	sig1 = sig1 + FreqShift.ar(sig1, [224 * \harm2.kr(1),224 * \harm1.kr(1)]);
+	sig1 = sig1 * EnvGen.ar(Env.perc(0.0001,0.22), gate);
+
+	sig2 = SinOsc.ar(330) + SinOsc.ar(180);
+	sig2 = sig2 * EnvGen.ar(Env.perc(0.0001,0.151), gate);
+
+	sig3 = PinkNoise.ar(1);
+	sig3 = BRF.ar(sig3, [100,800,300,400]*2).sum;
+	sig3 = LPF.ar(sig3, [5000,6000,100,10000]*1);
+	sig3 = sig3 * EnvGen.ar(Env.perc(0.0001,0.201, 1, \sqr), gate);
+
+	sig4 = WhiteNoise.ar(1);
+	sig4 = BRF.ar(sig4, [100,900,300,400]*4).sum;
+	sig4 = LPF.ar(sig4, [500,4000,100,1000]*2*XLine.kr(1,0.100,0.01));
+	sig4 = sig4 * EnvGen.ar(Env.perc(0.0001,0.251, 1, \cub), gate);
+
+	sig5 = PinkNoise.ar(1) * sig2;
+	//sig5 = BRF.ar(sig5, [100,800,300,400]*2).sum;
+	sig5 = LPF.ar(sig5, [500,600,100,1000]*0.21);
+	sig5 = sig5 * EnvGen.ar(Env.perc(0.0001,0.111, 1, \sqr), gate) * 4;
+
+	sig = sig1 + sig3 + sig4 + sig5;
+	//sig = (HPF.ar(sig,100)*14).distort + LPF.ar(sig, 100);
+	sig = sig * 2;
+
+
+
+
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.0001,0.1,0.8,2.4)),gate,doneAction:doneAction);
+	//sig = DetectSilence.ar(sig, doneAction:2);
+	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
 );
