@@ -1,0 +1,48 @@
+Pdef(~name +++ \pre, PmonoArtic(~name+++\c,
+
+	\freq, Pseg(Pseq([100,4101],inf),8),
+	\amp, Pkey(\amp) * 0.9,
+	\dur, 1/8,
+	\legato, Pseq([
+		1,1,1,1, 1,1,1,1,
+		1,1,1,1, 1,1,1,1,
+		1,1,1,1, 1,1,1,1,
+		1,1,1,1, 1,1,1,1,
+
+		1,1,1,1, 1,1,1,1,
+		1,1,1,1, 1,1,1,1,
+		1,1,1,1, 1,1,1,1,
+		1,1,1,1, 1,1,1,0.8,
+	],inf),
+	//\legato, 0.8,
+	\seq1, Ppatlace([Pseq([1,4],inf),Pseq((1..64)/64*8,inf)],inf).stutter(4),
+	\seq1, Ppatlace([Pseq(((1..64)/64*8).reverse,inf),Pseq((1..64)/64*8,inf)],inf).stutter(4),
+	\seq1, Pseg(Pseq([100,41],inf),8),
+	\seq1, Pseq([2,4],inf),
+	\seq2, Pseq([
+		0.9,0.58,4,8,
+		0.9,0.58,4,8,
+		0.9,0.58,4,8,
+		0.9,1.58,2,2,
+	],inf).stutter(8),
+	\seq2, Pseg(Pseq([1,2],inf),8),
+	\seq2, 1,
+	\seq1, 1,
+	\sfreq, 200,
+	\pfreq, 200,
+	\pfreq, Pseq([400,700],inf).stutter(1),
+	\sfreq, Pseq([400,7000],inf).stutter(32),
+	\freq, 1000,
+
+	\mix, 1.0,
+	\iadsr, Pseq([
+		[ Env.adsr(0.1,0.1,0.8,1.1) ],
+	],inf),
+	\igate, Pseq([
+		//1,0,1,0, 1,0,1,0,
+		0,0,0,0, 0,0,0,0,
+		0,0,0,0, 0,0,0,0,
+		0,0,0,0, 0,0,0,0,
+		1,1,1,1, 0,0,0,0,
+	],inf),
+));

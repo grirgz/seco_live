@@ -13,7 +13,7 @@
 			);
 
 
-	~load_standard_launchers = {
+	~load_launchers_absolute_xjump = {
 
 		Veco.main.clip.response_launcher_on_hook = { arg self, pos, opos, mod;
 			var ev;
@@ -71,4 +71,6 @@
 
 		};
 	};
+
+	~load_standard_launchers = ~load_launchers_relative_xjump;
 );

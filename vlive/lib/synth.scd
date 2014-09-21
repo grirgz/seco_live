@@ -95,7 +95,7 @@ SynthDef(\stereosampler_stutter, {| out = 0, amp=0.1, bufnum = 0, gate = 1, pos 
 	trigger = Impulse.kr(reprate);
 	env =  EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:doneAction);
 	player = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufFrames.kr(bufnum)), doneAction:doneAction, loop: loop);
-	player = Pan2.ar(player, pan, amp * 2);
+	player = Pan2.ar(player, pan, amp * 2).flop.postln;
 	player = player * SelectX.kr(envmix, [1,env]);
 	Out.ar(out, player);
 

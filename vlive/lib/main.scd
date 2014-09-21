@@ -18,6 +18,21 @@ if(s.volume.volume == 0) {
 
 
 (
+	~pselectx = { arg mix, arr;
+		Prout({ arg ev;
+			var arrstr = arr.collect(_.asStream);
+			var arrval;
+			var mixstr = mix.asStream;
+			var idx;
+			10000.do {
+				arrval = arrstr.collect({ arg x; x.next });
+				idx = mixstr.next*arr.size;
+				ev = arrval.blendAt(idx).yield;
+			};
+
+		});
+	};
+
 ~frozzer = { arg pat, reppat;
 	Prout({
 
@@ -1337,6 +1352,9 @@ if(s.volume.volume == 0) {
 //}
 //);
 
+~pdegcps = { arg octave=5, root, scale, pat;
+	pat.collect({ arg val; ~degcps.(val, octave, root, scale) });
+};
 
 ~degcps = { arg deg, octave=5, root, scale; 
 	root = root ?? 60.midicps;

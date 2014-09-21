@@ -3,13 +3,16 @@ Ndef(~name+++\fx, {
 	Duty.ar(8/~t, 0, Dseq(~cdegcps.([0,2,1,0], 6, 60.midicps, Scale.minor),inf));
 }).send;
 
+// END
+
 (
 
 Ndef(\c, {
 	Duty.kr(8/~t, 0, Dseq(~cdegcps.([0,2,1,0], 6, 60.midicps, Scale.minor),inf));
 
 })
-)
+);
+
 
 (
 Ndef(\plopz, { arg freq=200, pan=0, amp=0.1;

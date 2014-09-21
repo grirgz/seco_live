@@ -10,7 +10,7 @@ Ndef(~name+++\fx, { arg freq=400, pan=0, amp=0.1;
 
 	b = PulseCount.ar(Impulse.ar(2**10 * ~t));
 	//freq = Duty.ar(4, 0, Dseq([100,500,300,5000],inf));
-	freq = Duty.ar(8/~t, 0, Dseq(~cdegcps.([0,2,1,0], 6, 60.midicps, Scale.minor),inf));
+	freq = Ndef.ar(~chords);
 	//freq = 100;
 	//sig1 = SinOsc.ar(freq*[1,1.001,1.0001,4/3,5/4,6/5]);
 	sig1 = LFSaw.ar(freq*[1,1.001,1.0001]);
