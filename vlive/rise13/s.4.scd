@@ -1,0 +1,36 @@
+Pdef(~name +++ \pre, Pbind(
+	\freq, Pseq([80,40,80,39],inf),
+	\freq, Ppatlace([
+		80,70,30,50,
+		80,40,80,Pseq((40..80)),
+		90,30,50,50,
+		30,30,50,50,
+	],inf),
+	\legato, Ppatlace([
+		Pseq((1..128).mirror/128,inf),
+		Pseq((1..12).mirror/12,inf),
+		Pseq((1..102).mirror/102,inf),
+		Pseq((1..18).mirror/18,inf),
+	],inf),
+	//\amp, 4,
+	\amp, Pkey(\amp) * 2,
+	\isRest, Pseq([1,0,0,0],inf).coin.not,
+	\isRest, Pseq([
+		1,0,0,0,
+		1,1,1,0,
+		1,0,0,0,
+		1,0,1,0,
+		1,0,0,0,
+		1,0,0,0,
+		1,0,0,0,
+		1,1,1,0,
+		1,0,0,0,
+		1,0,1,0,
+	],inf).coin.not,
+	\isRest, Pseq([
+		1,0.51,1,1,
+		1,0.95,1,0.51,
+		1,1,1,0.95,
+		0.951,1,1,1,
+	],inf).coin.not,
+));

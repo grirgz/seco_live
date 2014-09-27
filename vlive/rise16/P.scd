@@ -23,22 +23,24 @@ Veco.do { arg name;
 (
 
 ~timeline_do = { arg time, index_add, spawn_fun, quantnow_fun, after_fun;
-	index_add = index_add ?? 1;
-	Veco.do { arg name, namex, index;
-		spawn_fun = spawn_fun ?? {
-			~spawn_cliprow.(index, name);
+	if(~enable_clip_automation != false) {
+		index_add = index_add ?? 1;
+		Veco.do { arg name, namex, index;
+			spawn_fun = spawn_fun ?? {
+				~spawn_cliprow.(index, name);
+			};
+			Veco(name).lib.reset_tracks;
+			spawn_fun.(name, namex, index);
+			Tdef(name, {
+				Veco.main.clip.update_display;
+				quantnow_fun.(name, namex, index);
+				(time-0.12).wait;
+				after_fun.(name, namex, index);
+				~spawnclip.(name, index+index_add);
+				0.wait;
+			});
 		};
-		Veco(name).lib.reset_tracks;
-		spawn_fun.(name, namex, index);
-		Tdef(name, {
-			Veco.main.clip.update_display;
-			quantnow_fun.(name, namex, index);
-			(time-0.12).wait;
-			after_fun.(name, namex, index);
-			~spawnclip.(name, index+index_add);
-			0.wait;
-		});
-	};
+	}
 };
 )
 

@@ -9,7 +9,7 @@ Ndef(~name+++\lfo1, {
 	],inf));
 	SinOsc.kr(freq).range(50,1000).fold(90,mfreq);
 });
-)
+);
 Ndef(~name+++\lfo1).quant = Pdef.defaultQuant;
 (
 

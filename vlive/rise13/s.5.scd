@@ -1,0 +1,33 @@
+Pdef(~name +++ \pre, Pbind(
+	\degree, Pseq([
+		0,0,
+		-4,-4,
+		0,0,
+		-2,2,
+	],inf).stutter(2),
+	//\scale, Scale.minor,
+	\mtranspose, -3,
+	\octave, 3,
+	\dur, 1/2,
+	//\amp, 4,
+	\amp, Pkey(\amp) * 2,
+	\isRest, Pseq([1,0,0,0],inf).coin.not,
+	\isRest, Pseq([
+		1,0,0,0,
+		1,1,1,0,
+		1,0,0,0,
+		1,0,1,0,
+		1,0,0,0,
+		1,0,0,0,
+		1,0,0,0,
+		1,1,1,0,
+		1,0,0,0,
+		1,0,1,0,
+	],inf).coin.not,
+	\isRest, Pseq([
+		1,0.51,1,1,
+		1,0.95,1,0.51,
+		1,1,1,0.95,
+		0.951,1,1,1,
+	],inf).coin.not,
+));

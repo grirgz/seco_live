@@ -1,0 +1,21 @@
+Pdef(~name +++ \pre, Pbind(
+	\freq, Pseq([80,40,80,39],inf),
+	\freq, Ppatlace([80,40,80,Pseq((40..80))],inf),
+	\legato, Pseq((1..128).mirror/128,inf),
+	//\amp, 4,
+	\amp, Pkey(\amp) * 2,
+	\isRest, Pseq([1,0,0,0],inf).coin.not,
+	\isRest, Pseq([
+		1,0,0,0,
+		1,1,1,0,
+		1,0,0,0,
+		1,0,1,0,
+		1,0,0,0,
+		1,0,0,0,
+		1,0,0,0,
+		1,1,1,0,
+		1,0,0,0,
+		1,0,1,0,
+	],inf).coin.not,
+	\isRest, Pseq([1,1,1,1],inf).coin.not,
+));

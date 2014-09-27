@@ -83,3 +83,8 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\amp, 0.1 * Pkey(\amp),
 ) <> Veco(~name).mixer)
 );
+
+// END
+
+Ndef(~name+++\fx).edit
+Ndef(~name+++\mixer).edit
