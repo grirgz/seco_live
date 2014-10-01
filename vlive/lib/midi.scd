@@ -135,15 +135,21 @@
 
 	map_fader_to_vol: { arg self, node, uname, x;
 		var ndef;
+		"map_fader_to_vol".debug(1);
+		node.is_present;
+		"map_fader_to_vol".debug(1.01);
 		if(node.is_present) {
 			var mixer_key;
+			"map_fader_to_vol".debug(1.1);
 			if(self.mode_global_mixer_key == true) {
+			"map_fader_to_vol".debug(1.2);
 				mixer_key = self.mixer_key;
 				if(mixer_key == \default) {
 					mixer_key = \preamp;
 				}
 			} {
 
+			"map_fader_to_vol".debug(1.3);
 				mixer_key = 
 					case
 						{ self.mixer_key == \default } {
@@ -159,6 +165,7 @@
 						{ self.mixer_key == \amp } { self.mixer_key }
 						{ self.mixer_key == \preamp } { self.mixer_key }
 			};
+			"map_fader_to_vol".debug(1);
 			ndef = Ndef((uname++'mixer').asSymbol);
 			if(ndef.source.notNil) {
 				MIDIBoard.map((\s++(x+1)).asSymbol, Ndef((uname++'mixer').asSymbol), mixer_key, self.level_spec);
@@ -169,7 +176,8 @@
 			}
 		} {
 			MIDIBoard.unmap((\s++(x+1)).asSymbol);
-		}
+		};
+			"map_fader_to_vol".debug(2);
 		
 	},
 
@@ -180,8 +188,11 @@
 			var node;
 			var ndef;
 			if(uname.notNil) {
+				uname.debug("uname");
 				node = self.main.get_node_by_uname(uname);
+				"plop".debug(1);
 				self.map_fader_to_vol(node, uname, x);
+				"plop".debug(2);
 			}
 		} 
 	},
