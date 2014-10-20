@@ -2,6 +2,13 @@ Sdef(~name, \mypreset).get_active_score.edit
 Sdef(~name, \mypreset).get_active_score.score_view
 Sdef(~name, \mypreset).get_active_score.score_view.control_views
 
+Veco.main.node_unames
+Veco.main.project_path
+Veco.main.project_name
+PathName(Veco.main.project_path).asRelativePath(~path);
+Veco.user_path
+~path = ~strip_end_slash.(Veco.user_path)
+
 
 ////////////////////////////////////////////
 

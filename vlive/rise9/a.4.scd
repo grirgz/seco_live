@@ -28,9 +28,6 @@ Ndef(~name+++\fx, { arg amp=0.8, pan=0, freq=200, mbufnum,
 });
 );
 (
-Ndef(~name+++\fx).set(\mbufnum, BufDef.mono(\ukraine));
-Ndef(~name+++\fx).set(\mbufnum, BufDef.mono(\crepe));
-Ndef(~name+++\fx).set(\mbufnum, BufDef.mono(\oeuf));
 Ndef(~name+++\fx).set(\mbufnum, BufDef.mono(\bomb));
 Ndef(~name+++\fx).set(\pos, 0.1);
 Ndef(~name+++\fx).set(\amp, 0.2);

@@ -1,3 +1,82 @@
+/////////////////////////////////////////////////////////////////
+// Pdef Pattern macro
+
+Pdef(~name+++\macro2, Pbind());
+
+Pdef(~name+++\macro2).set(\oscmix, 0.2)
+Pdef(~name+++\macro2).addSpec(\oscmix, \unipolar)
+
+Pdef(~name+++\macro2).set(\osc2mix, 0.2)
+Pdef(~name+++\macro2).addSpec(\osc2mix, \unipolar)
+
+Pdef(~name+++\macro2).asRack.edit
+
+/////////////
+// shortcut
+~dPdef.(~name+++\macro2,
+	\instrument, \zegrainer2
+);
+
+~dPdef.(~name+++\macro2,
+	\oscmix, \unipolar,
+	\osc2mix, \unipolar,
+);
+
+Pdef(~name+++\macro2).asRack.edit
+Pdef(~name+++\macro2).getSpec(\oscmix).default
+Pdef(~name+++\macro2).get(\oscmix)
+
+/////////////
+
+Sdef(~name, \mypreset).pbind.asStream.next(Event.default);
+Pdef.default = Pbind()
+Pdef(~name+++\macro).addHalo(\instrument, \zegrainer2)
+Pdef(~name+++\macro).asRack.edit
+Pdef(~name+++\macro).setBusMode(\pos, \finepos, \time_stretch, \pitch_stretch)
+(
+~r = Rack([
+	[Pdef(~name+++\macro), \time_stretch],
+	[Pdef(~name+++\macro), \pitch_stretch],
+	[Pdef(~name+++\macro), \pos],
+	[Pdef(~name+++\macro), \finepos],
+	[Pdef(~name+++\macro), \legato],
+	[Pdef(~name+++\macro), \adsr, \adsr.asSpec],
+	//[Pdef(~name+++\macro), \adsr],
+])
+)
+~r.edit
+~r.map_midi
+\adsr.asSpec
+Spec.add(\adsr, XEnvSpec(ControlSpec(0,1,\lin,0,0.1) ! 4, ControlSpec(0.001,4,\exp,0), ControlSpec(-9,9,\lin,0,0), Env.adsr(0.1,0.1,0.8,0.1)))
+
+
+//^^ The preceding error dump is for ERROR: Message 'round' not understood.
+//RECEIVER: an Env
+// -------> mean the env argument of synthdef has not an env spec so it treat it like a number
+
+
+~pre1 = ~r.save_preset
+~pre2 = ~r.save_preset
+~r.set_preset_list([~pre1, ~pre2])
+
+(
+~mr = Rack([
+	[Pdef(~name+++\macro), \time_stretch],
+	[Pdef(~name+++\macro), \pitch_stretch],
+	[Pdef(~name+++\macro), \pos],
+	[Pdef(~name+++\macro), \finepos],
+	[Pdef(~name+++\macro), \legato],
+	[Pdef(~name+++\macro), \adsr, \adsr.asSpec],
+	[~r, \morph],
+	//[Pdef(~name+++\macro), \adsr],
+])
+)
+~mr.map_midi
+
+/////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+
+
 (
 	// map the default (play button) macro for knobs
 	//ProxyChain(~name).gui(22);

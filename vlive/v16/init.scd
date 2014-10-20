@@ -5,6 +5,7 @@ Veco.load_lib("main.scd");
 Veco.load_file("synthpool.scd");
 ~load_standard_quickpad.();
 
+Veco.main[\in_stop_exclusion_range] = { arg x; x.inclusivelyBetween(16,24) };
 
 BufDef(\donkey, "bruit1/06_donkeys-eating-hay.flac");
 

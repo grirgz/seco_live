@@ -1,0 +1,28 @@
+Pdef(~name +++ \pre, Pbind(
+	\buf, BufDef(\amen),
+	\reprate, Ndef(~name+++\lfo1, { SinOsc.kr(1/4*~t).range(5,100)  }),
+	\pos, Ndef(~name+++\lfo1, { SinOsc.kr(1/4*~t).range(0,1)  }),
+	\reprate, 0,
+	\pos, Pseq([
+		Pseq([
+			0.14,0.35, 0.14,0.35,
+		],8),
+		Pseq([
+			0.24,0.35, 0.14,0.35,
+		],8),
+		Pseq([
+			0.24,0.35, 0.14,0.30,
+		],8),
+	],inf),
+	\loop, 1,
+	\dur, 1/8,
+	\speed, 1/2,
+	\legato, 1.0,
+	\isRest, Pseq([
+		0,0,0,0,
+		1,0,0,0,
+		0,0,0,0,
+		0,0,0,0,
+	],inf).coin.not,
+	\freq, 100,
+));

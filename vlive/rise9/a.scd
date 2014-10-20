@@ -7,7 +7,8 @@ Ndef(~name+++\fx).quant = Pdef.defaultQuant;
 ~fadeTime = 1;
 Ndef(~name+++\fx).fadeTime=~fadeTime;
 Ndef(~name+++\mixer).fadeTime = ~fadeTime;
-)
+);
+BufDef.mono(\bomb, "vipere/bomb.flac");
 
 // END
 

@@ -56,6 +56,7 @@ Ndef(~name+++\fx).addSpec(\seq4, ControlSpec(1/8,16,\lin,1,1))
 Ndef(~name+++\fx).addSpec(\seq1, ControlSpec(1/8,16,\lin,1,1))
 Ndef(~name+++\fx).addSpec(\lfoscale1, \unipolar.asSpec)
 Ndef(~name+++\fx).addSpec(\fshiftbase, \unipolar.asSpec)
+//Ndef(~name+++\fx).addSpec(\fshiftbase, \unipolar)
 
 MIDIBoard.map(\k1, Ndef(~name+++\fx), \lpfmin)
 ~set_macro.(\k1, Ndef(~name+++\fx), \lpfmin)

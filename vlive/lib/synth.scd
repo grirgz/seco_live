@@ -86,8 +86,8 @@ SynthDef(\oscsampler3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, po
 	var ffreqtab;
 	osc = SinOsc.ar(freq*[1.001,0.999,1]);
 	//osc = osc.sum;
-	pos = EnvGen.kr(\posenv.kr(Env([1,0,0.5,0.2, 0.2], [0.2,0.1,0.1,0.1])),gate) + pos;
-	phase = osc * range + pos + finepos;
+	pos = EnvGen.kr(\posenv.kr(Env([1,0,0.5,0.2, 0.2], [0.2,0.1,0.1,0.1])),gate, levelScale:\levelScale.kr(1), timeScale:\timeScale.kr(1)) + pos;
+	phase = osc * range + pos + finepos.lag(\fineposlag.kr(0));
 
 	bufsig = BufRd.ar(2, bufnum, phase*BufFrames.ir(bufnum), 1);
 	bufsig = bufsig.sum;
@@ -97,8 +97,11 @@ SynthDef(\oscsampler3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, po
 	ou = FreqShift.ar(ou, fshift);
 	ou2 = RLPF.ar(ou, ffreq * ffreqtab, rq);
 	ou = SelectX.ar(lpmix, [ou, ou2]);
-	ou2 = HPF.ar(ou, \hpfreq.kr(18000) * ffreqtab, rq);
+	ou2 = HPF.ar(ou, \hpfreq.kr(180) * ffreqtab, rq);
 	ou = SelectX.ar(\hpmix.kr(0), [ou, ou2]);
+
+	ou2 = (ou * \distpreamp.kr(18)).tanh / \distamp.kr(1);
+	ou = SelectX.ar(\distmix.kr(0), [ou, ou2]);
 	ou = Splay.ar(ou, spread, amp, pan);
 	
 	Out.ar(out, ou);
@@ -125,20 +128,28 @@ SynthDef(\stereosampler, {| out = 0, amp=0.1, bufnum = 0, gate = 1, pos = 0, spe
 	bufnum: (numchan: 2)
 ))).store;
 
-SynthDef(\stereosampler_stutter, {| out = 0, amp=0.1, bufnum = 0, gate = 1, pos = 0, speed = 1, loop=0, doneAction=2, pan=0, reprate=4, envmix=1|
+[\monosampler_stutter, \stereosampler_stutter].do { arg name, x;
 
-	var player,env;
-	var trigger=1;
-	trigger = Impulse.kr(reprate);
-	env =  EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:doneAction);
-	player = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufFrames.kr(bufnum)), doneAction:doneAction, loop: loop);
-	player = Pan2.ar(player, pan, amp * 2).flop.postln;
-	player = player * SelectX.kr(envmix, [1,env]);
-	Out.ar(out, player);
+	SynthDef(name, {| out = 0, amp=0.1, bufnum = 0, gate = 1, pos = 0, speed = 1, loop=0, doneAction=2, pan=0, reprate=4, envmix=1|
 
-}, metadata:(specs:(
-	bufnum: (numchan: 2)
-))).store;
+		var player,env;
+		var trigger=1;
+		trigger = Impulse.kr(reprate);
+		env =  EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:doneAction);
+		player = PlayBuf.ar(x+1, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufFrames.kr(bufnum)), doneAction:doneAction, loop: loop);
+		player.debug(name);
+		if(player.isSequenceableCollection.not) {
+			player = player ! 2;
+		};
+		player = Pan2.ar(player, pan, amp * 2).flop.postln;
+		player = player * SelectX.kr(envmix, [1,env]);
+		Out.ar(out, player);
+
+	}, metadata:(specs:(
+		bufnum: (numchan: x+1)
+	))).store;
+
+};
 
 SynthDef(\stereosampler_sec, {| out = 0, amp=0.1, buf = 0, gate = 1, start=0, end=1, speed = 1, loop=0|
 

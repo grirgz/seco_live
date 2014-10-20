@@ -12,7 +12,7 @@ Ndef(~name+++\fx, { arg amp=0.5, pan=0, freq=200, mbufnum,
 	var pitch;
 	var sr, phasor;
 	var delay;
-	var end1, end2, end3, end4;
+	var end1, end2, end3, end4, end5, end6;
 	var sig1, sig2, sig3;
 	var preamp;
 
@@ -35,6 +35,7 @@ Ndef(~name+++\fx, { arg amp=0.5, pan=0, freq=200, mbufnum,
 		],inf))
 	//	200,200,400, Dwhite(100,1000),
 	],inf)).midicps;
+	freq = \freqfac.kr(1) * freq;
 	//freq = SinOsc.kr(2**(\freqfac.kr(1))/4*~t).range(freq/4,freq);
 	//sig1 = LFSaw.ar(freq * [1,1.001,1.0001]) * preamp;
 	//sig1 = sig1 + LFPulse.ar(freq/2 * [2.0001,1/2,1,1.001,1.0001]) * preamp;
@@ -46,6 +47,8 @@ Ndef(~name+++\fx, { arg amp=0.5, pan=0, freq=200, mbufnum,
 		var ou;
 		var val1, val2;
 		var maxdelay = 2;
+		//var sig1, sig2;
+		var isig1, isig2;
 		//ou = sig1 + (fb * 0.55 * \fb.kr(1));
 		ou = SelectX.ar(\fb.kr(0.5)-0.01, [sig1, fb * 0.95 * \fbratio.kr(1)]);
 
@@ -78,6 +81,13 @@ Ndef(~name+++\fx, { arg amp=0.5, pan=0, freq=200, mbufnum,
 		//ou = LPF.ar(ou, 7200 * SinOsc.kr(1/2*~t).range(0.5,2.1));
 		end4 = ou;
 
+		ou = DelayL.ar(ou, maxdelay, delay/2);
+		isig1 = ou;
+		isig1 = isig1 * 3;
+		isig1 = isig1.tanh;
+		ou = SelectX.ar(\mixdist.kr(0), [ou, isig1]);
+		end5 = ou;
+
 		//amp = LFTri.kr(1*~t).range(1,0.2) * amp;
 		ou = 
 			0
@@ -85,6 +95,7 @@ Ndef(~name+++\fx, { arg amp=0.5, pan=0, freq=200, mbufnum,
 			+ end2 
 			+ end3 
 			+ end4
+			+ end5
 			;
 		ou = ou * 4;
 		ou = Limiter.ar(ou);
@@ -108,14 +119,16 @@ Ndef(~name+++\fx).fadeTime=1;
 ~set_macro.(\k4, Ndef(~name+++\fx), \fbratio, \unipolar.asSpec);
 ~set_macro.(\k5, Ndef(~name+++\fx), \disprob, \unipolar.asSpec);
 ~set_macro.(\k6, Ndef(~name+++\fx), \disamp, \bipolar.asSpec);
-~set_macro.(\k7, Ndef(~name+++\fx), \shapelim, \unipolar.asSpec);
+~set_macro.(\k7, Ndef(~name+++\fx), \mixdist, \unipolar.asSpec);
 ~set_macro.(\k8, Ndef(~name+++\fx), \pdelay, \unipolar.asSpec);
+~set_macro.(\s1, Ndef(~name+++\fx), \freqfac, ControlSpec(1/8,8,\exp));
 );
 
 // END
 
 Veco(~namex).is_present
 
+Ndef(~name+++\fx).set(\freqfac, 1/4)
 
 Ndef(~name+++\fb, { arg fb=0; DC.kr(fb) });
 BufDef.mono(\rocksteady, "vipere/rocksteady.flac");

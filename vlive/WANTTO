@@ -1,0 +1,12 @@
+
+// use proxyspace like event
+p = ProxySpace.new
+p.known = true
+p.hello = 10
+
+
+
+
+// why ~path need end slash ???
+PathName(Veco.main.project_path).asRelativePath(~path);
+// why with .fileName need no end slash ???

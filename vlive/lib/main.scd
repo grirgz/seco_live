@@ -18,6 +18,12 @@ if(s.volume.volume == 0) {
 
 
 (
+	~vim_replace_current_line = {
+
+		//TODO
+		"vim --servername scvim --remote-send '<Esc>ccmsg<Esc>'".unixCmd;
+	};
+
 	~pselectx = { arg mix, arr;
 		Prout({ arg ev;
 			var arrstr = arr.collect(_.asStream);
@@ -232,9 +238,30 @@ if(s.volume.volume == 0) {
 		Veco(name).master_bus = bus;
 		Ndef(name+++\mixer).play(bus, 2);
 	};
-	~dPdef = { arg name;
+	~dPdef = { arg name ... argpairs;
 		if(Pdef(name).source.isNil) {
 			Pdef(name, Pbind())
+		};
+		if(argpairs.size % 2 != 0) {
+			("Error: ~dPdef should have even number of args plus the Pdef name: " ++ name).postln;
+		} {
+			argpairs.clump(2).debug("argpair");
+			argpairs.clump(2).do { arg pair;
+				if(pair[0] == \instrument) {
+					Pdef(name).addHalo(\instrument, pair[1])
+				} {
+					if(pair[1].notNil) {
+						Pdef(name).addSpec(pair[0], pair[1]);
+					};
+					[name, pair, Pdef(name).get(pair[0])].debug("pair value1");
+					if(Pdef(name).get(pair[0]).isNil) {
+						if(Pdef(name).getSpec(pair[0]).default.notNil) {
+							[name, pair, Pdef(name).get(pair[0]), Pdef(name).getSpec(pair[0]).default].debug("pair value2");
+							Pdef(name).set(pair[0], Pdef(name).getSpec(pair[0]).default)
+						}
+					}
+				};
+			}
 		};
 		Pdef(name);
 	}
@@ -751,6 +778,10 @@ if(s.volume.volume == 0) {
 };
 
 ~set_macro = { arg key, obj, member, spec, register=true;
+	spec = spec.asSpec;
+	if(obj.class == Ndef) {
+		obj.addSpec(member, spec);
+	};
 	MIDIBoard.map(key, obj, member, spec);
 	if(register == true) {
 		if(Veco(~name).lib.macros.isNil) {
@@ -1318,6 +1349,11 @@ if(s.volume.volume == 0) {
 	Veco(~name)[\is_playing] = { arg self;
 		Ndef(fxname).isPlaying;
 	};
+
+	Veco(~name).set_amp_level_hook = { arg self, val;
+		Ndef(fxname).set(\gain, val);
+	};
+	Ndef(fxname).set(\gain, Veco(~name).get_amp_level);
 
 	Veco(~name).add_stop_node_hook(\fx, {
 		fxname.debug("stop FX");

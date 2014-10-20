@@ -12,7 +12,6 @@ BufDef(\crepe, "field/crepe.flac");
 //Ndef(~name+++\lfo2, { LFSaw.kr(SinOsc.kr(1.12).range(0.01,4.9)).range(0.0001,0.0012)  });
 Pdef(~name +++ \pre, 
 	Pbind(
-		\instrument, \oscsampler3,
 		\pos, 0.014 + Pseq([0,1,0,2],inf).stutter(8)/100,
 		\pos, 0.450 + Pseg(Pseq([0,0.01],inf),16),
 		\freq, Pseq([100,200,150,200]*4,inf) * Pseg(Pseq([0.25,2],inf),10),

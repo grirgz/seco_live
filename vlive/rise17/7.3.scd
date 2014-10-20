@@ -62,7 +62,7 @@ Pdef(~name+++\base, Pbind(
 				Pseq((1..8).rotate(4)/8,inf),
 				Pseq((1..8)/8,inf),
 
-			],inf) / 1.5,
+			],inf) / 2.9,
 
 ));
 

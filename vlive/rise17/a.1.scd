@@ -5,6 +5,7 @@ Pdef(~name +++ \pre, Pbind(
 	\fmix, 0.71,
 	\fratio3, Pseq([1,2,4,9, 12,1,15,1],inf).stutter(8),
 	\timeScale, 2,
+	\pan, 1,
 	\elpf, 17000,
 	\ehpf, 500,
 	\isRest, Pseq([

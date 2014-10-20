@@ -10,5 +10,7 @@ if(~t.isNil) {
 
 // END
 
+TempoClock.default.tempo = 1;
+
 Veco.main.fadeout_time = 16;
 

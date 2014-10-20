@@ -5,9 +5,16 @@ Pdef(~name +++ \pre, Pbind(
 	\fratio3, Pseq([1,2,4,9, 12,1,15,1],inf).stutter(8),
 	\timeScale, 2,
 	\isRest, Pseq([
+		Prand([
+
 			Pseq([
 				 0,0,0,0,
 				 0,0,1,0,
 			],1),
+			Pseq([
+				 0,0,0,0,
+				 0,0,1,0,
+			],1),
+		])
 	],inf).coin.not,
 ));

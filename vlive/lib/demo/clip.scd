@@ -1,3 +1,6 @@
+// prevent stopping when it's a special track like spawnclip which has a stop handler
+Veco.main[\in_stop_exclusion_range] = { arg x; x.inclusivelyBetween(55,64) };
+
 //////////// start and stop
 
 // ndef
@@ -24,7 +27,12 @@ Veco(5).active_clip_index // selected clip
 Veco(Point(5,11)).response_on_play // like pushing button: start selected clip with quant, if already playing, play it again
 Veco(Point(5,11)).response_off // like releasing button: do nothing unless there is a hook defined for this clip
 
+//////////////////////////////////////////////////////
 //////////// timeline clip (launch row then next row)
+
+
+//////////////////////////////////////////////////////
+//////////// OLD timeline clip (launch row then next row)
 
 // node
 

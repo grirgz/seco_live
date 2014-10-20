@@ -3,7 +3,7 @@
 BufDef(\moeten, "voices/02_moeten.flac");
 BufDef(\woodshop, "vipere/woodshop.flac");
 
-Sdef(~name, \mypreset, \preset, \oscsampler);
+//Sdef(~name, \mypreset, \preset, \oscsampler);
 
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };

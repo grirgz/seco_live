@@ -1,1 +1,1 @@
-Veco.save('presets2-40').amp_level = 0.85724703749366;
+Veco.save('presets2-40').amp_level = 0.42107358091522;
