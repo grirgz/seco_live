@@ -18,6 +18,24 @@ if(s.volume.volume == 0) {
 
 
 (
+	~timeline_do = { arg time, index_add, spawn_fun, quantnow_fun, after_fun;
+		index_add = index_add ?? 1;
+		Veco.do { arg name, namex, index;
+			spawn_fun = spawn_fun ?? {
+				~spawn_cliprow.(index, name);
+			};
+			Veco(name).lib.reset_tracks;
+			spawn_fun.(name, namex, index);
+			Tdef(name, {
+				Veco.main.clip.update_display;
+				quantnow_fun.(name, namex, index);
+				(time-0.12).wait;
+				after_fun.(name, namex, index);
+				~spawnclip.(name, index+index_add);
+				0.wait;
+			});
+		};
+	};
 	~vim_replace_current_line = {
 
 		//TODO
@@ -1293,11 +1311,22 @@ if(s.volume.volume == 0) {
 	Veco(~name).make_mixer;
 };
 
+~stop_ndef = { arg fxname;
+	var fadetime;
+	fadetime = Ndef(fxname).getHalo(\fadeOut) ?? Ndef(fxname).fadeTime;
+	[fxname, fadetime].debug("stop FX");
+	Ndef(fxname).end(fadetime);
+};
+
 ~pdef_fx_channel = { arg suffix=\fx;
 	var name = ~name;
 	var fxname = name+++suffix;
 	BusDef(fxname, \audio);
 
+	Veco(~name).make_mixer;
+
+	~make_fx.();
+	Ndef(fxname).set(\inbus, BusDef(fxname));
 	// FIXME: should be suffix instead of \fx
 	Veco(name).add_play_node_hook(\fx, {
 		fxname.debug("play FX");
@@ -1306,8 +1335,7 @@ if(s.volume.volume == 0) {
 	});
 
 	Veco(name).add_stop_node_hook(\fx, {
-		fxname.debug("stop FX");
-		Ndef(fxname).end(Ndef(fxname).fadeTime);
+		~stop_ndef.(fxname);
 	});
 
 };
@@ -1328,9 +1356,7 @@ if(s.volume.volume == 0) {
 	};
 
 	Veco(~name).add_stop_node_hook(\fx, {
-		fxname.debug("stop FX");
-		//Ndef(fxname).fadeTime.debug("aRRRG");
-		Ndef(fxname).end(Ndef(fxname).fadeTime);
+		~stop_ndef.(fxname);
 	});
 	
 };
@@ -1356,9 +1382,7 @@ if(s.volume.volume == 0) {
 	Ndef(fxname).set(\gain, Veco(~name).get_amp_level);
 
 	Veco(~name).add_stop_node_hook(\fx, {
-		fxname.debug("stop FX");
-		//Ndef(fxname).fadeTime.debug("aRRRG");
-		Ndef(fxname).end(Ndef(fxname).fadeTime);
+		~stop_ndef.(fxname);
 	});
 	
 };
@@ -1425,8 +1449,7 @@ if(s.volume.volume == 0) {
 	});
 
 	Veco(~name).add_stop_node_hook(\fx, {
-		fxname.debug("stop FX");
-		Ndef(fxname).end(Ndef(fxname).fadeTime);
+		~stop_ndef.(fxname);
 	});
 };
 
@@ -1443,8 +1466,7 @@ if(s.volume.volume == 0) {
 	});
 
 	Veco(name).add_stop_node_hook(\fx, {
-		fxname.debug("stop FX");
-		Ndef(fxname).end(Ndef(fxname).fadeTime);
+		~stop_ndef.(fxname);
 	});
 };
 
@@ -1466,8 +1488,7 @@ if(s.volume.volume == 0) {
 	};
 
 	Veco(name).add_stop_node_hook(\fx, {
-		fxname.debug("stop FX");
-		Ndef(fxname).end(Ndef(fxname).fadeTime);
+		~stop_ndef.(fxname);
 	});
 };
 
@@ -1483,8 +1504,7 @@ if(s.volume.volume == 0) {
 	//});
 
 	Veco(name).add_stop_node_hook(suffix, {
-		fxname.debug("stop LFO");
-		Ndef(fxname).end(Ndef(fxname).fadeTime);
+		~stop_ndef.(fxname);
 	});
 };
 

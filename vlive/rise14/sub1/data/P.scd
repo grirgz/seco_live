@@ -1,1 +1,1 @@
-Veco.save('sub1-P').amp_level = 1;
+Veco.save('P').amp_level = 1;

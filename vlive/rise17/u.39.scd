@@ -69,7 +69,7 @@ Pdef(~name +++ \pre,
 			\finepos, 0.1,
 			\fineposlag, 0.1,
 			\pos, 0.2,
-			\amp, Pkey(\amp) * 1,
+			\amp, Pkey(\amp) * 1.5,
 			//\freq, Ndef(~name+++\lfo3).bus.asMap,
 			\freq, 60 * Pseq([
 				Pseq([[0,8]],8),

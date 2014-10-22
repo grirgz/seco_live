@@ -41,35 +41,17 @@ Ndef(~name+++\fx, { arg amp=0.5, pan=0, freq=200, mbufnum,
 	ou = TGrains.ar(2, clk, bufnum, pitch_stretch, pos % BufDur.kr(bufnum), dur, pan, 1);
 
 
-	ou = LFSaw.ar(
-		Duty.kr(1/1/~t, 0, Dseq([
-			60,60, 60,80,
-		],inf) 	
-	) * [1,4.001,0.99,4.01]
-	);
-	pwidth = Duty.kr(1/2/~t, 0, Dseq([
-		0.8,0.4,0.8,0.2,
-	],inf)).lag(4);
-	pfreq = Duty.kr(1/2/~t, 0, Dseq([
-		780
-	],inf));
-	ou = ou * LFPulse.ar(pfreq ,0,pwidth);
+
 	ou1 = HPF.ar(ou, 100 * SinOsc.kr(1/52*~t).range(0.5,3.1));
 	//ou1 = ou;
 	ou1 = RLPF.ar(ou1, 
-		320 * Duty.kr(
+		150 * Duty.kr(
 			Dseq([
 				1,
 			]/4,inf)/~t, 0, Dseq([
-			1,1,1,1,
-			1,1,1,1,
-			4,4,4,4,
-			1,1,1,1,
+				4,4,1,4,
+				4,4,4,4,
 
-			2,1,2,1,
-			1,4,1,1,
-			4,4,4,4,
-			1,1,1,1,
 		],inf)).lag(0.1),
 		0.1 * Duty.kr(Dseq([
 				0.5,
@@ -88,7 +70,29 @@ Ndef(~name+++\fx, { arg amp=0.5, pan=0, freq=200, mbufnum,
 	]);
 	ou = ou1;
 	amp = amp * Duty.kr(1/4/~t, 0, Dseq([
-		1, 1, 1, 1,
+		Dseq([
+			Drand([
+				Dseq([
+					1, 1, 1, 1,
+					1, 1, 1, 1,
+				],1),
+				Dseq([
+					1, 1, 0, 0,
+					1, 1, 0, 0,
+				],1),
+			],1),
+			Dseq([
+				1, 1, 1, 1,
+			],1),
+			Drand([
+				Dseq([
+					1, 0, 1, 0,
+				],1),
+				Dseq([
+					0, 0, 1, 1,
+				],1),
+			],1),
+		],1),
 	],inf)).lag(0.1);
 	ou = ou * amp / 2;
 

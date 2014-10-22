@@ -92,17 +92,18 @@ SynthDef(\oscsampler3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, po
 	bufsig = BufRd.ar(2, bufnum, phase*BufFrames.ir(bufnum), 1);
 	bufsig = bufsig.sum;
 	ou = bufsig;
-	ou = ou * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
 	ffreqtab = \ffreqtab.kr(1!8);
 	ou = FreqShift.ar(ou, fshift);
 	ou2 = RLPF.ar(ou, ffreq * ffreqtab, rq);
 	ou = SelectX.ar(lpmix, [ou, ou2]);
-	ou2 = HPF.ar(ou, \hpfreq.kr(180) * ffreqtab, rq);
+	ou2 = HPF.ar(ou, \hpfreq.kr(180) * ffreqtab);
 	ou = SelectX.ar(\hpmix.kr(0), [ou, ou2]);
 
 	ou2 = (ou * \distpreamp.kr(18)).tanh / \distamp.kr(1);
 	ou = SelectX.ar(\distmix.kr(0), [ou, ou2]);
 	ou = Splay.ar(ou, spread, amp, pan);
+
+	ou = ou * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
 	
 	Out.ar(out, ou);
 }, metadata:(specs:(
