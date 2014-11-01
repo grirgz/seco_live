@@ -9,3 +9,4 @@ Veco.load_lib("synth.scd");
 
 Veco.main.fadeout_time = 16;
 
+~timeline_enabled = false;

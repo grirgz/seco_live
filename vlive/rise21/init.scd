@@ -1,5 +1,5 @@
 TempoClock.default.tempo = t = ~t = 1;
-Veco.main.board_size = Point(16,64);
+Veco.main.board_size = Point(32,64);
 Pdef.defaultQuant = 4;
 Veco.load_lib("main.scd");
 Veco.load_lib("synth.scd");

@@ -1,10 +1,10 @@
 BufDef(\march, "vipere/march.flac");
-BufDef(\oeuf, "field/oeuf.flac");
+BufDef(\table, "field/table.flac");
 (
 //Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,8.9)).range(0,0.02) + 0.45  });
 //Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,1.9)).range(0,0.02) + 0.15  });
 ~buf = BufDef(\moeten);
-~buf = BufDef(\oeuf);
+~buf = BufDef(\table);
 //Ndef(~name+++\lfo1, { Phasor.kr(0, (1/SampleRate.ir).poll *1, 0, 0.81) + 0.1 + LFPulse.kr(8).range(0,0.0001).lag(0.1)});
 //Ndef(~name+++\lfo1, { 0.1 + LFPulse.kr(1).range(0,0.0008).lag(0.4)});
 //Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,8.9)).range(0,1.02) + 0.45  });
@@ -13,56 +13,43 @@ BufDef(\oeuf, "field/oeuf.flac");
 Pdef(~name+++\base, Pbind(
 			\dur, (1/8),
 			\isRest, Pseq([
-				Pser([
-					Prand([
-						Pseq([
-							0,0,0,0, 0,0,0,0,
-							1,0,0.0,0, 0,0,0,0,
-						]),
-						Pseq([
-							0,0,0,0, 0,0,0.51,0,
-							1,0,0.0,0, 0,0,0,0,
-						]),
-						Pseq([
-							0,0,0,0, 0,0,0,0,
-							1,0,0.5,0, 0,0,0,0,
-						]),
-
-					])
-				],32*3),
-				//Pser([
-				//	0,0,0,0, 0,0,0,0,
-				//	1,0,0,1, 0,0,1,0,
-				//	0,0,0,0, 0,0,0,0,
-				//	0,0,0,0, 0,0,0,0,
-				//],32)
-			],inf).coin.not,
-			\isRest, Pseq([
-				Pwrand([
+				Prand([
 					Pseq([
-						0,0,0,0, 0,0,0.2,0,
-						1,0,0,0, 0,0,0,0,
-					]),
+						0,0,0,0,
+						1,0,0,0,
+						0,0,0,0,
+						0,0,0,0,
+					],1),
 					Pseq([
-						0,0,0,0, 0,0,0,0,
-						0,0,1.0,0, 0,0,0,0,
-					]),
-				], [0.8,0.2])
+						0,0,0.1,0,
+						1,0,0,0,
+						0,0,0,0,
+						0,0,0,0,
+					],1),
+				],1),
 			],inf).coin.not,
 			\isRest, Pseq([
-				1,1,1,1,
-				1,1,1,1,
+				1,0,0,0, 1,0,0,1, 
+				1,0,0,1, 0,0,1,0, 
 			],inf).coin.not,
 			\isRest, Pseq([
-				1,1,1,1,
+				0,0,0,0, 0,0,0,0, 
+				0,0,0,0, 1,1,1,1, 
+				0,1,1,0, 1,1,0,0, 
+				0,0,0,0, 0,1,1,1, 
 			],inf).coin.not,
-			\amp, Pkey(\amp) * Ppatlace([
-				Pseq((1..8)/8,inf),
-				Pseq((1..16)/8,inf),
-				Pseq((1..8).rotate(6)/8,inf),
-				Pseq((1..8).rotate(3)/8,inf),
-
-			],inf)
+			\isRest, ~overwrite_pattern.(Pseq([
+				0,0,0,0, 0,0,0,0, 
+				0,0,0,0, 0,0,0,0, 
+				0,0,0,0, 0,0,0,0, 
+				0,0,0,0, 0,0,0,0, 
+			],inf), Pwhite(0,32)/32, 4, Pseq([1],inf)).coin.not,
+			\isRest, Plazy({
+				Pseq(~seqmod.([
+					0,0,0,0, 0,0,0,0, 
+					0,0,0,0, 0,0,0,0, 
+				], 11.rand, [1,1,1,1,1,1]))
+			}).loop.coin.not,
 
 ));
 
@@ -73,7 +60,7 @@ Pdef(~name +++ \pre,
 			\env0, [ Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.41], [-4, -2, -4]) ],
 			\env1, [ Env.new([110, 73, 29], [0.005, 0.09], [-4, -5]) ],
 			\fratio, 1,
-			\amp, 0.1,
+			\amp, 0.0,
 			\pan, Pseq([
 				Pser([0],17),
 				Pwhite(-1.0,1.0,16-1)
@@ -83,31 +70,39 @@ Pdef(~name +++ \pre,
 		), 
 
 		Pdef(~name+++\base) <> Pbind(
+			\instrument, \oscsampler3,
 			\pos, 0.014 + Pseq([0,1,0,2],inf).stutter(8)/100,
-			\pos, 0.191,
-			\freq, 187,
-			\range, 0.0001,
+			\pos, 0.47232882889595,
+			\freq, 418,
+			\range, 0.0000000001,
 			\ffreqtab, Pseq([[Array.geom(8,1.8,1.2).postln]],inf),
-			\posenv, Pseq([
+			\posenv, Prand([
 				//[ Env([0.42,0.3903,0.3513],[0.3,0.4]) ],
 				//[ Env([0.00,0.0189,0.401].integrate.postln,[0.01,0.1]) ],
-				[ Env([0.00,0.011,0.01].integrate.postln,[0.01,0.4]) ],
+				Pseq([
+					[ Env([0.00,0.00201,0.00081].integrate.postln,[0.27,2.4]) ],
+					[ Env([0.00,0.00199,0.00081].integrate.postln,[0.27,2.4]) ],
+				],8),
+				Pseq([
+					[ Env([0.00,0.00201,0.00081].integrate.postln,[0.27,2.4]) ],
+					[ Env([0.00,0.00101,0.01181].integrate.postln,[0.27,2.4]) ],
+				],8),
 			],inf).stutter(2),
-			\legato, 1.2,
+			\legato, 0.2,
 			\dur, 1/3,
 			\isRest, false,
 			\adsr, Pseq([
-				[ Env.adsr(0.01,0.3,0.5,0.4) ],
+				Pfuncn({
+					[ Env.adsr(0.01,0.3,0.5,0.4.rand+0.01) ];
+				},1),
 			],inf),
 			\bufnum, ~buf,
-			\isRest, Pseq([
-				1,0,0, 0,0,0,
-			],inf).coin.not,
 			\rq, 0.1,
-			\fshift, 0,
+			//\fshift, Pwrand([0,-400,-300,200],[1.90, 0.1,0.1,0.1].normalizeSum,inf),
 			\lpmix, 1,
-			\ffreq, 2000,
-			\amp, 29.0 * Pkey(\amp),
+			\ffreq, 200 + Pwhite(0.0,100),
+			\ffreq, 988.43493629781,
+			\amp, 059.0 * Pkey(\amp),
 
 		) 	
 	])
@@ -119,6 +114,20 @@ Pdef(~name +++ \pre,
 MIDIBoard.map(\s9, s.volume, \volume)
 
 s.getQueryTree({ arg data; data.asCompileString.postln; })
+
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	//\degree, ~overwrite_pattern.(Pseq([0],inf), 3/4, 4, Pseq([1,2,3,4],inf)),
+	//\degree, Pwhite(0.0,1,inf).collect(_.round(1/32))*32,
+	\degree, Pwhite(0.0,1,inf).round(1/32)*32,
+	\dur, 1/4,
+	\amp, 0.1
+).trace).play;
+);
+Pdef(\plop).clear
 
 
 ~<>

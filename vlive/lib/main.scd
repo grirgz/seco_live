@@ -20,20 +20,23 @@ if(s.volume.volume == 0) {
 (
 	~timeline_do = { arg time, index_add, spawn_fun, quantnow_fun, after_fun;
 		index_add = index_add ?? 1;
+
 		Veco.do { arg name, namex, index;
 			spawn_fun = spawn_fun ?? {
 				~spawn_cliprow.(index, name);
 			};
 			Veco(name).lib.reset_tracks;
 			spawn_fun.(name, namex, index);
-			Tdef(name, {
-				Veco.main.clip.update_display;
-				quantnow_fun.(name, namex, index);
-				(time-0.12).wait;
-				after_fun.(name, namex, index);
-				~spawnclip.(name, index+index_add);
-				0.wait;
-			});
+			if(~timeline_enabled != false) {
+				Tdef(name, {
+					Veco.main.clip.update_display;
+					quantnow_fun.(name, namex, index);
+					(time-0.12).wait;
+					after_fun.(name, namex, index);
+					~spawnclip.(name, index+index_add);
+					0.wait;
+				});
+			};
 		};
 	};
 	~vim_replace_current_line = {
@@ -222,18 +225,6 @@ if(s.volume.volume == 0) {
 			}
 		})
 	};
-~seqmod = { arg arr ... args;
-	var size;
-	size = arr.size;
-	args.clump(2).do { arg x;
-		x[1].do { arg val, y;
-			arr[x[0]+y] = val;
-		}
-	};
-	args.postln;
-	arr;
-};
-
 ~kill_nodes_by_name = { arg name;
 	s.getQueryTree({ arg data; 
 		//data.asCompileString.postln;
@@ -365,6 +356,33 @@ if(s.volume.volume == 0) {
 	};
 
 );
+
+//////////////////////////////////////////////////// Patterns and tricks
+
+~seqmod = { arg arr ... args;
+	var size;
+	size = arr.size;
+	args.clump(2).do { arg x;
+		x[1].do { arg val, y;
+			arr[x[0]+y] = val;
+		}
+	};
+	args.postln;
+	arr;
+};
+
+~overwrite_pattern = { arg inpat, prop, timesize, overpat;
+	//Prout({ arg ev;
+	//	inpat.asStream.do({ arg pat;
+	//		pat.debug("overwrite_pattern");
+	//		ev = pat.yield;
+	//	});
+	//});
+	Pswitch1([inpat, overpat], Pstep(Pseq([0,1],inf), Pseq([prop*timesize, timesize * (1-prop)],inf)));
+	//inpat.
+};
+
+
 
 //////////////////////////////////////////////////// Env mod
 

@@ -29,7 +29,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	sig = sig * SinOsc.kr(1/3/(1..10)).pow(2).range(0,1);
 
 	lpspread = SinOsc.kr(1/5*(1..11)/9)*1.5;
-	lpspread = (env1/3 + 0.01).exp.poll;
+	lpspread = (env1/3 + 0.01).exp;
 	//lpspread = 0;
 	sig = RLPF.ar(sig, \lpf.kr(400) * (env1 + 1), \rq.kr(0.5));
 	sig = HPF.ar(sig, 700);

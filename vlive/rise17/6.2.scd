@@ -1,59 +1,46 @@
 BufDef(\march, "vipere/march.flac");
-BufDef(\oeuf, "field/oeuf.flac");
+BufDef(\table, "field/table.flac");
 (
 //Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,8.9)).range(0,0.02) + 0.45  });
 //Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,1.9)).range(0,0.02) + 0.15  });
 ~buf = BufDef(\moeten);
-~buf = BufDef(\oeuf);
+~buf = BufDef(\table);
 //Ndef(~name+++\lfo1, { Phasor.kr(0, (1/SampleRate.ir).poll *1, 0, 0.81) + 0.1 + LFPulse.kr(8).range(0,0.0001).lag(0.1)});
 //Ndef(~name+++\lfo1, { 0.1 + LFPulse.kr(1).range(0,0.0008).lag(0.4)});
 //Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,8.9)).range(0,1.02) + 0.45  });
 //Ndef(~name+++\lfo1, { LFSaw.kr(1.18).range(0,1.02) + 10.45  });
 //Ndef(~name+++\lfo2, { LFSaw.kr(SinOsc.kr(1.12).range(0.01,4.9)).range(0.0001,0.0012)  });
 Pdef(~name+++\base, Pbind(
-			\dur, (1/8),
+			\dur, (1/2),
 			\isRest, Pseq([
-				Pser([
-					Prand([
-						Pseq([
-							0,0,0,0, 0,0,0,0,
-							1,0,0.0,0, 0,0,0,0,
-						]),
-						Pseq([
-							0,0,0,0, 0,0,0.51,0,
-							1,0,0.0,0, 0,0,0,0,
-						]),
-						Pseq([
-							0,0,0,0, 0,0,0,0,
-							1,0,0.5,0, 0,0,0,0,
-						]),
-
-					])
-				],32*3),
-				//Pser([
-				//	0,0,0,0, 0,0,0,0,
-				//	1,0,0,1, 0,0,1,0,
-				//	0,0,0,0, 0,0,0,0,
-				//	0,0,0,0, 0,0,0,0,
-				//],32)
+				Pseq([
+					0,0,0,0,
+					0,0,0,0,
+					0,0,0,0,
+					0,0,0,0,
+					0,0,0,0,
+					0,0,0,0,
+					0,0,0,0,
+					0,0,0,0,
+				],1),
+				Prand([
+					Pseq([
+						0,0,0,0,
+						1,0,0,0,
+						0,0,0,0,
+						0,0,0,0,
+					],1),
+					Pseq([
+						0,0,0.1,0,
+						1,0,0,0,
+						0,0,0,0,
+						0,0,0,0,
+					],1),
+				],1),
 			],inf).coin.not,
 			\isRest, Pseq([
-				Pwrand([
-					Pseq([
-						0,0,0,0, 0,0,0.2,0,
-						1,0,0,0, 0,0,0,0,
-					]),
-					Pseq([
-						0,0,0,0, 0,0,0,0,
-						0,0,1.0,0, 0,0,0,0,
-					]),
-				], [0.8,0.2])
-			],inf).coin.not,
-			\isRest, Pseq([
-				0,0,1,0,
 				0,0,0,0,
-				0,0,0,0,
-				0,0,0,0,
+				0,0,0,1,
 			],inf).coin.not,
 
 ));
@@ -65,7 +52,7 @@ Pdef(~name +++ \pre,
 			\env0, [ Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.41], [-4, -2, -4]) ],
 			\env1, [ Env.new([110, 73, 29], [0.005, 0.09], [-4, -5]) ],
 			\fratio, 1,
-			\amp, 0.1,
+			\amp, 0.0,
 			\pan, Pseq([
 				Pser([0],17),
 				Pwhite(-1.0,1.0,16-1)
@@ -75,31 +62,36 @@ Pdef(~name +++ \pre,
 		), 
 
 		Pdef(~name+++\base) <> Pbind(
+			\instrument, \oscsampler3,
 			\pos, 0.014 + Pseq([0,1,0,2],inf).stutter(8)/100,
-			\pos, 0.124,
+			\pos, 0.577,
 			\freq, 187,
-			\range, 0.000001,
+			\range, 0.0000001,
 			\ffreqtab, Pseq([[Array.geom(8,1.8,1.2).postln]],inf),
-			\posenv, Pseq([
+			\posenv, Prand([
 				//[ Env([0.42,0.3903,0.3513],[0.3,0.4]) ],
 				//[ Env([0.00,0.0189,0.401].integrate.postln,[0.01,0.1]) ],
-				[ Env([0.00,0.001,0.01].integrate.postln,[0.01,0.4]) ],
-			],inf),
-			\legato, 1.2,
+				[ Env([0.00,0.00011,0.01011].integrate.postln,[0.01,2.4]) ],
+				[ Env([0.00,0.00011,0.01111].integrate.postln,[0.01,2.4]) ],
+				[ Env([0.00,0.00011,0.01051].integrate.postln,[0.02,2.4]) ],
+			],inf).stutter(2),
+			\legato, 0.2,
 			\dur, 1/3,
 			\isRest, false,
 			\adsr, Pseq([
-				[ Env.adsr(0.01,0.3,0.5,0.1) ],
+				Pwrand([
+					[ Env.adsr(0.01,0.3,0.5,0.9) ],
+					[ Env.adsr(0.01,0.3,0.5,0.19) ],
+					[ Env.adsr(0.01,0.3,0.5,0.29) ],
+					[ Env.adsr(0.01,0.3,0.5,0.49) ],
+				], [2,0.1,0.1,0.1].normalizeSum),
 			],inf),
 			\bufnum, ~buf,
-			\isRest, Pseq([
-				1,0,0, 0,0,0,
-			],inf).coin.not,
 			\rq, 0.1,
-			\fshift, 0,
+			\fshift, Pwrand([0,-400,-300,200],[1.90, 0.1,0.1,0.1].normalizeSum,inf),
 			\lpmix, 1,
-			\ffreq, 200,
-			\amp, 59.0 * Pkey(\amp),
+			\ffreq, 200 + Pwhite(0.0,100),
+			\amp, 89.0 * Pkey(\amp),
 
 		) 	
 	])

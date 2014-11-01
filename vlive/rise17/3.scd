@@ -1,85 +1,86 @@
 ~name = 'rise17-3';
 
 
-Veco(~name).make_mixer;
+~pdef_channel.();
 
 (
-SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0.01, spread=0.8, timeScale=1|
-	var env0, env1, env1m, son;
+// nord modular 909 implementation
+// modified
+SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	var lfo1, lfo2;
 
-	//freqpan = [-1,0,1] * freqpan;
-	freqpan = [1,0,-1] * freqpan;
-	env0 = \env0.kr(Env.new([9.5, 1, 0.5, 0], [0.105, 0.16, 00.2], [-4, -2, -4]));
-	env1 = \env1.kr(Env.new([210, 29, 59], [0.105, 0.29], [-4, -5]));
-	
-	env0 =  EnvGen.ar(env0, doneAction:2, timeScale:timeScale);
-	env1 = EnvGen.ar(env1, timeScale:timeScale);
-	env1m = env1.midicps;
-	
-	son = LFPulse.ar(env1m * freqpan, 0, 0.5, 1, -0.5);
-	son = son + LFSaw.ar(env1m * freqpan, 0, 0.1);
-	son = son + WhiteNoise.ar(1);
-	son = LPF.ar(son, env1m*fratio, env0);
-	son = son + SinOsc.ar(env1m, 0.5, env0);
-	
-	son = son * \clipamp.kr(1.2);
-	son = son.clip2(\clip.kr(0.51));
+	lfo1 = LFTri.ar(330 * EnvGen.ar(Env([8,1 + Rand(0.0,0.4),1],[0.00001,1.8]), gate) * [1,1.1,1.2]).sum;
+	lfo1 = lfo1 * EnvGen.ar(Env.perc(0.0005, 0.0255), gate);
+	lfo2 = LFTri.ar(185);
+	lfo2 = lfo2 * EnvGen.ar(Env.perc(0.0001, 0.0475), gate);
 
-	son = son * amp;
-	son = Splay.ar(son, spread, amp, pan);
-	
-	OffsetOut.ar(out, son);
-}).store;
-);
+	sig = WhiteNoise.ar(WhiteNoise.ar);
+	sig = BRF.ar(sig, [100,200,300,400]+42*0.8).mean;
+	sig = LPF.ar(sig, 7040 * [1,1.1,0.2] * EnvGen.kr(Env([1,[0.5+Rand(0.0,0.2),0.1+Rand(0.0,0.2)]],[0.01]), gate)) * [0.4,0.7,1];
+
+	sig1 = sig * EnvGen.ar(Env.perc(0.005, 0.320+Rand(0.0,0.1)), gate, doneAction:2);
+
+	sig2 = HPF.ar(sig, 523);
+	sig2 = BRF.ar(sig2, [100,200,300,400]+12*2.0).mean;
+	sig2 = sig2 * EnvGen.ar(Env.perc(0.005, 0.183), gate);
+	sig2 = (sig2*10).tanh;
+
+	sig = ( sig1 * 0.7 ) + ( sig2 * 0.4 ) + lfo1 + lfo2;
+	//sig = sig ! 2;
+	sig = sig * 4;
+	sig = Pan2.ar(sig, pan, amp).flop;
+	//sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	//sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
 
 
+SynthDef(~name+++\b, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	var lfo1, lfo2;
 
-(
-SynthDef(~name+++\2, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0.01, spread=0.8, timeScale=1|
-	var env0, env1, env1m, son;
+	lfo1 = LFTri.ar(330 * EnvGen.ar(Env([8,1 + Rand(0.0,0.4),1],[0.00001,1.8]), gate) * [1,1.1,1.2]).sum;
+	lfo1 = lfo1 * EnvGen.ar(Env.perc(0.0005, 0.0255), gate);
+	lfo2 = LFTri.ar(185);
+	lfo2 = lfo2 * EnvGen.ar(Env.perc(0.0001, 0.0475), gate);
 
-	//freqpan = [-1,0,1] * freqpan;
-	freqpan = [1,0,-1] * freqpan;
-	env0 = \env0.kr(Env.new([9.5, 1, 0.5, 0], [0.105, 0.16, 00.2], [-4, -2, -4]));
-	env1 = \env1.kr(Env.new([210, 29, 59], [0.105, 0.29], [-4, -5]));
-	
-	env0 =  EnvGen.ar(env0, doneAction:2, timeScale:timeScale);
-	env1 = EnvGen.ar(env1, timeScale:timeScale);
-	env1m = env1.midicps;
-	
-	son = LFPulse.ar(env1m * freqpan, 0, 0.5, 1, -0.5);
-	son = son + ClipNoise.ar(1);
-	son = LPF.ar(son, env1m*fratio * Array.series(8,0.1,0.5), env0);
-	son = son + SinOsc.ar(env1m, 0.5, env0);
-	
-	son = son * 1.2;
-	son = son.clip2(1);
+	sig = WhiteNoise.ar(WhiteNoise.ar);
+	sig = BRF.ar(sig, [100,200,300,400]+42*0.8).mean;
+	sig = LPF.ar(sig, 7040 * [1,1.1,0.2] * EnvGen.kr(
+		[
+			\lpfenv1.kr(Env([1,0.5],[0.01])),
+			\lpfenv2.kr(Env([1,0.1],[0.01])),
+			\lpfenv3.kr(Env([1,0.3],[0.01])),
+		],
+		gate, levelScale:\levelScale.kr(1)
+	));
 
-	son = son * amp;
-	son = Splay.ar(son, spread, amp, pan);
-	
-	OffsetOut.ar(out, son);
-}).store;
+	sig1 = sig * EnvGen.ar(Env.perc(0.005, \sig1rel.kr(0.220)+Rand(0.0,0.1)), gate, doneAction:0);
+
+	sig2 = HPF.ar(sig, 523);
+	sig2 = BRF.ar(sig2, [100,200,300,400]+12*2.0).mean;
+	sig2 = sig2 * EnvGen.ar(Env.perc(0.005, \sig2rel.kr(0.120)), gate);
+	sig2 = (sig2*10).tanh;
+
+	sig = ( sig1 * 0.7 ) + ( sig2 * 0.4 ) + lfo1 + lfo2;
+	//sig = sig ! 2;
+	sig = sig * 4;
+	DetectSilence.ar(sig, doneAction:doneAction);
+	sig = Pan2.ar(sig, pan, amp).flop;
+	//sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	//sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
 );
 
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
-Pdef(~name, 
-	~patfx.(~name+++\patfx) <>
-	Pdef(~name +++ \pre) <> Pbind(
+Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\instrument, ~name,
-	\env0, [ Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.1], [-4, -2, -4]) ],
-	\env1, [ Env.new([120, 59, 29], [0.005, 0.29], [-4, -5]) ],
 	\degree, Pseq([0],inf),
 	\isRest, Veco(~name).isrest,
-	\fratio, 2,
-	\dur, 1/8,
-	\amp, 0.4 * Pkey(\amp),
+	\dur, 1/4,
+	\amp, 0.1 * Pkey(\amp),
 ) <> Veco(~name).mixer)
 );
-
-// END
-
-Veco(~name).mixer.asStream.next(Event.default)
-
-~fx1
