@@ -137,6 +137,8 @@ Ndef(~name+++\fx).set( \amp, 0.4)
 Ndef(~name+++\fx).set( \time_stretch, 0.4)
 
 
+Ndef(~name+++\mixer).play(0,2)
+Veco(~name).master_bus
 Ndef(~name+++\fx).clear
 Pdef(~name).clear
 (
