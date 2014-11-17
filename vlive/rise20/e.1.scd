@@ -38,6 +38,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	ou = SelectX.ar(\hpmix.kr(1), [ou, ou2]);
 
 	sig = ou;
+	sig = sig / 2;
 	//sig = bufsig;
 	
 	amp = amp * \gain.kr(1);

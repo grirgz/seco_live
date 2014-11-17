@@ -87,6 +87,7 @@ SynthDef(\oscsampler3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, po
 	osc = SinOsc.ar(freq*[1.001,0.999,1]);
 	//osc = osc.sum;
 	pos = EnvGen.kr(\posenv.kr(Env([1,0,0.5,0.2, 0.2], [0.2,0.1,0.1,0.1])),gate, levelScale:\levelScale.kr(1), timeScale:\timeScale.kr(1)) + pos;
+	range = (range + (\framerange.kr(0)/BufFrames.ir(bufnum)));
 	phase = osc * range + pos + finepos.lag(\fineposlag.kr(0));
 
 	bufsig = BufRd.ar(2, bufnum, phase*BufFrames.ir(bufnum), 1);

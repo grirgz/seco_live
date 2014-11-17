@@ -10,6 +10,7 @@ Ndef(~name+++\fx).put(0, { arg pan=0, f1=200, f2=300, fund = 70, amp = 0.25, don
 	var spread;
 	var fspread;
 	freq = fund;
+	freq = [100,50];
 
 
 	fspread = SinOsc.kr(1/49*[1,1.12,4]).exprange(0.0000001,0.001).sum;

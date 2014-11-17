@@ -18,7 +18,8 @@ Ndef(~name+++\fx).put(0, { arg pan=0, f1=200, f2=300, fund = 70, amp = 0.25, don
 	f2 = 100 * 3.midiratio * EnvGen.kr(Env([1,4,1],[2.1,0.8]), trig1);
 	
 	freq = 100 * [0,3,7].midiratio  * 2 * Duty.kr(4/~t, 0, Dseq([
-		0,2,
+		0,2,0,-1,
+		0,2,0,11,
 	].midiratio,inf));
 	//freq = freq * ((0..7)/7 - 0.5 * fspread + 1);
 	sig1 = LFSaw.ar(freq);

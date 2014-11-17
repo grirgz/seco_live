@@ -12,6 +12,7 @@ BufDef(\table, "field/table.flac");
 //Ndef(~name+++\lfo2, { LFSaw.kr(SinOsc.kr(1.12).range(0.01,4.9)).range(0.0001,0.0012)  });
 Pdef(~name+++\base, Pbind(
 			\dur, (1/4),
+			\isRest, false,
 			\isRest, Pseq([
 					0,0,0,0,
 					0,0,0,0,
