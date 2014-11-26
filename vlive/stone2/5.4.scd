@@ -90,7 +90,7 @@ Ndef(~name+++\fx).put(1, \set -> Pbind(
 	\iamp, 1,
 	\dur, 1/8,
 ));
-)
+);
 
 (
 	Ndef(~name+++\fx).unset(\ffreq, 2500);

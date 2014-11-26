@@ -36,9 +36,10 @@ Pdef(~name +++ \pre,
 		\amp, Pkey(\amp) * 2,
 		//\freq, Ndef(~name+++\lfo3).bus.asMap,
 		\freq, 60.midicps * Pseq([
-			Pseq([0,0],16),
-			Pseq([4,4],16),
-		],inf).midiratio.stutter(2) * 2,
+			Pseq([0],16),
+			Pseq([6],16),
+		],inf).midiratio.stutter(4) * 2,
+		//\freq, Pkey(\freq).trace,
 		//\freq, 80,
 		\isRest, false,
 	\bufnum, ~buf,
@@ -67,6 +68,26 @@ Pdef(~name +++ \pre,
 );
 
 // END
+
+\mtranspose, 2
+UGen(OutputProxy): 932,328
+UGen(OutputProxy): 783,991
+UGen(OutputProxy): 622,254
+
+[0,1,2,3,4,5,6,7,8,9,10,11,12].midiratio * 60.midicps * 2
+3, 7, 10
+
+\gtranspose, 2 // transpose by semitone
+UGen(OutputProxy): 880
+UGen(OutputProxy): 698,456
+UGen(OutputProxy): 587,33
+
+[0,1,2,3,4,5,6,7,8,9,10,11,12].midiratio * 60.midicps * 2
+2, 5, 9,
+
+\note base: 0, 4, 7
+
+\note gamme mineur: 0, 2, 3, 5, 7, 9, 10
 
 Sdef(~name, \mypreset).rebuild
 Sdef(~namex, \mypreset).edit

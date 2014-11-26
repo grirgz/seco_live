@@ -65,7 +65,7 @@ Ndef(~name+++\fx).put(1, \set -> Pbind(
 		0.1, 0.1, 2.1, 0.1, 0.1, 0.1, 0.4, 0.1,
 	],inf)/4,
 ));
-)
+);
 
 (
 	Ndef(~name+++\fx).set(\ffreq, 7500);

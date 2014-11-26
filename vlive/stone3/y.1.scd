@@ -1,7 +1,8 @@
 
+(
 Pdef(~name +++ \pre, Pbind(
-	\degree, Pseq([0],inf) + [0,2,4],
-	\mtranspose, Pstep(Pseq([0,2],inf),8),
+	\degree, Pseq([0],inf) + \c.asDegrees,
+	\mtranspose, Pstep(Pseq([0,1],inf),8),
 	\scale, Scale.minor,
 	\dur, 1,
 	\isRest, false,
@@ -11,6 +12,7 @@ Pdef(~name +++ \pre, Pbind(
 	\legato, 2,
 	\octave, 6,
 ));
+)
 
 // END
 
@@ -20,3 +22,6 @@ Pdef(~name +++ \pre, Pbind(
 	\octave, 6,
 ));
 
+[\Cm_eb, \Fm, \Gm, \Cm_g, \Cm_eb, \Fm, \Gm_d, \Cm].chordProg;2
+ChordSymbol.shapes.keys
+\c.asDegrees

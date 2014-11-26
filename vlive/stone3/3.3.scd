@@ -1,0 +1,35 @@
+Pdef(~name +++ \pre, 
+	
+	Pfindur(2,
+		Pbind(
+			\freq, 100,
+			\dur, 1/8,
+			\isRest, Veco(~namex).isrest(16),
+			\fmix, 0.71,
+			\fratio3, Pseq([1,2,4,9, 12,1,15,1],inf).stutter(8),
+			\timeScale, 1/2,
+			\pan, Pseq([
+				Pwrand([
+					-1,0,1,
+
+				], [0.1,1,0.1])/2 + 0.5
+			],inf),
+			\elpf, 17000,
+			\ehpf, 500,
+			//\amp, Pkey(\amp) * Pseq([
+			//	1,0.3,0.8,0.6,
+
+			//],inf).stutter(1),
+			\isRest, Pseq([
+				0,0,0,0, 1,0,1,0,
+				1,1,1,0, 1,0,1,0,
+				0,0,1,0, 1,0,1,0,
+				1,0,0,0, 1,0,1,0,
+			],inf).coin.not,
+					//\isRest, Pstep(Pseq([0,1],inf),4).coin.not,
+					\isRest, false,
+					\dur, Pseg(Pseq([1/4,1/30],inf),2,-3)*2,
+		)
+
+	).loop
+);

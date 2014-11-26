@@ -14,3 +14,4 @@ BufDef.mono(\crepe, "field/crepe.flac");
 BufDef(\crepe, "field/crepe.flac");
 BufDef(\oeuf, "field/oeuf.flac");
 BufDef(\ukraine, "bruit1/07_ukraine.flac");
+BufDef(\amen, "vipere/amenbreak.wav");
