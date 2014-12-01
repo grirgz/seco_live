@@ -1,10 +1,14 @@
 
+
+~pdef_channel.();
+
+
 (
 SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
 	var sig, sig1, sig2, sig3;
 	sig = SinOsc.ar(freq * [1,1.001,1.002,1.003]);
-	sig = sig + RLPF.ar(LFSaw.ar(freq * [1,1.001,1.002,1.003],mul:0.51), freq*5,0.7);
-	sig = sig + RLPF.ar(LFPulse.ar(freq * [1,1.001,1.002,1.003],mul:0.5), freq*5,0.7);
+	sig = sig + RLPF.ar(LFSaw.ar(freq * [1,1.001,1.002,1.003],mul:0.51), freq*\freqfac_saw.kr(5),0.7);
+	sig = sig + RLPF.ar(LFPulse.ar(freq * [1,1.001,1.002,1.003],mul:0.5), freq*\freqfac_pulse.kr(5),0.7);
 	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);

@@ -6,7 +6,7 @@ Veco.load_lib("main.scd");
 Veco.load_lib("synth.scd");
 ~load_standard_quickpad.();
 
-~define_effects.([\56, \57]);
+~define_effects.([\56, \57, \58, \59]);
 
 // END
 
