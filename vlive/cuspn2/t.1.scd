@@ -61,3 +61,12 @@ Pdef(~name +++ \pre, Pbind(
 
 // END
 
+
+Env([0, 2, 0], [0.2, 0.2], \sine).plot(7)
+
+Env([0, 2, 0], [0.2, 0.2], \sine).plot(8)
+Env([0, 2, 0], [0.2, 0.2], \sine).plot(7)
+
+Env([0, 2, 0], [0.2, 0.2], \sine).plot(8)
+Env([0, 2, 0], [0.2, 0.2], \sine).plot(80)
+Env([0, 2, 0], [0.2, 0.2], \sine).plot
