@@ -1,0 +1,117 @@
+anvers1/ -- training for algorave anvers
+anvers2/
+anvers3/
+anvers4/
+anvmidi1/
+bak.friday1/
+bakanvers4/
+c1/
+cajarc/
+cajarc2/
+cirk1/ -- first imitation of dubstep, bug which need cmd. to play the bass. bass in mono ??? all is broken, some fx with modpads
+cirk1_test/
+cirk2/ -- empty
+crap/
+crepe/ -- test project for the new sample crepe, lot of ideas and experimentations, nice oscsampler perc, animal indus feel, nice reverb bass, nice cheap chord seq, invention of nice slapy snare, nice begining 
+cuspn/
+cuspn1/
+cuspn2/
+debug/
+demo/
+dri/
+drink1/ -- failed dub
+drink2/ -- nice little dub, a lot after drink1, lot of new ideas and sound design, 8bit nappe!! nice oscsampler percs! nice dub ryhtm. nice begining, first presence of racle hat ?
+drink3/ -- raclehat again, niceperc, a bit raclestyle, faster, synths totally cheesy, second part less happy, more trance, not so nice, some ideas, nice wobble bass melody
+explore/
+friday/
+friday1.bak/
+friday1/
+home/
+lab1/
+lib/
+piano/
+piano2/
+poil1/ -- empty ?? potar is in, file move error
+poil2/ -- not working
+potar1/ -- using ProxyChain for the first time, lot of non working code, it's when i first written the potar system for selectiing column macro
+potar2/ -- potar gui not working (must restart), few pads, one nice perc, demonstrating pattern filtering with exec pads
+potar3/ -- not working
+pr/
+presetfx/
+presets1/
+presets2/
+presets_perc/
+rise1/ -- lot of bad silly synths and perc, but a few good ideas, use of sidepane, mute, note, toggle!!!
+rise10/ -- breakbeat exploration, with automatic timeline using custom Task, bien sec, bien sequencé, nice perc, peu developpé
+rise11/ -- lot of exploration, few good wobble bass, good drones/nappes, lot of pads, one envfollower
+rise12/ -- nice strange dubstep, lot of good idea, could be a track, nice perc fanfare/dub, few nice drones
+rise13/ -- lot of pads, dub trance feel, very nice, shifting dronebirds, a feedback, could be a track
+rise14/ -- two synth challenge with nice dubby perc, good minimalist sound design, could be a track. two subs
+rise15/ -- a try with nice perc and a wobblebass, too fast, aborted, almost not developped, but nice feel anyway
+rise16/ -- same try with this particular wobblebass borrowed from another project, but right tempo now
+rise17/ -- crepuscule sordide - the track which haunted me so much I don't want to listen again
+rise17b/ -- save of the rise17 track before replacing perc
+rise18/ -- undescriptible patchwork
+rise19/ -- wtf ???
+rise2/ -- base of poil barbus sarcastic, a few good ideas, i hate it now.. invention of terrible bass!!
+rise20/ -- dark ambiant first one!! sale truc noir et inquietant, sons qui viennent de l'espace, voitures, perc texture pas top, a part le bruit d'armoire qui dechire
+rise21/ -- dark ambiant two!! more triphop
+rise22/ -- nice perc clean and rhytmed break! since synth but too few developped
+rise3/ -- few pads, une ribembelle de global fx avec feedback, suremement plein d'idée pour inspir, les perc marchent pas
+rise4/ -- research on granular drones on beat, few pads, good drones (cpu heavy :/)
+rise5/ -- random generation of breakbeat/tek, somewhat nice, nice 8bit drones but with a bug, lot of launchlines, pete bien
+rise5b/
+rise5c/
+rise6/ -- just 6 pads, nice loop, too cpu heavy
+rise7/ -- wood dub, nice rhymth, nice perc, few pads, mostly perc, 
+rise8/ -- fast loop, not very interesting, very few pads
+rise9/ -- breakbeat and nappes/drones, nice perc, nice drone, not well developped, failed experiment scratch
+start/
+stone1/ -- nice perc, nice synths! to develop!!! dark spacy dub
+stone2/ -- piece of gold, dark ambient, bad dub added in middle, could be a track!!!
+stone3/ -- good potential!
+stone4/ -- very symphonique, or minimalist, good potential!
+stone5/
+task1/
+test/
+testme/
+testme2/
+tidal1/
+v1/	-- dont work
+v10.bak/
+v10/ -- first recording/looping with veco, first bug (data loss at the end of the loop), shy and cool, voices, perc recording, double recording, second part al col middle, lot of pads, real nice original space style
+v11/ -- also rec/loop stuff, second try, more professional, but less interesting, notice more the noise floor, percussion simple and nice
+v12/ -- return to cheesy fastducktek failed, invention of saturated ghost beat! wonderful!
+v13/ -- some breakbeat, nice perc texture and rhytmh, lead and bass are a bit a chier, few pads
+v14/ -- first use of perc samples, nice industrial granulating, oscsampler perc lab, nice granulating, nice underwater skank
+v14_test/
+v14_test2/
+v14b/ -- use fxs, lot of pads, i think first use of independant effects, added a linkpad to a nice groove at col 6, nices grooves
+v15/ -- second pads, explosion! spirale thing, nice!! must inspire! invention of oscsampler wonder !!!! base de hipster arthrite
+v15b/
+v15c/
+v15link/
+v16/ -- breakbeat session, few pads, nice begining, presence of the skrillex relic, nice perc texture and rhytm, dark and slow feel
+v16c/
+v16link/
+v17/ -- back to cheesytek, global fx not working (middle), a bit perc lab, no nice perc in general
+v17b/
+v17c/ -- not working, not copy of v17
+v18/ -- empty
+v2/ -- empty
+v3/ -- empty
+v4/ -- some pads but dont work
+v5/ -- fast tek with only kicks, some pads don't work
+v6/ -- fast tek with firt distorted kicks -- second track at 2@4 -- some launchlines, first hats, nice buildups
+v7/ -- failed dub attempt, nice feeling with column q
+v8.20130901/
+v8.20130901_2/
+v8/ -- copy of v6, faster tempo, this is great breakcore lofitek
+v9.20130910/
+v9/ -- dora en amazonie, nice granulation, percu texture strange and bad, first oscsampler perc attempt, reggaeton part, really bad bass
+v9b/ -- nice but cheesy dub part added. quant is short, nice live playable! lot of columns
+wednesday1/
+workshop/
+yau1/
+yo5/
+yo6/

@@ -1,5 +1,4 @@
 (
-BufDef(\ukraine, "bruit1/07_ukraine.flac");
 ~buf = BufDef(\march);
 ~buf = BufDef(\moeten);
 ~buf = BufDef(\ukraine);

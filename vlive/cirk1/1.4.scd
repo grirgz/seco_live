@@ -55,3 +55,4 @@ Ndef(~name+++\fx).put(1, \set -> Pbind(
 // END
 
 Ndef(~name+++\fx).play;
+Ndef.clear

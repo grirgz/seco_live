@@ -1,1 +1,1 @@
-Veco.main.clip_offset = Point(4, 25);
+Veco.main.clip_offset = Point(0, 27);
