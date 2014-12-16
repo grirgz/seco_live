@@ -8,7 +8,7 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 	var sig, sig1, sig2, sig3;
 	var fspread;
 	fspread = \fspread.kr(0.001);
-	freq= freq * ((0..7)/7 - 0.5 * fspread + 1);
+	freq= \mfreq.kr(1) * freq * ((0..7)/7 - 0.5 * fspread + 1);
 	sig = SinOsc.ar(freq);
 	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
 	sig = Splay.ar(sig, spread, amp, pan);

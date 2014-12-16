@@ -11,7 +11,8 @@ Pdef(~name, Ppar(
 			\ii, i,
             \amp, 1/~n,
             \dur, Pdefn(~name+++\period) / (i + 1),
-            \legato, 0.8
+			\sustain, 0.2,
+            //\legato, 0.1
         )
     })
 ));

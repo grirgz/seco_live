@@ -18,6 +18,16 @@ if(s.volume.volume == 0) {
 
 
 (
+	~legatorest = { arg use_isrest=0;
+		if(use_isrest == 1) {
+			Pfunc({ arg ev;
+				(ev[\legato] == 0) or: { ev[\isRest] }
+			});
+		} {
+			Pbinop('==', Pkey(\legato), 0)
+		}
+	};
+
 	~timeline_do = { arg time, index_add, spawn_fun, quantnow_fun, after_fun;
 		index_add = index_add ?? 1;
 

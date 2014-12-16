@@ -17,3 +17,23 @@ Pdef(~name, Ppar(
 ));
 )
 
+// END
+
+
+play{Splay.ar({Pluck.ar(BPF.ar(f=product({|i|product({LFSaw.ar(2**rrand(-9,1),2.rand)>0}!(i+2))/(1+i)+1}!8)*86,43).sin,Saw.ar,1,1/f,9)}!9)}
+(
+Ndef(\plop, {
+	var sig;
+	sig = {Pluck.ar(
+		BPF.ar(
+			f=product({|i|
+				product({
+					LFSaw.ar(2**rrand(-4,1),2.rand)>0
+				}!(i+2))/(1+i)+1
+			}!8)*746,743 * SinOsc.ar(1/8).range(1.1,1.13)
+		).sin,
+		Saw.ar,1,1/f,9
+	)}!9;
+	Splay.ar(sig)
+}).play
+)
