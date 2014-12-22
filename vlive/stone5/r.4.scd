@@ -23,6 +23,14 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	sig = sig.flat.postln;
 
 	sig = RLPF.ar(sig, \lpf.kr(700) * LFNoise1.kr(1/4).range(1.1,1.5), \rq.kr(0.5));
+	sig = sig * LagUD.kr(Duty.kr(1/~t, 0, Dseq([
+		Dseq([
+			1
+		],7),
+		Dseq([
+			4
+		],1),
+	],inf)),2,0);
 	
 	sig = sig * 8;
 	amp = amp * \gain.kr(1);

@@ -72,6 +72,20 @@ SynthDef(~name+++\b, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, 
 	//sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
+
+SynthDef(~name+++\gran, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, gdur=0.1, pitch_stretch=1, pos=0.1, bufnum;
+	var sig, sig1, sig2, sig3;
+	var clk;
+	var randpos;
+	clk = Impulse.ar(\rate.kr(4));
+	randpos = TRand.ar(clk, 0.00001,0.01);
+	sig = TGrains.ar(2, clk, bufnum, pitch_stretch, pos + randpos * BufDur.kr(bufnum), gdur, pan, 1);
+	//sig = SinOsc.ar(100);
+	sig = sig * 10;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
 );
 
 (
