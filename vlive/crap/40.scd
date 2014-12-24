@@ -118,7 +118,7 @@ Rect(0,0,1,1) / 2
 	~wid.bounds.debug("bounds");
 	~notes.do { arg note;
 		//~wid.createNode1(~time/~size.x, ( note[\midinote].debug("ass") /  ~size.y ).debug("what"), 1/8, Color.red);
-		~wid.createNode(~time, note[\midinote], 1/8, Color.green);
+		~wid.createNode(~time, note[\midinote], Point(1/8,1), Color.green);
 		~time = ~time + note[\dur];
 	};
 )
@@ -128,3 +128,13 @@ Rect(0,0,1,1) / 2
 ~rect.origin.x = 5
 ~rect
 ~rect.top = 1
+
+~wid.pixelRectToNormRect(Rect(300,200, 0,0))
+~wid.pixelRectToNormRect(Rect.fromPoints(Point(300,200), Point(0,0)))
+Rect.fromPoints(Point(300,200), Point(300,200)+Point(0,0))
+DrawGrid.test( \freq.asSpec.grid, \amp.asSpec.grid  );
+DrawGrid.test( BlankGridLines.new, \midinote.asSpec.grid  );
+DrawGrid.test( ControlSpec(0,2,\lin,0,1,"s").grid, \midinote.asSpec.grid  );
+nil.asGrid
+
+\delay.asSpec
