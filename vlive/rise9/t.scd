@@ -18,6 +18,21 @@ SynthDef(~name, { arg out=0, gate=1, pan=0, phase=0, bufnum=0, amp=0.1, pos=0, r
 
 }).add;
 
+SynthDef(~name+++\sin, { arg out=0, gate=1, pan=0, phase=0, bufnum=0, amp=0.1, pos=0, rate=1, ratefreq=3;
+	var s1;
+	var sig;
+	rate = SinOsc.kr(\sinrate.kr(1)*~t) * \sinamp.kr(0.1);
+	pos = pos * BufFrames.kr(bufnum);
+	sig = PlayBuf.ar(2, bufnum, rate, 1, pos);
+	sig = sig * 14.8;
+	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,1,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan + LFNoise1.kr(10)/2, amp).mean;
+	sig.debug("hihi");
+	Out.ar(out, sig);
+
+
+}).add;
+
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
 Pdef(~name, Pdef(~name +++ \pre) <> Pbind(

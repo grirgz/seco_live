@@ -1,5 +1,7 @@
 ~name = 'stone1-a';
 
+~name.debug("namexxxxx____");
+
 SynthDef(~name, { | out=0, decay = 3, amp = 0.1, freqfactor = 1, doneAction=2, delayfactor=1, shift=(-200), freq2=3000, noisefreq=0.5,
 			fbase=4000, fscale=3, fbase2 = 3000, fscale2 = 1, freqfactor2 = 1, decay2=2, gate=1,
 			dbase2=0.01, dscale2=0.5,

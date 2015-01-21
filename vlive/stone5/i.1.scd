@@ -45,7 +45,7 @@ Pdef(~name+++\base, Pbind(
 Pdef(~name +++ \pre, 
 	Ppar([
 		Pseed(100, Pdef(~name+++\base)) <> Pbind(
-			\instrument, ~name+++\b,
+			\instrument, ~name+++\bcomp,
 			\lpfenv1, Pseq([
 				[ Env([1,0.1],[0.16], -5) ],
 			],inf),

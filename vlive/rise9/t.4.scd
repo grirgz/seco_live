@@ -1,0 +1,27 @@
+Pdef(~name +++ \pre, Pbind(
+	\instrument, ~name+++\sin,
+	\freq, 100,
+	\dur, 1/8,
+	\bufnum, BufDef(\ukraine),
+	\ratefreq, 2,
+	\rate, Pseq([0.3,0.2],inf),
+	\rate, Pwhite(0.5,2),
+	//\sustain, 0.2,
+	\legato, 1.0,
+	\sinamp, Pseq([1,1/3,2,4/3],inf),
+	\sinrate, Prand([
+		4,2,8,4,
+		16,6,8,3,
+		4,8,2,2,
+	],inf),
+	\phase, Pseq([1,0,0,1],inf),
+	\amp, 5 * Pkey(\amp),
+	\pos, Pseg(Pseq([0,1],inf),8),
+	\isRest, Pseq([
+		1,0,0,0,
+		1,1,0,0,
+		1,1,1,1,
+		0,0,0,0,
+	],inf).coin.not,
+	\isRest, Pseq([0.5],inf).coin.not,
+));

@@ -1,1 +1,1 @@
-Veco.save('rise18-7').amp_level = 0.64895544690897;
+Veco.save('7').amp_level = 0.64895544690897;

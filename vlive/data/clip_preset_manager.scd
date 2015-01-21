@@ -1,0 +1,1 @@
+( "/home/ggz/code/sc/seco/vlive/stone1/4.1.scd": ( 'tags': [ "snare", "perc", "multipdef" ] ), "/home/ggz/code/sc/seco/vlive/stone8/1.1.scd": ( 'tags': [ "perc", "kick", "pdef", "multipdef" ] ), "/home/ggz/code/sc/seco/vlive/stone1/a.2.scd": ( 'tags': [ "electric", "lead", "pdef" ] ) )

@@ -45,7 +45,7 @@ Pdef(~name+++\base, Pbind(
 Pdef(~name +++ \pre, 
 	Ppar([
 		Pseed(100, Pdef(~name+++\base)) <> Pbind(
-			\instrument, ~name+++\b,
+			\instrument, ~name+++\bcomp,
 			\lpfenv1, Pseq([
 				[ Env([1,0.1],[0.16], -5) ],
 			],inf),
@@ -55,7 +55,7 @@ Pdef(~name +++ \pre,
 			\lpfenv3, Pseq([
 				[ Env([1,0.41],[0.01]) ],
 			],inf),
-			\levelScale, 0.5,
+			\levelScale, 0.2,
 			\sig2rel, Pseq([
 				0.1,0.07, 0.2,0.1
 			],inf).stutter(1),
@@ -72,6 +72,7 @@ Pdef(~name +++ \pre,
 		Pseed(100, Pdef(~name+++\base)) <> Pbind(
 			\instrument, \oscsampler3,
 			\pos, 0.014 + Pseq([0,1,0,2],inf).stutter(8)/100,
+			\limit, -8.dbamp,
 			\pos, 0.25732882889595,
 			\freq, 710,
 			\range, 0.00000001,

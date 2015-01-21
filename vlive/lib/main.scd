@@ -18,6 +18,13 @@ if(s.volume.volume == 0) {
 
 
 (
+~euclide = {arg len, hits, rot=0; 
+	var seq = Array.newClear(); 
+	for(0, len - 1, {arg i;seq = seq.add((i * hits % len) < hits)}); 
+	seq = seq.rotate(rot);
+	seq = seq.collect(_.not);
+	seq;
+};
 	~legatorest = { arg use_isrest=0;
 		if(use_isrest == 1) {
 			Pfunc({ arg ev;
@@ -1024,6 +1031,7 @@ if(s.volume.volume == 0) {
 		codepad.payload = { arg self;
 			quant.debug("setting Pdef.defaultQuant to");
 			Pdef.defaultQuant = quant;
+			Ndef(\defaultQuant).proxyspace.quant = quant;
 		};
 	}
 };
