@@ -20,6 +20,14 @@ Veco.main.pane_rect = Rect(0,4,8,4); Veco.main.clip.update_display;
 Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
  Veco.main.clip.update_display;
 
+Veco.open_project("stone1")
+Veco.gui
+
+Veco.open_project("testme2")
+
+Veco.main.clipboard_mode
+Veco.main.clipboard_clip
+
  (
  ~target_project_path = "/home/ggz/code/sc/seco/vlive/stone1";
  32.do { arg x;
@@ -45,13 +53,15 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 		);
 
 		self.project_root = project_root ? Veco.user_path;
-		self.data_path = "~/code/sc/seco/vlive/data/clip_preset_manager.scd".standardizePath;
+		self.data_path = self.project_root +/+ "data/clip_preset_manager.scd".standardizePath;
 
 		self.load_data;
 		self.open_holder_project;
 	
 		self;
 	},
+
+	// node management
 
 	open_holder_project: { arg self;
 		self.project_path = "~/code/sc/seco/vlive/preset_holder".standardizePath;
@@ -60,9 +70,20 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 		}
 	},
 
-
-
 	play_preset: { arg self, path;
+		self.clip_do { arg node, clip;
+			clip.response_on_play;
+		}
+	},
+
+	copy_current_preset: { arg self, path;
+		self.clip_do { arg node, clip;
+			node.main.clipboard_mode = \clip;
+			node.main.clipboard_clip = [clip];
+		};
+	},
+
+	load_preset: { arg self, path;
 		self.stop_preset;
 		Veco.projects[self.project_path].use {
 			var main;
@@ -79,11 +100,11 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 			filename = target_uname.split($.);
 			if(filename.size < 3) {
 				// tags on node file
-				debug("play_preset: NOT_IMPLEMENTED");
+				debug("load_preset: NOT_IMPLEMENTED");
 			} {
 				// tags on clip file
-				target_uname = filename[0];
-				target_clip_uname = filename[0]++ "." ++ filename[1];
+				target_uname = filename[0].asSymbol;
+				target_clip_uname = ( filename[0]++ "." ++ filename[1] ).asSymbol;
 				main = Veco.main;
 
 				//Veco.main.get_node_by_index(0).clips.debug("nn")
@@ -91,7 +112,7 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 				//main.get_node_by_index(0).clips[0]
 
 				uname = main.index_to_uname(0);
-				node = ~class_shortcut_node.new(main, uname, target_path, target_uname);
+				node = ~class_shortcut_node.new(main, uname.asSymbol, target_path, target_uname);
 				main.nodes[uname] = node;
 				node.path.debug("path");
 				"load data".debug;
@@ -99,7 +120,7 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 				"exec".debug;
 				node.execute;
 				"create clip".debug;
-				clip = ~class_shortcut_clip.new(main, uname++".1", node, target_path, target_clip_uname);
+				clip = ~class_shortcut_clip.new(main, ( uname++".1" ).asSymbol, node, target_path, target_clip_uname);
 				node.clips[0] = clip;
 
 				[clip.uname,clip.path].debug("path");
@@ -107,13 +128,18 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 				~buf.debug("buf");
 				~debugclip = clip;
 				clip.load_data;
-				clip.response_on_play;
+				//clip.response_on_play;
 
 
 			};
 
-		}
-		
+		};
+		self.copy_current_preset;
+	},
+
+	load_and_play_preset: { arg self, path;
+		self.load_preset(path);
+		self.play_preset(path);
 	},
 
 	stop_preset: { arg self;
@@ -121,6 +147,28 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 			Veco("1.1").stop_node;
 		}
 	},
+
+	get_current_preset: { arg self;
+		self.clip_listview.items[self.clip_listview.value]
+	},
+
+	clip_do: { arg self, fun;
+		Veco.projects[self.project_path].use ({
+			fun.( Veco('1'), Veco('1.1'))
+		})
+	},
+
+	is_current_node_playing: { arg self;
+		Veco.projects[self.project_path].use ({
+			~veco_is_current_node_playing = Veco('1').is_playing;
+			Veco('1.1').debug("kkkkkkkkkkkkk");
+			~veco_is_current_node_playing.debug("is_PLAYING");
+		});
+		Veco.projects[self.project_path][\veco_is_current_node_playing].debug("is_PLAYINGkdjksl");
+	},
+ 
+
+	// lib management
 
 	get_clips: { arg self;
 		self.clip_library;
@@ -137,7 +185,31 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 		tags;
 	},
 
-	scan_tree: { arg self, path, save=true;
+	scan_tree: { arg self, path, save=true, reset=true;
+		if(reset=true) {
+			self.clip_library = ();
+		};
+		self.refresh_gui;
+		self.wait_if_in_routine(0.1);
+		//"befwaore".debug;
+		//1.wait;
+		//"xxxxxbefwaore".debug;
+		self.scan_tree_recursive(path);
+		if(save == true) {
+			self.save_data;
+		};
+		self.refresh_gui;
+		//"befwaore".debug;
+		//0.1.wait;
+		//"dddbefwaore".debug;
+		//self.wait_if_in_routine(0.1);
+	},
+
+	wait_if_in_routine: { arg self, time;
+		if(thisThread.isKindOf(Routine), { time.wait; }, {  });
+	},
+
+	scan_tree_recursive: { arg self, path;
 		var pn;
 		
 		pn = PathName(path);
@@ -145,11 +217,9 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 			var tags;
 			dir.fullPath.debug("class_clip_preset_manager: entering");
 			self.scan_project(dir.fullPath);
-			self.scan_tree(dir.fullPath);
+			self.scan_tree_recursive(dir.fullPath);
 		};
-		if(save == true) {
-			self.save_data;
-		};
+		
 	},
 
 	scan_project: { arg self, project_path;
@@ -201,12 +271,30 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 		tags
 	},
 
+	load_data: { arg self;
+		self.clip_library = self.data_path.load;
+	},
+
+	save_data: { arg self;
+		File.use(self.data_path, "w", { arg file;
+			file.write(self.clip_library.asCompileString);
+		});
+	},
+
+
+	// GUI
+
 	refresh_button: { arg self;
-		self.play_button.states = if(self.is_current_node_playing) {
-			[["Stopped", Color.white, Color.red]];
-		} {
-			[["Playing", Color.white, Color.green]];
-		}
+		Task{
+			1.wait;
+			{
+				self.play_button.states = if(self.is_current_node_playing) {
+					[["Play", Color.white, Color.green]];
+				} {
+					[["Play", Color.white, Color.red]];
+				};
+			}.defer
+		}.play;
 	},
 
 	edit: { arg self;
@@ -219,48 +307,60 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 			self.refresh_cliplist;
 		};
 		self.clip_listview.enterKeyAction = {
-			self.play_preset(self.get_current_preset);
+			self.load_and_play_preset(self.get_current_preset);
 			self.refresh_button;
 		};
 
 		self.rescan_button = Button.new;
 		self.rescan_button.states = [ ["Rescan"] ];
 		self.rescan_button.action = {
-			self.scan_tree(self.project_root);
+			fork{
+				self.scan_tree(self.project_root);
+			}
 		};
 
 		self.play_button = Button.new;
 		self.play_button.action = {
-			self.play_button.states = if(self.is_current_node_playing) {
-				self.stop_preset(self.get_current_preset);
-				[["Stopped", Color.white, Color.red]];
-			} {
-				self.play_preset(self.get_current_preset);
-				[["Playing", Color.white, Color.green]];
-			}
+			//self.play_button.states = if(self.is_current_node_playing) {
+			//	self.stop_preset(self.get_current_preset);
+			//	[["Stopped", Color.white, Color.red]];
+			//} {
+			//	[["Playing", Color.white, Color.green]];
+			//};
+			self.load_and_play_preset(self.get_current_preset);
+			self.refresh_button;
 		};
 
 		self.stop_button = Button.new;
 		self.stop_button.states = [ ["Stop"] ];
 		self.stop_button.action = {
 			self.stop_preset;
+			self.refresh_button;
 		};
 
 		self.edit_button = Button.new;
 		self.edit_button.states = [ ["Edit"] ];
 		self.edit_button.action = {
+			self.load_preset(self.get_current_preset);
 			self.clip_do { arg node, clip;
+				[clip.path, clip.data_path, clip.uname, clip.target_uname].debug("edit: path");
 				clip.open_in_editor
 			};
+			self.refresh_button;
 		};
 
 		self.load_project_button = Button.new;
 		self.load_project_button.states = [ ["Open project"] ];
 		self.load_project_button.action = {
-			var ppath =  Veco.projects[self.project_path][\veco].get_node_by_index(0).target_path;
+			var ppath;
+			self.load_preset(self.get_current_preset);
+			debug("kkjkjjk");
+			//Veco.projects[self.project_path].debug("1")[\veco].debug("2").get_node_by_index(0).debug("3").target_project_path.debug("4");
+			ppath =  Veco.projects[self.project_path][\veco].get_node_by_index(0).target_project_path;
 			Veco.open_project(ppath);
 		};
 
+		self.refresh_button;
 		//self.play_button.valueAction = 0;
 		self.top_layout = HLayout.new(self.rescan_button, self.stop_button, self.play_button, self.edit_button, self.load_project_button);
 		self.list_layout = HLayout.new(self.tag_listview, self.clip_listview);
@@ -279,14 +379,18 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 		self.refresh_cliplist;
 		
 	},
+
 	refresh_taglist: { arg self;
 		var tags, taglib;
 		taglib = self.get_tags;
 		taglib.debug("ttaglib");
 		tags = taglib.keys.asArray.sort;
-		self.tag_listview.items = tags;
+		{
+			self.tag_listview.items = tags;
+		}.defer;
 		
 	},
+
 	refresh_cliplist: { arg self;
 		var tags, taglib;
 		"refresh_cliplist".debug;
@@ -294,45 +398,19 @@ Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
 		taglib.debug("taglib");
 		tags = taglib.keys.asArray.sort;
 		tags.debug("tags");
-		self.tag_listview.value.debug("index");
-		if(self.tag_listview.value.notNil) {
-			tags[self.tag_listview.value].asSymbol.debug("tag");
-			self.clip_listview.items = taglib[tags[self.tag_listview.value].asSymbol];
-		} {
-			self.clip_listview.items = [];
-		}
+		{
+			self.tag_listview.value.debug("index");
+			if(self.tag_listview.value.notNil) {
+				tags[self.tag_listview.value].asSymbol.debug("tag");
+
+				self.clip_listview.items = taglib[tags[self.tag_listview.value].asSymbol];
+			} {
+				self.clip_listview.items = [];
+			}
 		
+		}.defer;
 	},
 
-	load_data: { arg self;
-		self.clip_library = self.data_path.load;
-	},
-
-	save_data: { arg self;
-		File.use(self.data_path, "w", { arg file;
-			file.write(self.clip_library.asCompileString);
-		});
-	},
-
-	get_current_preset: { arg self;
-		self.clip_listview.items[self.clip_listview.value]
-	},
-
-	clip_do: { arg self, fun;
-		Veco.projects[self.project_path].use ({
-			fun.(Veco('1'), Veco('1.1'))
-		})
-	},
-
-	is_current_node_playing: { arg self;
-		Veco.projects[self.project_path].use ({
-			~veco_is_current_node_playing = Veco('1').is_playing;
-			Veco('1.1').debug("kkkkkkkkkkkkk");
-			~veco_is_current_node_playing.debug("is_PLAYING");
-		});
-		Veco.projects[self.project_path][\veco_is_current_node_playing].debug("is_PLAYINGkdjksl");
-	},
- 
 
 );
 ~clip_preset_manager = ~class_clip_preset_manager.new;
