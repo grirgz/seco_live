@@ -1,4 +1,5 @@
 
+// TAGS: pdef, spacy, treble, note, longdecay, calm
 Pdef(~name +++ \pre, Pbind(
 	\degree, 4,
 	\mtranspose, Pstep(Pseq([0,2],inf),8),

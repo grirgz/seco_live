@@ -1,4 +1,5 @@
 (
+// TAGS: pdef, bass, richtimbre, pmono
 Pdef(~name +++ \pre, Pmono(~name,
 	\freq, 400/4 * Pseq([
 		Pseq([

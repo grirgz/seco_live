@@ -1,3 +1,5 @@
+
+// TAGS: granular, ndef, creaking, rhytmed
 Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var sig;
 

@@ -144,7 +144,9 @@ Veco.main.clipboard_clip
 
 	stop_preset: { arg self;
 		Veco.projects[self.project_path].use {
-			Veco("1.1").stop_node;
+			//Veco('1.1').stop_node;
+			Pdef(Veco('1').uname).clear;
+			Ndef(Veco('1').uname+++\fx).clear;
 		}
 	},
 
@@ -205,7 +207,7 @@ Veco.main.clipboard_clip
 		//self.wait_if_in_routine(0.1);
 	},
 
-	wait_if_in_routine: { arg self, time;
+	wait_if_in_routine: { arg self, time=0.01;
 		if(thisThread.isKindOf(Routine), { time.wait; }, {  });
 	},
 
@@ -238,7 +240,7 @@ Veco.main.clipboard_clip
 				self.clip_library[file.fullPath][\tags] = tags;
 			}
 		};
-		
+		self.wait_if_in_routine;
 	},
 
 	scan_file: { arg self, path;
@@ -314,7 +316,7 @@ Veco.main.clipboard_clip
 		self.rescan_button = Button.new;
 		self.rescan_button.states = [ ["Rescan"] ];
 		self.rescan_button.action = {
-			fork{
+		fork{
 				self.scan_tree(self.project_root);
 			}
 		};

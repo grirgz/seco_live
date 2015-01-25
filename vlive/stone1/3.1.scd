@@ -1,3 +1,5 @@
+
+// TAGS: perc, hat, pdef, 4bandperc
 Pdef(~name +++ \pre, Pbind(
 	\freq, 100,
 	\dur, 1/8,

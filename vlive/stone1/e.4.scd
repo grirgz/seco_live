@@ -1,4 +1,5 @@
 (
+// TAGS: pdef, acid, bass
 Ndef(~name+++\lfo1).quant = Pdef.defaultQuant;
 Ndef(~name+++\lfo2).quant = Pdef.defaultQuant;
 

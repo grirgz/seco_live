@@ -1,4 +1,5 @@
 (
+// TAGS: pdef, voice, rhytmed
 Ndef(~name+++\lfo1, { SinOsc.kr(1).range(0.3,0.4)  });
 Ndef(~name+++\lfo2, { SinOsc.kr([0.1,0.01,0.15]).range(0.8,1.09).sum/3;  });
 Pdef(~name +++ \pre, Pbind(

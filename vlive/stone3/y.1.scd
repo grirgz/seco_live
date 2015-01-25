@@ -1,4 +1,5 @@
 
+// TAGS: chord, pdef, spacy, dark
 (
 Pdef(~name +++ \pre, Pbind(
 	\degree, Pseq([0],inf) + \c.asDegrees,

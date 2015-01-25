@@ -1,4 +1,5 @@
 (
+// TAGS: pdef, lfo, treble, machine
 Ndef(~name+++\lfo1, { arg fmfreq; SinOsc.kr(fmfreq * [1,0.2]).sum.clip(0.5) * \bscale.kr(1) * \base.kr(1000) + \base.kr  });
 Ndef(~name+++\lfo1).put(1, \set -> Pbind(
 	\fmfreq, 1 * t,

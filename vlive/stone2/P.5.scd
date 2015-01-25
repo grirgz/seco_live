@@ -1,4 +1,5 @@
 
+// TAGS: drone, ndef, simple, worrying, treble
 Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;

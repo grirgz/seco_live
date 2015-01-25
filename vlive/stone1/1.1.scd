@@ -1,5 +1,6 @@
 
 (
+// TAGS: perc, kick, unusual_synth, pdef
 Pdef(~name +++ \pre, Pbind(
 	\env0, [ Env.new([0.0, 1, 0.1, 0], [0.005, 0.16, 0.1], [-4, -2, 4]) ],
 	\env1, Pfunc({

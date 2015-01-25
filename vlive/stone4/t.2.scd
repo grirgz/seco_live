@@ -1,4 +1,5 @@
 
+// TAGS: ndef, richtimbre, note, chord, middle
 Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var sig;
 	var freq = 200 / 2;

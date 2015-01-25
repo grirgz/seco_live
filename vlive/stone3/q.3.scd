@@ -1,4 +1,5 @@
 
+// TAGS: ndef, drone, noise, rain, harsh, simple
 Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var sig;
 	var freq;

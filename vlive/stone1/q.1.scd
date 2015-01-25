@@ -1,4 +1,5 @@
 
+// TAGS: perc, echo, metallic, pdef, klank
 ~size = 8;
 Pdef(~name +++ \pre, Pbind(
 	\freq, 700,

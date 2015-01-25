@@ -1,3 +1,5 @@
+
+// TAGS: jazz, pitched, pdef_fx, spacy, note, random
 Pdef(~name +++ \pre, Pbind(
 	\freq, Pwhite(100,800.0),
 	\freq, 100 * Prand(Scale.minor.ratios, inf) * Prand([4,2,3,1],inf).stutter(4),

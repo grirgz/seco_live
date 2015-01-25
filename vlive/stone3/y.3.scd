@@ -1,4 +1,5 @@
 
+// TAGS: pdef, simple, chord
 (
 Pdef(~name +++ \pre, Pbind(
 	\instrument, \default,

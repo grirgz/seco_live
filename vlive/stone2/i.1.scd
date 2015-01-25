@@ -1,4 +1,5 @@
 (
+// TAGS: bass, note, pdef
 Pdef(~name +++ \pre, Pmono(~name,
 	\freq, 440*1/4 * Pseq([0,4].midiratio,inf).stutter(16),
 	\fmrange, Pseq([0.5,1,1.5],inf),

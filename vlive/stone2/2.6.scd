@@ -1,5 +1,6 @@
 
 (
+// TAGS: perc, eggs, sampler, odd_rhytm
 	Ndef(~name+++\lfo1).quant = Pdef.defaultQuant;
 	Ndef(~name+++\lfo1, { SinOsc.kr(1/2).range(0,0.0100) +0.35 });
 Pdef(~name +++ \pre, Pbind(

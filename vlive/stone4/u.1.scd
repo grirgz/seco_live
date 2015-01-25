@@ -1,5 +1,6 @@
 
 
+// TAGS: pdef, complex, pluck, note, chord
 
 (
 SynthDef(\guitar, { arg out=0, freq=400, pan, rand, delayTime, delayTime2=1.4, noiseType=1, timeScale=1;

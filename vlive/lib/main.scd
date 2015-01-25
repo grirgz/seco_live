@@ -1351,7 +1351,11 @@ if(s.volume.volume == 0) {
 	var fadetime;
 	fadetime = Ndef(fxname).getHalo(\fadeOut) ?? Ndef(fxname).fadeTime;
 	[fxname, fadetime].debug("stop FX");
+
+	// FIXME: maybe the bug is there!
+	// FIXME: disabled fadeout
 	Ndef(fxname).end(fadetime);
+	//Ndef(fxname).release; // WTF, why this don't stop the ndef
 };
 
 ~pdef_fx_channel = { arg suffix=\fx;

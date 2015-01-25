@@ -1,4 +1,5 @@
 
+// TAGS: ndef, chord, calm
 Ndef(~name+++\fx).put(0, { arg pan=0, f1=200, f2=300, fund = 70, amp = 0.25, doneAction=2 ;
 	var sig;
 	var source;
