@@ -53,6 +53,8 @@ Veco.main.clipboard_clip
 		);
 
 		self.project_root = project_root ? Veco.user_path;
+		if(self.project_root.last == $/) { self.project_root = self.project_root.drop(-1) }; // blame PathName
+		self.project_root.debug("projroot");
 		self.data_path = self.project_root +/+ "data/clip_preset_manager.scd".standardizePath;
 
 		self.load_data;
@@ -83,8 +85,10 @@ Veco.main.clipboard_clip
 		};
 	},
 
-	load_preset: { arg self, path;
-		self.stop_preset;
+	load_preset: { arg self, path, stop_it=true;
+		if(stop_it) {
+			self.stop_preset;
+		};
 		Veco.projects[self.project_path].use {
 			var main;
 			var uname;
@@ -96,7 +100,6 @@ Veco.main.clipboard_clip
 			var filename;
 			target_uname = PathName(path).fileName;
 			target_path = PathName(path).pathOnly;
-			filename = PathName(path).fileName;
 			filename = target_uname.split($.);
 			if(filename.size < 3) {
 				// tags on node file
@@ -112,23 +115,26 @@ Veco.main.clipboard_clip
 				//main.get_node_by_index(0).clips[0]
 
 				uname = main.index_to_uname(0);
+
 				node = ~class_shortcut_node.new(main, uname.asSymbol, target_path, target_uname);
+				//node[\save_data] = nil; // prevent overwriting data file with wrong uname
+
 				main.nodes[uname] = node;
 				node.path.debug("path");
 				"load data".debug;
 				node.load_data;
 				"exec".debug;
 				node.execute;
+
 				"create clip".debug;
 				clip = ~class_shortcut_clip.new(main, ( uname++".1" ).asSymbol, node, target_path, target_clip_uname);
-				node.clips[0] = clip;
+				//clip[\save_data] = nil; // prevent overwriting data file with wrong uname
 
+				node.clips[0] = clip;
 				[clip.uname,clip.path].debug("path");
-				//clip.execute;
 				~buf.debug("buf");
-				~debugclip = clip;
+				//~debugclip = clip;
 				clip.load_data;
-				//clip.response_on_play;
 
 
 			};
@@ -151,7 +157,7 @@ Veco.main.clipboard_clip
 	},
 
 	get_current_preset: { arg self;
-		self.clip_listview.items[self.clip_listview.value]
+		self.clip_listview_data[self.clip_listview.value]
 	},
 
 	clip_do: { arg self, fun;
@@ -247,25 +253,33 @@ Veco.main.clipboard_clip
 		var code;
 		var tagline_start, tagline_end, tagline;
 		var magic;
-		var tags;
+		var tags = [];
 		if(File.exists(path)) {
-			File.use(path, "r", { arg file;
-				//"bed".debug;
-				code = file.readAllString;
-				//"afd".debug;
-			});
-			magic = "\n// TAGS:";
-			tagline_start = code.find(magic);
-			if(tagline_start.notNil) {
-				tagline_end = code.find("\n", offset: tagline_start+1);
-				if(tagline_end.isNil) {
-					tagline_end = code.size;
-				};
-				tagline = code.copyRange(tagline_start+magic.size, tagline_end-1);
-				tags = tagline.split($,).collect({ arg tag; 
-					tag.stripWhiteSpace;
+			var filename;
+			filename = PathName(path).fileName;
+			filename = filename.split($.);
+			if(filename.size < 3) {
+				// tags on node file
+				debug("load_preset: NOT_IMPLEMENTED for nodes");
+			} {
+				File.use(path, "r", { arg file;
+					//"bed".debug;
+					code = file.readAllString;
+					//"afd".debug;
 				});
-			}
+				magic = "\n// TAGS:";
+				tagline_start = code.find(magic);
+				if(tagline_start.notNil) {
+					tagline_end = code.find("\n", offset: tagline_start+1);
+					if(tagline_end.isNil) {
+						tagline_end = code.size;
+					};
+					tagline = code.copyRange(tagline_start+magic.size, tagline_end-1);
+					tags = tagline.split($,).collect({ arg tag; 
+						tag.stripWhiteSpace;
+					});
+				}
+			};
 			//[tagline_start, tagline_end, tagline,tags].debug("scan_file: tags");
 		} {
 			( "ERROR: file not found: "++ path ).postln;
@@ -343,7 +357,7 @@ Veco.main.clipboard_clip
 		self.edit_button = Button.new;
 		self.edit_button.states = [ ["Edit"] ];
 		self.edit_button.action = {
-			self.load_preset(self.get_current_preset);
+			self.load_preset(self.get_current_preset, false);
 			self.clip_do { arg node, clip;
 				[clip.path, clip.data_path, clip.uname, clip.target_uname].debug("edit: path");
 				clip.open_in_editor
@@ -361,6 +375,12 @@ Veco.main.clipboard_clip
 			ppath =  Veco.projects[self.project_path][\veco].get_node_by_index(0).target_project_path;
 			Veco.open_project(ppath);
 		};
+
+
+		// TODO: volume fader
+		//MIDIBoard.map(\s1, Ndef((uname++'mixer').asSymbol), mixer_key, self.level_spec);
+					//cview = VecoLib.lib[\class_rack_control_scalar_knob_view].new(MIDIBoard.controls[\s1], self);
+					//view.layout = cview.make_layout;
 
 		self.refresh_button;
 		//self.play_button.valueAction = 0;
@@ -395,17 +415,39 @@ Veco.main.clipboard_clip
 
 	refresh_cliplist: { arg self;
 		var tags, taglib;
+		var cliplib;
 		"refresh_cliplist".debug;
 		taglib = self.get_tags;
-		taglib.debug("taglib");
+		cliplib = self.get_clips;
+		self.clip_listview_data = List.new; // used by get_current_preset to retrieve path
+		
+		//taglib.debug("taglib");
 		tags = taglib.keys.asArray.sort;
-		tags.debug("tags");
+		//tags.debug("tags");
 		{
 			self.tag_listview.value.debug("index");
 			if(self.tag_listview.value.notNil) {
+				var items;
 				tags[self.tag_listview.value].asSymbol.debug("tag");
 
-				self.clip_listview.items = taglib[tags[self.tag_listview.value].asSymbol];
+				items = taglib[tags[self.tag_listview.value].asSymbol].collect{ arg path;
+					var pn;
+					var res;
+					pn = PathName(path);
+					res = pn.asRelativePath(self.project_root);
+					res = "% -- %".format(res, cliplib[path][\tags].join(", "));
+					[path,res];
+				};
+				items.debug("before");
+				items = items.sort({ arg a, b; a[0] > b[0] });
+				items.debug("after");
+				self.clip_listview.items = items.collect { arg item;
+					self.clip_listview_data.add(item[0]);
+					item[1];
+				};
+				self.clip_listview_data.debug("data");
+				self.clip_listview.items.debug("items XXX");
+
 			} {
 				self.clip_listview.items = [];
 			}

@@ -1,5 +1,5 @@
 "iiiihooo".debug("kjk");
-// TAGS: electric, lead, pdef
+// xTAGS: electric, lead, pdef
 "iiiihooo".debug("kjk");
 
 

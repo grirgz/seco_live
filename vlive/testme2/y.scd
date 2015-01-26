@@ -1,9 +1,9 @@
-~name = 'testme2-r';
+~name = 'testme2-y';
 
 
 ~pdef_channel.();
 
-// TAGS: i am lost :(
+// xTAGS: i am lost :(
 
 ~name.debug("hoyyy");
 

@@ -1,4 +1,4 @@
-~name = 'stone1-a';
+~name = 'testme2-g';
 
 ~name.debug("namexxxxx____");
 

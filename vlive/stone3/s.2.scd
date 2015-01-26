@@ -39,7 +39,7 @@ Ndef(~name+++\fx).put(1, \set -> Pbind(
 ));
 )
 
-// ENd
+// END
 
 ~set_macro.(\k1, Ndef(~name+++\fx), \pregain, ControlSpec(0.01,4,\exp,0,1));
 
