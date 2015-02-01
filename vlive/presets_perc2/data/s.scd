@@ -1,1 +1,1 @@
-Veco.save('s').amp_level = 0.64895544690897;
+Veco.save('s').amp_level = 0.3035628314859;

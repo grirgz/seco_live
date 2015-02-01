@@ -42,6 +42,9 @@ SynthDef(~name+++\b, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, 
 	Out.ar(out, sig);
 }).add;
 
+BufDef.mono(\table, "field/table.flac");
+BufDef.mono(\march, "vipere/march.flac");
+
 (
 if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
 Pdef(~name, Pdef(~name +++ \pre) <> Pbind(

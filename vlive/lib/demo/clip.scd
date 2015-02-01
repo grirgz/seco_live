@@ -1,3 +1,22 @@
+
+~pdef_init.(Pbind(
+	\instrument, ~name,
+	\degree, Pseq([0],inf),
+	\isRest, Veco(~name).isrest,
+	\dur, 1/4,
+	\amp, 0.1
+));
+
+~pdef_init = { arg pat;
+	Pdef(~name, 
+		Pdef(~name+++\patfx) <>
+		Pdef(~name+++\mod) <>
+		Pdef(~name+++\pre) <>
+		pat
+		<> Veco(~name).mixer;
+	)
+};
+
 // prevent stopping when it's a special track like spawnclip which has a stop handler
 Veco.main[\in_stop_exclusion_range] = { arg x; x.inclusivelyBetween(55,64) };
 
@@ -298,6 +317,9 @@ Pdef(~name,
 
 //////////////////////////////////////////////////////////// 
 
+/////////// response mode
+Veco(~namex).response_mode = \exec;
+
 /////////// create fake clips
 
 
@@ -347,7 +369,7 @@ TempoClock.default.play ({
 	var pos;
 	Ndef(key).add(fun);
 	pos = Ndef(key).objects.lastIndex;
-	TempoClock.default.sched(4, {
+	TempoClock.default.sched(delta, {
 		Ndef(key).removeAt(pos);
 	})
 }
@@ -360,6 +382,7 @@ TempoClock.default.play ({
 	Ndef(~wobblefx).set(\stutter, 8);
 	nil;
 }, ~quant);
+
 Veco(~namex).response_off_hook = {
 	TempoClock.default.play ({
 		//~quant.wait;
@@ -368,3 +391,28 @@ Veco(~namex).response_off_hook = {
 		nil;
 	}, [~quant, 1/2]);
 };
+
+// caution: use Veco.do instead of ~name (because async)
+
+Veco.do { arg name;
+	Veco(~namex).response_off_hook = {
+		Pdef(name).stop;
+	};
+};
+
+// or
+
+Veco(~namex).response_off_hook = { arg self, name, namex, index;
+	Pdef(name+++\pre, Pbind());
+};
+
+
+// trigger a trigger in a ndef without getting it stuck
+
+Ndef(~name+++\fx).set(\fxtrig, 1);
+Veco.do { arg name;
+	{
+		Ndef(name+++\fx).set(\fxtrig, 0);
+	}.defer
+};
+Veco(~namex).response_mode = \exec;

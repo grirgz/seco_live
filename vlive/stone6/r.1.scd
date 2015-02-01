@@ -1,5 +1,6 @@
 
 (
+// TAGS: pdef, organic, strange, lfo, granular
 Ndef(~name+++\lfo1, { SinOsc.kr(32*~t) * 0.01 +0.4 + SinOsc.kr(1/132).range(0,0.01) });
 Ndef(~name+++\lfo1).quant = Pdef.defaultQuant;
 Ndef(~name+++\lfo2, { SinOsc.kr(1/22*~t) * 400.01 +400.4 + SinOsc.kr(1/132).range(0,400.01) });

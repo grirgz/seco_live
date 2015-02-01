@@ -1,7 +1,7 @@
 ~name = 'presets_perc2-q';
 
 
-Veco(~name).make_mixer;
+~pdef_channel.();
 
 (
 SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0.01, spread=0.8, timeScale=1|
@@ -25,7 +25,7 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0.01
 	son = son.clip2(1);
 
 	son = son * amp;
-	son = Splay.ar(son, spread, amp, pan);
+	son = Splay.ar(son, spread, 1, pan);
 	
 	OffsetOut.ar(out, son);
 }).store;
@@ -55,15 +55,14 @@ SynthDef(~name+++\2, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan
 	son = son.clip2(1);
 
 	son = son * amp;
-	son = Splay.ar(son, spread, amp, pan);
+	son = Splay.ar(son, spread, 1, pan);
 	
 	OffsetOut.ar(out, son);
 }).store;
 );
 
 (
-if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
-Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
+~pdef_init.(Pbind(
 	\instrument, ~name,
 	\env0, [ Env.new([0.5, 1, 0.5, 0], [0.005, 0.06, 0.1], [-4, -2, -4]) ],
 	\env1, [ Env.new([120, 59, 29], [0.005, 0.29], [-4, -5]) ],
@@ -72,7 +71,7 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\fratio, 2,
 	\dur, 1/8,
 	\amp, 0.4 * Pkey(\amp),
-) <> Veco(~name).mixer)
+))
 );
 
 // END

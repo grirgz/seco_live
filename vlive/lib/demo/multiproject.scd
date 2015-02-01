@@ -13,12 +13,24 @@ Veco.project_slots[0][\veco].get_node_by_uname('1').get_clip_by_index(64).uname
 // preset (others channels)
 Veco.main.pane_rect = Rect(0,4,8,4); Veco.main.clip.update_display;
 Veco.main.pane_offset = Point(64,0); Veco.main.clip.update_display;
- Veco.main.clip.update_display;
+Veco.main.pane_offset = { Point(64+Veco.main.clip_offset.x,Veco.main.clip_offset.y) }; Veco.main.clip.update_display;
+Veco.main.pane_target_project = Veco.project_slots[1]; Veco.main.clip.update_display;
+Veco.main.clip.update_display;
 
 // moder (act on same channel)
+(
+Veco.main.pane_rect = Rect(0,4,8,4);
+Veco.main.pane_offset = Point(0,64);
+Veco.main.pane_target_project = Veco.project_slots[1]; 
+Veco.main.clip.update_display;
+)
 Veco.main.pane_rect = Rect(0,4,8,4); Veco.main.clip.update_display;
 Veco.main.pane_offset = Point(0,64); Veco.main.clip.update_display;
- Veco.main.clip.update_display;
+Veco.main.pane_target_project = Veco.project_slots[1]; Veco.main.clip.update_display;
+Veco.main.clip.update_display;
+Veco.project_slots[1]
+
+PathName(Veco.project_slots[1][\veco].project_path).asRelativePath( ( Veco.user_path+/+"" ).drop(-1))
 
 Veco.open_project("stone1")
 Veco.gui
@@ -244,9 +256,9 @@ Veco.main.clipboard_clip
 					self.clip_library[file.fullPath][\tags] = List.new;
 				};
 				self.clip_library[file.fullPath][\tags] = tags;
-			}
+			};
+			self.wait_if_in_routine;
 		};
-		self.wait_if_in_routine;
 	},
 
 	scan_file: { arg self, path;
@@ -260,7 +272,7 @@ Veco.main.clipboard_clip
 			filename = filename.split($.);
 			if(filename.size < 3) {
 				// tags on node file
-				debug("load_preset: NOT_IMPLEMENTED for nodes");
+				//debug("load_preset: NOT_IMPLEMENTED for nodes");
 			} {
 				File.use(path, "r", { arg file;
 					//"bed".debug;
@@ -435,7 +447,7 @@ Veco.main.clipboard_clip
 					var res;
 					pn = PathName(path);
 					res = pn.asRelativePath(self.project_root);
-					res = "% -- %".format(res, cliplib[path][\tags].join(", "));
+					res = "% -- %".format(res, cliplib[path][\tags].sort.join(", "));
 					[path,res];
 				};
 				items.debug("before");

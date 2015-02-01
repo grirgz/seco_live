@@ -18,6 +18,29 @@ if(s.volume.volume == 0) {
 
 
 (
+~pdef_init = { arg pat;
+	Pdef(~name, 
+		~patfx.(~name+++\patfx) <>
+		~dPdef.(~name+++\mod).quant_(0) <>
+		~dPdef.(~name+++\pre) <>
+		pat
+		<> Veco(~name).mixer;
+	)
+};
+
+~set_default_quant = { arg quant;
+	Pdef.defaultQuant = quant;
+	//Ndef(\defaultQuant).proxyspace.quant = quant; // unfortunaly, this set quant to ALL Ndef, even those with already a quant
+	Ndef.defaultQuant = quant; // need a special patch until implemented officially
+
+};
+
+~set_project_tempo = { arg tempo;
+	TempoClock.default.tempo = tempo;
+	t = tempo;
+	~t = tempo;
+};
+
 ~euclide = {arg len, hits, rot=0; 
 	var seq = Array.newClear(); 
 	for(0, len - 1, {arg i;seq = seq.add((i * hits % len) < hits)}); 
@@ -538,7 +561,8 @@ if(s.volume.volume == 0) {
 ~insert_beat = { arg key, namex;
 	var env = currentEnvironment;
 	var gate;
-	namex = namex ?? ~namex;
+	key = key ? ( ~name+++\patfx );
+	namex = namex ? ~namex;
 	gate = key+++\gate +++ namex;
 	env[gate] = 1;
 	env[key] = Pbind(\isRest, Pseq([false],inf), \bla, Pfunc({ env[gate] }));
@@ -550,6 +574,7 @@ if(s.volume.volume == 0) {
 	var env = currentEnvironment;
 	var gate;
 	var namex;
+	key = key ?? ( ~name+++\patfx );
 	namex = ~namex;
 	gate = key+++\gate +++ namex;
 	Veco(namex).response_mode = \exec;
@@ -565,6 +590,7 @@ if(s.volume.volume == 0) {
 ~patfx_gate = { arg key, pat, namex;
 	var env = currentEnvironment;
 	var gate;
+	key = key ?? ( ~name+++\patfx );
 	namex = namex ?? ~namex;
 	gate = key+++\gate +++ namex;
 	env[gate] = 1;
@@ -575,6 +601,7 @@ if(s.volume.volume == 0) {
 
 ~patfx_insert = { arg key, pat, namex;
 	var env = currentEnvironment;
+	key = key ?? ( ~name+++\patfx );
 	namex = namex ?? ~namex;
 	env[key] = pat ;
 	Veco(namex).response_mode = \exec;
@@ -583,6 +610,7 @@ if(s.volume.volume == 0) {
 ~patfx_on = { arg key, pat, namex;
 	var env = currentEnvironment;
 	var gate;
+	key = key ?? ( ~name+++\patfx );
 	namex = namex ?? ~namex;
 	gate = key+++\on +++ namex;
 	env[gate] = 1;
@@ -593,6 +621,7 @@ if(s.volume.volume == 0) {
 ~patfx_off = { arg key, namex;
 	var env = currentEnvironment;
 	var gate;
+	key = key ?? ( ~name+++\patfx );
 	namex = namex ?? ~namex;
 	gate = key+++\on +++ namex;
 	env[gate] = nil;
@@ -601,6 +630,7 @@ if(s.volume.volume == 0) {
 ~patfx_mute = { arg key, namex;
 	var env = currentEnvironment;
 	var gate;
+	key = key ?? ( ~name+++\patfx );
 	gate = key+++\mute;
 	env[gate] = 1;
 	env[key] = Pbind(\isRest, true, \bla, Pfunc({ env[gate] }));
@@ -612,6 +642,7 @@ if(s.volume.volume == 0) {
 ~patfx_unmute = { arg key, namex;
 	var env = currentEnvironment;
 	var gate;
+	key = key ?? ( ~name+++\patfx );
 	gate = key+++\mute;
 	env[gate] = nil;
 	if(namex.notNil) {
@@ -622,6 +653,7 @@ if(s.volume.volume == 0) {
 ~patfx_toggle_mute = { arg key, namex;
 	var env = currentEnvironment;
 	var gate;
+	key = key ?? ( ~name+++\patfx );
 	gate = key+++\mute;
 	if(env[gate].notNil) {
 		env[gate] = nil;

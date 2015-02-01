@@ -1,3 +1,33 @@
+
+(
+if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
+Pdef(~name,
+        ~patfx.(~name+++\patfx) <>
+        Pdef(~name +++ \pre) <> Pbind(
+        \instrument, ~name,
+        \bufnum, BufDef(\moeten),
+        \bufnum, BufDef(\woodshop),
+        \degree, Pseq([0],inf),
+        \isRest, Veco(~name).isrest,
+        \dur, 1/8,
+        \amp, 0.21 * Pkey(\amp),
+) <> Veco(~name).mixer)
+);
+
+// insert isRest false until button release
+~insert_beat.(~name+++\patfx);
+
+// insert a pattern (should not be infinite else no way to stop it)
+~patfx_insert.(~name+++\patfx, Pbind(
+	\dur, Pseq([0.12,0.1],4),
+))
+
+// same than patfx_insert but will remove pattern when button release, can be infinite
+~patfx_gate.(~name+++\patfx, Pbind(
+	\dur, Pseq([0.12,0.1],inf),
+))
+
+//////////////////////////////////
 (
 ~patechoblend = { arg pat, blend;
     Prout { arg in;

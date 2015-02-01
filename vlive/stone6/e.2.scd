@@ -1,5 +1,6 @@
 
 (
+// TAGS: pdef, lfo, creaking, granular
 Ndef(~name+++\lfo1, { LFTri.kr(1/8*~t) * 0.0002 +0.7 });
 Ndef(~name+++\lfo1).quant = Pdef.defaultQuant;
 

@@ -3,6 +3,7 @@ BufDef(\table, "field/table.flac");
 BufDef.mono(\table, "field/table.flac");
 BufDef.mono(\march, "vipere/march.flac");
 (
+// TAGS: snare, multipdef, pdef, perc, granular
 //Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,8.9)).range(0,0.02) + 0.45  });
 //Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,1.9)).range(0,0.02) + 0.15  });
 ~buf = BufDef(\moeten);

@@ -1,4 +1,18 @@
+// useful trigpads
+// - mute/unmute
+// - insert beat
+// - insert silence
+// - toggle use of stepseq (how to set len ?)
+// - fadeout
+// - fadein
+// - add echo/comb fx
 
+// columns trigspads
+// - set fadetime
+
+// others:
+// - launch a line/serie of clips
+// - set board offset, stepseq mode, launch serie of clips, set macros on icon
 
 (
 		~set_exec_zone.(Rect(0,32, 32+16,64));

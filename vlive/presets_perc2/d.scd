@@ -85,12 +85,11 @@ SynthDef(~name+++\kick, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freq
 }).add;
 
 
-Veco(~name).make_mixer;
+~pdef_channel.();
 
 
 (
-if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
-Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
+~pdef_init.(Pbind(
 	\instrument, \oscsampler,
 	\bufnum, BufDef(\moeten),
 	\bufnum, BufDef(\woodshop),
@@ -98,7 +97,7 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\isRest, Veco(~name).isrest,
 	\dur, 1/8,
 	\amp, 0.21 * Pkey(\amp),
-) <> Veco(~name).mixer)
+))
 );
 
 // END

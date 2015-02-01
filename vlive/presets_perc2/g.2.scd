@@ -15,7 +15,7 @@ Pdef(~name+++\base, Pbind(
 			\isRest, Pseq([
 				1,1,1,0,
 			],inf).coin.not,
-			\isRest, Veco(~namex).isrest(~rsize),
+			\isRest, Veco(~namex).isrest(8),
 
 ));
 

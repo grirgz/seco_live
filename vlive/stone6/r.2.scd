@@ -1,5 +1,6 @@
 
 (
+// TAGS: pdef, strange, lfo, granular, waves
 Ndef(~name+++\lfo1, { SinOsc.kr(1*~t) * 0.01 +0.7 + SinOsc.kr(1/132).range(0,0.01) });
 Ndef(~name+++\lfo1).quant = Pdef.defaultQuant;
 Ndef(~name+++\lfo2, { SinOsc.kr(1/22*~t) * 400.01 +400.4 + SinOsc.kr(1/132).exprange(0.1,4400.01) });
