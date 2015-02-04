@@ -7,7 +7,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var env1, env2, env3;
 	freq = 400;
 	
-	freq = 750 / 2 ;
+	freq = 500 ;
 	freq = freq * Duty.kr(2/~t, 0, Dseq([
 		[0,5,9,14],
 		[0,5,10,13],
@@ -93,6 +93,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	sig;
 });
 
+Ndef(~name+++\fx).unset(\delay);
 Ndef(~name+++\fx).put(1, \set -> Pbind(
 	\igate, 
 		Pseq([
