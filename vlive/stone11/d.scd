@@ -2,4 +2,4 @@
 
 ~ndef_channel.();
 
-~roger = ~name
+~roger = ~name;

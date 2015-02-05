@@ -49,7 +49,6 @@ SynthDef(~name, { | out=0, decay = 3, amp = 0.1, freqfactor = 1, doneAction=2, d
 	)
 )).add;
 
-Ndef(~name+++\lfo1).quant = 1/2;
 Sdef(~name, \mypreset, \preset, ~name);
 
 ~pdef_channel.();

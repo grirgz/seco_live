@@ -32,6 +32,13 @@ Ndef(~name+++\lfo3).put(1, \set -> Pbind(
 	\fmfreq, 8 * t,
 	\dur, 1/1,
 ));
+Ndef(~name+++\freq, {
+	Ndef.ar(~roger+++\freq).mean / 8;
+
+});
+//Ndef(~name+++\freq).numChannels
+//Ndef(~name+++\freq).clear
+
 Pdef(~name +++ \pre, Pbind(
 	\noisefreq, 10.1,
 	\delayfactor, 0.8,
@@ -45,6 +52,7 @@ Pdef(~name +++ \pre, Pbind(
 		50,50,50,100,
 		150,50,50,100,
 	],inf),
+	\oscfreq, Ndef(~name+++\freq),
 	\ffreq, Ndef(~name+++\lfo3),
 	\ffreq, 50*8,
 	\freqtab, Pseq([

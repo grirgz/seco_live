@@ -670,37 +670,6 @@ if(s.volume.volume == 0) {
 };
 
 
-~addfx = { arg key, delta, fun;
-	var pos;
-	Ndef(key).add(fun);
-	pos = Ndef(key).objects.lastIndex;
-	TempoClock.default.sched(delta, {
-		Ndef(key).removeAt(pos);
-	})
-};
-
-~addnotefx = { arg key, fun;
-	var pos;
-	Ndef(key).add(fun);
-	pos = Ndef(key).objects.lastIndex;
-	Veco(~namex).response_off_hook = {
-		Ndef(key).removeAt(pos);
-	}
-};
-
-~addnotefx_delay = { arg key, delay, fun;
-	var pos;
-	Ndef(key).add(fun);
-	pos = Ndef(key).objects.lastIndex;
-	Veco(~namex).response_off_hook = {
-		//Ndef(key).removeAt(pos);
-		
-		TempoClock.default.sched(delay, {
-			Ndef(key).removeAt(pos);
-		})
-	}
-};
-
 ~classic_patfx = { arg key;
     Prout { arg in;
 		var pat;
@@ -843,6 +812,62 @@ if(s.volume.volume == 0) {
 };
 
 );
+
+/////// Ndef
+
+~addfx = { arg key, delta, fun;
+	var pos;
+	Ndef(key).add(fun);
+	pos = Ndef(key).objects.lastIndex;
+	TempoClock.default.sched(delta, {
+		Ndef(key).removeAt(pos);
+	})
+};
+
+~addnotefx = { arg key, fun;
+	var pos;
+	Ndef(key).add(fun);
+	pos = Ndef(key).objects.lastIndex;
+	Veco(~namex).response_off_hook = {
+		Ndef(key).removeAt(pos);
+	}
+};
+
+~addnotefx_delay = { arg key, delay, fun;
+	var pos;
+	Ndef(key).add(fun);
+	pos = Ndef(key).objects.lastIndex;
+	Veco(~namex).response_off_hook = {
+		//Ndef(key).removeAt(pos);
+		
+		TempoClock.default.sched(delay, {
+			Ndef(key).removeAt(pos);
+		})
+	}
+};
+
+~toggle_fx = { arg namex, key, fun;
+	var clip;
+	clip = Veco(namex);
+	if(clip.exectoggle_state == 1) {
+		var pos;
+		pos = clip.lib.fx_pos;
+		[key,pos].debug("remove pos!!!!");
+		if(pos.notNil) {
+			Ndef(key).removeAt(pos);
+		};
+		clip.exectoggle_state = 0;
+	} {
+		var pos;
+		[namex].debug("put on! namex");
+		clip.response_mode = \exectoggle;
+		Ndef(key).add(fun);
+		pos = Ndef(key).objects.lastIndex;
+		clip.lib.fx_pos = pos;
+		clip.exectoggle_state = 1;
+		[key,pos].debug("pos!!!!");
+	};
+};
 
 
 //////////////////////////////////////////////////// Macros

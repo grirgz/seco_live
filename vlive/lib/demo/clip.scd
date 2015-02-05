@@ -1,4 +1,10 @@
 
+///////
+// to put on a column which control another node, so there is no playing state and no stopping
+Veco(~name).clip_response_mode = \execchoose;
+
+/////////////:
+
 ~pdef_init.(Pbind(
 	\instrument, ~name,
 	\degree, Pseq([0],inf),
