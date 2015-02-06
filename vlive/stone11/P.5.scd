@@ -7,3 +7,5 @@ TempoClock.default.play ({
 	]);
 	nil;
 }, ~quant);
+
+Veco(~namex).response_mode = \execchoose;

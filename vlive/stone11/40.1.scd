@@ -4,17 +4,18 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var freq;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
 	var lim;
+	var oscmix;
 	freq = Ndef.ar(~name+++\freq);
-	freq = freq * [1/2,1,1/4];
+	//freq = 500/4;
+	freq = freq * [1/2,1,1/4] *.x [0,3,7].midiratio;
 
-	sig1 = SinOsc.ar(freq * SinOsc.kr(1/4).range(1.01,1)) * 10;
-	sig = SinOsc.ar(freq, sig1);
-	lim = SinOsc.kr(1/4 * (1..8)/16).range(0,1);
-	sig = ( sig > lim ) * ( sig**2 ) + sig;
-	sig = sig/2;
+	oscmix = Ndef.ar(~name+++\oscmix);
 
-	sig1 = BPF.ar(sig, freq*(1..8), 0.2)*LFPulse.ar((1..8)).range(0,1);
-	sig = SelectX.ar( SinOsc.kr(1/4*~t * (1..8)*8).range(0,1), [sig, sig1]);
+	sig1 = LFSaw.ar(freq);
+	sig2 = LFPulse.ar(freq);
+	sig3 = SinOsc.ar(freq);
+	sig = SelectX.ar( oscmix * 2, [sig1, sig2, sig3]);
+	sig = RLPF.ar(sig, 500 * SinOsc.kr(1/4 * (1..8)/8).range(1/4,2),0.1);
 	
 	amp = amp * \gain.kr(1);
 	sig = Splay.ar(sig, \spread.kr(0.8), amp, \pan.kr(0));

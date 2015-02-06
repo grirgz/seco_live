@@ -7,7 +7,7 @@ Ndef(~name+++\lfo3).quant = Pdef.defaultQuant;
 Ndef(~name+++\lfo3, { SinOsc.kr(1/4).range(0.004,0.1)  });
 
 
-)
+);
 
 (
 ~size = 8;

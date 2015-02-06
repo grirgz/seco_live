@@ -29,7 +29,7 @@
 					fun = xself.funs[idx];
 				};
 				if(fun.notNil) {
-					fun.value(self, pos.y, opos, mod)
+					fun.value(xself, pos.y, opos, mod)
 				};
 				Veco.main.clip.render_state;
 			};

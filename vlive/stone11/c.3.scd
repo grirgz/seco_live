@@ -6,7 +6,7 @@
 	sig1 = LPF.ar(sig ! 8, ( Ndef.ar(~albert+++\freq)*(1..8) ).clip(20,18000), 0.2)*LFPulse.ar((1..8)*1).range(0,1).lag(0.1);
 	//sig = SelectX.ar( SinOsc.kr(1/4*~t * (1..8)*8).range(0,1), [sig, sig1]);
 	sig = sig1;
-	sig = sig.sum * 2;
+	sig = sig.sum * 5;
 	sig.debug("sig");
 	sig;
 

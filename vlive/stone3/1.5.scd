@@ -47,3 +47,12 @@ Sdef()
 
 [0.6]
 [110,53,29].midicps
+
+
+(
+// default arguments don't take nil
+~bla= { arg hey=100;
+	hey.debug("hey!!!!!")
+};
+~bla.(nil)
+)

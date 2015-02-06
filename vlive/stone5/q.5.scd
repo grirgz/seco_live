@@ -75,6 +75,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 		1,0,1,1,
 	],inf));
 
+	sig = sig / 2;
 	amp = amp * \gain.kr(1);
 	sig = Splay.ar(sig, \spread.kr(0.8), amp, \pan.kr(0));
 	sig;

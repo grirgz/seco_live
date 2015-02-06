@@ -14,6 +14,27 @@
 // - launch a line/serie of clips
 // - set board offset, stepseq mode, launch serie of clips, set macros on icon
 
+~trigpadboard = Veco.open_side_project( Veco.main.project_name +/+ "trigpad1");
+(
+~set_launcher.(4, { arg self;
+	self.mid_pane;
+	Veco.main.pane_offset = Point(0,64);
+	Veco.main.pane_target_project = ~trigpadboard;
+});
+~set_launcher.(7, { arg self;
+	self.no_pane;
+});
+);
+
+
+~insert_beat.(~name+++\patfx, ~namex);
+
+currentEnvironment[Veco('5').uname+++\patfx+++\quant] = 1;
+~set_patfx_quant.(Veco('5').uname+++\patfx, 1);
+~set_patfx_quant.(~name+++\patfx, 1);
+
+/////////////////
+
 (
 		~set_exec_zone.(Rect(0,32, 32+16,64));
 		Veco.main.clip.response_launcher_on_hook = { arg self, pos, opos, mod;

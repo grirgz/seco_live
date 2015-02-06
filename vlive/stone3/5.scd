@@ -75,12 +75,11 @@ SynthDef(~name+++\b, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, 
 );
 
 (
-if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
-Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
+~pdef_init.(Pbind(
 	\instrument, ~name,
 	\degree, Pseq([0],inf),
 	\isRest, Veco(~name).isrest,
 	\dur, 1/4,
 	\amp, 0.1 * Pkey(\amp),
-) <> Veco(~name).mixer)
+))
 );

@@ -518,44 +518,8 @@ if(s.volume.volume == 0) {
 
 };
 
-~clip_fx_gate = { arg buskey, clip, fxindex, xfadeon=1, xfadeoff=0.5;
-
-	var index, name, namex;
-	index = clip.get_index;
-	name = clip.node_uname;
-	namex = clip.uname;
-	Ndef(name+++\mixer).put(fxindex, \filter -> { arg in; Out.ar(BusDef(buskey), in); in; });
-	Ndef(name+++\mixer).set(\xfade, xfadeon);
-
-	//[buskey,name, index,namex, ~namex, xfadeon,xfadeoff, offset].debug("delire!!!");
-	Veco(namex).response_off_hook = {
-		//var index = Veco.main.uname_to_index(name);
-		Ndef(name+++\mixer).set(\xfade, xfadeoff);
-		index.debug("remove!!");
-		//Ndef(\mangle).removeAt(index)
-		Ndef(name+++\mixer).removeAt(fxindex);
-	};
-	Veco(namex).response_mode = \exec;
-};
-
-~fx_gate = { arg buskey, name, index, namex, xfadeon=1, xfadeoff=0.5, offset=100;
-
-	index = index ?? ~index;
-	name = name ?? ~name;
-	namex = namex ?? "%.%".format(name, index+1).asSymbol;
-	index = index + offset;
-	Ndef(name+++\mixer).put(index, \filter -> { arg in; Out.ar(BusDef(buskey), in); in; });
-	Ndef(name+++\mixer).set(\xfade, xfadeon);
-
-	//[buskey,name, index,namex, ~namex, xfadeon,xfadeoff, offset].debug("delire!!!");
-	Veco(namex).response_off_hook = {
-		//var index = Veco.main.uname_to_index(name);
-		Ndef(name+++\mixer).set(\xfade, xfadeoff);
-		index.debug("remove!!");
-		//Ndef(\mangle).removeAt(index)
-		Ndef(name+++\mixer).removeAt(index);
-	};
-	Veco(namex).response_mode = \exec;
+~set_patfx_quant = { arg self, key, val;
+	currentEnvironment[key+++\quant] = val;
 };
 
 ~insert_beat = { arg key, namex;
@@ -814,6 +778,46 @@ if(s.volume.volume == 0) {
 );
 
 /////// Ndef
+
+~clip_fx_gate = { arg buskey, clip, fxindex, xfadeon=1, xfadeoff=0.5;
+
+	var index, name, namex;
+	index = clip.get_index;
+	name = clip.node_uname;
+	namex = clip.uname;
+	Ndef(name+++\mixer).put(fxindex, \filter -> { arg in; Out.ar(BusDef(buskey), in); in; });
+	Ndef(name+++\mixer).set(\xfade, xfadeon);
+
+	//[buskey,name, index,namex, ~namex, xfadeon,xfadeoff, offset].debug("delire!!!");
+	Veco(namex).response_off_hook = {
+		//var index = Veco.main.uname_to_index(name);
+		Ndef(name+++\mixer).set(\xfade, xfadeoff);
+		index.debug("remove!!");
+		//Ndef(\mangle).removeAt(index)
+		Ndef(name+++\mixer).removeAt(fxindex);
+	};
+	Veco(namex).response_mode = \exec;
+};
+
+~fx_gate = { arg buskey, name, index, namex, xfadeon=1, xfadeoff=0.5, offset=100;
+
+	index = index ?? ~index;
+	name = name ?? ~name;
+	namex = namex ?? "%.%".format(name, index+1).asSymbol;
+	index = index + offset;
+	Ndef(name+++\mixer).put(index, \filter -> { arg in; Out.ar(BusDef(buskey), in); in; });
+	Ndef(name+++\mixer).set(\xfade, xfadeon);
+
+	//[buskey,name, index,namex, ~namex, xfadeon,xfadeoff, offset].debug("delire!!!");
+	Veco(namex).response_off_hook = {
+		//var index = Veco.main.uname_to_index(name);
+		Ndef(name+++\mixer).set(\xfade, xfadeoff);
+		index.debug("remove!!");
+		//Ndef(\mangle).removeAt(index)
+		Ndef(name+++\mixer).removeAt(index);
+	};
+	Veco(namex).response_mode = \exec;
+};
 
 ~addfx = { arg key, delta, fun;
 	var pos;
@@ -1087,8 +1091,9 @@ if(s.volume.volume == 0) {
 		codepad = qp.get_codepad(Point(0,y));
 		codepad.payload = { arg self;
 			quant.debug("setting Pdef.defaultQuant to");
-			Pdef.defaultQuant = quant;
-			Ndef(\defaultQuant).proxyspace.quant = quant;
+			~set_default_quant.(quant);
+			//Pdef.defaultQuant = quant;
+			//Ndef(\defaultQuant).proxyspace.quant = quant;
 		};
 	}
 };

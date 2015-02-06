@@ -30,9 +30,9 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5|
 	sig3 = sig3.clip2(1);
 	son = sig3 + sig4;
 	son = son/son.size/2;
-	son = son * \precompamp.kr(1);
+	son = son * \precompamp.kr(10);
 
-	son = Compander.ar(son, son, \compthresh.kr(0.4), \compbelow.kr(1),\compabove.kr(07), \compclamp.kr(0.01), \comprelax.kr(0.1));
+	son = Compander.ar(son, son, \compthresh.kr(0.4), \compbelow.kr(1),\compabove.kr(0.07), \compclamp.kr(0.01), \comprelax.kr(0.1));
 	son = son * \postamp.kr(7);
 	son = LPF.ar(son, \lpfreq.ar(400));
 

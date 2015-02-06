@@ -8,7 +8,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var lim;
 	freq = MouseX.kr(50,18700);
 	nfreq = MouseY.kr(50,18700);
-	freq = \freq.kr(0200).lag(0.1);
+	freq = \freq.kr(60.midicps).lag(0.1);
 	freq = freq * [1,1.012,1/4,2.012,1/2,1.015];
 	nfreq = 200;
 	freq = freq * [1,1];
