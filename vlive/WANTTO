@@ -1,3 +1,10 @@
+// supernova
+- can't read synthdef saved
+- playing buffer has craquement
+
+// repeat pattern random value exactly the same
+
+
 
 // use proxyspace like event
 p = ProxySpace.new
@@ -76,6 +83,7 @@ Ndef(~name+++\fx).lag(\xfreq, 8);
 ///////////////////////////////////////
 
 using a stored synthdef don't work, must reexecute before
+--> SynthDescLib.global.read in startup.scd
 
 /////////////////////
 
@@ -103,3 +111,8 @@ work with poll but not without !!! heisenbug!!!
 
 });
 
+
+////////////////::
+
+une fonction pour definir un Ndef sans le lancer
+trouvé ! voir demo/ndef.scd

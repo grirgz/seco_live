@@ -18,6 +18,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	sig = LFSaw.ar(freq );
 	sig = sig.collect({ arg isig, x;
 		//isig = isig - Latch.ar(LPF.ar(isig.clip(0.1),100), Impulse.ar(50));
+		isig = isig * SinOsc.ar(freq[x], isig * 10);
 		isig = RLPF.ar(isig,  LFNoise1.kr(1/(x+24)).range(100,15000), SinOsc.kr(1/(x+ 12 )).range(0.6,1));
 		isig = HPF.ar(isig, 1000);
 		//isig = ( isig < 0.03 ) * isig;

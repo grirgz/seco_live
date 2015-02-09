@@ -2,6 +2,7 @@
 Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var sig;
 	var freq;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
 	freq = 50 * Duty.kr(4/~t, 0, Dseq([
 		//1,2,4,2,
 		4
@@ -16,20 +17,28 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	],inf)).midiratio *.t [1/2,8/9,1,2];
 	freq = freq *.x [1,1.001,1.00012];
 	sig = LFSaw.ar(freq );
+	env2 = Duty.kr(1/~t, 0, Dseq([
+		1,0,1,0,
+	],inf));
+	~t.debug("t");
+	env1 = EnvGen.kr(Env([1,200,1,1],[4.01,0.1,0.1].normalizeSum), env2, timeScale:1);
 	sig = sig.collect({ arg isig, x;
 		//isig = isig - Latch.ar(LPF.ar(isig.clip(0.1),100), Impulse.ar(50));
+		isig = isig * SinOsc.ar(freq[x], isig * env1);
 		isig = RLPF.ar(isig,  LFNoise1.kr(1/(x+24)).range(100,15000), SinOsc.kr(1/(x+ 12 )).range(0.6,1));
 		isig = HPF.ar(isig, 1000);
 		//isig = ( isig < 0.03 ) * isig;
 		//isig = isig * DelayL.ar(isig,0.01*1.1,0.01 * SinOsc.kr(1/( x+74 )).range(1,1.01));
 		//isig = isig * DelayL.ar(isig,0.041*1.1,0.041 * SinOsc.kr(1/(x+ 44 )).range(1,1.01));
-		//isig = SelectX.ar( SinOsc.kr(x+1/40).range(0,1) * (isig.size-1), isig);
+		isig = SelectX.ar( SinOsc.kr(x+1/40).range(0,1) * (isig.size-1), isig);
 		//isig = isig * SinOsc.kr(1/17).range(0,1);
 	});
 
 	sig.debug("sig");
 
-	sig = sig / 16;
+	sig = sig / 4;
+
+	sig = sig* env2;
 	
 	amp = amp * \gain.kr(1);
 	//sig = Splay.ar(sig, \spread.kr(0.8), amp, \pan.kr(0));

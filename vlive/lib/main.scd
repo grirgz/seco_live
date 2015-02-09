@@ -1416,8 +1416,9 @@ if(s.volume.volume == 0) {
 
 	// FIXME: maybe the bug is there!
 	// FIXME: disabled fadeout
-	Ndef(fxname).end(fadetime);
-	//Ndef(fxname).release; // WTF, why this don't stop the ndef
+	//Ndef(fxname).end(fadetime);
+	//Ndef(fxname).release; // WTF, why isPlaying is true ? (call free(fadeTime, freeGroup:false))
+	Ndef(fxname).free(fadetime); // should be the right method
 };
 
 ~pdef_fx_channel = { arg suffix=\fx;
@@ -1471,7 +1472,9 @@ if(s.volume.volume == 0) {
 		fxname.debug("play FX");
 		debug("what");
 		//Ndef(fxname).send;
+		Ndef(fxname).parentGroup = ParGroupDef(\pargroup);
 		Ndef(fxname).play(BusDef(name+++\mixer, \audio).index);
+		//Ndef(fxname).play(BusDef(name+++\mixer, \audio).index, nil, ParGroup.new);
 	});
 
 	Veco(~name)[\is_playing] = { arg self;
