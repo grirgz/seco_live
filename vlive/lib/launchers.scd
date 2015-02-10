@@ -114,6 +114,12 @@
 		};
 	};
 
+	~load_launchers_horizontal_control = {
+		~launchers_manager.set_launchers(8.collect { arg x;
+			{Veco.main.clip_offset = Point(x*8,Veco.main.clip_offset.y)};
+		});
+	};
+
 	~load_launchers_relative_xjump = {
 		~launchers_manager.set_launchers([
 				{Veco.main.clip_offset = Point(0,Veco.main.clip_offset.y)},
@@ -153,5 +159,5 @@
 		};
 	};
 
-	~load_standard_launchers = ~load_launchers_relative_xjump;
+	~load_standard_launchers = ~load_launchers_horizontal_control;
 );
