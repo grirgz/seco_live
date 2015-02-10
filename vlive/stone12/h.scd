@@ -22,3 +22,4 @@ SynthDef(~name, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 ))
 );
 
+BufDef(\amen, "vipere/amenbreak.wav");

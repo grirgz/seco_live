@@ -1,6 +1,8 @@
 
 ///////
 // to put on a column which control another node, so there is no playing state and no stopping
+~ndef_control_channel.();
+// which is
 Veco(~name).clip_response_mode = \execchoose;
 
 /////////////:

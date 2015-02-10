@@ -91,6 +91,50 @@ Limiter.ar(LeakDC.ar(sig))
 }
 )
 
+
+(
+x = play {
+var v0 = \v0.kr(0.013685876);
+var v1 = \v1.kr(0.013685876);
+var v2 = \v2.kr(9418.244);
+var v3 = FSinOsc.ar(v2, v1);
+var v4 = \v4.kr(42.465885);
+var v5 = Ringz.ar(K2A.ar(v0), v4, v3);
+var v6 = \v6.kr(1549.478);
+var v7 = \v7.kr(0.02286103);
+var v8 = \v8.kr(9.56704);
+var v9 = Ringz.ar(K2A.ar(v8), v0, v5);
+var v10 = LFCub.ar(K2A.ar(v1), v9);
+var v11 = LFDNoise3.ar([v10, v10]);
+var v12 = LinXFade2.ar(K2A.ar(v6), K2A.ar(v7), v5, v11);
+var v13 = \v13.kr(2210.7979);
+var v14 = Dust2.ar([v10, v10]);
+var v15 = TwoPole.ar(v14, v13, v3);
+var v16 = scaleneg(v15, v10);
+var v17 = HPF.ar(v9, v13);
+var v18 = RunningMax.ar(K2A.ar(v6), v15);
+var v19 = SinOsc.ar(v11, v6);
+var roots = [v19, v18, v17, v16, v12];
+var sig = Mix(roots);
+sig = sig / 2;
+Limiter.ar(LeakDC.ar(sig));
+}
+)
+
+x.set("v2", 9418.244); // slow down (don't ask why this value)
+x.set("v2", 9418.100);
+x.set("v2", 9418.000);
+x.set("v2", 417.900);
+x.set("v2", 9417.800);
+
+x.set("v2", 9418.300); // speed up
+
+x.set("v4", 43.0 * 2/4); // fundamental
+x.set("v4", 43.0);
+
+x.set("v13", 422); // resonance
+
+
 (
 Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
 	var sig;

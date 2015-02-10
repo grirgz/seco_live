@@ -1444,23 +1444,7 @@ if(s.volume.volume == 0) {
 };
 
 ~ndef_control_channel = { arg suffix=\fx;
-	var name = ~name;
-	var fxname = ~name +++ suffix;
-	Veco(~name).make_mixer;
-	Veco(~name).add_play_node_hook(\fx, {
-		fxname.debug("play FX");
-		debug("what");
-		//Ndef(fxname).send;
-		Ndef(fxname).play(BusDef(name+++\mixer, \audio).index);
-	});
-
-	Veco(~name)[\is_playing] = { arg self;
-		Ndef(fxname).isPlaying;
-	};
-
-	Veco(~name).add_stop_node_hook(\fx, {
-		~stop_ndef.(fxname);
-	});
+	Veco(~name).clip_response_mode = \execchoose;
 	
 };
 
