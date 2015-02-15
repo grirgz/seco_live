@@ -1,6 +1,6 @@
 
 (
-// TAGS: ndef, middle, nappe, fm
+// xTAGS: ndef, middle, nappe, fm
 Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var sig;
 	var freq;
@@ -16,17 +16,14 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	],inf)).midiratio.lag(0.1) * freq;
 
 	//freq = freq * [1,1.001];
-	freq = freq * [0,3,7].midiratio;
+	freq = freq * [19,3,7].midiratio;
 	sig = SinOsc.ar(freq) ;
 	oldsig = 1;
 	8.do { arg x;
-		sig = SinOsc.ar(freq+x) * (1+ sig ) * 0.8;
+		sig = LFSaw.ar(freq+( x * SinOsc.kr(4+x).range(0,3) )) * (1+ sig ) * 0.8;
+		sig = sig + DelayL.ar(sig, 0.1, [0,1/freq / 2* LFSaw.ar(freq * [1/4,1/8,1/2]).range(0.8,1)])/2;
 	};
 
-	sig = sig + DelayL.ar(sig, 0.1, [0,0.1 * SinOsc.kr(1/12).range(0.8,1)]);
-	sig = sig + DelayL.ar(sig, 0.1, 1/freq*1.1);
-	sig = sig + DelayL.ar(sig, 0.1, 1/freq*0.9 * SinOsc.kr(1/4).range(0,1));
-	sig = sig + DelayL.ar(sig, 0.1, 1/freq*0.9 * SinOsc.kr(1/4.541).range(1,2));
 	//sig = sig ! 2;
 	sig = sig * 1/4;
 	sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size * 0.3, amp).mean;

@@ -1,6 +1,5 @@
 
 (
-// TAGS: ndef, bass, comb, nappe
 Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var sig;
 	var freq;
@@ -18,9 +17,11 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	lfo1 = SinOsc.ar(100) * 1;
 	sig = LFSaw.ar(freq * ( 1 + lfo1)) * Decay.kr(Impulse.kr( SinOsc.kr(1/8 *.t [1,8/3]).mean.pow(1/2).range(1,50) ),0.1);
 	sig = CombL.ar(sig, 1/44, 1/DelayL.kr(freq,0.1,0.1 * SinOsc.ar(448).range(2,0.4)) * [1/2,2],1)/8;
+	sig1 = sig;
 	sig = CombL.ar(sig, 1/44, 1/freq * 2 * ((1..8).rand*0.21+1), 1);
+	sig = (sig.abs > 0.3) * sig1 + ( (sig.abs < 0.3) * sig );
 	sig = RLPF.ar(sig, freq*(1..8));
-	sig = sig.tanh;
+	//sig = sig.tanh;
 	sig = sig * 8;
 	sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size, amp).mean;
 	sig;
