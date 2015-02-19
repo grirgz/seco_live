@@ -183,7 +183,32 @@ if(s.volume.volume == 0) {
 
 4.do { arg x; BusDef(Veco.main.name+++\fx+++x, \audio) };
 
+~define_effect = { arg slot, uname;
+	var x;
+	x = slot;
+	uname.debug("define_effectsa");
+	if(slot.notNil) {
+		var bus;
+			uname.debug("define_effectsxVa");
+			(Veco.main.name+++\fx+++x).debug("dkj");
+		bus  = BusDef(Veco.main.name+++\fx+++x, \audio);
+			uname.debug("define_effectsxta");
+		currentEnvironment[\fx+++x] = bus;
+		currentEnvironment[\tnfx+++x] = uname;
+		currentEnvironment[\tfx+++x] = uname+++\fx;
+			uname.debug("define_effectsyu");
+		Ndef(uname+++\fx).set(\inbus, bus.index);
+			uname.debug("define_effectsx");
+	} {
+			uname.debug("define_effects1");
+		Ndef(uname).set(\inbus, BusDef(\zero).index);
+			uname.debug("define_effects2");
+	}
+
+};
+
 ~define_effects = { arg fxs, size=inf;
+	// TODO: use ~define_effect
 	fxs.do { arg fx, x;
 		var uname;
 		x = x + 1;
@@ -199,11 +224,11 @@ if(s.volume.volume == 0) {
 			currentEnvironment[\tnfx+++x] = uname;
 			currentEnvironment[\tfx+++x] = uname+++\fx;
 				uname.debug("define_effectsyu");
-			Ndef(uname+++\fx).set(\inbus, bus);
+			Ndef(uname+++\fx).set(\inbus, bus.index);
 				uname.debug("define_effectsx");
 		} {
 		uname.debug("define_effects1");
-			Ndef(uname).set(\inbus, BusDef(\zero));
+			Ndef(uname).set(\inbus, BusDef(\zero).index);
 		uname.debug("define_effects2");
 		}
 	}
@@ -1144,10 +1169,10 @@ if(s.volume.volume == 0) {
 		//{
 			if(Veco.main.clip_response_mode == \toggle) {
 				Veco.main.clip_response_mode = \play;
-				debug("set Clip response mode = play");
+				debug("mode: set Clip response mode = play");
 			} {
 				Veco.main.clip_response_mode = \toggle;
-				debug("set Clip response mode = toggle");
+				debug("mode: set Clip response mode = toggle");
 			}
 		//}.defer;
 	};
@@ -1156,10 +1181,22 @@ if(s.volume.volume == 0) {
 		//{
 			if(Veco.main.clip[\response_launcher_on_hook].isNil) {
 				~load_standard_launchers.();
-				debug("set Clip launcher mode = select page");
+				debug("mode: set Clip launcher mode = select page");
 			} {
 				Veco.main.clip[\response_launcher_on_hook] = nil;
-				debug("set Clip launcher mode = launch row");
+				debug("mode: set Clip launcher mode = launch row");
+			}
+		//}.defer;
+	};
+	codepad = qp.get_codepad(Point(7,2));
+	codepad.payload = { arg self;
+		//{
+			if(Veco.main.pane_target_project.notNil) {
+				Veco.activate_side_project(Veco.main.pane_target_project[\veco].project_path);
+				debug("mode: activate side project");
+			} {
+				Veco.activate_project_by_env(Veco.previous_activated_project);
+				debug("mode: return to previous project");
 			}
 		//}.defer;
 	};

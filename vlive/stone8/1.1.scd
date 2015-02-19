@@ -1,7 +1,7 @@
 BufDef(\march, "vipere/march.flac");
 BufDef(\table, "field/table.flac");
 
-// TAGS: perc, kick, pdef, multipdef
+// TAGS: perc, snare, pdef, multipdef
 
 (
 //Ndef(~name+++\lfo1, { LFSaw.kr(SinOsc.kr(1.1).range(0.01,8.9)).range(0,0.02) + 0.45  });

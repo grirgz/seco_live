@@ -120,10 +120,13 @@
 
 	};
 
-// example
-~select_sample_position.(Platform.resourceDir +/+ "sounds/a11wlk01.wav");
 
 );
+
+// END
+
+// example
+~select_sample_position.(Platform.resourceDir +/+ "sounds/a11wlk01.wav");
 
 ~sfview.timeCursorPosition = 1000
 
