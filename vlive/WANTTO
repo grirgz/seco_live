@@ -1,3 +1,7 @@
+
+
+// see midi points after midi init, or init without creating more and more midi points
+
 // supernova
 - can't read synthdef saved
 - playing buffer has craquement

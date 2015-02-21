@@ -28,7 +28,7 @@ Pdef(~name +++ \pre,
 		Pdef(~name+++\v2),
 	],inf)
 );
-)
+);
 
 (
 Pdef(~name +++ \v1, Pbind(
@@ -50,4 +50,4 @@ Pdef(~name +++ \v2, Pbind(
 	\legato, Pwhite(0.1,0.3),
 	\dur, Pwhite(0.1,0.3),
 ));
-)
+);

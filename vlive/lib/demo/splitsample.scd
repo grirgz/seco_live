@@ -1,24 +1,28 @@
 (
-	~get_sample_slices = { arg buffer, action;
-		var threshes = (0.1, 0.2 .. 1);
+	~get_sample_slices = { arg buffer, action, threshes;
 		var list = List.new;
 		var rep;
 		var repfree;
 		var node;
+		var mlist;
+		threshes = threshes ? (0.1, 0.2 .. 1);
+		mlist = {List.new}!threshes.size;
 
 		rep = OSCFunc({ |msg, time| 
 			var frame;
 			var mode;
+			var id;
 			//("time:" + t).postln; msg.postln;
-			mode = msg[2];
+			id = msg[2];
 			frame = msg[3];
-			if(mode == 0) {
+			if(id >= 0) {
 				if(list.includes(frame).not) {
 					list.add(frame);
+					mlist[id].add(frame);
 					frame.debug("analysis: add frame");
 				}
 			} {
-				action.value(list); 
+				action.value(list, mlist); 
 				node.free;
 				rep.free;
 				debug("Analysis done!");
@@ -34,7 +38,7 @@
 
 				frame = Phasor.ar(0, BufRateScale.kr(buffer.bufnum), 0, BufFrames.kr(buffer.bufnum));
 				line = Line.ar(0,1,BufDur.kr(buffer),doneAction:0);
-				SendTrig.kr(Done.kr(line),1,frame);
+				SendTrig.kr(Done.kr(line),-1,frame);
 				if(buffer.numChannels == 1) {
 					sig = BufRd.ar(1, buffer.bufnum, frame);
 				} {
@@ -44,7 +48,7 @@
 				chain = FFT(fftbuf, sig);
 
 				onsets = Onsets.kr(chain, threshes, \rcomplex);
-				SendTrig.kr(onsets,0,frame);
+				SendTrig.kr(onsets,(0..(onsets.size-1)),frame);
 				// Generate pips at a variety of pitches
 				pips = SinOsc.ar((threshes).linexp(0, 1, 440, 3520), 0, EnvGen.kr(Env.perc(0.001, 0.1, 0.5), onsets)).mean;
 				//Out.ar(0, Pan2.ar(sig, -0.75, 0.2) + Pan2.ar(pips, 0.75, 1));

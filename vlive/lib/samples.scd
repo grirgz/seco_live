@@ -18,4 +18,5 @@ BufDef(\amen, "vipere/amenbreak.wav");
 BufDef.mono(\amen, "vipere/amenbreak.wav");
 BufDef(\table, "field/table.flac");
 BufDef(\scream, "vipere/scream.flac");
+BufDef(\rocksteady, "vipere/rocksteady.flac");
 
