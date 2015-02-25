@@ -22,11 +22,11 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	sig = RLPF.ar(sig, freq*(1..8));
 	sig = sig.tanh;
 	sig = sig * 8;
-	sig = sig * Duty.kr(1/3/~t, 0, Dseq([
-		1,1,1,
-		1,1,0,
-		1,0,1,
-		1,0,0,
+	sig = sig * Duty.kr(1/4/~t, 0, Dseq([
+		0,0,0,0, 0,0,0,0,
+		1,1,1,1, 0,0,0,0,
+		0,0,0,0, 1,1,1,1,
+		1,1,1,1, 0,0,0,0,
 	],inf));
 	sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size, amp).mean;
 	sig;

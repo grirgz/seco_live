@@ -17,7 +17,12 @@
 		init: { arg xself;
 			xself.funs = List.newClear(8);
 			xself.mod_funs = List.newClear(8);
-			Veco.main.clip.response_launcher_on_hook = { arg self, pos, opos, mod;
+			xself.activate;
+			
+		},
+
+		activate: { arg xself;
+			Veco.main.clip[\response_launcher_on_hook] = { arg self, pos, opos, mod;
 				var ev;
 				var fun;
 				var idx = pos.y;
@@ -115,6 +120,7 @@
 	};
 
 	~load_launchers_horizontal_control = {
+		~launchers_manager.activate;
 		~launchers_manager.set_launchers(8.collect { arg x;
 			{Veco.main.clip_offset = Point(x*8,Veco.main.clip_offset.y)};
 		});

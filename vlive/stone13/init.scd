@@ -11,3 +11,8 @@ Veco.main.board_size = Point(32,64);
 ~define_effects.(['56','57','58','59']);
 Veco.main.fadeout_time = 16;
 
+Veco.main.clip[\response_launcher_on_hook] = nil
+Veco.main.clip[\response_launcher_on_hook] 
+~launchers_manager.init
+
+				~load_standard_launchers.asCompileString

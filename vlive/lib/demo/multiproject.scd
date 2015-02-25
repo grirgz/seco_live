@@ -64,6 +64,7 @@ Veco.main.clipboard_clip
  )
 
 
+ Veco.load_lib("preset_manager.scd")
 ~clip_preset_manager = ~class_clip_preset_manager.new;
 ~clip_preset_manager.edit;
 //~clip_preset_manager.scan_project( "~/code/sc/seco/vlive/stone8" );
