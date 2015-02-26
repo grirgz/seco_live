@@ -144,6 +144,8 @@ Param.set
 ~p.methods.do(_.dump)
 Object.new.object
 
+MIDIMap(~p, msgNum:4);
+
 - how to handle updates of the GUI ?
 	- sync
 	- async
