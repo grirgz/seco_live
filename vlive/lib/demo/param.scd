@@ -135,17 +135,93 @@ CachedBus for remembering the last value set
 
 Object.method
 Number.method
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
 ~p = Param(Ndef(\plop), \freq, \freq);
+Param(Ndef(\plop), \freq, \freq).hash;
 Param.set
-~p.set(45)
+~p.set(145)
 ~p.get
-~p.map(msgNum: 14)
+~p.map(msgNum: 64)
 ~p.normSet(45)
 ~p.methods.do(_.dump)
 Object.new.object
 
-MIDIMap(~p, msgNum:4);
+MIDIMap(~p, msgNum:64);
+MIDIMap.free(msgNum:64);
+MIDIMap(~p, msgNum:64);
 
 - how to handle updates of the GUI ?
 	- sync
 	- async
+
+NdefGui
+
+MIDIdef.cc(\test, { arg ...args; args.debug("args") }).learn
+~m = MIDIFunc({ arg ...args; args.debug("args") }, 64, msgType:\control)
+
+Pdef(\plop) === Pdef(\plop)
+"kkk" === "kkk"
+
+(
+{
+	o = ();
+	o.win = Window.new;
+	o.slider = Slider.new;
+	o.slider.mapParam(~p);
+	o.win.layout = HLayout.new(o.slider);
+	o.win.front;
+	
+}.value;
+)
+
+o.slider.getHalo(\simpleController).put(\set, { arg ...args; args.debug("wTF") })
+
+MIDIIn.connectAll
+
+
+// TODO
+- midiblock
+- refresh gui
+
+
+wrapper.whatkkk
+~p.target_object
+
+~p.set(145)
+Ndef(\plop).changed(\set, \freq)
+~s = SimpleController(Ndef(\plop))
+~s.put(\set, { arg ... args; args.debug("whatkkk") })
+~s.actions
+
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+Ndef(\plop).dependants
+
+~p = Param(Ndef(\plop), \freq, \freq);
+(
+{
+	o = ();
+	o.win = Window.new;
+	o.slider = Slider.new;
+	o.win.layout = HLayout.new(o.slider);
+	o.slider.mapParam(~p);
+	o.win.front;
+	
+}.value;
+)
+o.slider.parent
