@@ -218,10 +218,12 @@ Ndef(\plop).dependants
 	o = ();
 	o.win = Window.new;
 	o.slider = Slider.new;
+	o.win.onClose = o.win.onClose.add( {debug("kjdfkdfjk closed")} );
 	o.win.layout = HLayout.new(o.slider);
-	o.slider.mapParam(~p);
+	//o.slider.mapParam(~p);
 	o.win.front;
 	
 }.value;
 )
 o.slider.parent
+o.win.onClose[0].asCompileString
