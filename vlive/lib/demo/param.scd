@@ -201,29 +201,95 @@ Ndef(\plop).changed(\set, \freq)
 ~s.put(\set, { arg ... args; args.debug("whatkkk") })
 ~s.actions
 
-
+aenv
+xxxx
+    
 (
+	~t= 1;
 Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
 	var sig;
-	sig = SinOsc.ar(freq);
-	sig = Pan2.ar(sig, pan, amp);
+	var fmf;
+	freq = 100 * Duty.kr(1/2/~t, 0, Dseq([
+		[0,3,9,15],
+		[0,4,7,11],
+		[0,2,7,11],
+	],inf)).midiratio;
+	"salut les amis".postln;
+	sig = SinOsc.ar(1000);
+	sig = 0;
+	sig = SinOsc.ar(100 * [1,1.001,2]) * (1+ ( SinOsc.kr(1).range(0,1)* LFSaw.ar(1414) ) );
+	//sig = sig.sum;
+
+	sig = Pan2.ar(sig, 0, amp);
+	//sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size, amp).mean;
+}).play;
+);
+
+
+(
+	~t= 1;
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	freq = freq * Duty.kr(1/~t, 0, Dseq([
+		1,0,4,0,
+		1+12,0+12,4,0,
+	],inf)).midiratio * [1, 1/2, 2] * [1,1.00001,1.000001];
+	sig = LFSaw.ar(freq * ( 1 + ( SinOsc.kr(freq) * SinOsc.kr(1/4).range(0,10) * 1 )) );
+	sig = SinOsc.ar(freq) + sig;
+	sig = RLPF.ar(sig, \lpf.kr(11000) * SinOsc.kr( Duty.kr(1/~t, 0, Dseq([
+		1,2,7,0,
+	],inf))*~t).range(0,1), \rq.kr(0.5));
+	sig = sig * Duty.kr(1/16/~t, 0, Dseq([
+		1,0,0,0,
+		0,0,0,0,
+	],inf));
+	sig = CombL.ar(sig, 1,1/8/~t,2) + sig;
+	sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size, amp).mean;
+	//sig = Pan2.ar(sig, pan, amp);
 }).play;
 );
 
 Ndef(\plop).dependants
 
-~p = Param(Ndef(\plop), \freq, \freq);
+~p = Param(Ndef(\plop), \freq, \freq.asSpec); // create a reference to a Ndef parameter with a spec
+Slider.new.mapParap(~p); // now the slider control the ndef parameter
+MIDIMap(~p, 64) // now the midi controller number 64 control the ndef parameter
 (
 {
 	o = ();
 	o.win = Window.new;
 	o.slider = Slider.new;
-	o.win.onClose = o.win.onClose.add( {debug("kjdfkdfjk closed")} );
+	o.win.onClose.debug("kkk");
+	//o.win.onClose = o.win.onClose.addFunc( {debug("kjdfkdfjk closed")} ) ;
+	o.slider.mapParam(~p);
 	o.win.layout = HLayout.new(o.slider);
-	//o.slider.mapParam(~p);
 	o.win.front;
 	
 }.value;
 )
+nil.add({1})
+nil.addFunc({1})
+debug("wkkj")
+o.win.close
 o.slider.parent
+o.slider.unmapParam;
+o.slider.mapParam(~p)
+o.slider.getHalo(\simpleController)
 o.win.onClose[0].asCompileString
+View
+GUI.qt
+
+
+///////////////////////////////// Pdef
+Pdef(\bla, Pbind())
+~p = Param(Pdef(\bla), \freqx, \freq.asSpec); // create a reference to a Ndef parameter with a spec
+~p.set(15)
+~p.set(25)
+~p.get
+~p.wrapper.inBusMode
+~p.wrapper.set(14)
+~p.wrapper.setBusMode
+Pdef(\bla).get(\freqx)
+Pdef(\bla).getVal(\freqx)
+Pdef(\bla).set(\freqx,555)
+Pdef(\bla).setVal(\freqx,555)
