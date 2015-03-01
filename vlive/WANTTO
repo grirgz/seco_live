@@ -1,3 +1,4 @@
+// Ndef(\plop).set([100,200,300]) don't change the Ndef until rerunning (so change only NodeMap)
 
 
 // see midi points after midi init, or init without creating more and more midi points

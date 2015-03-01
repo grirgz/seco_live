@@ -331,3 +331,91 @@ Pdef(\plop, Pdef(\bla) <> Pbind(
 	\amp, 0.1
 )).play;
 );
+
+////////////////////////////////////////// array ???
+
+~p = Param(Pdef(\bla), \freq, XArraySpec(\freq ! 3))
+~p.set([150,250,452])
+~p.get
+
+Pdef(\bla, Pbind())
+Pdef(\bla).get(\freq)
+Pdef(\bla).unset(\freq)
+~p0 = Param(Pdef(\bla), \freq, XArraySpec(\freq ! 8)).at(0); 
+~p0 = Param(Pdef(\bla), \freq, XArraySpec(\freq ! 8)).at(0); 
+MIDIMap(~p.at(0), 64) 
+
+~p.get
+~p.at(0).get
+~p0.get
+~p0.set(1000)
+
+~midibay.do { arg num, x;
+	MIDIMap(~p.at(x), num) 
+}
+
+~p.asMultiSlider;
+Ndef
+
+~p = Param(Ndef(\plopx), \freq, XArraySpec(\freq ! 8))
+~p.set(~p.spec.default)
+Ndef(\plopx).get(\freq)
+Ndef(\plopx).setn(\freq, 400!8)
+Ndef(\plopx).setn(\freq, 300!8)
+
+(
+Ndef(\plopx, { arg freq, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(\freq.kr(100!8));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+SynthDef(\yep, { arg out=0, amp=0.1, gate=1, pan=0;
+	var sig;
+	sig = SinOsc.ar(\freq.kr(100!3).poll);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\bla, Pbind());
+Pdef(\plop, Pdef(\bla) <> Pbind(
+	\instrument, \yep,
+	\dur, 1,
+	\amp, 0.1
+)).trace.play;
+);
+
+~p = Param(Pdef(\bla), \freq, XArraySpec(\freq ! 3))
+~p.set([450,250,452]) // dont work in bus mode :(
+~p.set([250,250,452])
+
+~p.setBusMode
+~p.setBusMode(false)
+Pdef(\bla).get(\freq)
+Pdef(\bla).getVal(\freq)
+
+~bus = Pdef(\bla).get(\freq).asCachedBus
+~bus.get
+~bus.get(_.debug)
+
+~p.at(1).set(100)
+
+~bus = Bus.control(s, 3)
+~bus.setn([100,200,300])
+~bus.get(_.debug)
+
+~buss = [ Bus.control(s,1), Bus.control(s,1), Bus.control(s,1)]
+~bussm = ~buss.collect(_.asMap)
+(
+Pdef(\plop, Pbind(
+	\instrument, \yep,
+	\freq, [ ~bussm ],
+	\dur, 1,
+	\amp, 0.1
+)).trace.play;
+);
