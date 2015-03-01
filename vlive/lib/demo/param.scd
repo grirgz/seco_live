@@ -12,6 +12,7 @@ MIDIdef(\hey, ~p.asMidiResponder)
 MIDIMap(~p, msgNum, chan, msgType, srcID)
 ---- uses
 - map midi
+- map OSC
 - gui
 - save/load
 - presets/morphing ?
@@ -293,3 +294,40 @@ Pdef(\bla).get(\freqx)
 Pdef(\bla).getVal(\freqx)
 Pdef(\bla).set(\freqx,555)
 Pdef(\bla).setVal(\freqx,555)
+
+///////////////////////////////// Pdef
+Pdef(\bla, Pbind())
+~p = Param(Pdef(\bla), \freq, \freq.asSpec); // create a reference to a Ndef parameter with a spec
+~p.set(15)
+~p.set(250)
+~p.get.asCompileString
+~p.wrapper.inBusMode
+~p.wrapper.set(14)
+~p.wrapper.setBusMode
+Pdef(\bla).get(\freq)
+Pdef(\bla).getVal(\freqx)
+Pdef(\bla).set(\freqx,555)
+Pdef(\bla).setVal(\freqx,555)
+
+(
+{
+	o = ();
+	o.win = Window.new;
+	o.slider = Slider.new;
+	o.win.onClose.debug("kkk");
+	//o.win.onClose = o.win.onClose.addFunc( {debug("kjdfkdfjk closed")} ) ;
+	o.slider.mapParam(~p);
+	o.win.layout = HLayout.new(o.slider);
+	o.win.front;
+	
+}.value;
+)
+
+(
+Pdef(\plop, Pdef(\bla) <> Pbind(
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
