@@ -371,12 +371,15 @@ Ndef(\plopx, { arg freq, pan=0, amp=0.1;
 }).play;
 );
 
+//////////////////////////////////////////////////// TEST
+
 (
 SynthDef(\yep, { arg out=0, amp=0.1, gate=1, pan=0;
 	var sig;
 	sig = SinOsc.ar(\freq.kr(100!3).poll);
+	//sig = SinOsc.ar(\freq.kr(100!3));
 	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
+	sig = Pan2.ar(sig, pan, amp).flop;
 	Out.ar(out, sig);
 }).add;
 );
@@ -387,30 +390,63 @@ Pdef(\plop, Pdef(\bla) <> Pbind(
 	\instrument, \yep,
 	\dur, 1,
 	\amp, 0.1
-)).trace.play;
+).trace).play;
 );
 
-~p = Param(Pdef(\bla), \freq, XArraySpec(\freq ! 3))
-~p.set([450,250,452]) // dont work in bus mode :(
-~p.set([250,250,452])
+~p.get
+~p.getRaw
+~p.set(450) // dont work in bus mode :(
 
+~p = Param(Pdef(\bla), \freq, XArraySpec(\freq ! 3))
+~p.set([450,1250,452]) // dont work in bus mode :(
+~p.set([655,250,452])
+~p.get
+Pdef(\bla).get(\freq)
+
+~p.wrapper.inBusMode()
+~p.wrapper.target.setBusMode(\freq, true, true)
+~p.wrapper.target.inBusMode(\freq)
+~p.wrapper.class
+~p.wrapper.setBusMode(\freq)
 ~p.setBusMode
 ~p.setBusMode(false)
-Pdef(\bla).get(\freq)
-Pdef(\bla).getVal(\freq)
 
-~bus = Pdef(\bla).get(\freq).asCachedBus
+Pdef(\bla, Pbind());
+Pdef(\bla).get(\freq)
+Pdef(\bla).set(\freq, 1100)
+Pdef(\bla).getVal(\freq)
+Pdef(\bla).setVal(\freq, [1100, 255,477])
+Pdef(\bla).setBusMode(\freq)
+Pdef(\bla).setBusMode(\freq, false)
+
+~bus = Pdef(\bla).get(\freq).asCachedBus(3)
+~bus = Pdef(\bla).get(\freq)[0][0].asCachedBus
 ~bus.get
+~bus.set(100)
+~bus.set(400)
 ~bus.get(_.debug)
+~bus
 
 ~p.at(1).set(100)
 
+Pbind
+EventStreamPlayer
+)==*
+
+~bus2 = Bus.control(s, 3)
+~bus2.asMap
 ~bus = Bus.control(s, 3)
 ~bus.setn([100,200,300])
+~bus.set(100,200,300)
 ~bus.get(_.debug)
+
+~bus.value
 
 ~buss = [ Bus.control(s,1), Bus.control(s,1), Bus.control(s,1)]
 ~bussm = ~buss.collect(_.asMap)
+~buss[0].get(_.debug)
+~buss[0].set(1000)
+~buss[1].set(200)
 (
 Pdef(\plop, Pbind(
 	\instrument, \yep,
@@ -419,3 +455,226 @@ Pdef(\plop, Pbind(
 	\amp, 0.1
 )).trace.play;
 );
+
+(
+{
+	o = ();
+	o.win = Window.new;
+	o.slider = Slider.new;
+	o.win.onClose.debug("kkk");
+	//o.win.onClose = o.win.onClose.addFunc( {debug("kjdfkdfjk closed")} ) ;
+	o.slider = MultiSliderView.new.size_(3);
+	o.slider.action = { arg xthis; ~p.normSet(xthis.value.debug("args fuck")); };
+	//o.slider.mapParam(~p);
+	o.win.layout = HLayout.new(o.slider);
+	o.win.front;
+	
+}.value;
+)
+XArraySpec(\freq ! 3)
+~p = Param(Pdef(\bla), \freq, XArraySpec(\freq ! 3))
+~p.set([450,250,452]) // dont work in bus mode :(
+~p.set([255,250,452])
+~p.get
+
+~p.numChannels
+(
+{
+	o = ();
+	o.win = Window.new;
+	o.slider = Slider.new;
+	o.win.onClose.debug("kkk");
+	//o.win.onClose = o.win.onClose.addFunc( {debug("kjdfkdfjk closed")} ) ;
+	o.slider = ~p.asMultiSlider;
+	//o.slider = MultiSliderView.new.size_(3);
+	//o.slider.action = { arg xthis; ~p.normSet(xthis.value.debug("args fuck")); };
+	//o.slider.mapParam(~p);
+	o.win.layout = HLayout.new(o.slider);
+	o.win.front;
+	
+}.value;
+)
+
+o.slider.reference = [0.2,0.3,0.4]
+o.slider.reference = 0!3
+o.slider.value
+
+~bus2 = Bus.control(s, 3);
+~bus2.asMap;
+~bus2.setn([400,2200,1300])
+(
+Pdef(\plop, Pbind(
+	\instrument, \yep,
+	\freq, [ ~bus2.asMap ],
+	\dur, 1,
+	\amp, 0.1
+)).trace.play;
+);
+
+
+////////////////////////////////// spec
+
+
+(
+SynthDef(\yep, { arg out=0, amp=0.1, gate=1, pan=0;
+	var sig;
+	sig = SinOsc.ar(\freq.kr(100!3).poll);
+	//sig = SinOsc.ar(\freq.kr(100!3));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).flop;
+	Out.ar(out, sig);
+}, metadata:(
+	specs: (
+		freq: XArraySpec(\freq!3)
+	)
+)).add;
+);
+
+(
+Pdef(\bla, Pbind());
+Pdef(\plop, Pdef(\bla) <> Pbind(
+	\instrument, \yep,
+	\dur, 1,
+	\amp, 0.1
+).trace).play;
+);
+
+Pdef(\bla).addHalo(\instrument, \yep)
+~p = Param(Pdef(\bla), \freq)
+~p.spec
+~p.set([450,1250,452]) // dont work in bus mode :(
+~p.set([655,250,452])
+~p.get
+Pdef(\bla).get(\freq)
+
+
+///////// NDEF
+
+
+(
+Ndef(\bla, { arg pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(\freq.kr(100!8).poll);
+	sig = Pan2.ar(sig, pan, amp).flop.mean;
+	sig.debug;
+}).play;
+);
+
+(
+Ndef(\bla1, { arg pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(\freq.kr(100).poll);
+	sig = Pan2.ar(sig, pan, amp).flop.mean;
+	sig.debug;
+}).play;
+);
+
+Ndef(\bla).clear
+
+~p = Param(Ndef(\bla), \bipolar)
+~p = Param(Ndef(\bla), \xxx)
+Ndef(\bla).addSpec(\xxx, ControlSpec(0,1215,\lin,0,1))
+Param.toSpec(nil, \bipolar)
+~p.spec
+~p.wrapper.toSpec(nil)
+nil ? 4
+Ndef(\bla).getSpec(\freq)
+Ndef(\bla).setSpec(\freq)
+~p = Param(Ndef(\bla), \freq, XArraySpec(\freq!8))
+~p.set([450,1250,452]) // dont work in bus mode :(
+~p.set(~p.spec.default)
+~p.get
+Ndef(\bla).get(\freq)
+Ndef(\bla).setn(\freq, [100,212,1555])
+Ndef(\bla).set(\freq, [100,212,1555])
+Ndef(\bla).set(\freq, 1555)
+Ndef(\bla1).set(\freq, 1555)
+
+(
+{
+	o = ();
+	o.win = Window.new;
+	o.slider = ~p.asMultiSlider;
+	o.slider.elasticMode = 1;
+	o.win.layout = HLayout.new(o.slider);
+	o.win.front;
+	
+}.value;
+)
+
+
+
+(
+var size;
+size = 350 / 6;
+w = Window.new;
+w.view.decorator = FlowLayout(w.view.bounds);
+m = MultiSliderView(w, Rect(0, 0, 350, 100));
+m.value_(Array.fill(size, {0.01}));
+m.isFilled_(true); // width in pixels of each stick
+m.indexThumbSize_(2.0); // spacing on the value axis
+m.gap_(4);
+w.front;
+)
+
+// rotate the above graph
+(
+m.bounds_(Rect(0, 0, 100, 350));
+m.indexIsHorizontal_(false);
+)
+
+
+(
+n=4;
+
+w = Window("MultiSlider Options", Rect(200, Window.screenBounds.height-550, 600, 450));
+f={
+    w.view.decorator = FlowLayout( w.view.bounds, 10@10, 10@2 );
+    m = MultiSliderView(w,Rect(0,0,580,200)); // default thumbWidth is 13
+    m.value=Array.fill(n, {|v| 0.5+((0.3*v).sin*0.25)});
+    m.action = { arg q;q.value.postln; };
+
+    StaticText(w,380@18).string_("indexThumbSize or thumbSize");
+    Slider(w,580@10).action_({arg sl; m.indexThumbSize=sl.value*24}).value_(0.5);
+    StaticText(w,380@18).string_("valueThumbSize");
+    Slider(w,580@10).action_({arg sl; m.valueThumbSize=sl.value*24}).value_(0.5);
+    StaticText(w,580@18).string_("xOffset or gap");
+    Slider(w,580@10).action_({arg sl; m.xOffset=sl.value*50});
+    StaticText(w,580@18).string_("startIndex");
+    Slider(w,580@10).action_({arg sl; m.startIndex = sl.value *m.size};);
+
+    CompositeView(w,580@10);//spacer
+    Button(w,100@20).states_([["RESET",Color.red]])
+        .action_({ w.view.removeAll; f.value; });
+    h=StaticText(w,450@18).string_("").stringColor_(Color.yellow);
+    Button(w,100@20).states_([["elasticMode = 0"],["elasticMode = 1",Color.white]])
+        .action_({|b| m.elasticMode = b.value});
+    Button(w,160@20).states_([["indexIsHorizontal = false"],["indexIsHorizontal = true",Color.white]])
+        .action_({|b| m.indexIsHorizontal = b.value.booleanValue}).value_(1);
+    Button(w,120@20).states_([["isFilled = false"],["isFilled = true",Color.white]])
+        .action_({|b| m.isFilled = b.value.booleanValue});
+    Button(w,120@20).states_([["drawRects = false"],["drawRects = true",Color.white]])
+        .action_({|b| m.drawRects = b.value.booleanValue}).valueAction_(1);
+    Button(w,100@20).states_([["drawLines = false"],["drawLines = true",Color.white]])
+        .action_({|b| m.drawLines = b.value.booleanValue});
+    Button(w,160@20).states_([["readOnly = false"],["readOnly = true",Color.white]])
+        .action_({|b| m.readOnly = b.value.booleanValue});
+    Button(w,120@20).states_([["showIndex = false"],["showIndex = true",Color.white]])
+        .action_({|b| m.showIndex = b.value.booleanValue});
+    Button(w,120@20).states_([["reference = nil"],["reference filled",Color.white],["reference random",Color.yellow]])
+        .action_({|b| b.value.booleanValue.if({
+            (b.value>1).if(
+                {m.reference=Array.fill(n, {1.0.rand})},
+                {m.reference=Array.fill(m.size, {0.5})});
+                },{ q=m.value;m.reference=[]; h.string="reference can't be returned to nil presently. please hit RESET."}
+            )
+        });
+    Button(w,180@20).states_([["fillColor = Color.rand"]]).action_({m.fillColor=Color.rand});
+    Button(w,180@20).states_([["strokeColor = Color.rand"]]).action_({m.strokeColor=Color.rand});
+    Button(w,180@20).states_([["background = Color.rand"]]).action_({m.background=Color.rand});
+
+};
+f.value;
+w.front;
+
+)
