@@ -1,3 +1,5 @@
+// Env.postln should print Env arguments
+
 // Ndef(\plop).set([100,200,300]) don't change the Ndef until rerunning (so change only NodeMap)
 
 

@@ -542,21 +542,23 @@ Pdef(\plop, Pdef(\bla) <> Pbind(
 Pdef(\bla).addHalo(\instrument, \yep)
 ~p = Param(Pdef(\bla), \freq)
 ~p.spec
-~p.set([450,1250,452]) // dont work in bus mode :(
+~p.set([450,1250,452]) 
 ~p.set([655,250,452])
 ~p.get
 Pdef(\bla).get(\freq)
 
 
 ///////// NDEF
+// ndef dont work in array mode, am i crazy ?
 
 
 (
 Ndef(\bla, { arg pan=0, amp=0.1;
 	var sig;
-	sig = SinOsc.ar(\freq.kr(100!8).poll);
-	sig = Pan2.ar(sig, pan, amp).flop.mean;
-	sig.debug;
+	sig = SinOsc.ar(\freq.kr(100!3).poll);
+	sig.debug("sig1");
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig.debug("sig");
 }).play;
 );
 
@@ -580,7 +582,7 @@ Param.toSpec(nil, \bipolar)
 nil ? 4
 Ndef(\bla).getSpec(\freq)
 Ndef(\bla).setSpec(\freq)
-~p = Param(Ndef(\bla), \freq, XArraySpec(\freq!8))
+~p = Param(Ndef(\bla), \freq, XArraySpec(\freq!3))
 ~p.set([450,1250,452]) // dont work in bus mode :(
 ~p.set(~p.spec.default)
 ~p.get
@@ -603,78 +605,215 @@ Ndef(\bla1).set(\freq, 1555)
 )
 
 
+///////// NDEF
+// ndef dont work in array mode, am i crazy ?
+// test
+// seems not :((((
+
 
 (
-var size;
-size = 350 / 6;
-w = Window.new;
-w.view.decorator = FlowLayout(w.view.bounds);
-m = MultiSliderView(w, Rect(0, 0, 350, 100));
-m.value_(Array.fill(size, {0.01}));
-m.isFilled_(true); // width in pixels of each stick
-m.indexThumbSize_(2.0); // spacing on the value axis
-m.gap_(4);
-w.front;
+Ndef(\xbla, { arg pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(\xfreq.kr(100!3).poll);
+	sig.debug("sig1");
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig.debug("sig");
+}).play;
+);
+
+Ndef(\xbla).clear
+
+Ndef(\xbla).get(\xfreq)
+Ndef(\xbla).setn(\xfreq, [100,212,1555])
+Ndef(\xbla).set(\xfreq, [100,212,1555])
+Ndef(\xbla).set(\xfreq, 1555)
+///////////////////////////// ENV Pdef
+
+XEnvSpec(\freq!3, \sustain!3).curves
+
+(
+SynthDef(\yep, { arg out=0, amp=0.1, gate=1, pan=0;
+	var sig;
+	var freq;
+	freq = EnvGen.ar( \freqenv.kr(Env([100,1000,200], [0.2,0.2])),gate,doneAction:0);
+	sig = SinOsc.ar(freq);
+	//sig = SinOsc.ar(\freq.kr(100!3));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).flop;
+	Out.ar(out, sig);
+}, metadata:(
+	specs: (
+		freqenv: XEnvSpec(\freq!3, \sustain!3)
+	)
+)).add;
+);
+
+
+(
+Pdef(\bla, Pbind());
+Pdef(\plop, 
+	
+	(Pbind(
+		\printme, Pfunc({ arg ev; ev[\freqenv].asCompileString.debug("freqenv!") })
+	)
+	<>
+	Pdef(\bla) <> Pbind(
+	\instrument, \yep,
+	\dur, 1,
+	\amp, 0.1
+)).trace).play;
+);
+
+(
+Pdef(\plop, Pbind(
+	\freqenv, [ Env([400,100,3000],[0.1,0.3]) ],
+	//\freqenv, Env([400,100,3000],[0.1,0.3]), // don't work
+	\instrument, \yep,
+	\dur, 1,
+	\amp, 0.1
+).trace).play;
+);
+
+Pdef(\bla).set(\freqenv, Env([4000,100,300],[0.1,0.3]))
+Pdef(\bla).set(\freqenv, Env([400,100,700],[0.1,0.3]))
+Pdef(\bla).set(\freqenv, [Env([400,100,700],[0.1,0.3])])
+Pdef(\bla).setVal(\freqenv, Env([400,100,700],[0.1,0.3]))
+Pdef(\bla).get(\freqenv)
+Pdef(\bla).get(\freqenv).asCompileString
+Pdef(\bla).asStream.next(Event.default)
+
+~p = Param(Pdef(\bla), \freqenv, XEnvSpec(\freq!3, \sustain!3))
+~p.set(Env([4000,100,300],[0.1,0.3]))
+~p.set(Env([3400,130,1300],[0.1,0.3]))
+~p.get.asCompileString
+~p.wrapper
+~env = Env([4000,100,300],[0.1,0.3])
+~env.isSequenceableCollection
+Env([4000,100,300],[0.1,0.3])
+
+///////////////////////////// ENV Ndef
+
+(
+Ndef(\blax, { arg amp=0.1, pan=0;
+	var sig;
+	var freq;
+	freq = EnvGen.ar( \freqenv.kr(Env([100,1000,200], [0.2,0.2])),Impulse.kr(1),doneAction:0);
+	sig = SinOsc.ar(freq);
+	//sig = SinOsc.ar(\freq.kr(100!3));
+	sig = Pan2.ar(sig, pan, amp);
+}).play
+);
+Ndef(\blax).clear
+Ndef(\blax).set(\freqenv, Env([3400,130,1300],[0.1,0.3]));
+~p = Param(Ndef(\blax), \freqenv, XEnvSpec(\freq!3, \sustain!3))
+~p.set(Env([4000,100,300],[0.1,0.3]))
+~p.set(Env([3400,130,1300],[0.1,0.3]))
+~p.get.asCompileString
+
+
+///////////////////////////////// env gui
+
+
+~env = Env([4000,100,300],[0.1,0.3]);
+~spec = XEnvSpec(\freq!3, \sustain!3);
+~spec.unmap(~env).asCompileString
+~env.times
+(
+{
+~env = Env([4000,100,300],[0.1,0.3]);
+~spec = XEnvSpec(\freq!3, \sustain!3);
+	o = ();
+	o.win = Window.new;
+
+
+	o.slider = EnvelopeView.new(nil, Rect(0, 0, 230, 80))
+		.drawLines_(true)
+		.selectionColor_(Color.red)
+		.drawRects_(true)
+		.step_(0)
+		.thumbSize_(10)
+		//.setEnv(~env)
+		.setEnv(~spec.unmap(~env))
+		.keepHorizontalOrder_(true);
+
+	o.win.layout = HLayout.new(o.slider);
+	o.win.front;
+	
+}.value;
 )
 
-// rotate the above graph
+~envview_getEnv.(o.slider).asCompileString
+
+
+	setEnv { arg env;
+		var times = [0] ++ env.times.integrate;
+		if( times.last > 0 ) {times = times / times.last};
+		this.value = [times, env.levels];
+		this.curves = env.curves;
+	}
+
 (
-m.bounds_(Rect(0, 0, 100, 350));
-m.indexIsHorizontal_(false);
-)
-
-
-(
-n=4;
-
-w = Window("MultiSlider Options", Rect(200, Window.screenBounds.height-550, 600, 450));
-f={
-    w.view.decorator = FlowLayout( w.view.bounds, 10@10, 10@2 );
-    m = MultiSliderView(w,Rect(0,0,580,200)); // default thumbWidth is 13
-    m.value=Array.fill(n, {|v| 0.5+((0.3*v).sin*0.25)});
-    m.action = { arg q;q.value.postln; };
-
-    StaticText(w,380@18).string_("indexThumbSize or thumbSize");
-    Slider(w,580@10).action_({arg sl; m.indexThumbSize=sl.value*24}).value_(0.5);
-    StaticText(w,380@18).string_("valueThumbSize");
-    Slider(w,580@10).action_({arg sl; m.valueThumbSize=sl.value*24}).value_(0.5);
-    StaticText(w,580@18).string_("xOffset or gap");
-    Slider(w,580@10).action_({arg sl; m.xOffset=sl.value*50});
-    StaticText(w,580@18).string_("startIndex");
-    Slider(w,580@10).action_({arg sl; m.startIndex = sl.value *m.size};);
-
-    CompositeView(w,580@10);//spacer
-    Button(w,100@20).states_([["RESET",Color.red]])
-        .action_({ w.view.removeAll; f.value; });
-    h=StaticText(w,450@18).string_("").stringColor_(Color.yellow);
-    Button(w,100@20).states_([["elasticMode = 0"],["elasticMode = 1",Color.white]])
-        .action_({|b| m.elasticMode = b.value});
-    Button(w,160@20).states_([["indexIsHorizontal = false"],["indexIsHorizontal = true",Color.white]])
-        .action_({|b| m.indexIsHorizontal = b.value.booleanValue}).value_(1);
-    Button(w,120@20).states_([["isFilled = false"],["isFilled = true",Color.white]])
-        .action_({|b| m.isFilled = b.value.booleanValue});
-    Button(w,120@20).states_([["drawRects = false"],["drawRects = true",Color.white]])
-        .action_({|b| m.drawRects = b.value.booleanValue}).valueAction_(1);
-    Button(w,100@20).states_([["drawLines = false"],["drawLines = true",Color.white]])
-        .action_({|b| m.drawLines = b.value.booleanValue});
-    Button(w,160@20).states_([["readOnly = false"],["readOnly = true",Color.white]])
-        .action_({|b| m.readOnly = b.value.booleanValue});
-    Button(w,120@20).states_([["showIndex = false"],["showIndex = true",Color.white]])
-        .action_({|b| m.showIndex = b.value.booleanValue});
-    Button(w,120@20).states_([["reference = nil"],["reference filled",Color.white],["reference random",Color.yellow]])
-        .action_({|b| b.value.booleanValue.if({
-            (b.value>1).if(
-                {m.reference=Array.fill(n, {1.0.rand})},
-                {m.reference=Array.fill(m.size, {0.5})});
-                },{ q=m.value;m.reference=[]; h.string="reference can't be returned to nil presently. please hit RESET."}
-            )
-        });
-    Button(w,180@20).states_([["fillColor = Color.rand"]]).action_({m.fillColor=Color.rand});
-    Button(w,180@20).states_([["strokeColor = Color.rand"]]).action_({m.strokeColor=Color.rand});
-    Button(w,180@20).states_([["background = Color.rand"]]).action_({m.background=Color.rand});
-
+~envview_getEnv = { arg envview;
+	var curves;
+	var times;
+	var levels;
+	var env;
+	times = envview.value[0];
+	times = times.drop(-1);
+	times = times.differentiate;
+	levels = envview.value[1];
+	curves = envview.curves;
+	env = Env.new(levels, times, curves);
+	env
 };
-f.value;
-w.front;
+)
 
+(
+{
+	o = ();
+	o.win = Window.new;
+
+
+			o.slider = EnvelopeView.new(nil, Rect(0, 0, 230, 80))
+				.drawLines_(true)
+				.selectionColor_(Color.red)
+				.drawRects_(true)
+				.step_(0)
+				.thumbSize_(10)
+				.keepHorizontalOrder_(true)
+				.value_(self.controller.get_norm_xy);
+			self.env_view = slider;
+			self.env_view.selectIndex(1);
+			self.env_view.action = { arg env;
+				if(env.index == 0 and: { env.x > 0 }) {
+					env.x = 0;
+				};
+				self.controller.set_norm_xy(env.value);
+				self.update_label;
+				self.update_knobs;
+			};
+			self.env_view.mouseDownAction = { arg view, x, y, mod;
+				self.mouse_down_point = Point(x,y);
+				self.mouse_down_index = view.index;
+				self.mouse_down_time_scale = self.controller.time_scale;
+			};
+			self.env_view.mouseUpAction = { arg view, x, y, mod;
+				self.update_knobs;
+				if(mod.isShift) {
+					self.env_view.selectIndex(self.mouse_down_index)
+				}
+			};
+			self.env_view.mouseMoveAction = { arg view, x, y, mod;
+				var val;
+				if(mod.isShift) {
+					val = x - self.mouse_down_point.x;
+					self.controller.time_scale = self.mouse_down_time_scale + (val/500);
+					self.update_env;
+				}
+			};
+
+	o.win.layout = HLayout.new(o.slider);
+	o.win.front;
+	
+}.value;
 )
