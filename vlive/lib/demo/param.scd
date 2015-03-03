@@ -713,20 +713,24 @@ Ndef(\blax).set(\freqenv, Env([3400,130,1300],[0.1,0.3]));
 
 ///////////////////////////////// env gui
 
+\curves.asSpec
 
-~env = Env([4000,100,300],[0.1,0.3]);
+\sustain.asSpec
+\freq.asSpec
+~env = Env([4000,100,300],[0.1,0.3,0]);
 ~spec = XEnvSpec(\freq!3, \sustain!3);
 ~spec.unmap(~env).asCompileString
 ~env.times
 (
 {
+Spec.add(\sustain, ControlSpec(0,16,\lin,0,1));
 ~env = Env([4000,100,300],[0.1,0.3]);
 ~spec = XEnvSpec(\freq!3, \sustain!3);
 	o = ();
 	o.win = Window.new;
 
 
-	o.slider = EnvelopeView.new(nil, Rect(0, 0, 230, 80))
+	o.slider = XEnvelopeView.new(nil, Rect(0, 0, 230, 80))
 		.drawLines_(true)
 		.selectionColor_(Color.red)
 		.drawRects_(true)
@@ -742,30 +746,47 @@ Ndef(\blax).set(\freqenv, Env([3400,130,1300],[0.1,0.3]));
 }.value;
 )
 
-~envview_getEnv.(o.slider).asCompileString
+o.slider.value = [ [0,0.2,4.3], [0,0.2,1.0] ]
+
+~envview_getEnv.(o.slider).asCompileString == ~spec.unmap(~env).asCompileString
+[ ~envview_getEnv.(o.slider).asCompileString , ~spec.unmap(~env).asCompileString ]
 
 
-	setEnv { arg env;
-		var times = [0] ++ env.times.integrate;
-		if( times.last > 0 ) {times = times / times.last};
-		this.value = [times, env.levels];
-		this.curves = env.curves;
-	}
 
 (
+	~setEnv = { arg xthis, env;
+		var times;
+		env.times.debug("settimes");
+		times = env.times.integrate;
+		times.debug("settimes");
+		times = [0] ++ times;
+		times.debug("settimes");
+		if( times.last > 0 ) {times = times / times.last};
+		times.debug("settimes");
+		xthis.value = [times, env.levels];
+		xthis.curves = env.curves;
+		xthis;
+	};
 ~envview_getEnv = { arg envview;
 	var curves;
 	var times;
 	var levels;
 	var env;
+	times.debug("times");
 	times = envview.value[0];
-	times = times.drop(-1);
+	times.debug("times2");
+	times = times.drop(1);
+	times.debug("times3");
 	times = times.differentiate;
+	times.debug("times4");
 	levels = envview.value[1];
 	curves = envview.curves;
 	env = Env.new(levels, times, curves);
 	env
 };
+~setEnv.((), ~spec.unmap(~env)).debug("setEnv");
+[  ~spec.unmap(~env).asCompileString, ~envview_getEnv.(o.slider).asCompileString ].debug("in, out");
+~envview_getEnv.(o.slider).asCompileString == ~spec.unmap(~env).asCompileString;
 )
 
 (
