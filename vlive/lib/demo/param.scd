@@ -717,17 +717,18 @@ Ndef(\blax).set(\freqenv, Env([3400,130,1300],[0.1,0.3]));
 
 \sustain.asSpec
 \freq.asSpec
-~env = Env([4000,100,300],[0.1,0.3,0]);
+~env = Env([4000,100,300],[0.1,0.9]);
 ~spec = XEnvSpec(\freq!3, \sustain!3);
 ~spec.unmap(~env).asCompileString
 ~env.times
 (
 {
 Spec.add(\sustain, ControlSpec(0,16,\lin,0,1));
-~env = Env([4000,100,300],[0.1,0.3]);
+~env = Env([4000,100,300],[1,4.3],[40.1,7]);
 ~spec = XEnvSpec(\freq!3, \sustain!3);
 	o = ();
 	o.win = Window.new;
+	o.win.alwaysOnTop = true;
 
 
 	o.slider = XEnvelopeView.new(nil, Rect(0, 0, 230, 80))
@@ -737,20 +738,46 @@ Spec.add(\sustain, ControlSpec(0,16,\lin,0,1));
 		.step_(0)
 		.thumbSize_(10)
 		//.setEnv(~env)
-		.setEnv(~spec.unmap(~env))
+		.setEnv(~spec.unmap(~env, true))
 		.keepHorizontalOrder_(true);
 
+	o.slider.grid = Point(1/16,1/8);
+	o.slider.totalDur = ~spec.times[0].unmap(10);
+	o.slider.gridOn = true;
+	//o.slider.zoomFit;
 	o.win.layout = HLayout.new(o.slider);
 	o.win.front;
 	
 }.value;
 )
 
+o.slider.zoomFit
+o.slider.totalDur = ~spec.times[0].umap(1)
+o.slider.totalDur = ~spec.times[0].unmap(8)
+o.slider.totalDur = ~spec.times[0].unmap(16)
+o.slider.totalDur = ~spec.times[0].unmap(2).debug("yep")
+o.slider.totalDur
+~spec.times[0].map(o.slider.totalDur)
 o.slider.value = [ [0,0.2,4.3], [0,0.2,1.0] ]
+o.slider.timeScale = 1/o.slider.duration
+o.slider.timeScale  = 1
+o.slider.timeScale  = ~spec.times[0].unmap(1)
+o.slider.timeScale  
+o.slider.duration
+o.slider.grid = Point(1/32,1/8)
+o.slider.grid = Point(o.slider.duration * o.slider.timeScale / 4,0.1)
+\freq.asSpec.grid.dump
+
+o.slider.getEnv.asCompileString
+~spec.map(o.slider.getEnv).asCompileString
+o.slider.getEnv.asCompileString == ~spec.unmap(~env).asCompileString
+o.slider.getEnv == ~spec.unmap(~env)
+[ o.slider.getEnv.asCompileString, ~spec.unmap(~env).asCompileString ]
 
 ~envview_getEnv.(o.slider).asCompileString == ~spec.unmap(~env).asCompileString
 [ ~envview_getEnv.(o.slider).asCompileString , ~spec.unmap(~env).asCompileString ]
 
+~spec.map(o.slider.getEnv).asCompileString
 
 
 (
@@ -838,3 +865,196 @@ o.slider.value = [ [0,0.2,4.3], [0,0.2,1.0] ]
 	
 }.value;
 )
+
+
+//////////////////////////// env gui act on param
+
+(
+Ndef(\blax, { arg amp=0.1, pan=0;
+	var sig;
+	var freq;
+	freq = EnvGen.ar( \freqenv.kr(Env([100,1000,200], [0.2,0.2])),Impulse.kr(1),doneAction:0);
+	sig = SinOsc.ar(freq);
+	//sig = SinOsc.ar(\freq.kr(100!3));
+	sig = Pan2.ar(sig, pan, amp);
+}).play
+);
+Ndef(\blax).clear
+Ndef(\blax).set(\freqenv, Env([3400,130,1300],[0.1,0.3]));
+(
+Spec.add(\sustain, ControlSpec(0,16,\lin,0,1));
+~p = Param(Ndef(\blax), \freqenv, XEnvSpec(\freq!3, \sustain!3));
+~p.set(Env([4000,100,300],[0.1,0.3]));
+)
+~p.set(Env([3400,130,1300],[0.1,0.3]))
+~p.get.asCompileString
+~p.normGet.asCompileString
+
+(
+{
+	o = ();
+	o.win = Window.new;
+	o.win.alwaysOnTop = true;
+
+
+	o.slider = XEnvelopeView.new(nil, Rect(0, 0, 230, 80))
+		.drawLines_(true)
+		.selectionColor_(Color.red)
+		.drawRects_(true)
+		.step_(0)
+		.thumbSize_(10)
+		//.setEnv(~env)
+		.setEnv(~p.normGet)
+		.keepHorizontalOrder_(true);
+
+	o.slider.action = { arg self;
+		var val = self.value;
+		if( val[0][0] != 0) {
+			val[0][0] = 0;
+			self.value = val;
+		};
+		~p.normSet(self.getEnv);
+	};
+	o.slider.elasticSelection = false;
+	o.slider.grid = Point(~p.spec.times[0].unmap(1/8),1/8).debug("gridxx");
+	o.slider.totalDur = ~p.spec.times[0].unmap(2);
+	o.slider.gridOn = true;
+	//o.slider.zoomFit;
+	o.win.layout = HLayout.new(o.slider);
+	o.win.front;
+	
+}.value;
+)
+o.slider.zoomFit
+o.slider.totalDur
+~spec.m
+~p.spec.times[0].map(o.slider.totalDur)
+
+
+
+(
+// use shift-click to keep a node selected
+w = Window("envelope", Rect(150 , Window.screenBounds.height - 250, 250, 100)).front;
+w.view.decorator = FlowLayout(w.view.bounds);
+
+b = EnvelopeView(w, Rect(0, 0, 230, 80))
+    .drawLines_(true)
+    .selectionColor_(Color.red)
+    .drawRects_(true)
+    .resize_(5)
+    .step_(0.05)
+    .action_({arg b; [b.index, b.value].postln})
+    .thumbSize_(5)
+    .value_([[0.0, 0.1, 0.5, 1.0],[0.1,1.0,0.8,0.0]]);
+w.front;
+)
+
+// show grid
+b.gridOn_(true);
+
+// show Env
+b.setEnv(Env.asr(0.5,1, 0.2));
+
+// make the first point unmoveable
+(
+b.setEditable(0,false);
+)
+
+(
+w = Window("envelope", Rect(150 , Window.screenBounds.height - 250, 400, 150)).front;
+w.view.decorator = FlowLayout(w.view.bounds);
+
+b = EnvelopeView(w, Rect(0, 0, 350, 100))
+    .thumbSize_(5)
+    .drawLines_(true)
+    .fillColor_(Color.green)
+    .selectionColor_(Color.red)
+    .drawRects_(true)
+    .value_([(0.0, 0.1 .. 1.0), (0.0, 0.1 .. 1.0)])
+    .setEditable(0,false);
+)
+
+(
+r = Routine({
+    var j = 0;
+    20.do({ arg i;
+        b.selectIndex((b.size - 1).rand.abs);
+        0.1.wait;
+        b.x_(1.0.rand.abs);
+        b.y_(1.0.rand.abs);
+    });
+    b.selectIndex(-1);
+});
+AppClock.play(r);
+)
+
+
+//////////////////////////// env gui act on param
+
+(
+Ndef(\blax, { arg amp=0.1, pan=0;
+	var sig;
+	var freq;
+	freq = EnvGen.ar( \freqenv.kr(Env([100,1000,200], [0.2,0.2]).asArray),Impulse.kr(1),doneAction:0);
+	sig = SinOsc.ar(freq);
+	//sig = SinOsc.ar(\freq.kr(100!3));
+	sig = Pan2.ar(sig, pan, amp);
+}).play
+);
+
+[ [10,20,30] ].unbubble.unbubble
+[10].unbubble.unbubble
+[10].bubble.bubble
+
+Ndef(\blax).clear
+Ndef(\blax).set(\freqenv, Env([3400,130,1300],[0.1,0.3]));
+(
+Spec.add(\sustain, ControlSpec(0,16,\lin,0,1));
+~p = Param(Ndef(\blax), \freqenv, XEnvSpec(\freq!3, \sustain!3));
+~p.set(Env([4000,100,300],[0.1,0.3]));
+)
+~p.set(Env([3400,130,1300],[0.1,0.3]))
+~p.get.asCompileString
+~p.normGet.asCompileString
+
+(
+{
+	o = ();
+	o.win = Window.new;
+	o.win.alwaysOnTop = true;
+
+	o.slider = ~p.asEnvelopeView;
+	o.win.layout = HLayout.new(o.slider);
+	o.win.front;
+	
+}.value;
+)
+
+/////////////////// get default value in target
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+Ndef(\plop).get(\freq)
+Ndef(\blax).get(\freqenv).asEnv.asCompileString
+Ndef(\blax).unset(\freqenv)
+Ndef(\plop).unset(\freq)
+
+Env([3400,130,1300],[0.1,0.3],[-2,2]).asCompileString.debug("in"); Env([3400,130,1300],[0.1,0.3],[-2,2],1,0).asArray.asEnv.asCompileString
+
+
+// TODO:
+- Param.asView
+- what to do to prevent using method for env on scalar, and mismatching types in general, and what about env specific methods
+- how work shapeNumber in Env.asArray
+- write a gui with button and zoom for XEnvelopeView
+- write a list of features / documentation to see more clearly
+- rewrite MIDIBoard
+- get default value in target
+- Param.unset (set default target value)
+- Param.unset (unset Pdef and Ndef)
