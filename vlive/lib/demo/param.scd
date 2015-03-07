@@ -1,3 +1,23 @@
+// TODO:
+- Param.asView
+- what to do to prevent using method for env on scalar, and mismatching types in general, and what about env specific methods
+- how work shapeNumber in Env.asArray
+- write a gui with button and zoom for XEnvelopeView
+- write a list of features / documentation to see more clearly
+- rewrite MIDIBoard
+- write ParamGroup
+- get default value in target
+- Param.unset (set default target value)
+- Param.unset (unset Pdef and Ndef)
+- write wrapper for
+	- statictext
+	- textfield
+	- slider2D
+	- popupmenu
+- handle lists and dictionaries
+- write tests
+
+/////////////////////////////////
 
 ~p = Param([Pdef(\hello), \freq, \freq.asSpec]);
 ~p.asSlider;
@@ -27,6 +47,7 @@ MIDIMap(~p, msgNum, chan, msgType, srcID)
 - multichannel bus
 - cached bus
 - list
+- dictionary
 - Ref
 - envir var
 - function (button, noteOn)
@@ -79,6 +100,8 @@ ParamPdef(\plop, \instrument, \bla, \freq, 60)
 - need to init the Pdef(\plop, Pbind()) to be able to use it with Param as a param holder
 
 Slider.new.mapParam(~p)
+Param.fromList([ \freq, \freq, \freq ])
+Param.fromDictionary((lp: \freq, hp:\freq, fm:\freq ))
 
 ~pg = ParamGroup([
 	[Pdef(\hello), \freq, \freq.asSpec],
@@ -1048,13 +1071,36 @@ Ndef(\plop).unset(\freq)
 Env([3400,130,1300],[0.1,0.3],[-2,2]).asCompileString.debug("in"); Env([3400,130,1300],[0.1,0.3],[-2,2],1,0).asArray.asEnv.asCompileString
 
 
-// TODO:
-- Param.asView
-- what to do to prevent using method for env on scalar, and mismatching types in general, and what about env specific methods
-- how work shapeNumber in Env.asArray
-- write a gui with button and zoom for XEnvelopeView
-- write a list of features / documentation to see more clearly
-- rewrite MIDIBoard
-- get default value in target
-- Param.unset (set default target value)
-- Param.unset (unset Pdef and Ndef)
+
+		SynthDescLib.global.synthDescs[\synthdef_scalar].controlDict[\freq].defaultValue
+
+(
+~pbind = Pbind(
+	\instrument, \plop,
+	\bla, \kra
+);
+)
+~pbind.patternpairs
+1/0.025
+
+{SinOsc.kr(1) }.plot(1)
+
+
+Ndef(\plop, { 
+	\freq.kr = SinOsc.kr(0.2); 
+	SinOsc.ar(\freq.kr(100))
+}).play; 
+Ndef(\lfo, { SinOsc.ar(1/2).range(50,300)  }); 
+Ndef(\plop2).map(Ndef(\lfo));
+
+Ndef(\plop, { 
+	var lfo = SinOsc.kr(0.2); 
+	Out.kr(~bus, lfo);
+	SinOsc.ar(lfo)
+}).play; 
+Ndef(\plop2, { 
+	SinOsc.ar(\freq.kr)
+}).play; 
+Ndef(\plop2).map(\freq, ~bus)
+
+
