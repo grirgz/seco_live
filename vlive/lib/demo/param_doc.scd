@@ -207,3 +207,5 @@ Pdef(\pdef_env, Pbind(
 // default spec (not working)
 ~p = Param(Pdef(\pdef_env), \freqenv);
 ~p.spec
+GUI.qt
+Knob.new

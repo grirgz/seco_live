@@ -1,3 +1,15 @@
+///////
+
+~toggle_fx.(~namex, ~albert+++\fx, \filter -> { arg in;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig = in;
+	sig1 = RLPF.ar(sig, Ndef(~albert+++\freq)*(1..8)*1, 0.2)*LFPulse.ar((1..8)/4).range(0,1).lag(0.1);
+	//sig = SelectX.ar( SinOsc.kr(1/4*~t * (1..8)*8).range(0,1), [sig, sig1]);
+	sig = sig1;
+	sig;
+
+});
 
 ///////
 // to put on a column which control another node, so there is no playing state and no stopping
