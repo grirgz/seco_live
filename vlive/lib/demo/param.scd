@@ -1103,4 +1103,96 @@ Ndef(\plop2, {
 }).play; 
 Ndef(\plop2).map(\freq, ~bus)
 
+(
+Ndef(\plop, { arg freq=200, freq2=300, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar([ freq, freq2 ]).mean;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
 
+(
+~list = [
+	Param(Ndef(\plop), \freq, \freq),
+	Param(Ndef(\plop), \freq2, \freq),
+];
+)
+
+Ndef(\plop).clear
+Ndef(\plop).dependants 
+Ndef(\plop).releaseDependants
+Ndef(\plop).dependants.do(_.remove)
+Ndef(\plop).set(\freq, 100)
+~list[0].set(100)
+
+~list.do({ arg x; x.target.releaseDependants });
+
+(
+~makegui2 = { arg fun;
+	var win;
+	var widget;
+	win = Window.new;
+	//widget = fun.();
+	win.layout = HLayout.new(*~list.collect({ arg x; x.asView }));
+	//win.layout = HLayout.new([Slider.new, Slider.new]);
+	win.alwaysOnTop = true;
+	win.front;
+};
+~makegui2.()
+)
+
+~makegui.({ HLayout.new(*~list.collect(_.asView)) })
+
+(
+w = Window().front;
+a = { Button(w) } ! 10;
+w.layout = HLayout(*a);
+);
+
+
+(
+	
+)
+
+(
+Ndef(\ndef_scalar, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+~p = Param(Ndef(\ndef_scalar), \freq, \freq);
+);
+
+(
+{
+	o = ();
+	o.win = Window.new;
+	o.win.alwaysOnTop = true;
+
+	//o.slider = StaticText.new;
+	o.slider = XStaticText.new;
+	o.slider.value = ~p.get;
+	o.win.layout = HLayout.new(o.slider);
+	o.win.front;
+	
+}.value;
+)
+(
+{
+	o = ();
+	o.win = Window.new;
+	o.win.alwaysOnTop = true;
+
+	//o.slider = StaticText.new;
+	o.slider = XStaticText.new;
+	o.slider2 = ~p.asView;
+	o.slider3 = XStaticText.new;
+	~p.mapStaticTextValue(o.slider);
+	~p.mapStaticTextLabel(o.slider3);
+	o.win.layout = VLayout.new(o.slider, o.slider2, o.slider3);
+	o.win.front;
+	
+}.value;
+)
+o.slider.value = "plop"
+200.asStringPrec(6).asCompileString
