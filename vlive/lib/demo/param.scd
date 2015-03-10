@@ -1,21 +1,33 @@
-// TODO:
+// Done
 - Param.asView
+- rewrite MIDIBoard
+- write ParamGroup
+- write wrapper for
+	- statictext
+	- textfield
+
+// TODO:
 - what to do to prevent using method for env on scalar, and mismatching types in general, and what about env specific methods
 - how work shapeNumber in Env.asArray
 - write a gui with button and zoom for XEnvelopeView
 - write a list of features / documentation to see more clearly
-- rewrite MIDIBoard
-- write ParamGroup
 - get default value in target
 - Param.unset (set default target value)
 - Param.unset (unset Pdef and Ndef)
 - write wrapper for
-	- statictext
-	- textfield
 	- slider2D
 	- popupmenu
 - handle lists and dictionaries
 - write tests
+
+- handle
+	- Ndef volume
+	- Archive list and dict
+	- Tempo
+	- Master volume
+- MIDIMap handle function for quick mapping
+- OSCMap
+- Pdef.asParamGroup.edit
 
 /////////////////////////////////
 
@@ -42,6 +54,7 @@ MIDIMap(~p, msgNum, chan, msgType, srcID)
 - ndef,
 - ndef volume
 - volume
+- tempo
 - synth
 - bus
 - multichannel bus
@@ -1179,20 +1192,319 @@ Ndef(\ndef_scalar, { arg freq=200, pan=0, amp=0.1;
 )
 (
 {
+Ndef(\ndef_scalar, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+~p = Param(Ndef(\ndef_scalar), \freq, \freq);
+
 	o = ();
 	o.win = Window.new;
 	o.win.alwaysOnTop = true;
 
 	//o.slider = StaticText.new;
-	o.slider = XStaticText.new;
-	o.slider2 = ~p.asView;
-	o.slider3 = XStaticText.new;
-	~p.mapStaticTextValue(o.slider);
-	~p.mapStaticTextLabel(o.slider3);
-	o.win.layout = VLayout.new(o.slider, o.slider2, o.slider3);
+	o.slider = StaticText.new;
+	o.slider2 = Slider.new;
+	o.slider3 = StaticText.new;
+	o.slider4 = TextField.new;
+	o.slider5 = Button.new;
+	o.slider5.states = [
+		["plop"],
+		["bla"],
+		["rahhhh"],
+	];
+	o.slider.mapParam(~p);
+	o.slider2.mapParam(~p);
+	o.slider3.mapParamLabel(~p);
+	o.slider4.mapParam(~p);
+	o.slider5.mapParam(~p);
+	//o.slider6.mapParam(~p);
+	//o.slider4.action = { arg view;
+	//	view.value.debug("WTFF")
+	//};
+	o.win.layout = VLayout.new(o.slider, o.slider2, o.slider3, o.slider4, o.slider5);
 	o.win.front;
 	
 }.value;
 )
 o.slider.value = "plop"
 200.asStringPrec(6).asCompileString
+
+o.slider5.states.size
+
+
+(
+	~fiou = { arg x;
+		var size = 0;
+		//if(size <= 1) {
+		//	size = 2;
+		//};
+		x.linlin(0,size-1,0,1);
+	};
+	~fiou.(1);
+)
+
+
+(
+~b = SimpleButton(nil,"push me",{
+ "you pushed me".postln
+});
+~b.action = { arg view;
+	~b.label = ~b.view.states[0][0].scramble;
+	~b.color = Color.rand;
+	~b.background = Color.rand;
+	
+}
+
+
+)
+
+ParamGroup(ParamGroup(~list))
+
+ParamPreset(\myfx, [
+	[Pdef(\plop), \freq],
+	[Pdef(\plop), \lpfreq],
+	[Pdef(\plop), \rq],
+	[Ndef(\echo), \shift1],
+	[Ndef(\echo), \shift2],
+]);
+
+ParamPreset(\myfx).save(\hello)
+ParamPreset(\myfx).load(\hello)
+ParamPreset(\myfx).erase(\hello)
+
+ParamPreset(\myfx).erase(\hello)
+
+
+(
+SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq);
+	sig = RLPF.ar(sig, \lpfreq.kr(100), \rq.kr(0.3));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}, metadata:(specs:(
+	rq: ControlSpec(0.001,4,\lin, 0, 1),
+	lpfreq: \freq,
+	freq: \freq,
+))).add;
+
+BusDef(\fx1, \audio);
+
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\out, BusDef(\fx1),
+	\legato, 0.1,
+	\dur, 1,
+	\amp, 0.1
+));
+
+Ndef(\echo, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var del = 0.2;
+	sig = InFeedback.ar(BusDef(\fx1),2);
+	sig1 = DelayL.ar(sig, 1,del);
+	sig1 = FreqShift.ar(sig1, \shift1.kr(100));
+	sig2 = DelayL.ar(sig1, 1,del);
+	sig2 = FreqShift.ar(sig2, \shift2.kr(300));
+	sig = [sig, sig1, sig2].mean;
+});
+
+Spec.add(\shift, ControlSpec(-800,800,\lin,0,1));
+Ndef(\echo).addSpec(\shift1, \shift.asSpec);
+Ndef(\echo).addSpec(\shift2, \shift.asSpec);
+
+~list = [
+	[Pdef(\plop), \freq],
+	[Pdef(\plop), \lpfreq],
+	[Pdef(\plop), \rq],
+	[Ndef(\echo), \shift1],
+	[Ndef(\echo), \shift2],
+];
+
+ParamPreset(\mypreset, ~list);
+
+~makeguix = { arg list;
+	o = ();
+	o.win = Window.new;
+	o.win.alwaysOnTop = true;
+
+	
+	o.playout = HLayout(*list.collect { arg param;
+		param = param.asParam;
+		VLayout(
+			param.asStaticTextLabel,
+			param.asSlider,
+			param.asStaticText,
+		);
+	});
+	o.mlayout = VLayout(
+		o.playout,
+		HLayout(
+			VLayout(
+				XSimpleButton.new.label_("load preset1").action_({ ParamPreset(\mypreset).load(\preset1) }),
+				XSimpleButton.new.label_("save preset1").action_({ ParamPreset(\mypreset).save(\preset1) }),
+			),
+			VLayout(
+				XSimpleButton.new.label_("load preset2").action_({ ParamPreset(\mypreset).load(\preset2) }),
+				XSimpleButton.new.label_("save preset2").action_({ ParamPreset(\mypreset).save(\preset2) }),
+			),
+		)
+	);
+
+	o.win.layout = o.mlayout;
+
+	o.win.front;
+	
+};
+~makeguix.(~list);
+
+);
+
+
+~pg = ParamGroup(~list)
+~pg.save(\yop)
+~pg.load(\yop)
+~pg.array
+ParamPreset(\mypreset, ~list)
+ParamPreset(\mypreset).save(\yip)
+ParamPreset(\mypreset).load(\yip)
+ParamPreset(\mypreset).group.presets
+MIDIMap.key(\k1, ParamPreset(\mypreset).at(0))
+MIDIMap.key(\k1, Param([Pdef(\plop), \freq]))
+MIDIMap(Param([Pdef(\plop), \freq]), msgNum:16)
+MIDIdef.cc(\bla, { arg ... args; args.debug("lll") }, msgNum:16)
+MIDIdef.cc(\bla, { arg ... args; args.debug("lll") }).learn
+
+ParamPreset(\mypreset).do { arg p,x; MIDIMap.key(\k+++(x+1), p) }
+
+/////////////////////////////////////////////// MIDI
+
+(
+MIDIMap.permanent = true;
+MIDIMap.define([nil, ~icon_device_id], [
+	\left, \note -> 91,
+	\right, \note -> 92,
+
+	\stop, \note -> 93,
+	\play, \note -> 94,
+
+	\record, \note -> 95,
+	\loop, \note -> 86,
+
+	\k1, 16,
+	\k2, 17,
+	\k3, 18,
+	\k4, 19,
+	\k5, 20,
+	\k6, 21,
+	\k7, 22,
+	\k8, 23,
+	\k9, 12,
+
+	\s1, [13,0],
+	\s2, [13,1],
+	\s3, [13,2],
+	\s4, [13,3],
+	\s5, [13,4],
+	\s6, [13,5],
+	\s7, [13,6],
+	\s8, [13,7],
+	\s9, [13,8],
+
+	\a1, \note -> 16,
+	\a2, \note -> 17,
+	\a3, \note -> 18,
+	\a4, \note -> 19,
+	\a5, \note -> 20,
+	\a6, \note -> 21,
+	\a7, \note -> 22,
+	\a8, \note -> 23,
+	\a9, \note -> 48,
+
+	\c1, \note -> 8,
+	\c2, \note -> 9,
+	\c3, \note -> 10,
+	\c4, \note -> 11,
+	\c5, \note -> 12,
+	\c6, \note -> 13,
+	\c7, \note -> 14,
+	\c8, \note -> 15,
+	\c9, \note -> 49,
+
+]);
+);
+
+
+
+
+(
+~makegui = { arg list;
+	var win, playout, mlayout;
+	win = Window.new;
+	win.alwaysOnTop = true;
+
+	playout = GridLayout.columns(*list.collect { arg param;
+		param = param.asParam;
+		[
+			[ param.asStaticTextLabel.minHeight_(50), align:\center],
+			[ param.asKnob],
+			[ param.asStaticText.minWidth_(70), align:\center ],
+		]
+	});
+	list.do { arg val, x;
+		playout.setColumnStretch(x,1);
+	};
+
+	mlayout = VLayout(
+		playout,
+		HLayout(
+			VLayout(
+				XSimpleButton.new.label_("load preset1").action_({ list.load(\preset1) }),
+				XSimpleButton.new.label_("save preset1").action_({ list.save(\preset1) }),
+			),
+			VLayout(
+				XSimpleButton.new.label_("load preset2").action_({ list.load(\preset2) }),
+				XSimpleButton.new.label_("save preset2").action_({ list.save(\preset2) }),
+			),
+		)
+	);
+
+	win.layout = mlayout;
+	win.front;
+	
+};
+ParamPreset(\mypreset, ~list);
+~makegui.(ParamPreset(\mypreset));
+//Pdef(\plop).play;
+//Ndef(\echo).play;
+
+);
+
+
+
+(
+Ndef(\ndef_array, { arg pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(\freq.kr(100!3));
+	sig = Pan2.ar(sig, pan, amp).mean;
+}).play;
+);
+
+Ndef(\ndef_array).set(\freq, [720,150,600]);
+Ndef(\ndef_array).set(\freq, [220,350,700]);
+
+~p = Param(Ndef(\ndef_array), \freq, XArraySpec(\freq!3));
+
+~p.get;
+~p.get == ( 100!3 );
+~p.set([120,150,780]); // must reload the ndef to take effect :( ndef bug
+~p.get == [120,150,780];
+~p.normGet;
+~p.normSet([0.5,0.2,0.4]);
+
+
+

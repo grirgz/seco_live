@@ -1,3 +1,19 @@
+
+// GridLayout.setAlignment don't take point as stated in doc
+		//3.do { y;
+		//	playout.setAlignment(Point(x,y),\center);
+		//}
+
+// layout : how to have equal spacing for each row or column without fixing it ????
+	// see: set stretch for each to =1 but this is cumbersome and don't work when a view can't shrink while the other can
+
+
+// SimpleButton pass a QButton in action arg instead of the SimpleButton instance
+	// also, there is no getter for label
+	// setting the label discard setted color and background
+
+// in 3.7, subclassing gui change, +Knob or +QKnob
+
 // Env.postln should print Env arguments
 
 // Ndef(\plop).set([100,200,300]) don't change the Ndef until rerunning (so change only NodeMap)
