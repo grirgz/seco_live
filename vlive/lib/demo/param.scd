@@ -1508,3 +1508,11 @@ Ndef(\ndef_array).set(\freq, [220,350,700]);
 
 
 
+~pg = ParamGroup(~list);
+~m = ParamMorpher(~pg, [\preset1, \preset2, \preset3]);
+~m = ParamMorpher(\mypreset, [\preset1, \preset2, \preset3]);
+~m.set(2) // last preset
+~m.normSet(1) // last preset
+MIDIMap(\k1, ~m)
+
+~slider.mapParam(~m)
