@@ -1511,8 +1511,17 @@ Ndef(\ndef_array).set(\freq, [220,350,700]);
 ~pg = ParamGroup(~list);
 ~m = ParamMorpher(~pg, [\preset1, \preset2, \preset3]);
 ~m = ParamMorpher(\mypreset, [\preset1, \preset2, \preset3]);
+~m = ParamMorpher(\mypreset, [\preset2, \preset4]);
 ~m.set(2) // last preset
 ~m.normSet(1) // last preset
-MIDIMap(\k1, ~m)
+MIDIMap(\k1, ~m) 
+MIDIMap(\k1, Param(ParamMorpher(\mypreset, [\preset2, \preset4]))) 
+
 
 ~slider.mapParam(~m)
+
+
+
+Ndef(\ndef_scalar).send
+NodeMap
+thisProcess.nowExecutingPath.asString
