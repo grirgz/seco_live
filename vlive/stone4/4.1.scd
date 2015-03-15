@@ -6,6 +6,9 @@ Pdef(~name +++ \pre, Pbind(
 		[ Env.adsr(0.01,0,1,0.01) ],
 	],inf),
 	\dur, 2,
+	\isRest, Pseq([
+		1,0, 
+	],inf).coin.not,
 	\sustain, 09021 / s.sampleRate  / Pkey(\speed) * ~t,
 	\bufnum, BufDef(\amen),
 	\freq, 100,

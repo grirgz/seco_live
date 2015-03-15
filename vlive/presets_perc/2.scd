@@ -21,7 +21,7 @@ SynthDef(~name, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0.01
 	son = LPF.ar(son, env1m*fratio, env0);
 	son = son + SinOsc.ar(env1m, 0.5, env0);
 	
-	son = son * 1.2;
+	son = son * \preamp.kr(1.2);
 	son = son.clip2(1);
 
 	son = son * amp;

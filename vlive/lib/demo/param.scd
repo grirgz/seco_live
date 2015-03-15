@@ -1485,6 +1485,7 @@ ParamPreset(\mypreset, ~list);
 );
 
 
+41.type
 
 (
 Ndef(\ndef_array, { arg pan=0, amp=0.1;
@@ -1508,10 +1509,21 @@ Ndef(\ndef_array).set(\freq, [220,350,700]);
 
 
 
+(
+~list = [
+	[Pdef(\plop), \freq],
+	[Pdef(\plop), \lpfreq],
+	[Pdef(\plop), \rq],
+	[Ndef(\echo), \shift1],
+	[Ndef(\echo), \shift2],
+];
+)
 ~pg = ParamGroup(~list);
 ~m = ParamMorpher(~pg, [\preset1, \preset2, \preset3]);
 ~m = ParamMorpher(\mypreset, [\preset1, \preset2, \preset3]);
 ~m = ParamMorpher(\mypreset, [\preset2, \preset4]);
+~m = ParamMorpherDef(\mymorpher, ~pg, [\preset2, \preset4]);
+~m = ParamMorpherDef(\mymorpher, \mypreset, [\preset2, \preset4]);
 ~m.set(2) // last preset
 ~m.normSet(1) // last preset
 MIDIMap(\k1, ~m) 
@@ -1525,3 +1537,28 @@ MIDIMap(\k1, Param(ParamMorpher(\mypreset, [\preset2, \preset4])))
 Ndef(\ndef_scalar).send
 NodeMap
 thisProcess.nowExecutingPath.asString
+
+(
+Ndef(\ndef_array, { arg pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(\freq.kr(100!3));
+	sig = Pan2.ar(sig, pan, amp).mean;
+}).play;
+~p = Param(Ndef(\ndef_array), \freq, XArraySpec(\freq!3));
+~p.edit
+);
+
+
+~p.get;
+~p.get == ( 100!3 );
+~p.set([120,150,780]); // must reload the ndef to take effect :( ndef bug
+~p.get == [120,150,780];
+~p.normGet;
+~p.normSet([0.5,0.2,0.4]);
+~p.normSet([0.5,0.2,0.4]); 
+
+~list
+ParamPreset(\mypreset, ~list);
+ParamPreset(\mypreset, ~list);
+ParamPreset(\mypreset, ~list);
+Archive.at(\ParamPreset)

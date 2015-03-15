@@ -1,4 +1,5 @@
 (
+Veco.load_lib("preset_manager.scd");
 ~clip_preset_manager = ~class_clip_preset_manager.new;
 ~clip_preset_manager.edit;
 )
