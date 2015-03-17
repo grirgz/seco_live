@@ -1517,9 +1517,21 @@ Ndef(\ndef_array).set(\freq, [220,350,700]);
 	[Ndef(\echo), \shift1],
 	[Ndef(\echo), \shift2],
 ];
+~pg = ParamPreset(\hello, ~list);
 )
-~pg = ParamGroup(~list);
+~pg.edit;
+~pg.save(\preset1)
+~pg.save(\preset2)
+~pg.save(\preset3)
+~pg.load(\preset1)
 ~m = ParamMorpher(~pg, [\preset1, \preset2, \preset3]);
+~m
+~m.edit
+~m.set(0)
+~m.set(1)
+~m.set(0.6)
+~m.set(1.6)
+~m.normSet(0.6)
 ~m = ParamMorpher(\mypreset, [\preset1, \preset2, \preset3]);
 ~m = ParamMorpher(\mypreset, [\preset2, \preset4]);
 ~m = ParamMorpherDef(\mymorpher, ~pg, [\preset2, \preset4]);
