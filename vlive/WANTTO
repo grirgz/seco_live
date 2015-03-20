@@ -1,3 +1,8 @@
+// how to use storeArgs and storeOn, seems to not follow the doc
+	// why Post << Param doesnt use this method ? (like in .debug)
+	storeOn { arg stream;
+		stream << ("Param.new(\"" ++ this.asLabel ++ "\")");
+	}
 
 // GridLayout.setAlignment don't take point as stated in doc
 		//3.do { y;

@@ -9,25 +9,41 @@
 // TODO:
 - what to do to prevent using method for env on scalar, and mismatching types in general, and what about env specific methods
 - how work shapeNumber in Env.asArray
-- write a gui with button and zoom for XEnvelopeView
 - write a list of features / documentation to see more clearly
 - get default value in target
 - Param.unset (set default target value)
 - Param.unset (unset Pdef and Ndef)
-- write wrapper for
-	- slider2D
-	- popupmenu
 - handle lists and dictionaries
+- XEnvSpec.adsr (asr, perc)
+- Param.at(\attack) (decay, sustain, release)
+- Param.levelsAt(0)
+- Param.timesAt(0)
+- Param.curveAt(0)
 - write tests
-
 - handle
 	- Ndef volume
 	- Archive list and dict
 	- Tempo
 	- Master volume
-- MIDIMap handle function for quick mapping
+- MIDIMap.learn
 - OSCMap
 - Pdef.asParamGroup.edit
+
+// version 2
+
+- write a gui with button and zoom for XEnvelopeView
+- other type of param
+	XGateSpec : Spec {
+	XTrigSpec : Spec {
+	XBusSpec : Spec {
+	XSampleSpec : XBusSpec {
+	XWavetableSpec : XBusSpec {
+	XBusSpec : Spec {
+	XInBusSpec : Spec {
+	XOutBusSpec : Spec {
+- write wrapper for
+	- slider2D
+	- popupmenu
 
 /////////////////////////////////
 
@@ -70,7 +86,8 @@ MIDIMap(~p, msgNum, chan, msgType, srcID)
 - scalar
 - env
 - array
-- boolean (button, noteOn)
+- boolean (button, noteOn, trig.tr)
+- gate
 
 ---- update type
 - sync
@@ -1451,7 +1468,7 @@ MIDIMap.define([nil, ~icon_device_id], [
 		param = param.asParam;
 		[
 			[ param.asStaticTextLabel.minHeight_(50), align:\center],
-			[ param.asKnob],
+			[ param.asView],
 			[ param.asStaticText.minWidth_(70), align:\center ],
 		]
 	});
@@ -1532,6 +1549,7 @@ Ndef(\ndef_array).set(\freq, [220,350,700]);
 ~m.set(0.6)
 ~m.set(1.6)
 ~m.normSet(0.6)
+~m.normSet(0.2)
 ~m = ParamMorpher(\mypreset, [\preset1, \preset2, \preset3]);
 ~m = ParamMorpher(\mypreset, [\preset2, \preset4]);
 ~m = ParamMorpherDef(\mymorpher, ~pg, [\preset2, \preset4]);
@@ -1541,6 +1559,8 @@ Ndef(\ndef_array).set(\freq, [220,350,700]);
 MIDIMap(\k1, ~m) 
 MIDIMap(\k1, Param(ParamMorpher(\mypreset, [\preset2, \preset4]))) 
 
+Pdef(\plop).play;
+Ndef(\echo).play;
 
 ~slider.mapParam(~m)
 
@@ -1574,3 +1594,182 @@ ParamPreset(\mypreset, ~list);
 ParamPreset(\mypreset, ~list);
 ParamPreset(\mypreset, ~list);
 Archive.at(\ParamPreset)
+
+(
+SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq);
+	sig = RLPF.ar(sig, \lpfreq.kr(100), \rq.kr(0.3));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}, metadata:(specs:(
+	rq: ControlSpec(0.001,4,\lin, 0, 1),
+	lpfreq: \freq,
+	freq: \freq,
+))).add;
+
+BusDef(\fx1, \audio);
+
+Pdef(\plop, 
+	Pdef(\macro, Pbind()) <> // use another Pdef to control keys present in the pattern
+	Pbind(
+	\instrument, \plop,
+	\out, BusDef(\fx1),
+	//\legato, 0.1, // key must be absent to be controlled
+	\dur, 1,
+	\amp, 0.2
+));
+
+Ndef(\echo, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var del = 0.2;
+	sig = InFeedback.ar(BusDef(\fx1),2);
+	sig = CombL.ar(sig!8, 1,( \delay.kr(0.01) * \delaytab.kr(1!8) ).lag(0.1),\decay.kr(1)) + sig;
+	sig = sig.sum;
+	//sig = EnvGen.ar(Env([1,2,1],[0.1,0.8]), Onsets.kr(),doneAction:2);
+	sig.debug("sig");
+	sig = sig.tanh;
+});
+
+Spec.add(\shift, ControlSpec(-800,800,\lin,0,1));
+Spec.add(\dur, ControlSpec(1/16,4,\lin,0,1));
+Spec.add(\legato, ControlSpec(0.01,4,\lin,0,1));
+Spec.add(\adsr, XEnvSpec(ControlSpec(0.03,3,\lin)!4));
+Ndef(\echo).addSpec(\delaytab, XArraySpec(ControlSpec(0.01,2,\lin)!8));
+Ndef(\echo).addSpec(\delay, ControlSpec(0.0001,1,\exp,0,1));
+Ndef(\echo).addSpec(\decay, ControlSpec(0,8,\lin,0,1));
+Pdef(\macro).addHalo(\instrument, \plop);
+Pdef(\plop).addHalo(\instrument, \plop);
+
+// make list of params
+~list = [
+	[Pdef(\macro), \dur],
+	[Pdef(\plop), \legato],
+	[Pdef(\plop), \freq],
+	[Pdef(\plop), \lpfreq],
+	[Pdef(\plop), \rq],
+	[Ndef(\echo), \delay],
+	[Ndef(\echo), \decay],
+	[Ndef(\echo), \delaytab],
+	[Pdef(\plop), \adsr],
+];
+
+Pdef(\plop).play;
+Ndef(\echo).play;
+)
+XEnvSpec(ControlSpec(0.03,3,\lin)!5).times
+
+	Param([Pdef(\plop), \freq]).set(1410)
+(\delaytab -> 0).asString
+(\delaytab -> 0).asCompileString
+(\delaytab -> 0).postln
+(\delaytab -> 0).debug
+Param(Ndef(\echo), \delaytab -> 0)
+Param(Ndef(\echo), \delaytab)
+Param(Ndef(\echo), \delaytab -> 1).set(0.1)
+Param(Pdef(\plop), \adsr -> \times -> 0).set(0.704)
+Param(Pdef(\plop), \adsr -> \times -> 0).set(0.00704)
+Param(Pdef(\plop), \adsr -> \times -> 0)
+Param(Pdef(\plop), \adsr -> \times -> 0).get
+Param(Pdef(\plop), \adsr).get.asCompileString
+\bla -> \rah -> \bla -> \niaK
+
+Param([Pdef(\plop), \adsr]).get.asCompileString
+	Param([Pdef(\plop), \adsr]).set(Param([Pdef(\plop), \adsr]).get)
+ParamGroup(~list).edit
+ParamGroup(~list).at(7).asLabel
+ParamGroup(~list).at(7).asCompileString
+ParamGroup(~list).at(7).asString
+ParamGroup(~list).at(7).type
+ParamGroup(~list).at(7).get.collect({ arg x; x.debug("x") })
+ParamGroup(~list).at(8).get.collect({ arg x; x.debug("x") })
+ParamGroup(~list).at(8).get.collect({ arg x; x.debug("x") })
+ParamGroup(~list).at(8).type.asCompileString
+ParamGroup(~list).at(8).get.asCompileString
+Ndef(\echo).edit
+
+	Param([Pdef(\plop), \freq]).set(100)
+
+	Param([Pdef(\plop), \adsr]).asString
+	Param([Pdef(\plop), \adsr]).asCompileString
+	Param([Pdef(\plop), \adsr]).debug("fggu")
+	Debug
+	Post << Param([Pdef(\plop), \adsr])
+	Param([Pdef(\plop), \adsr]).default
+	Param([Pdef(\plop), \adsr]).edit
+	Param([Pdef(\plop), \adsr]).type
+	Param([Ndef(\echo), \delaytab]).type
+	Param([Ndef(\echo), \delaytab]).spec
+	Ndef(\echo).getSpec(\delaytab)
+	Param([Pdef(\plop), \adsr]).wrapper.instrument
+	Param([Pdef(\plop), \adsr]).get.asCompileString
+	Pdef(\plop).getVal(\adsr)
+	Param.getSynthDefDefaultValue(\adsr, \plop).asEnv.asCompileString
+	~e = Param.getSynthDefDefaultValue(\adsr, \plop).asEnv
+	~e.releaseNode
+ParamGroup(~list).at(1).spec
+\freq.asSpec
+Pdef(\plop).setBusMode(\lpfreq)
+Pdef(\plop).setBusMode(\freq)
+Pdef(\plop).get(\lpfreq)
+Pdef(\plop).getVal(\lpfreq)
+
+////////////////////////////////////////////////////////////
+/// Example 4
+/// Preset morphing
+
+
+
+(
+~makegui = { arg list, presets;
+	var win, playout, mlayout;
+	var morpher;
+	win = Window.new;
+	win.alwaysOnTop = true;
+
+	playout = HLayout(*list.collect { arg param;
+		var lay;
+		param = param.asParam;
+		lay = VLayout(
+			// create a label, a knob and a value label from the param
+			param.asStaticTextLabel.align_(\center),
+			param.asView,
+			param.asStaticText.minWidth_(80).align_(\center),
+		); 
+		[lay, \stretch:1];
+	});
+
+	morpher = ParamMorpher(list, presets);
+
+	mlayout = VLayout(
+		[playout, stretch:1],
+		HLayout(*
+			presets.collect({ arg preset, x;
+				VLayout(
+					XSimpleButton.new.label_("load " ++ preset).action_({ morpher.set(x) }),
+					XSimpleButton.new.label_("save " ++ preset).action_({ list.save(preset) }),
+				);
+			})
+		),
+		Slider.new.orientation_(\horizontal).mapParam(morpher)
+	);
+
+	win.layout = mlayout;
+	win.front;
+	
+};
+ParamPreset(\mypreset2, ~list);
+~makegui.(ParamPreset(\mypreset2), [\preset1, \preset2, \preset4]);
+Pdef(\plop).play;
+Ndef(\echo).play;
+
+);
+
+ParamPreset(\mypreset2).getPreset(\preset1)
+ParamPreset(\mypreset2).getPreset(\preset4)
+
+~e = Env([1,2,1],[0.1,0.8])
+~e.asCompileString
+~e.perform(\levels)[0] = 4
