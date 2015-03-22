@@ -46,6 +46,44 @@
 	- popupmenu
 
 /////////////////////////////////
+- spec source
+	- param arg
+	- halo
+	- synthdef spec metadata
+		- instrument name from halo
+		- instrument name from pattern introspection
+	- arg name in Spec
+	- default value
+	- param structure (\adsr -> \levels -> 0)
+	- default spec
+
+- ndef spec source
+	- param arg
+	- halo
+	- arg name in Spec
+	- default value
+	- param structure (\adsr -> \levels -> 0)
+	- default spec
+
+- pdef spec source
+	- param arg
+	- halo
+	- synthdef spec metadata
+		- instrument name from halo
+		- instrument name from pattern introspection
+	- arg name in Spec
+	- default value of synthdef if instr found
+	- value in pdef
+	- param structure (\adsr -> \levels -> 0)
+	- default spec
+
+- default value
+	- synthdesc default
+	- ndef default
+	- spec default
+
+
+/////////////////////////////////
 
 ~p = Param([Pdef(\hello), \freq, \freq.asSpec]);
 ~p.asSlider;
