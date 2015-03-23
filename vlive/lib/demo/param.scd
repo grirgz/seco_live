@@ -1811,3 +1811,16 @@ ParamPreset(\mypreset2).getPreset(\preset4)
 ~e = Env([1,2,1],[0.1,0.8])
 ~e.asCompileString
 ~e.perform(\levels)[0] = 4
+
+UnitTest.gui
+UnitTestScript.gui
+UnitTestScript.findTestScripts
+UnitTest.new.assertEquals(1,1)
+
+		~classPaths = Class.allClasses .collectAs({ |class| class.filenameSymbol.asString.dirname.postln }, Set);
+
+XArraySpec( ControlSpec(0,1,\lin,0,1)!4).asString.asCompileString
+XArraySpec( ControlSpec(0,1,\lin,0,1)!4).asCompileString
+XArraySpec([ ControlSpec(0, 1, 'linear', 0, 1, ""), ControlSpec(0, 1, 'linear', 0, 1, ""), ControlSpec(0, 1, 'linear', 0, 1, ""), ControlSpec(0, 1, 'linear', 0, 1, "")  ], [ 1, 1, 1, 1  ])
+XArraySpec( ControlSpec(0,1,\lin,0,1)!4).debug("plop")
+\freq.asSpec
