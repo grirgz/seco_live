@@ -1,3 +1,11 @@
+// EnvirGui : this seems to do nothing
+g.envir.putAll((b: -12, r: 1, s: 2, t: 3, u: 4, v: 5))
+
+// is there a way to map easily the param of Ndef or Pdef to MIDI ?
+// why no way to remember spec with NdefGui ?
+// why no way to edit Pdef arguments with PdefGui ?
+// the example from PdefAllGui doc is from TdefAllGui, should be fixed
+
 // how to use storeArgs and storeOn, seems to not follow the doc
 	// why Post << Param doesnt use this method ? (like in .debug)
 	storeOn { arg stream;
@@ -144,3 +152,28 @@ work with poll but not without !!! heisenbug!!!
 
 une fonction pour definir un Ndef sans le lancer
 trouvé ! voir demo/ndef.scd
+
+
+/////////////////
+
+quelles sont les priorités ? les aspects de SC que j'aimerais mettre en lumiere, huiler, faciliter ?
+
+- la gestion des differents parametres des differents objets sonores (ndef, pdef)
+	- en faire des listes
+	- les mapper sur du midi
+	- les mapper sur des gui
+	- presets et morphing
+
+quelles sont les differentes facons de gerer le midi et la gui des parametres dans SC ?
+pareil pour les midi scores (notes et courbes de paam)
+il faut pouvoir les enregistrer, les afficher dans des belles timeline
+les 
+- ddwVoicer
+- ktlLoop
+- modality
+
+- systeme de mapping des numero midi vers des noms et des structures
+- systeme de mapping des noms midi vers des parametres
+- systeme de mapping des param vers des gui
+- enregistrement des events/notes
+- enregistrement des param

@@ -34,3 +34,5 @@ Pdef(~name,
 	\amp, 0.1 * Pkey(\amp),
 ) <> Veco(~name).mixer)
 );
+
+~set_send_bus.(~name, 1);

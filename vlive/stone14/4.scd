@@ -102,3 +102,4 @@ SynthDef(~name+++\kick, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freq
 
 // END
 
+~set_out_bus.(~name, BusDef(\in1))

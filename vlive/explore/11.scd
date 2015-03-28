@@ -1,5 +1,6 @@
 
 (
+	Ndef.defaultQuant = 2;
 	~t = 1;
 Ndef(\plop).put(0, { arg amp=0.1;
 	var sig;
@@ -54,6 +55,7 @@ Ndef(\plop2).put(0, { arg amp=0.1;
 	sig;
 }).play
 )
+Ndef(\plop2).edit
 
 (
 Ndef(\plop3).put(0, { arg amp=0.1;
@@ -128,7 +130,7 @@ Ndef(\kick2).put(0, { arg amp=0.1;
 	env2 = EnvGen.kr(\adsr.kr(Env.adsr(0.001,0.01,0.8,0.01)), Trig.kr(gate,0.021));
 
 
-	sig = WhiteNoise.ar(1 * [1,2]);
+	sig = WhiteNoise.ar(1 * [1,1]);
 	sig = RLPF.ar(sig, 5000 * LFSaw.kr(1*~t).range(2,1));
 	sig = sig.sum;
 	sig = sig * env2;
@@ -137,3 +139,59 @@ Ndef(\kick2).put(0, { arg amp=0.1;
 	sig;
 }).play
 )
+
+Ndef(\kick2).gui
+n = NdefMixer(s);
+
+(
+Ndef(\lfo1, { arg freq=2, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.kr(freq*~t).unipolar * amp;
+}).play;
+);
+
+
+
+g = NdefParamGui.new(nil, 5);    // empty with 5 slots
+g.object_(Ndef(\a));        // put in a nodeproxy
+Ndef(\a, { |freq = 300, amp = 0.2| SinOsc.ar(freq) * amp  });
+Ndef(\a).set(\freq, 2000);  
+
+
+
+(
+Pdef(\a, { |e| 100.do { |i| i.postln; 0.5.wait } });
+Pdef(\b, { |e| 100.do { |i| Pdef(\a).set(\otto, 8.rand); exprand(0.1, 3.0).wait } });
+t = PdefAllGui(8);
+)
+
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\degree, Pseq([[0,3,7], [2,6]],inf),
+	\legato, 0.1,
+	\dur, 1/4,
+	\amp, 0.1
+)).play;
+);
+
+Pdef(\plop).gui
+
+g = EnvirGui.new(nil, 5);                // empty with 5 slots
+g.object_((a: 1, b: \werty, freq: [500, 2000]));    // put some things in
+g.envir.put(\karl, \otto1);                // one more
+g.envir.putAll((b: -12, r: 1, s: 2, t: 3, u: 4, v: 5))
+
+g.object_((x: 2));    // put something else in
+
+g.envir.putAll((b: -12, r: 1, s: 2, t: 3, u: 4, v: 5))
+
+g.envir.removeAt(\b)
+g.envir.removeAt(\r)
+g.envir.removeAt(\s)
+g.envir.removeAt(\t)
+g.envir.removeAt(\u)
+g.envir.removeAt(\v)
+
+g.parent.close;

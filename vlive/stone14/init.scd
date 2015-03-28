@@ -6,6 +6,16 @@ Veco.main.board_size = Point(32,64);
 ~set_project_tempo.(1);
 ~load_standard_quickpad.();
 
+// patchgrid matrix
+(
+	8.do { arg x;
+		BusDef(\in+++x, \audio);
+	};
+	8.do { arg x;
+		BusDef(\out+++x, \audio);
+	};
+);
+
 // END
 
 ~define_effects.(['56','57','58','59']);

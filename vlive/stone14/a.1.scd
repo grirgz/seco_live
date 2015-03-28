@@ -47,8 +47,19 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	amp = amp * \gain.kr(1);
 	sig = Splay.ar(sig, \spread.kr(0.8), amp, \pan.kr(0));
 	sig;
-})
+});
+
+(
+~myq = 1/8;
+Ndef(~name+++\speed).quant = ~myq;
+Ndef(~name+++\fade).quant = ~myq;
+Ndef(~name+++\pos).quant = ~myq;
+Ndef(~name+++\trigger).quant = ~myq;
+Ndef(~name+++\speedamp).quant = ~myq;
+);
+
+~set_macro.(\k1, Ndef(~name+++\fx), \speedlag, ControlSpec(0.0001,0.8,\exp));
 
 // END
 
-~set_macro.(\k1, Ndef(~name+++\fx), \speedlag, ControlSpec(0.0001,0.8,\exp))
+

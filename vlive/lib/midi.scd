@@ -87,6 +87,30 @@
 	map_node_macro_to_knobs: { arg self, node;
 		if(node.lib.macros.notNil) {
 			var macros = node.lib.macros.value;
+			16.do { arg mx;
+				var mapping = node.lib.macros[mx];
+				var key;
+				if(mx>=8) {
+					key = (\s++(mx+1-8)).asSymbol;
+				} {
+					key = (\k++(mx+1)).asSymbol;
+				};
+				[key, mapping, mx].debug("map_node_macro_to_knobs");
+				if(mapping.notNil) {
+					MIDIBoard.map(key, *mapping);
+				} {
+					if(mx<8) {
+						MIDIBoard.unmap(key);
+					}
+				}
+			}
+		};
+		
+	},
+
+	map_node_macro_to_knobs_knob_only: { arg self, node;
+		if(node.lib.macros.notNil) {
+			var macros = node.lib.macros.value;
 			8.do { arg mx;
 				var mapping = node.lib.macros[mx];
 				var key = (\k++(mx+1)).asSymbol;
