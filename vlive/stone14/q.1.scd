@@ -32,3 +32,4 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 Ndef(~name+++\mixer).play(BusDef(\in1).index)
 Ndef(~name+++\mixer).play(0)
 Ndef(~name+++\mixer).edit
+Ndef(~name+++\mixer).get(\amp)

@@ -51,3 +51,5 @@ Sdef()
 
 [0.6]
 [110,53,29].midicps
+
+Ndef(~name+++\mixer).get(\amp)

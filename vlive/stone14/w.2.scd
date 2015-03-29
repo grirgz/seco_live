@@ -29,7 +29,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	sig.debug("sig");
 	sig = SelectX.ar(\mix.kr(1),[sig, in]);
 	amp = amp * \gain.kr(1);
-	sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size, amp).mean;
+	sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0) * 0.1} ! sig.size, amp).mean;
 	sig;
 });
 Ndef(~name+++\fx).addSpec(\allpmix, \unipolar);

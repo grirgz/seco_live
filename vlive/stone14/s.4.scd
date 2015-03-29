@@ -40,6 +40,7 @@ Pdef(\hey).edit
 Sdef()
 Ndef(~name+++\mixer).play(BusDef(\in1).index)
 Ndef(~name+++\mixer).play(0)
+Ndef(~name+++\mixer).get(\amp)
 
 [0.6]
 [110,53,29].midicps

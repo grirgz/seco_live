@@ -121,7 +121,7 @@ Pdef(~name+++\macro, Pbind());
 );
 
 //~set_out_bus.(~name,BusDef(\in1));
-~set_send_bus.(~name, 1);
+//~set_send_bus.(~name, 1);
 
 // END
 
