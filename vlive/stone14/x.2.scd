@@ -34,7 +34,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	env = EnvGen.ar(Env([0,1,1,0],[attack, stutter-attack-decay, decay]), stuttrig);
 	
 	RecordBuf.ar(sig, bufnum, 0, 1, 0, run:1,loop:0,trigger: recordtrig,doneAction:0);
-	sig1 = PlayBuf.ar(2, bufnum, rate:1/2, trigger:stuttrig,startPos:0, loop:0) * env;
+	sig1 = PlayBuf.ar(2, bufnum, rate:\rate.kr(1), trigger:stuttrig,startPos:0, loop:0) * env;
 	sig1 = sig1 * 1.2;
 	sig = SelectX.ar( bufgate.lag(0.01), [sig, sig1]);
 	

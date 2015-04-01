@@ -37,9 +37,11 @@ if(s.volume.volume == 0) {
 };
 
 ~set_project_tempo = { arg tempo;
-	TempoClock.default.tempo = tempo;
-	t = tempo;
-	~t = tempo;
+	if(~lock_tempo != true) {
+		TempoClock.default.tempo = tempo;
+		t = tempo;
+		~t = tempo;
+	}
 };
 
 ~euclide = {arg len, hits, rot=0; 

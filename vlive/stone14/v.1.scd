@@ -8,7 +8,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	in = InFeedback.ar(\inbus.kr(BusDef(\in1, \audio)), 2); 
 	sig = in;
 	
-	sig = CombL.ar(sig!2, 1, LPF.ar(\delay.kr(0.1),1) * ((0..7)/7 - 0.5 * \dspread.kr(0.01) + 1), \decay.ar(1.1)).sum + sig;
+	sig = CombL.ar(sig!2, 1, LPF.kr(\delay.kr(0.1),1) * ((1..8)/8 * \dspread.kr(0.01) + 1), \decay.ar(1.1)).mean + sig;
 
 	//sig = sig * 4;
 	sig.debug("sig");

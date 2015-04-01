@@ -11,3 +11,4 @@ Veco.main.board_size = Point(32,64);
 ~define_effects.(['56','57','58','59']);
 Veco.main.fadeout_time = 16;
 
+~lock_tempo = true;

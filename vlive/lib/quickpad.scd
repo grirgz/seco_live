@@ -58,15 +58,8 @@
 
 	// sendpad
 
+	// in
 	codepad = qp.get_codepad(Point(2,0));
-	codepad.payload = { arg self;
-		~scene_sendpad = ~launchpad_scene_sendpad.new(Veco.main);
-		~scene_sendpad.skip_first_time = true;
-		~scene_sendpad.set_model(~veco_sendpad, \send);
-		~scene_sendpad.activate;
-	};
-
-	codepad = qp.get_codepad(Point(2,1));
 	codepad.payload = { arg self;
 		//~scene_sendpad.skip_first_time = true;
 		~scene_sendpad = ~launchpad_scene_sendpad.new(Veco.main);
@@ -74,7 +67,15 @@
 		~scene_sendpad.activate;
 	};
 
-	
+	// send
+	codepad = qp.get_codepad(Point(2,1));
+	codepad.payload = { arg self;
+		~scene_sendpad = ~launchpad_scene_sendpad.new(Veco.main);
+		~scene_sendpad.skip_first_time = true;
+		~scene_sendpad.set_model(~veco_sendpad, \send);
+		~scene_sendpad.activate;
+	};
+
 };
 
 ~load_quick_mode_chooser = { arg self;

@@ -1,4 +1,4 @@
-TempoClock.default.tempo = t = ~t = 1.25;
+~set_project_tempo.(1.25);
 Veco.main.board_size = Point(32,64);
 Pdef.defaultQuant = 16;
 Veco.load_lib("main.scd");

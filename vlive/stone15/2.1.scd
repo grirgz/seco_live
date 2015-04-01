@@ -1,4 +1,6 @@
 
+
+BufDef(\amen, "vipere/amenbreak.wav");
 Pdef(~name +++ \pre, Pbind(
 	\freq, 1418,
 	\freq, Ndef(~name+++\lfo2, { LFNoise1.kr(1).exprange(50,4100)  }),
