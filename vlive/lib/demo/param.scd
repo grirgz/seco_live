@@ -1317,7 +1317,7 @@ o.slider5.states.size
 
 ParamGroup(ParamGroup(~list))
 
-ParamPreset(\myfx, [
+ParamGroupDef(\myfx, [
 	[Pdef(\plop), \freq],
 	[Pdef(\plop), \lpfreq],
 	[Pdef(\plop), \rq],
@@ -1325,11 +1325,11 @@ ParamPreset(\myfx, [
 	[Ndef(\echo), \shift2],
 ]);
 
-ParamPreset(\myfx).save(\hello)
-ParamPreset(\myfx).load(\hello)
-ParamPreset(\myfx).erase(\hello)
+ParamGroupDef(\myfx).save(\hello)
+ParamGroupDef(\myfx).load(\hello)
+ParamGroupDef(\myfx).erase(\hello)
 
-ParamPreset(\myfx).erase(\hello)
+ParamGroupDef(\myfx).erase(\hello)
 
 
 (
@@ -1380,7 +1380,7 @@ Ndef(\echo).addSpec(\shift2, \shift.asSpec);
 	[Ndef(\echo), \shift2],
 ];
 
-ParamPreset(\mypreset, ~list);
+ParamGroupDef(\mypreset, ~list);
 
 ~makeguix = { arg list;
 	o = ();
@@ -1400,12 +1400,12 @@ ParamPreset(\mypreset, ~list);
 		o.playout,
 		HLayout(
 			VLayout(
-				XSimpleButton.new.label_("load preset1").action_({ ParamPreset(\mypreset).load(\preset1) }),
-				XSimpleButton.new.label_("save preset1").action_({ ParamPreset(\mypreset).save(\preset1) }),
+				XSimpleButton.new.label_("load preset1").action_({ ParamGroupDef(\mypreset).load(\preset1) }),
+				XSimpleButton.new.label_("save preset1").action_({ ParamGroupDef(\mypreset).save(\preset1) }),
 			),
 			VLayout(
-				XSimpleButton.new.label_("load preset2").action_({ ParamPreset(\mypreset).load(\preset2) }),
-				XSimpleButton.new.label_("save preset2").action_({ ParamPreset(\mypreset).save(\preset2) }),
+				XSimpleButton.new.label_("load preset2").action_({ ParamGroupDef(\mypreset).load(\preset2) }),
+				XSimpleButton.new.label_("save preset2").action_({ ParamGroupDef(\mypreset).save(\preset2) }),
 			),
 		)
 	);
@@ -1424,17 +1424,17 @@ ParamPreset(\mypreset, ~list);
 ~pg.save(\yop)
 ~pg.load(\yop)
 ~pg.array
-ParamPreset(\mypreset, ~list)
-ParamPreset(\mypreset).save(\yip)
-ParamPreset(\mypreset).load(\yip)
-ParamPreset(\mypreset).group.presets
-MIDIMap.key(\k1, ParamPreset(\mypreset).at(0))
+ParamGroupDef(\mypreset, ~list)
+ParamGroupDef(\mypreset).save(\yip)
+ParamGroupDef(\mypreset).load(\yip)
+ParamGroupDef(\mypreset).group.presets
+MIDIMap.key(\k1, ParamGroupDef(\mypreset).at(0))
 MIDIMap.key(\k1, Param([Pdef(\plop), \freq]))
 MIDIMap(Param([Pdef(\plop), \freq]), msgNum:16)
 MIDIdef.cc(\bla, { arg ... args; args.debug("lll") }, msgNum:16)
 MIDIdef.cc(\bla, { arg ... args; args.debug("lll") }).learn
 
-ParamPreset(\mypreset).do { arg p,x; MIDIMap.key(\k+++(x+1), p) }
+ParamGroupDef(\mypreset).do { arg p,x; MIDIMap.key(\k+++(x+1), p) }
 
 /////////////////////////////////////////////// MIDI
 
@@ -1532,8 +1532,8 @@ MIDIMap.define([nil, ~icon_device_id], [
 	win.front;
 	
 };
-ParamPreset(\mypreset, ~list);
-~makegui.(ParamPreset(\mypreset));
+ParamGroupDef(\mypreset, ~list);
+~makegui.(ParamGroupDef(\mypreset));
 //Pdef(\plop).play;
 //Ndef(\echo).play;
 
@@ -1572,7 +1572,7 @@ Ndef(\ndef_array).set(\freq, [220,350,700]);
 	[Ndef(\echo), \shift1],
 	[Ndef(\echo), \shift2],
 ];
-~pg = ParamPreset(\hello, ~list);
+~pg = ParamGroupDef(\hello, ~list);
 )
 ~pg.edit;
 ~pg.save(\preset1)
@@ -1628,10 +1628,10 @@ Ndef(\ndef_array, { arg pan=0, amp=0.1;
 ~p.normSet([0.5,0.2,0.4]); 
 
 ~list
-ParamPreset(\mypreset, ~list);
-ParamPreset(\mypreset, ~list);
-ParamPreset(\mypreset, ~list);
-Archive.at(\ParamPreset)
+ParamGroupDef(\mypreset, ~list);
+ParamGroupDef(\mypreset, ~list);
+ParamGroupDef(\mypreset, ~list);
+Archive.at(\ParamGroupDef)
 
 (
 SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
@@ -1754,59 +1754,9 @@ Pdef(\plop).setBusMode(\freq)
 Pdef(\plop).get(\lpfreq)
 Pdef(\plop).getVal(\lpfreq)
 
-////////////////////////////////////////////////////////////
-/// Example 4
-/// Preset morphing
 
-
-
-(
-~makegui = { arg list, presets;
-	var win, playout, mlayout;
-	var morpher;
-	win = Window.new;
-	win.alwaysOnTop = true;
-
-	playout = HLayout(*list.collect { arg param;
-		var lay;
-		param = param.asParam;
-		lay = VLayout(
-			// create a label, a knob and a value label from the param
-			param.asStaticTextLabel.align_(\center),
-			param.asView,
-			param.asStaticText.minWidth_(80).align_(\center),
-		); 
-		[lay, \stretch:1];
-	});
-
-	morpher = ParamMorpher(list, presets);
-
-	mlayout = VLayout(
-		[playout, stretch:1],
-		HLayout(*
-			presets.collect({ arg preset, x;
-				VLayout(
-					XSimpleButton.new.label_("load " ++ preset).action_({ morpher.set(x) }),
-					XSimpleButton.new.label_("save " ++ preset).action_({ list.save(preset) }),
-				);
-			})
-		),
-		Slider.new.orientation_(\horizontal).mapParam(morpher)
-	);
-
-	win.layout = mlayout;
-	win.front;
-	
-};
-ParamPreset(\mypreset2, ~list);
-~makegui.(ParamPreset(\mypreset2), [\preset1, \preset2, \preset4]);
-Pdef(\plop).play;
-Ndef(\echo).play;
-
-);
-
-ParamPreset(\mypreset2).getPreset(\preset1)
-ParamPreset(\mypreset2).getPreset(\preset4)
+ParamGroupDef(\mypreset2).getPreset(\preset1)
+ParamGroupDef(\mypreset2).getPreset(\preset4)
 
 ~e = Env([1,2,1],[0.1,0.8])
 ~e.asCompileString
@@ -1824,3 +1774,197 @@ XArraySpec( ControlSpec(0,1,\lin,0,1)!4).asCompileString
 XArraySpec([ ControlSpec(0, 1, 'linear', 0, 1, ""), ControlSpec(0, 1, 'linear', 0, 1, ""), ControlSpec(0, 1, 'linear', 0, 1, ""), ControlSpec(0, 1, 'linear', 0, 1, "")  ], [ 1, 1, 1, 1  ])
 XArraySpec( ControlSpec(0,1,\lin,0,1)!4).debug("plop")
 \freq.asSpec
+
+
+SCDoc.renderAll
+SCDoc.indexAllDocuments
+
+
+
+(
+Ndef(\ndef_scalar, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+
+(
+~pg = ParamGroup([
+	[Ndef(\ndef_scalar), \freq],
+	[Ndef(\ndef_scalar), \pan], 
+	[Ndef(\ndef_scalar), \amp],
+]);
+)
+
+~pg.edit // change the values before saving each new preset else morphing is useless
+~pg.save(\preset1);
+~pg.edit // change the values before saving each new preset else morphing is useless
+~pg.save(\preset2);
+~pg.edit // change the values before saving each new preset else morphing is useless
+~pg.save(\preset3);
+
+~pg.presets
+~pg.valueList
+
+
+(
+~m = ParamMorpher( ~pg,
+	[
+		\preset1,
+		\preset2,
+		\preset3,
+	]
+);
+)
+
+~pg.class.findRespondingMethodFor(\key)
+~pg.edit;
+~m.edit; // morph between presets using the default GUI
+
+(
+~pgd = ParamGroupDef(\mygroup, [
+	[Ndef(\ndef_scalar), \freq],
+	[Ndef(\ndef_scalar), \pan], 
+	[Ndef(\ndef_scalar), \amp],
+]);
+
+~m = ParamMorpher(\mygroup,
+	[
+		\preset1,
+		\preset2,
+		\preset3,
+	]
+);
+)
+
+// you must redefine the presets because this is another ParamGroup, but for simplicity, let's just copy the presets of the previous group
+ParamGroupDef(\mygroup).presets = ~pg.presets;
+
+ParamGroupDef(\mygroup).edit; // same as ~pgd.edit
+~m.edit;
+
+(
+ParamMorpherDef(\mymorpher, \mygroup, [
+		\preset1,
+		\preset2,
+		\preset3,
+]);
+)
+
+ParamMorpherDef(\mymorpher).normSet(0.3);
+ParamMorpherDef(\mymorpher).edit;
+
+
+~pg.presets.asCompileString
+IdentityDictionary[ (preset1 -> [ 98.512450687749, 0, 0.1  ]), (preset3 -> [ 320.56419302353, 0, 0.1  ]), (preset2 -> [ 860.74627608402, 0, 0.1  ])  ]
+
+~pgd.presets = IdentityDictionary[ ('preset1' -> [ 98.512450687749, 0, 0.1 ]), ('preset3' -> [ 320.56419302353, 0, 0.1 ]), ('preset2' -> [ 860.74627608402, 0, 0.1 ]) ]
+
+~pgd.getPreset(\preset1)
+~pgd.presets
+~pdg
+
+
+
+~pg.do { arg param, x;
+	MIDIMap(( \k++(x+1) ).asSymbol, param)
+}
+
+8.do { arg x;
+	MIDIMap(( \k++(x+1) ).asSymbol, Param(Ndef(\myndef), ( \aux++(x+1) ).asSymbol))
+}
+
+
+~map = Array.fill(19,{arg i;(\k ++(i+1).asFloat).asSymbol });
+~map.asCompileString
+
+MIDIMap(\k1, [Ndef(\px), \freq])
+
+(
+~common = Pbind(
+	\degree, Prand([1,2,3,4,5,6],inf),
+);
+
+~seed = 1100.rand;
+~p1 = Pseed(~seed, ~common) <> Pbind(\instrument, \default, \octave, 5);
+~p2 = Pseed(~seed, ~common) <> Pbind(\instrument, \default, \octave, 3);
+
+Ppar([~p1, ~p2]).play;
+)
+
+
+
+(
+MIDIMap.define(0,[
+        \k1, 36,
+    \k2, 37,
+        \k3,38,
+        \k4,39,
+        \k5,40,
+        \k6,41,
+        \k7,42,
+        \k8,43,
+        \k9,28,
+        \k10,29,
+        \k11,30,
+        \k12,31,
+        \k13,32,
+        \k14,33,
+        \k15,34,
+        \k16,35,
+        \k17,20,
+        \k18,21,
+        \k19,22,
+        \k20,23,
+        \k21,24,
+        \k22,25,
+        \k23,26,
+        \k24,27,
+        \k25,11,
+        \k26,12,
+        \k27,13,
+        \k28,14,
+        \k29,15,
+        \k30,16,
+        \k31,17,
+        \k32,18,
+        \k33,19,
+]);
+)
+~map = Array.fill(33,{arg i;(\k ++(i+1)).asSymbol });
+ 
+ 
+~parameters =[\aux1,\band1,\band2,\band3,\band4,\band5,\band6,\band7,\band8,\band9,\band10,\shape1,\shape2,\freq1,\freq2,\sig1lvl,\sig2lvl,\dynklanglvl,\mainlevel];
+
+~parameters.size
+ 
+19.do{arg i;
+        MIDIMap(~map[i], Param(Ndef(\fx), ~parameters[i]));
+}
+
+MIDIMap.responders
+MIDIMap.controls.keysValuesDo({ arg k,v; [k,v].debug })
+MIDIMap.controls.keys.size
+
+(
+SynthDef(\synthdef_scalar, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
+Pdef(\pdef_scalar, Pbind(
+	\instrument, \synthdef_scalar,
+	\degree, Pseq([0],inf),
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+
+~p = Param(Pdef(\pdef_scalar), \freq, \freq);
+
+~p.get
