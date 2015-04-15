@@ -5,11 +5,11 @@
 - write wrapper for
 	- statictext
 	- textfield
+- write a list of features / documentation to see more clearly
 
 // TODO:
 - what to do to prevent using method for env on scalar, and mismatching types in general, and what about env specific methods
 - how work shapeNumber in Env.asArray
-- write a list of features / documentation to see more clearly
 - get default value in target
 - Param.unset (set default target value)
 - Param.unset (unset Pdef and Ndef)
@@ -1968,3 +1968,184 @@ Pdef(\pdef_scalar, Pbind(
 ~p = Param(Pdef(\pdef_scalar), \freq, \freq);
 
 ~p.get
+
+
+(
+Ndef(\ndef_scalar, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+~p = Param(Ndef(\ndef_scalar), \freq)
+Ndef(\ndef_scalar).map(\freq, Ndef(\lfo1, { SinOsc.kr(1).range(50,100)  }).asMap)
+Ndef(\ndef_scalar).map(\freq, Ndef(\lfo1, { SinOsc.kr(1).range(50,100)  }))
+~p.edit
+~p.get.class
+~p.set(100)
+Param.simpleControllers
+Param.freeAllSimpleControllers
+~p.freeAllSimpleControllers
+Ndef(\ndef_scalar).getHalo(\freq)
+
+~pg = ParamGroup([~p])
+~pg.edit
+~pg.save(\bla)
+~pg.load(\bla)
+~pgd = ParamGroupDef(\yeye, [~p])
+~pgd.edit
+~pgd.save(\bla)
+~pgd.load(\bla)
+~pgd.presets
+~pgd.saveArchive
+~pgd.loadArchive
+Archive.global.at(\ParamGroupDef, \yeye, \presets)
+Archive.global.at(\ParamGroupDef, \yeye)
+Object
+~
+Ndef(\lfo1, { SinOsc.kr(1).range(50,100)  });
+Ndef(\lfo1).asCompileString
+Ndef(\lfo1).archiveAsCompileString
+Archive.global.put(\testndef, Ndef(\lfo1))
+// reboot SC
+Archive.global.at(\testndef); // error because server is nil in Ndef:printOn
+Archive.global.at(\testndef).server = s
+Archive.global.at
+Ndef
+
+\c0.isNaN
+(
+	var slider, win;
+	win = Window.new;
+	win.layout = VLayout(
+		~p.asStaticTextLabel,
+		~p.asKnob,
+		~p.asSlider,
+		~p.asStaticText,
+		~p.asTextField,
+		NumberBox.new.mapParam(~p),
+	);
+	win.front;
+)
+
+Object.dependantsDictionary
+
+(
+	var knob, val, label, win;
+	win = Window.new;
+
+	knob = Knob.new;
+	val = StaticText.new;
+	label = StaticText.new;
+	MIDIMap.mapStaticTextLabel(\k1, label);
+	MIDIMap.mapView(\k1, knob);
+	MIDIMap.mapView(\k1, val);
+
+	win.layout = VLayout(
+		label,
+		knob,
+		val,
+	);
+	win.alwaysOnTop = true;
+	win.front;
+)
+
+MIDIMap(\k1, Param(Ndef(\ndef_scalar), \freq)); // map \freq
+
+MIDIMap(\k1, Param(Ndef(\ndef_scalar), \pan)); // now change it to \pan
+
+
+
+(
+~bla = {
+	var xx;
+	var ff;
+	ff = {
+		xx.postln;
+	};
+	xx = 4;
+	ff;
+}
+)
+~fu = ~bla.()
+~fu.()
+
+
+/////////// test saving Ndef as presets
+
+(
+Ndef(\ndef_scalar, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+~p = Param(Ndef(\ndef_scalar), \freq);
+Ndef(\lfo1, { SinOsc.kr(1).range(50,100)  });
+~pgd = ParamGroupDef(\yeye, [~p]);
+);
+
+~p.set(200)
+~pgd.save(\bla)
+~pgd.load(\bla)
+ ~pgd.presets[\bla][0].asCompileString.interpret
+Ndef(\ndef_scalar).map(\freq, ~pgd.presets[\bla][0])
+Ndef(\ndef_scalar).map(\freq, ~pgd.presets[\bla][0].asCompileString.interpret)
+
+Ndef(\ndef_scalar).map(\freq, Ndef(\lfo1, { SinOsc.kr(1).range(50,100)  }).asMap)
+Ndef(\ndef_scalar).map(\freq, Ndef(\lfo1, { SinOsc.kr(1).range(50,100)  }))
+
+
+///////////////// test blockmode
+
+(
+Ndef(\ndef_scalar, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+~p = Param(Ndef(\ndef_scalar), \freq);
+MIDIMap.define([nil, ~icon_device_id], [ \k1, 16, \s1, [13,0], ]);
+MIDIMap(\k1, ~p);
+MIDIMap(\s1, ~p);
+)
+
+MIDIMap.defaultBlockmode = true;
+MIDIMap(\k1, ~p, true);
+MIDIMap.defaultBlockmode = nil;
+MIDIMap.defaultBlockmode = false
+MIDIMap.defaultBlockmode = true
+MIDIMap.defaultBlockmode
+
+(
+	var knob, val, label, win;
+	win = Window.new;
+
+	knob = Knob.new;
+	val = StaticText.new;
+	label = StaticText.new;
+	MIDIMap.mapStaticTextLabel(\k1, label);
+	MIDIMap.mapView(\k1, knob);
+	MIDIMap.mapView(\k1, val);
+
+	win.layout = VLayout(
+		label,
+		knob,
+		val,
+	);
+	win.alwaysOnTop = true;
+	win.front;
+)
+
+1/110
+~p.normGet
+
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	\dur, 1/40,
+	\amp, 0.1
+)).play;
+);
