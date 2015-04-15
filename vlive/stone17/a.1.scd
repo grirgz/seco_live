@@ -10,8 +10,8 @@ Ndef(~name+++\fx, { arg freq=400, pan=0, amp=0.1;
 
 	b = PulseCount.ar(Impulse.ar(2**10 * ~t));
 	//freq = Duty.ar(4, 0, Dseq([100,500,300,5000],inf));
-	freq = Duty.ar(8/~t, 0, Dseq(
-		[60]
+	freq = Duty.ar(1/2/~t, 0, Dseq(
+		[93,93*2/3,93/2]
 		//~cdegcps.([0], 3, 60.midicps, Scale.minor)
 	,inf));
 	//freq = 100;

@@ -86,3 +86,12 @@ Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
 	\amp, 0.1 * Pkey(\amp),
 ) <> Veco(~name).mixer)
 );
+
+// END
+
+Ndef(~name+++\fx).put(10, nil)
+(
+Ndef(~name+++\fx).put(10, \mix -> {
+	InFeedback.ar(\inbus.kr(BusDef(\zero)), 2)
+})
+)
