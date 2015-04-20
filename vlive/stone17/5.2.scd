@@ -43,7 +43,10 @@ Veco.do { arg name;
 				],1);
 			}),
 			Pfindur(2,
-				Pbind(\dur, 1/4) <>
+				Pbind(
+					\dur, 1/4,
+					\legato, 0.1,
+				) <>
 				Pdef(name+++\bla)
 			),
 			//Event.silent(2),

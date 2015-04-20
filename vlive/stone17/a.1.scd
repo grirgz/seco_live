@@ -11,8 +11,13 @@ Ndef(~name+++\fx, { arg freq=400, pan=0, amp=0.1;
 	b = PulseCount.ar(Impulse.ar(2**10 * ~t));
 	//freq = Duty.ar(4, 0, Dseq([100,500,300,5000],inf));
 	freq = Duty.ar(1/2/~t, 0, Dseq(
-		[93,93*2/3,93/2]
-		//~cdegcps.([0], 3, 60.midicps, Scale.minor)
+		//[93,93*2/3,93/2]
+		~cdegcps.([
+			4,4,4,4,
+			4,4,4,4,
+			1,4,4,1,
+			4,4,4,4,
+		], 4, 93, Scale.minor)
 	,inf));
 	//freq = 100;
 	//sig1 = SinOsc.ar(freq*[1,1.001,1.0001,4/3,5/4,6/5]);
@@ -40,6 +45,8 @@ Ndef(~name+++\fx, { arg freq=400, pan=0, amp=0.1;
 
 	sig = sig * Duty.kr(1/2/~t, 0, Dseq([
 		0,0,0,0,
+		1,1,1,1,
+		1,0,1,1,
 		1,1,1,1,
 	],inf));
 	//sig = CombL.ar(sig, 2,1/4,8) + sig;

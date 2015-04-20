@@ -12,10 +12,10 @@ Ndef(~name+++\fx, { arg freq=400, pan=0, amp=0.1;
 	//freq = Duty.ar(4, 0, Dseq([100,500,300,5000],inf));
 	freq = Duty.ar(1/2/~t, 0, Dseq(
 		~cdegcps.([
-			0,0,0,-2,
-			0,0,1,-2,
-			0,0,0,-2,
-			0,0,-3,-2,
+			4,4,4,4,
+			4,4,4,4,
+			4,4,4,4,
+			4,4,1,1,
 		], 4, 93, Scale.minor)
 	,inf));
 	//freq = 100;
@@ -42,15 +42,18 @@ Ndef(~name+++\fx, { arg freq=400, pan=0, amp=0.1;
 	//sig = Limiter.ar(sig, 0.8);
 	sig = sig * 2.5;
 
-	sig = sig * Duty.kr(1/4/~t, 0, Dseq([
+	sig = sig * Duty.kr(1/8/~t, 0, Dseq([
 		//0,0,0,0,
 		//1,1,1,1,
 		//0,0,0,0,
 		//1,1,0,0,
-		1,0,1,0,
-		1,1,1,0,
-		1,1,0,0,
-		1,0,1,1,
+		1,1,1,0, 1,1,1,0,
+		1,1,1,0, 1,1,1,0,
+		1,0,1,0, 1,0,1,0,
+		1,1,1,0, 1,1,1,0,
+		1,1,1,1, 1,0,1,1,
+		1,1,0,1, 1,0,1,1,
+		1,0,1,1, 0,1,1,1,
 
 		//1,1,0,0,
 		//1,1,0,0,
@@ -84,3 +87,11 @@ Ndef(~name+++\fx).isPlaying
 Ndef(~name+++\fx).
 2 << 4
 2**13
+
+(
+~rec = ~class_note_recorder.new(
+	Pdef(~name)
+);
+)
+~rec.activate
+Pdef(~name)

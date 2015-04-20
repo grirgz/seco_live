@@ -2149,3 +2149,168 @@ Pdef(\plop, Pbind(
 	\amp, 0.1
 )).play;
 );
+
+//////////////////////// EZSlider
+
+(
+	~t= 1;
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	freq = freq * Duty.kr(1/~t, 0, Dseq([
+		1,0,4,0,
+		1+12,0+12,4,0,
+	],inf)).midiratio * [1, 1/2, 2] * [1,1.00001,1.000001];
+	freq = freq.clip(20,18000);
+	sig = LFSaw.ar(
+		Clip.ar(
+			freq * ( 1 + ( SinOsc.ar(freq) * SinOsc.kr(1/4).range(0,10) * 1 )),
+			20,
+			18000
+		)
+	);
+	sig = SinOsc.ar(freq) + sig;
+	sig = RLPF.ar(sig, \lpf.kr(11000) * SinOsc.kr( Duty.kr(1/~t, 0, Dseq([
+		1,2,7,0,
+	],inf))*~t).range(0,1), \rq.kr(0.5));
+	sig = sig * Duty.kr(1/16/~t, 0, Dseq([
+		1,0,0,0,
+		0,0,0,0,
+	],inf))+0.1;
+	sig = CombL.ar(sig, 1,1/16/~t,2) + sig;
+	sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size, amp).mean;
+	//sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+Ndef(\plop).dependants
+
+~p = Param(Ndef(\plop), \freq, \freq.asSpec); // create a reference to a Ndef parameter with a spec
+Slider.new.mapParap(~p); // now the slider control the ndef parameter
+MIDIMap(~p, 64) // now the midi controller number 64 control the ndef parameter
+(
+{
+	o = ();
+	o.win = Window.new;
+	//o.slider = Slider.new;
+	o.slider = EZSlider.new(o.win, nil, "plop");
+	o.win.onClose.debug("kkk");
+	//o.win.onClose = o.win.onClose.addFunc( {debug("kjdfkdfjk closed")} ) ;
+	o.slider.mapParam(~p);
+	o.win.layout = HLayout.new(o.slider.view);
+	o.win.front;
+	
+}.value;
+)
+
+
+(    // basic use
+    w=Window.new.front;
+    g=EZSlider(w, 400@16," test  ", \freq,unitWidth:30, numberWidth:60,layout:\horz);
+    g.setColors(Color.grey,Color.white);
+);
+
+g.labelView
+
+//////////////////////// Volume
+
+
+~p = Param(s.volume, \amp, ControlSpec(0,1,\lin))
+
+~p.edit
+s.volume.volume
+s.volume.o
+~p.normGet
+Object
+Volume
+s.volume.gui
+s.name
+s.volume
+s.volume.server.name
+
+Ndef
+
+//////////////////////// Ndef volume
+
+(
+	~t= 1;
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	freq = freq * Duty.kr(1/~t, 0, Dseq([
+		1,0,4,0,
+		1+12,0+12,4,0,
+	],inf)).midiratio * [1, 1/2, 2] * [1,1.00001,1.000001];
+	freq = freq.clip(20,18000);
+	sig = LFSaw.ar(
+		Clip.ar(
+			freq * ( 1 + ( SinOsc.ar(freq) * SinOsc.kr(1/4).range(0,10) * 1 )),
+			20,
+			18000
+		)
+	);
+	sig = SinOsc.ar(freq) + sig;
+	sig = RLPF.ar(sig, \lpf.kr(11000) * SinOsc.kr( Duty.kr(1/~t, 0, Dseq([
+		1,2,7,0,
+	],inf))*~t).range(0,1), \rq.kr(0.5));
+	sig = sig * Duty.kr(1/16/~t, 0, Dseq([
+		1,0,0,0,
+		0,0,0,0,
+	],inf))+0.1;
+	sig = CombL.ar(sig, 1,1/16/~t,2) + sig;
+	sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size, amp).mean;
+	//sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+Ndef(\plop).addDependant(TestDependant2.new)
+Ndef(\plop).set(\freq, 410)
+Ndef(\plop).monitor.addDependant(TestDependant2.new)
+Ndef(\plop).monitor.group.addDependant(TestDependant2.new)
+Ndef(\plop).vol = 0.81
+Ndef(\plop).monitor.group
+
+~p = Param(Ndef(\plop), "vol", ControlSpec(0,1,\lin))
+
+~p.edit
+Ndef(\plop).edit
+Node
+Group
+
+
+/////////////////////// tempo
+
+TempoClock
+
+TempoClock.default.addDependant(TestDependant2.new)
+TempoClock.default.tempo = 2
+SimpleController
+
+~p = Param(TempoClock.default, \tempo);
+~p.edit
+
+TempoClock.default.tempo = 1
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+
+
+//////////////////////// bus
+
+
+~bus = Bus.control(s, 1);
+
+~bus.set(10.rand)
+
+
+Group
+NodeWatcher
+Bus
+
+
+~osc = OSCdef(\what, { arg ...msg; msg.debug("msg") }, '/c_set', s.addr)
+OSCdef.trace(true)

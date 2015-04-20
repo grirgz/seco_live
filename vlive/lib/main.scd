@@ -23,6 +23,7 @@ if(s.volume.volume == 0) {
 	Pdef(~name, 
 		~patfx.(~name+++\patfx) <>
 		~dPdef.(~name+++\mod).quant_(0) <>
+		~dPdef.(~name+++\score) <>
 		~dPdef.(~name+++\pre) <>
 		pat
 		<> Veco(~name).mixer;
@@ -950,6 +951,14 @@ if(s.volume.volume == 0) {
 ~ndef_to_macros = { arg key;
 	Ndef(key).controlNames.collect { arg con, x;
 		[Ndef(key), con.name]
+	}
+};
+
+~print_ndef_to_macros = { arg key, name;
+	name = name ? key.asCompileString;
+	Ndef(key).controlNames.do { arg con, x; 
+		x = x+1; 
+		"~set_macro.(%, Ndef(%), %);".format("\\k"++x, name, con.name.asCompileString).postln 
 	}
 };
 
