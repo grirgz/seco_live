@@ -14,6 +14,9 @@ Ndef(~name+++\fx).addSpec(\delay, ControlSpec(0,4,\lin,1/8));
 ~set_macro.(\k7, Ndef(~name+++\fx), \modDepth, ControlSpec(0.01,4,\exp));
 ~set_macro.(\k8, Ndef(~name+++\fx), \modFreq, ControlSpec(0.01,40,\exp));
 
+~set_macro.(\s1, Ndef(~name+++\fx), \postmix, \unipolar);
+~set_macro.(\s2, Ndef(~name+++\fx), \xamp, ControlSpec(0.001,4,\exp));
+
 ParamGroupDef(~name, Veco(~name).lib.macros.reject(_.isNil));
 ParamMorpherDef(~name, ~name, [\p1, \p2, \p3]);
 

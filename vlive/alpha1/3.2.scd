@@ -2,7 +2,7 @@
 Pdef(~name +++ \pre, 
 	
 	Pmono(~name+++\trig2,
-	\freq, 400/5 * Pseq([0,1,-1,0].midiratio,inf).stutter(16),
+	\freq, 120 * Pseq([0,1,-1,0].midiratio,inf).stutter(16),
 	//\freq, 400/5 * Pwalk((0..12), Pseq([1,0,-1,2, 1,0,-1,-2],inf),Pseq([1],inf)).midiratio.stutter(8),
 	\fmrange, Pseq([0.5,1,1.5,4, 5,9],inf),
 	\fmfreq, Pseq([0.5,1,2, 4,7,8,9],inf),
@@ -63,8 +63,12 @@ Pbind(
 				].flop[x].blendAt(ev[\xx] * 2).debug("out") * ev[\xxmul]
 			},1);
 		}
-	,inf)
-	//\isustain, 0.04,
+	,inf),
+
+	\isustain, Pseq([
+		0.1,0.5,0.1,0.1,
+		0.1,0.1,0.1,0.1,
+	],inf),
 	
 )
 <>

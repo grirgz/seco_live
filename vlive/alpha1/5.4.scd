@@ -10,9 +10,9 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
 	var oldsig;
 
-	freq = 100*4;
+	freq = 120*8;
 	freq = Duty.kr(2/~t, 0, Dseq([
-		1,0,-1,0,
+		0,1,-1,0,
 	],inf)).midiratio.lag(0.1) * freq;
 
 	//freq = freq * [1,1.001];

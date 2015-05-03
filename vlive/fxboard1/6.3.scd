@@ -21,7 +21,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	
 		sig = in * 70;
 		//sig = SinOsc.ar(540) ;
-		sig = sig + ( fb * ( 1/( Amplitude.kr(fb)+0.1 ) ) * \fb.kr(4) );
+		sig = sig + ( fb * ( 1/( Amplitude.kr(fb)+0.1 ) ) * \fb.kr(4) * \fbmod.kr(1) );
 		//freq2 = \fmfreq.kr;
 		//sig = HenonC.ar(freq2,0.1,0.01) + sig;
 
@@ -54,5 +54,27 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 
 BusDef(\in1).getSynchronous
 BusDef(\in1).set(0)
+
+Ndef(~name+++\fx).map(\fbmod, Ndef(~name+++\lfo1, { LFPulse.kr(1/4).range(1,4)  }));
+
+(
+Ndef(~name+++\fx).map(\fbmod, Ndef(~name+++\lfo1, { 
+	Duty.kr(1/2/~t, 0, Dseq([
+		1,1,4,0.8,
+		1,1,1,1,
+		0.5,1,4,0.8,
+		4.5,1,1,0.8,
+	],inf))
+}));
+)
+
+(
+Ndef(~name+++\fx).map(\lpf, Ndef(~name+++\lfo2, { 
+	Duty.kr(2/~t, 0, Dseq([
+		7100, 100, 100, 100,
+		5000,500,10000, 9100,
+	],inf)).lag(1.7)
+}));
+)
 
 Ndef(~name+++\fx).set(\lpf, 100)
