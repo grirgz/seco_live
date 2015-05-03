@@ -1,7 +1,6 @@
-~name = 'fxboard1-1';
+
 
 ~ndef_channel.();
-~fb1 = ~name;
 
 ~set_macro.(\k1, Ndef(~name+++\fx), \mix, \unipolar);
 ~set_macro.(\k2, Ndef(~name+++\fx), \lpf, \freq);
@@ -22,3 +21,14 @@
 ~set_macro.(\s7, Ndef(~name+++\fx), \complow, ControlSpec(0.7,2,\exp));
 ~set_macro.(\s8, Ndef(~name+++\fx), \comphigh, ControlSpec(0.07,2,\exp));
 
+ParamGroupDef(~name, Veco(~name).lib.macros.reject(_.isNil));
+ParamMorpherDef(~name, ~name, [\p1, \p2]);
+
+// END
+
+ParamGroupDef(~name).save(\p1)
+ParamGroupDef(~name).save(\p2)
+ParamGroupDef(~name).getArchive
+ParamGroupDef(~name).
+Archive.write
+MIDIMap(\k9, ~pm)

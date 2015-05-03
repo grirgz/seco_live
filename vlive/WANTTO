@@ -8,6 +8,9 @@ ControlSpec(0,1,\exp)
 
 ////////////////////////////////
 
+//////// NumberBox
+don't increment exponentialy
+
 ////////// MasterFx
 	seems cool but how to put an ordinary Ndef as a masterfx ?
 
@@ -299,3 +302,7 @@ Pdef(~name +++ \pre,
 // END
 
 NoteRecorder(~name).
+
+
+///////////////// TODO on veco
+- 

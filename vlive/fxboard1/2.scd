@@ -3,13 +3,15 @@
 ~ndef_channel.();
 ~fb2 = ~name;
 
+Spec.add(\boost, ControlSpec(-6,6,\lin));
+
 ~set_macro.(\s1, Ndef(~name+++\fx), \lpf, \freq);
-~set_macro.(\s2, Ndef(~name+++\fx), \boost, ControlSpec(-40,40,\lin));
+~set_macro.(\s2, Ndef(~name+++\fx), \boost, \boost.asSpec);
 ~set_macro.(\s3, Ndef(~name+++\fx), \rq, ControlSpec(0.001,1,\exp,0,1));
 ~set_macro.(\s4, Ndef(~name+++\fx), \eqlow, \freq);
-~set_macro.(\s5, Ndef(~name+++\fx), \boostlow, ControlSpec(-40,40,\lin));
+~set_macro.(\s5, Ndef(~name+++\fx), \boostlow, \boost);
 ~set_macro.(\s6, Ndef(~name+++\fx), \eqhi, \freq);
-~set_macro.(\s7, Ndef(~name+++\fx), \boosthi, ControlSpec(-40,40,\lin));
+~set_macro.(\s7, Ndef(~name+++\fx), \boosthi, \boost);
 ~set_macro.(\s8, Ndef(~name+++\fx), \lpfspread, ControlSpec(0.0001,1,\exp));
 
 

@@ -126,7 +126,7 @@ Pdef(~name +++ \pre,
 			\amp, 709.0 * Pkey(\amp),
 
 		) 	
-	]).trace;
+	]);
 );
 )
 

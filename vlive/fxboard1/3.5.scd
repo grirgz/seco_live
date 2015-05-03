@@ -17,7 +17,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	//Amplitude.ar(sig).poll;
 	//sig = SinOsc.ar(200);
 	
-	bufgate = Duty.kr(1/8, 0, Dseq([
+	bufgate = Duty.kr(1/8/~t, 0, Dseq([
 		0,0,0,0,
 		0,1,0,0,
 		1,1,1,0,
@@ -54,7 +54,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	],inf));
 	choosetrig = bufgate > 0;
 	stutter = DC.kr(1/8);
-	stutter = Duty.kr(1/4, 0, Dseq(1/[
+	stutter = Duty.kr(1/4/~t, 0, Dseq(1/[
 		8,8,8,8,
 		4,4, 4*8, 4*8,
 		Dseq([
@@ -62,7 +62,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 		],1)*2,
 		4,4, 4*8, 4*8,
 	],inf));
-	stuttrig = TDuty.ar(stutter, choosetrig + Changed.kr(stutter), 1);
+	stuttrig = TDuty.ar(stutter/~t, choosetrig + Changed.kr(stutter), 1);
 	recordtrig = Trig1.kr(choosetrig, 0.01);
 	env = EnvGen.ar(Env([0,1,1,0],[attack, stutter-attack-decay, decay]), stuttrig);
 	

@@ -3,7 +3,7 @@ Veco.load_lib("main.scd");
 
 Veco.main.board_size = Point(8,64);
 //~set_default_quant.(4);
-//~set_project_tempo.(1);
+~set_project_tempo.(TempoClock.default.tempo);
 ~load_standard_quickpad.();
 
 
@@ -33,10 +33,36 @@ Veco.main.fadeout_time = 16;
 ParamGroupDef(\yep, ~get_params.())
 ParamGroupDef(\yep).edit
 ParamGroupDef(\yep).group
+
 ParamGroupDef(\yep).save(\p1)
 ParamGroupDef(\yep).load(\p1)
+
 ParamGroupDef(\yep).save(\p2)
+ParamGroupDef(\yep).load(\p2)
+ParamGroupDef(\yep).presets.keys
+ParamGroupDef(\yep).loadArchive
+
+ParamGroupDef(\yep).save(\p3)
+ParamGroupDef(\yep).load(\p3)
 
 ParamGroupDef(\yep).load(\p2)
 ~pm = ParamMorpher(\yep, [\p1, \p2])
+~pm = ParamMorpher(\yep, [\p1, \p2, \p3])
 ~pm.edit
+MIDIMap(\k9, ~pm)
+
+
+
+(
+MIDIMap(\c1, {
+	MIDIMap(\k1, ParamMorpherDef(Veco.main.project_name.asSymbol+++'-1'));
+	MIDIMap(\k2, ParamMorpherDef(Veco.main.project_name.asSymbol+++'-4'));
+	MIDIMap(\k3, ParamMorpherDef(Veco.main.project_name.asSymbol+++'-6'));
+})
+)
+ParamMorpherDef(Veco.main.project_name.asSymbol+++'-1')
+Veco.main.project_name.asSymbol+++'-1'
+Veco.main.project_name.asCompileString
+(\dd+++\dd).asCompileString
+
+Archive.write

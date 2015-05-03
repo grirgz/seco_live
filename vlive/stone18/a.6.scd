@@ -3,6 +3,9 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var sig;
 	var freq = 40.midicps;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freq = Duty.kr(1/~t, 0, Dseq([
+		40,52,40,55,
+	],inf)).midicps;
 	freq = freq * [1,2];
 	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.kr( freq) * LFNoise1.kr(1/8*~t).exprange(0.1,100) ))); 
 	sig = sig * [2,1];

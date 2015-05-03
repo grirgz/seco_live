@@ -21,6 +21,7 @@ if(s.volume.volume == 0) {
 (
 ~pdef_init = { arg pat;
 	Pdef(~name, 
+		~dPdef.(~name+++\macro) <>
 		~patfx.(~name+++\patfx) <>
 		~dPdef.(~name+++\mod).quant_(0) <>
 		~dPdef.(~name+++\score) <>
@@ -933,7 +934,7 @@ if(s.volume.volume == 0) {
 	if(obj.class == Ndef) {
 		obj.addSpec(member, spec);
 	};
-	MIDIBoard.map(key, obj, member, spec);
+	MIDIMap(key, Param(obj, member, spec));
 	if(register == true) {
 		if(Veco(~name).lib.macros.isNil) {
 			Veco(~name).lib.macros = List.newClear(20);

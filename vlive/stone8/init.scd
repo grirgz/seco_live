@@ -13,3 +13,6 @@ Veco.load_lib("synth.scd");
 ~define_effects.(['56','57','58','59']);
 Veco.main.fadeout_time = 16;
 
+~macro
+
+Ndef(\plop).asString.asCompileString

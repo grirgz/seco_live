@@ -1,5 +1,7 @@
 ~name = 'stone7-a';
 
+~pdef_channel.();
+
 SynthDef(\zegrainer2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, mbufnum,
 						gdur=12, trate=100, time_stretch=1, pos=0, pitch_stretch = 1, 
 						randframes=0.01, randrate=1, doneAction=2, finepos=0;
@@ -45,13 +47,14 @@ SynthDef(\zegrainer2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, mbufnum,
 BufDef.mono(\moeten, "voices/02_moeten.flac");
 
 (
-if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
-Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
-	\instrument, \zegrainer2,
-	\mbufnum, BufDef.mono(\moeten),
-	\degree, Pseq([0],inf),
-	\isRest, Veco(~name).isrest,
-	\dur, 1/4,
-	\amp, 0.1
-))
+~pdef_init.(
+	Pbind(
+		\instrument, \zegrainer2,
+		\mbufnum, BufDef.mono(\moeten),
+		\degree, Pseq([0],inf),
+		\isRest, Veco(~name).isrest,
+		\dur, 1/4,
+		\amp, 0.1 * Pkey(\amp),
+	)
+)
 );

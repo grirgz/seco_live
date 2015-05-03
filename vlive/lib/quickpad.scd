@@ -76,6 +76,17 @@
 		~scene_sendpad.activate;
 	};
 
+	// send view
+	codepad = qp.get_codepad(Point(2,2));
+	codepad.payload = { arg self;
+		{
+			if(~veco_send_view.notNil and: {~veco_send_view.window.notNil}) {
+				~veco_send_view.window.close;
+			};
+			~veco_send_view = ~class_send_view.new;
+		}.defer;
+	};
+
 };
 
 ~load_quick_mode_chooser = { arg self;

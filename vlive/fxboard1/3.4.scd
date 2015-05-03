@@ -8,6 +8,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var bufgate, stuttrig, choosetrig, recordtrig;
 	var attack=0.01, decay=0.01, stutter;
 	var env;
+	var quantdur;
 
 	bufnum.clear;
 	in = InFeedback.ar(\inbus.kr(BusDef(\in1, \audio)), 2); 
@@ -24,6 +25,9 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 		1,0,1,1,
 	],inf));
 	bufgate = \bufgate.kr(0);
+	quantdur = Duty.kr(Dseq([0.9,0.1]/4,inf)/~t * \quantdur.kr(1), 0, Dseq([
+		1,0,
+	],inf));
 	choosetrig = bufgate > 0;
 	stutter = Duty.kr(1/4, 0, Dseq(1/[
 		8,8,
@@ -34,8 +38,8 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 		93/2,93/2,
 	],inf));
 	stutter = 1 / \stutter.kr(4);
-	stuttrig = TDuty.ar(stutter, choosetrig + Changed.kr(stutter), 1);
-	recordtrig = Trig1.kr(choosetrig, 0.01);
+	stuttrig = TDuty.ar(stutter, quantdur, 1) * choosetrig;
+	recordtrig = Trig1.kr(choosetrig, 0.01) * choosetrig;
 	env = EnvGen.ar(Env([0,1,1,0],[attack, stutter-attack-decay, decay]), stuttrig);
 	
 	RecordBuf.ar(sig, bufnum, 0, 1, 0, run:1,loop:0,trigger: recordtrig,doneAction:0);

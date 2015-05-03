@@ -19,6 +19,8 @@ Ndef(~name+++\fx).put(0, { arg amp=1;
 
 // END
 
+~t
+
 Ndef(~name+++\fx).set(\lpf, 100)
 
 BusDef(\in1).getSynchronous
@@ -26,3 +28,16 @@ BusDef(\in1).set(0)
 
 Ndef(~name+++\fx).get(\inbus)
 ~name
+
+(
+~win = Window.new;
+~sl = Knob.new(~win);
+~sl2 = Knob.new(~win, Rect(50,50));
+MIDIMap.mapView(\s1, ~sl);
+MIDIMap.mapView(\s2, ~sl2);
+~win.front;
+)
+MIDIMap(\s2, [Ndef(~name+++\fx), \amp]);
+
+
+

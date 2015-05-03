@@ -54,4 +54,15 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 BusDef(\in1).getSynchronous
 BusDef(\in1).set(0)
 
+~t = 1;
+
 Ndef(~name+++\fx).set(\lpf, 100)
+Veco(~name).lib.macros.do(_.postln);
+ParamGroupDef(~name).save(\p1)
+ParamGroupDef(~name).save(\p2)
+ParamGroupDef(~name).getArchive
+ParamGroupDef(~name).
+Archive.write
+~pm = ParamMorpher(~name, [\p1, \p2])
+MIDIMap(\k9, ~pm)
+Ar

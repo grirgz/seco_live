@@ -2015,21 +2015,6 @@ Archive.global.at
 Ndef
 
 \c0.isNaN
-(
-	var slider, win;
-	win = Window.new;
-	win.layout = VLayout(
-		~p.asStaticTextLabel,
-		~p.asKnob,
-		~p.asSlider,
-		~p.asStaticText,
-		~p.asTextField,
-		NumberBox.new.mapParam(~p),
-	);
-	win.front;
-)
-
-Object.dependantsDictionary
 
 (
 	var knob, val, label, win;
@@ -2314,3 +2299,120 @@ Bus
 
 ~osc = OSCdef(\what, { arg ...msg; msg.debug("msg") }, '/c_set', s.addr)
 OSCdef.trace(true)
+(
+~makegui = { arg list;
+	// list is now a list of midi controls
+	var win, playout, mlayout;
+	var size = 8;
+	win = Window.new;
+	win.alwaysOnTop = true;
+
+	playout = HLayout(*list.collect { arg midipath;
+		var lay;
+		var label, slider, val;
+		lay = VLayout(
+			// here the view is created in the usual way
+			[label = StaticText.new.fixedHeight_(40), align:\center],
+			slider = Slider.new,
+			[val = StaticText.new.minWidth_(80), align:\center],
+		); 
+		// now map the views on the param controlled by midi controller with ccnum midipath
+		MIDIMap.mapStaticTextLabel(midipath, label);
+		MIDIMap.mapView(midipath, slider);
+		MIDIMap.mapView(midipath, val);
+		[lay, \stretch:1];
+	});
+
+	win.layout = playout;
+	win.front;
+	
+};
+Pdef(\plop).play;
+Ndef(\echo).play;
+
+);
+
+MIDIdef.cc(\arf).learn; // find some midi cc
+MIDIdef.cc(\arf).free;
+
+(
+// put the midi cc here
+~makegui.([
+	//[19, 0, \noteOn, 1451154], // format: [msgNum, channel, msgType=\control, uid]
+	[16], // ccnum 16, every channel and every uid
+	[17], 
+	[18],
+]);
+)
+
+(
+// put the midi cc here
+~makegui.(
+	[\k, \s].collect { arg pre; 9.collect{ arg x; ( pre++(x+1) ).asSymbol }}.flat
+);
+)
+
+
+// map some midi control to params 
+MIDIMap([16], Param(Pdef(\plop), \freq));
+MIDIMap.free([16]); // unmap it
+MIDIMap([17], Param(Pdef(\plop), \lpfreq));
+MIDIMap([16], Param(Ndef(\echo), \shift1)); // replace param with another
+
+
+(
+// the gui know what is already mapped
+~makegui.([
+	[16], // ccnum 16, every channel and uid
+	[17], 
+	[18],
+	//[19, 0, \noteOn, 1451154], // [msgNum, channel, msgType, uid]
+]);
+)
+
+MIDIMap.freeAll // free all mappings // FIXME: don't work
+
+(
+// define convenient names for your midi controls
+MIDIMap.define(
+	nil, // channel (or [channel, uid])
+	[
+		\k1, 16, // my first knob is now named k1
+		\k2, 17,
+		\k3, 18,
+	]
+)
+)
+
+MIDIMap(\k1, Param([Pdef(\plop), \freq])); // now mapping can be done by name
+MIDIMap.free(\k1);
+
+/////////////////////// GUI TEST
+
+(
+Ndef(\ndef_scalar, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+~p = Param(Ndef(\ndef_scalar), \freq)
+(
+	var slider, win;
+	win = Window.new;
+	win.layout = VLayout(
+		//~p.asStaticTextLabel,
+		~p.asKnob,
+		//~p.asSlider,
+		//~p.asStaticText,
+		//~p.asTextField,
+		NumberBox.new.mapParam(~p),
+	);
+	win.front;
+)
+
+Param.defaultUpdateMode = \poll;
+
+~p.target.map(~p.property, Ndef(\lfo, { SinOsc.ar(1/2).range(100,500)  }))
+
+Object.dependantsDictionary

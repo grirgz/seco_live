@@ -98,17 +98,18 @@ BufDef(\woodshop, "vipere/woodshop.flac");
 Sdef(~name, \mypreset, \preset, \oscsampler);
 
 (
-if(Pdef(~name +++ \pre).source.isNil) { Pdef(~name +++ \pre, Pbind()) };
-Pdef(~name, Pdef(~name +++ \pre) <> Pbind(
-	\instrument, \oscsampler3,
-	\bufnum, BufDef(\moeten),
-	\bufnum, BufDef(\woodshop),
-	\degree, Pseq([0],inf),
-	\isRest, Veco(~name).isrest(32),
-	\dur, 1/8,
-	\amp, 0.31 * Pkey(\amp),
-) <> Veco(~name).mixer)
+~pdef_init.(
+	Pbind(
+		\instrument, \oscsampler3,
+		\bufnum, BufDef(\moeten),
+		\bufnum, BufDef(\woodshop),
+		\degree, Pseq([0],inf),
+		\isRest, Veco(~name).isrest(32),
+		\dur, 1/8,
+		\amp, 0.31 * Pkey(\amp),
+	)
 );
+)
 
 // END
 

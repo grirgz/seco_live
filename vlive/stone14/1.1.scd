@@ -42,6 +42,13 @@ Pdef(~name +++ \pre, Pbind(
 			//0,1,0,0, 1,0,0,0, 
 		],inf),
 	],inf).coin.not,
+	
+	\isRest, Pseq([
+		Pser([
+			1,0,0,0,
+			//0,1,0,0, 1,0,0,0, 
+		],inf),
+	],inf).coin.not,
 ));
 )
 // END
