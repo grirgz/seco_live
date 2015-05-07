@@ -337,6 +337,37 @@ SynthDef(\stereosampler, {| out = 0, amp=0.1, bufnum = 0, gate = 1, pos = 0, fra
 
 };
 
+[\monosampler_stutter_filter, \stereosampler_stutter_filter].do { arg name, x;
+
+	SynthDef(name, {| out = 0, amp=0.1, bufnum = 0, gate = 1, pos = 0, speed = 1, loop=0, doneAction=2, pan=0, reprate=4, envmix=1|
+
+		var player,env;
+		var trigger=1;
+		var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+		var sig;
+		trigger = Impulse.kr(reprate);
+		env =  EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:doneAction);
+		player = PlayBuf.ar(x+1, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufFrames.kr(bufnum)), doneAction:doneAction, loop: loop);
+		player.debug(name);
+		if(player.isSequenceableCollection.not) {
+			player = player ! 2;
+		};
+
+		sig1 = LPF.ar(player, \lpf.kr(1000));
+		player = SelectX.ar(\lpmix.kr(0.5), [player, sig1]);
+		sig1 = HPF.ar(player, \hpf.kr(100));
+		player = SelectX.ar(\hpmix.kr(0.5), [player, sig1]);
+
+		player = Pan2.ar(player, pan, amp * 2).flop.postln;
+		player = player * SelectX.kr(envmix, [1,env]);
+		Out.ar(out, player);
+
+	}, metadata:(specs:(
+		bufnum: (numchan: x+1)
+	))).store;
+
+};
+
 SynthDef(\stereosampler_sec, {| out = 0, amp=0.1, buf = 0, gate = 1, start=0, end=1, xdur=1, speed = 1, loop=0|
 
 	var player,env;

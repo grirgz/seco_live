@@ -57,3 +57,4 @@ BusDef(\in1).set(0)
 
 Ndef(~name+++\fx).get(\inbus)
 ~name
+~t

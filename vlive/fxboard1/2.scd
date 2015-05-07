@@ -29,3 +29,11 @@ Spec.add(\boost, ControlSpec(-6,6,\lin));
 ~set_macro.(\k6, Ndef(~name+++\fx), \complow, ControlSpec(0.7,2,\exp));
 ~set_macro.(\k7, Ndef(~name+++\fx), \comphigh, ControlSpec(0.07,2,\exp));
 ~set_macro.(\k8, Ndef(~name+++\fx), \fb, ControlSpec(0.01,50,\exp,0,1));
+
+ParamGroupDef(~name, Veco(~name).lib.macros.reject(_.isNil));
+
+// END
+
+//ParamGroupDef(~name).group
+~plmd = PresetListMorpherDef(~name, ParamGroupDef(~name), 8)
+~plmd.save(0)

@@ -60,7 +60,7 @@ Pbind(
 					[1,0,1,0],
 					[1,1,1,1],
 					[1,0,0,0],
-				].flop[x].blendAt(ev[\xx] * 2).debug("out") * ev[\xxmul]
+				].flop[x].blendAt(ev[\xx] * 2) * ev[\xxmul]
 			},1);
 		}
 	,inf),

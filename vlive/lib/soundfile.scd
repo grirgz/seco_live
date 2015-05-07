@@ -77,9 +77,11 @@
 					task.stop;
 				};
 				task = Task({
-					var start = thisThread.beats;
+					var start;
 					var x = 0;
 					//[ sfview.timeCursorPosition, lastFrame, x, thisThread.beats , start, (thisThread.beats - start) ].debug("tc, lf, xbe, st, -");
+					s.latency.wait;
+					start = thisThread.beats;
 					sfview.timeCursorPosition = cur[0];
 					while({sfview.timeCursorPosition < lastFrame and: { x < 1000000 }}) {
 

@@ -654,6 +654,16 @@ Ndef(\bla, { arg pan=0, amp=0.1;
 );
 
 (
+Ndef(\blax, { arg pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(\freq.kr(100!3).poll);
+	sig.debug("sig1");
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig.debug("sig");
+}).play;
+);
+
+(
 Ndef(\bla1, { arg pan=0, amp=0.1;
 	var sig;
 	sig = SinOsc.ar(\freq.kr(100).poll);
@@ -674,7 +684,9 @@ nil ? 4
 Ndef(\bla).getSpec(\freq)
 Ndef(\bla).setSpec(\freq)
 ~p = Param(Ndef(\bla), \freq, XArraySpec(\freq!3))
+~p = Param(Ndef(\blax), \freq, XArraySpec(\freq!3))
 ~p.set([450,1250,452]) // dont work in bus mode :(
+~p.set([150,150,452]) // dont work in bus mode :(
 ~p.set(~p.spec.default)
 ~p.get
 Ndef(\bla).get(\freq)
@@ -2416,3 +2428,34 @@ Param.defaultUpdateMode = \poll;
 ~p.target.map(~p.property, Ndef(\lfo, { SinOsc.ar(1/2).range(100,500)  }))
 
 Object.dependantsDictionary
+
+
+////////////////////// index into array param
+
+(
+Ndef(\bla, { arg pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(\freq.kr(100!3));
+	sig.debug("sig1");
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig.debug("sig");
+}).play;
+);
+
+Ndef(\bla).clear
+
+~p = Param(Ndef(\bla), \freq, XArraySpec(\freq!3))
+~p.set([450,1250,452]) // dont work in bus mode :(
+~p.set([150,150,452]) // dont work in bus mode :(
+~p.set(~p.spec.default)
+~p.get
+~p0 = ~p.at(0);
+~p0.get
+~p0.normGet
+~p0.spec
+
+Ndef(\bla).get(\freq)
+Ndef(\bla).setn(\freq, [100,212,1555])
+Ndef(\bla).set(\freq, [100,212,1555])
+Ndef(\bla).set(\freq, 1555)
+Ndef(\bla1).set(\freq, 1555)

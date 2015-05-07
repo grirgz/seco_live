@@ -1,5 +1,6 @@
 
 (
+// TAGS: pdef, amen, drumloop
 
 Pdef(~name +++ \pre, Pbind(
 	\instrument, \stereosampler_stutter,

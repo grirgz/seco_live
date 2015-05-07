@@ -510,6 +510,9 @@ if(s.volume.volume == 0) {
 ~penv = { arg env;
 	Ptuple( env.asArray ).collect{ arg x; [x] }
 };
+~pEnv = { arg ... args;
+	Ptuple( Env(*args).asArray ).collect{ arg x; [x] }
+};
 );
 
 //////////////////////////////////////////////////// Trigpads

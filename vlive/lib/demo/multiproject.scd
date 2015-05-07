@@ -1,3 +1,17 @@
+
+//////////////////////// batch load projects in slots at startup
+
+(
+Veco.switch_project_slot(0);
+Veco.open_project("fxboard1");
+Veco.switch_project_slot(1);
+Veco.open_project("alpha_perc1");
+Veco.switch_project_slot(2);
+Veco.open_project("alpha1");
+)
+
+
+///////////////////
 (
 Veco.load_lib("preset_manager.scd");
 ~clip_preset_manager = ~class_clip_preset_manager.new;
@@ -67,6 +81,7 @@ Veco.main.clipboard_mode
 Veco.main.clipboard_clip
 
  (
+	 // note: path can be relative: ~target_project_path = "stone1"
  ~target_project_path = "/home/ggz/code/sc/seco/vlive/stone1";
  32.do { arg x;
 	 32.do { arg y;

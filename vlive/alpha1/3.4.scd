@@ -126,6 +126,11 @@ Pbind(
 
 // END
 
+Ndef(~name+++\mixer).map(\wet155, Ndef(\plop, { XLine.kr(0.0001, 1,4) }));
+Ndef(~name+++\mixer).set(\wet155, 0);
+Ndef(~name+++\mixer).set(\wet155, 1);
+Ndef(~name+++\mixer).edit
+
 [7,9,3].interpolateAt(0)
 ~set_macro.(\k1, Pdef(~name+++\mac), \lpf, \freq);
 ~set_macro.(\k2, Pdef(~name+++\mac), \hpf, \freq);

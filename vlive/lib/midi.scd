@@ -353,6 +353,7 @@
 		var morpher;
 		morpher = self.get_node_morpher(uname);
 		if(morpher.notNil) {
+			uname.debug("edit_presets: edit uname preset");
 			preset_manager = ~launchpad_scene_preset_manager.new(Veco.main);
 			preset_manager.set_model(morpher);
 			preset_manager.activate();
