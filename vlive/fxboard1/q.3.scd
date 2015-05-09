@@ -5,12 +5,12 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 
 	//sig = in;
-	sig = SelectX.ar(\mix.kr(0.5), [DC.ar(0), in]);
+	sig = SelectX.ar(\mix.kr(0), [DC.ar(0), in]);
 	sig = Fb( { arg fb;
 		var isig;
 		var isig1, isig2, isig3;
 		fb.debug("fb");
-		isig = [( fb * \fb.kr(1) )] + sig;
+		isig = [( fb * \fb.kr(0.01) )] + sig;
 		isig = isig.flop;
 		//isig.deb
 	

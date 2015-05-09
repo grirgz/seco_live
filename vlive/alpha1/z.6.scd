@@ -59,30 +59,10 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size * pan, amp).mean;
 	sig;
 });
-
-Ndef(~name+++\fx).put(2, \set -> Pbind(
-	\isustain2, Pseq([2],inf),
-	\iadsr2, Plazy({ arg ev;
-		Pwalk([
-			[ Env.adsr(0.01,0.1,0.8,2.53) ],
-			[ Env.adsr(0.08,0.1,0.8,2.53) ],
-			[ Env.adsr(0.08,0.1,0.8,7.53) ],
-			[ Env.adsr(0.01,0.1,0.8,0.53) ],
-			[ Env.adsr(0.01,0.1,0.8,2.53) ],
-			[ Env.adsr(0.01,0.1,0.8,1.53) ],
-		],Pseq([1,1,1,1,4,2,1,-4,Prand([2,1,-2,-3],1)],1));
-	}).loop,
-	\iadsr2, Plazy({ arg ev;
-		Pwalk([
-			[ Env.adsr(0.01,0.1,0.8,1.73) ],
-		],Pseq([1,1,1,1,4,2,1,-4,Prand([2,1,-2,-3],1)],1));
-	}).loop,
-	\itrig2, Pseq([
-		1,1,
-	],inf),
-	\dur, 1,
-));
 )
+
+
+// END
 
 (
 ~name = \alternateur;
@@ -97,7 +77,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var mix, index;
 	var env1;
 	env1  = EnvGen.kr(Env([0,2,128,128*10,128*100,128*500,128*7000],[52,8,8,8,8,8]), 1);
-	cond = LFTri.ar(( 1/128*env1 ).poll, pi);
+	cond = LFTri.ar(( 1/128*env1 ), pi);
 	mix = cond.range(0,1);
 	index = cond.range(0,1);
 	mix = IEnvGen.kr(Env([0,0.001,1,0],[1,1,1].normalizeSum),index);

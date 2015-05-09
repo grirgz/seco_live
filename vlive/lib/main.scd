@@ -11,7 +11,7 @@ Veco.load_lib("launchers.scd");
 Veco.load_lib("quickpad.scd");
 //Veco.load_lib("trigpad.scd");
 
-MIDIBoard.map(\s9, s.volume, \volume);
+MIDIBoard.map(\s9, s.volume, \volume, ControlSpec(-40,5,\lin));
 if(s.volume.volume == 0) {
 	s.volume.volume = 0.0001;
 };

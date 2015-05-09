@@ -13,7 +13,6 @@ BufDef(\oeuf, "field/oeuf.flac");
 Pdef(~name+++\base, Pbind(
 			\dur, (1/8),
 			\amp, Pkey(\amp) * 1/2,
-			\isRest, Pstep(Pseq([0,0,0,0, 0,0,0,1],inf), 1).coin.not,
 			\isRest, Pseq([
 				0,0,1,0,
 				0,0.2,1,0,
