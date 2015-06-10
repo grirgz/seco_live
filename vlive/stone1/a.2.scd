@@ -8,16 +8,17 @@
 
 "hooo".debug("kjk");
 
+~t
 (
 Ndef(~name+++\lfo1, { arg fmfreq; SinOsc.kr(fmfreq * [1,0.2]).sum.clip(0.5) * \bscale.kr(1) * \base.kr(1000) + \base.kr  });
 Ndef(~name+++\lfo1).put(1, \set -> Pbind(
-	\fmfreq, 1 * t,
+	\fmfreq, 1 * ~t,
 	\bscale, Pseq([0.91,0.5],inf),
 	\base, Pseq([1000,2000]*2,inf),
 	\fmfreq, Pseq([
 		1,2,1,4
 	]*2,inf),
-	\fmfreq, 4 * t,
+	\fmfreq, 4 * ~t,
 	\dur, 1/4,
 ));
 Ndef(~name+++\lfo2, { arg fmfreq; SinOsc.kr(fmfreq * [1,0.2], \phase.kr(0)).range(0.100,1.4100).clip(0.1).sum  });
@@ -37,7 +38,7 @@ Ndef(~name+++\lfo3).put(1, \set -> Pbind(
 	\fmfreq, Pseq([
 		1,2,1,4
 	]*2,inf),
-	\fmfreq, 8 * t,
+	\fmfreq, 8 * ~t,
 	\dur, 1/1,
 ));
 Pdef(~name +++ \pre, Pbind(

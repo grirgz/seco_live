@@ -84,3 +84,4 @@ Ndef(~name+++\lfo1).put(1, \set -> Pbind(
 	\fmfreq, 0.10,
 	\dur, 1/2,
 ));
+t

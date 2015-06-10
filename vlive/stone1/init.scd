@@ -10,3 +10,4 @@ Veco.load_lib("synth.scd");
 ~define_effects.(['56','57','58','59']);
 Veco.main.fadeout_time = 16;
 
+~set_project_tempo.(1);

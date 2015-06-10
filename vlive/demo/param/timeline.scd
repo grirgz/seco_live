@@ -1,0 +1,1344 @@
+
+(
+	w = Window.new;
+	~layout = HLayout.new;
+	w.layout = ~layout;
+	~wid = MyWidget.new;
+	~layout.add(~wid.view);
+	w.front;
+	)
+(
+
+
+	w = Window.new(bounds:Rect(800,0,500,700));
+	~layout = HLayout.new;
+	w.layout = ~layout;
+	~wid = TimelineView.new;
+	~layout.add(~wid.view);
+
+	~pat = Pbind(
+		\instrument, \default,
+		//\midinote, Pseq([0,1,2,52,62,120,127],inf),
+		\midinote, Pseq([0,1,2,6,12,17,120,125],inf),
+		\dur, 1/8,
+	);
+	//~pat = Pbind(
+	//	\instrument, \default,
+	//	\midinote, Pseq([0,1],inf),
+	//	\dur, 1/8,
+	//);
+
+	~notes = ~pat.asStream.nextN(10, Event.default);
+	~size = 2@128;
+	~time = 0;
+	~notesize = 10@10;
+	w.front;
+	w.alwaysOnTop = true;
+	~wid.view.refresh;
+	~wid.bounds.debug("bounds");
+	~wid.bounds.debug("bounds2");
+
+	//~wid.viewport = Rect(0,0,0.1,0.1);
+	~wid.viewport = Rect(0,0,1,1);
+	//~wid.viewport = Rect(0,0,1,20/128);
+	~wid.areasize = Point(2,128);
+	~wid.bounds.debug("bounds");
+	~notes.do { arg note;
+		//~wid.createNode1(~time/~size.x, ( note[\midinote].debug("ass") /  ~size.y ).debug("what"), 1/8, Color.red);
+		~wid.createNode(~time, note[\midinote], 1/8, Color.red);
+		~time = ~time + note[\dur];
+	};
+)
+
+Rect(1,2,10,20) * 2
+Rect(0,0,0.1,0.1).extent
+Rect(0,0,1,1) / 2
+
+	~wid.viewport = Rect(0,0,1,1); ~wid.refresh;
+	~wid.viewport = Rect(1/8 /2,0,1,1); ~wid.refresh;
+	~wid.viewport = Rect(0, 110/128,1,1); ~wid.refresh;
+
+(
+
+
+	w = Window.new(bounds:Rect(800,0,500,700));
+	~layout = HLayout.new;
+	w.layout = ~layout;
+	~vlayout = VLayout.new;
+	~wid = TimelineView.new;
+	~layout.add(~vlayout);
+	~hrange = RangeSlider.new;
+	~hrange.orientation = \horizontal;
+	~vrange = RangeSlider.new;
+	~vrange.orientation = \vertical;
+	~layout.add(~vrange);
+	~vlayout.add(~wid.view);
+	~vlayout.add(~hrange);
+
+	~wid.viewport = Rect(0,0,1,1);
+	~vrange.action = { arg slider;
+		var range = slider.range.clip(0.0001,1); // prevent division by 0
+		~wid.viewport.top = (1-slider.hi) / range;
+		~wid.viewport.height = range;
+		[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+		~wid.refresh;
+	};
+	~hrange.action = { arg slider;
+		var range = slider.range.clip(0.0001,1); // prevent division by 0
+		~wid.viewport.left = slider.lo / range;
+		~wid.viewport.width = range;
+		[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+		~wid.refresh;
+	};
+
+	~pat = Pbind(
+		\instrument, \default,
+		//\midinote, Pseq([0,1,2,52,62,120,127],inf),
+		\midinote, Pseq([0,1,2,6,12,17,120,125],inf),
+		\dur, 1/8,
+	);
+	//~pat = Pbind(
+	//	\instrument, \default,
+	//	\midinote, Pseq([0,1],inf),
+	//	\dur, 1/8,
+	//);
+
+	~notes = ~pat.asStream.nextN(10, Event.default);
+	~size = 2@128;
+	~time = 0;
+	~notesize = 10@10;
+	w.front;
+	w.alwaysOnTop = true;
+	~wid.view.refresh;
+	~wid.bounds.debug("bounds");
+	~wid.bounds.debug("bounds2");
+
+	//~wid.viewport = Rect(0,0,0.1,0.1);
+	//~wid.viewport = Rect(0,0,1,20/128);
+	~wid.areasize = Point(2,128);
+	~wid.bounds.debug("bounds");
+	~notes.do { arg note;
+		//~wid.createNode1(~time/~size.x, ( note[\midinote].debug("ass") /  ~size.y ).debug("what"), 1/8, Color.red);
+		~wid.createNode(~time, note[\midinote], Point(1/8,1), Color.green);
+		~time = ~time + note[\dur];
+	};
+)
+
+~rect = Rect(0,1,2,3)
+~rect = Rect(0,0,0,0)
+~rect.origin.x = 5
+~rect
+~rect.top = 1
+
+~wid.pixelRectToNormRect(Rect(300,200, 0,0))
+~wid.pixelRectToNormRect(Rect.fromPoints(Point(300,200), Point(0,0)))
+Rect.fromPoints(Point(300,200), Point(300,200)+Point(0,0))
+DrawGrid.test( \freq.asSpec.grid, \amp.asSpec.grid  );
+DrawGrid.test( BlankGridLines.new, \midinote.asSpec.grid  );
+DrawGrid.test( ControlSpec(0,2,\lin,0,1,"s").grid, \midinote.asSpec.grid  );
+nil.asGrid
+
+\delay.asSpec
+
+
+// change the model
+/////////////////////////////:
+
+
+(
+	~event_rel_to_abs = { arg li;	
+		var res = List.new, elm, time;
+		0.for(li.size-1) { arg x;
+			elm = li[x].copy;
+			[x, elm].debug("event_rel_to_abs: iter");
+			if(x == 0) {
+				elm.time = 0;
+			} {
+				elm.time = li[x-1].dur + res[x-1].time;
+			};
+			res.add(elm);
+		};
+		if(res[0].time == 0 and: {res[0].type == \rest}) {
+			//res.debug("event_rel_to_abs: before droping rest");
+			res = res.drop(1);
+			//res.debug("event_rel_to_abs: after droping rest");
+		};
+		res;
+	};
+
+	~event_abs_to_rel = { arg li;	
+		var res = List.new, elm, time;
+		0.for(li.size-1) { arg x;
+			//x.debug("iter");
+			elm = li[x].copy;
+			if(x == 0) {
+				//elm.time = 0;
+			} {
+				res[x-1].dur = elm.time - res[x-1].time;
+			};
+			res.add(elm);
+		};
+		res;
+	};
+
+	~add_start_node = { arg li;
+		var res = li.copy;
+		var ev;
+		if( res[0][\time] != 0 ) {
+			ev = (
+				time: 0,
+				isRest: true,
+			);
+			res = res.insert(0, ev);
+		};
+		res;
+	};
+
+	~event_sort = { arg list;
+		var res = List.new;
+		list = list.copy.sort({ arg a,b; a[\time] < b[\time] });
+	};
+
+
+	w = Window.new(bounds:Rect(800,0,500,700));
+	~layout = HLayout.new;
+	w.layout = ~layout;
+	~vlayout = VLayout.new;
+	~wid = TimelineView.new;
+	~layout.add(~vlayout);
+	~hrange = RangeSlider.new;
+	~hrange.orientation = \horizontal;
+	~vrange = RangeSlider.new;
+	~vrange.orientation = \vertical;
+	~layout.add(~vrange);
+	~vlayout.add(~wid.view);
+	~vlayout.add(~hrange);
+
+	~wid.viewport = Rect(0,0,1,1);
+	~vrange.action = { arg slider;
+		var range = slider.range.clip(0.0001,1); // prevent division by 0
+		~wid.viewport.top = (1-slider.hi) / range;
+		~wid.viewport.height = range;
+		[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+		~wid.refresh;
+	};
+	~hrange.action = { arg slider;
+		var range = slider.range.clip(0.0001,1); // prevent division by 0
+		~wid.viewport.left = slider.lo / range;
+		~wid.viewport.width = range;
+		[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+		~wid.refresh;
+	};
+
+	~pat = Pbind(
+		\instrument, \default,
+		//\midinote, Pseq([0,1,2,52,62,120,127],inf),
+		\midinote, Pseq([0,1,2,6,12,17]+40,inf),
+		\dur, 1/2,
+	);
+	//~pat = Pbind(
+	//	\instrument, \default,
+	//	\midinote, Pseq([0,1],inf),
+	//	\dur, 1/8,
+	//);
+
+	~notes = ~pat.asStream.nextN(10, Event.default);
+
+
+	~size = 8@128;
+	~time = 0;
+	~notesize = 10@10;
+	w.front;
+	w.alwaysOnTop = true;
+	~wid.view.refresh;
+	~wid.bounds.debug("bounds");
+	~wid.bounds.debug("bounds2");
+
+	//~wid.viewport = Rect(0,0,0.1,0.1);
+	//~wid.viewport = Rect(0,0,1,20/128);
+	~wid.areasize = ~size;
+	~wid.bounds.debug("bounds");
+	~model = Dictionary.new;
+
+	~wid.createNodeHook = { arg node, nodeidx;
+		var new_event;
+		var point;
+		var key = \midinote;
+		point = ~wid.normPointToGridPoint(node.origin);
+		[nodeidx, node.origin, point].debug("createNodeHook");
+		new_event = (
+			time: point.x,
+			sustain: ~wid.normPointToGridPoint(node.extent).x,
+		);
+		new_event[key] = point.y;
+		~model[nodeidx] = new_event;
+		~update_event_list.();
+	};
+
+	~wid.deleteNodeHook = { arg node, nodeidx;
+		[node, nodeidx].debug("deleteNodeHook");
+		~model[nodeidx] = nil;
+		~update_event_list.();
+	};
+
+	~update_event_list = { arg timeline;
+		var res;
+		res = ~model.values;
+		res.debug("update_event_list1");
+		res = ~event_sort.(res);
+		res.debug("update_event_list2");
+		res = ~add_start_node.(res);
+		res.debug("update_event_list3");
+		res = ~event_abs_to_rel.(res);
+		res.debug("update_event_list4");
+		res.last[\dur] = ~size.x - res.last[\time];
+		~notes = res;
+	};
+
+	~wid.nodeTrackAction = { arg node, nodeidx, gnodeloc;
+		var point = gnodeloc;
+		var key = \midinote;
+		[node, nodeidx, point].debug("node, idx, point");
+		~model[nodeidx][\time] = point.x;
+		~model[nodeidx][key] = point.y;
+		~update_event_list.();
+	};
+
+	~notes.do { arg note, noteidx;
+		var sus;
+		sus = note[\legato]*note[\dur];
+
+		note.use{ ~sustain.value }.debug("ssss");
+		note[\sustain].asCompileString.debug("sus");
+		[~time, note[\midinote], note[\legato]].debug("loop create node: time, midi");
+		~wid.createNode(~time, note[\midinote], Point(note.use{~sustain.value},1), Color.green);
+		~time = ~time + note[\dur];
+	};
+)
+
+(
+	Pdef(\hey, 
+		Pbind(
+			\stretch, 1
+		) <>
+		Plazy({ Pseq(~notes) }).loop
+	).play
+)
+~notes
+~model.do ({ arg ev; [ev[\dur], ev[\time], ev[\midinote]].debug("note:") })
+
+~notes.do ({ arg ev; [ev[\time],ev[\dur], ev[\midinote], [ev[\]]].debug("note: time, dur, midi") })
+~notes.do ({ arg ev; ev.debug("note:") })
+
+~model.keys
+
+~wid.normPointToGridPoint(~wid.paraNodes[1].nodeloc)
+
+// add graphical resize of sustain
+/////////////////////////////:
+
+
+(
+	~event_rel_to_abs = { arg li;	
+		var res = List.new, elm, time;
+		0.for(li.size-1) { arg x;
+			elm = li[x].copy;
+			[x, elm].debug("event_rel_to_abs: iter");
+			if(x == 0) {
+				elm.time = 0;
+			} {
+				elm.time = li[x-1].dur + res[x-1].time;
+			};
+			res.add(elm);
+		};
+		if(res[0].time == 0 and: {res[0].type == \rest}) {
+			//res.debug("event_rel_to_abs: before droping rest");
+			res = res.drop(1);
+			//res.debug("event_rel_to_abs: after droping rest");
+		};
+		res;
+	};
+
+	~event_abs_to_rel = { arg li;	
+		var res = List.new, elm, time;
+		0.for(li.size-1) { arg x;
+			//x.debug("iter");
+			elm = li[x].copy;
+			if(x == 0) {
+				//elm.time = 0;
+			} {
+				res[x-1].dur = elm.time - res[x-1].time;
+			};
+			res.add(elm);
+		};
+		res;
+	};
+
+	~add_start_node = { arg li;
+		var res = li.copy;
+		var ev;
+		if( res[0][\time] != 0 ) {
+			ev = (
+				time: 0,
+				isRest: true,
+			);
+			res = res.insert(0, ev);
+		};
+		res;
+	};
+
+	~event_sort = { arg list;
+		var res = List.new;
+		list = list.copy.sort({ arg a,b; a[\time] < b[\time] });
+	};
+
+
+	w = Window.new(bounds:Rect(800,0,500,700));
+	~layout = HLayout.new;
+	w.layout = ~layout;
+	~vlayout = VLayout.new;
+	~wid = TimelineView.new;
+	~layout.add(~vlayout);
+	~hrange = RangeSlider.new;
+	~hrange.orientation = \horizontal;
+	~vrange = RangeSlider.new;
+	~vrange.orientation = \vertical;
+	~layout.add(~vrange);
+	~vlayout.add(~wid.view);
+	~vlayout.add(~hrange);
+
+	~wid.viewport = Rect(0,0,1,1);
+	~vrange.action = { arg slider;
+		var range = slider.range.clip(0.0001,1); // prevent division by 0
+		~wid.viewport.top = (1-slider.hi) / range;
+		~wid.viewport.height = range;
+		[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+		~wid.refresh;
+	};
+	~hrange.action = { arg slider;
+		var range = slider.range.clip(0.0001,1); // prevent division by 0
+		~wid.viewport.left = slider.lo / range;
+		~wid.viewport.width = range;
+		[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+		~wid.refresh;
+	};
+
+	~pat = Pbind(
+		\instrument, \default,
+		//\midinote, Pseq([0,1,2,52,62,120,127],inf),
+		\midinote, Pseq([0,1,2,6,12,17]+40,inf),
+		\dur, 1/2,
+	);
+	~pat = Pbind(
+		\instrument, \default,
+		//\midinote, Pseq([0,1,2,52,62,120,127],inf),
+		//\midinote, ~xx.(t)Pseq([0,1,2,6,12,17]+40,inf),
+		\midinote, Pseq([0,1,2,6,12,17]+40,inf),
+		\dur, 1/2,
+	);
+	//~pat = Pbind(
+	//	\instrument, \default,
+	//	\midinote, Pseq([0,1],inf),
+	//	\dur, 1/8,
+	//);
+
+	~notes = ~pat.asStream.nextN(10, Event.default);
+
+
+	~size = 8@128;
+	~time = 0;
+	~notesize = 10@10;
+	w.front;
+	w.alwaysOnTop = true;
+	~wid.view.refresh;
+	~wid.bounds.debug("bounds");
+	~wid.bounds.debug("bounds2");
+
+	//~wid.viewport = Rect(0,0,0.1,0.1);
+	//~wid.viewport = Rect(0,0,1,20/128);
+	~wid.areasize = ~size;
+	~wid.bounds.debug("bounds");
+	~model = Dictionary.new;
+
+	~wid.createNodeHook = { arg node, nodeidx;
+		var new_event;
+		var point;
+		var key = \midinote;
+		point = ~wid.normPointToGridPoint(node.origin);
+		[nodeidx, node.origin, point].debug("createNodeHook");
+		new_event = (
+			time: point.x,
+			sustain: ~wid.normPointToGridPoint(node.extent).x,
+		);
+		new_event[key] = point.y;
+		~model[nodeidx] = new_event;
+		~update_event_list.();
+	};
+
+	~wid.deleteNodeHook = { arg node, nodeidx;
+		[node, nodeidx].debug("deleteNodeHook");
+		~model[nodeidx] = nil;
+		~update_event_list.();
+	};
+
+	~update_event_list = { arg timeline;
+		var res;
+		res = ~model.values;
+		res.debug("update_event_list1");
+		res = ~event_sort.(res);
+		res.debug("update_event_list2");
+		res = ~add_start_node.(res);
+		res.debug("update_event_list3");
+		res = ~event_abs_to_rel.(res);
+		res.debug("update_event_list4");
+		res.last[\dur] = ~size.x - res.last[\time];
+		~notes = res;
+	};
+
+	~wid.nodeTrackAction = { arg node, nodeidx, gnodeloc;
+		var point = gnodeloc;
+		var key = \midinote;
+		[node, nodeidx, point].debug("node, idx, point");
+		~model[nodeidx][\time] = point.x;
+		~model[nodeidx][key] = point.y;
+		~model[nodeidx][\sustain] = ~wid.normPointToGridPoint(node.extent).x * TempoClock.default.tempo;
+		~update_event_list.();
+	};
+
+	~notes.do { arg note, noteidx;
+		var sus;
+		sus = note[\legato]*note[\dur];
+
+		note.use{ ~sustain.value }.debug("ssss");
+		note[\sustain].asCompileString.debug("sus");
+		[~time, note[\midinote], note[\legato]].debug("loop create node: time, midi");
+		~wid.createNode(~time, note[\midinote], Point(note.use{~sustain.value},1), Color.green);
+		~time = ~time + note[\dur];
+	};
+	~wid.enableQuant = false;
+) 
+
+(
+	Pdef(\hey, 
+		Pbind(
+			\stretch, 1
+		) <>
+		Plazy({ Pseq(~notes) }).loop
+	).play
+)
+
+//////////////////////////////////////////////////
+////// encapsulate
+
+
+
+(
+	~event_rel_to_abs = { arg li;	
+		var res = List.new, elm, time;
+		0.for(li.size-1) { arg x;
+			elm = li[x].copy;
+			[x, elm].debug("event_rel_to_abs: iter");
+			if(x == 0) {
+				elm.time = 0;
+			} {
+				elm.time = li[x-1].dur + res[x-1].time;
+			};
+			res.add(elm);
+		};
+		if(res[0].time == 0 and: {res[0].type == \rest}) {
+			//res.debug("event_rel_to_abs: before droping rest");
+			res = res.drop(1);
+			//res.debug("event_rel_to_abs: after droping rest");
+		};
+		res;
+	};
+
+	~event_abs_to_rel = { arg li;	
+		var res = List.new, elm, time;
+		0.for(li.size-1) { arg x;
+			//x.debug("iter");
+			elm = li[x].copy;
+			if(x == 0) {
+				//elm.time = 0;
+			} {
+				res[x-1].dur = elm.time - res[x-1].time;
+			};
+			res.add(elm);
+		};
+		res;
+	};
+
+	~add_start_node = { arg li;
+		var res = li.copy;
+		var ev;
+		if( res[0][\time] != 0 ) {
+			ev = (
+				time: 0,
+				isRest: true,
+			);
+			res = res.insert(0, ev);
+		};
+		res;
+	};
+
+	~event_sort = { arg list;
+		var res = List.new;
+		list = list.copy.sort({ arg a,b; a[\time] < b[\time] });
+	};
+
+
+	w = Window.new(bounds:Rect(800,0,500,700));
+	~layout = HLayout.new;
+	w.layout = ~layout;
+	~vlayout = VLayout.new;
+	~wid = TimelineView.new;
+	~layout.add(~vlayout);
+	~hrange = RangeSlider.new;
+	~hrange.orientation = \horizontal;
+	~vrange = RangeSlider.new;
+	~vrange.orientation = \vertical;
+	~layout.add(~vrange);
+	~vlayout.add(~wid.view);
+	~vlayout.add(~hrange);
+
+	~wid.viewport = Rect(0,0,1,1);
+	~vrange.action = { arg slider;
+		var range = slider.range.clip(0.0001,1); // prevent division by 0
+		~wid.viewport.top = (1-slider.hi) / range;
+		~wid.viewport.height = range;
+		[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+		~wid.refresh;
+	};
+	~hrange.action = { arg slider;
+		var range = slider.range.clip(0.0001,1); // prevent division by 0
+		~wid.viewport.left = slider.lo / range;
+		~wid.viewport.width = range;
+		[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+		~wid.refresh;
+	};
+
+	~pat = Pbind(
+		\instrument, \default,
+		//\midinote, Pseq([0,1,2,52,62,120,127],inf),
+		\midinote, Pseq([0,1,2,6,12,17]+40,inf),
+		\dur, 1/2,
+	);
+	~pat = Pbind(
+		\instrument, \default,
+		//\midinote, Pseq([0,1,2,52,62,120,127],inf),
+		//\midinote, ~xx.(t)Pseq([0,1,2,6,12,17]+40,inf),
+		\midinote, Pseq([0,1,2,6,12,17]+40,inf),
+		\dur, 1/2,
+	);
+	//~pat = Pbind(
+	//	\instrument, \default,
+	//	\midinote, Pseq([0,1],inf),
+	//	\dur, 1/8,
+	//);
+
+	~notes = ~pat.asStream.nextN(10, Event.default);
+
+
+	~size = 8@128;
+	~time = 0;
+	~notesize = 10@10;
+	w.front;
+	w.alwaysOnTop = true;
+	~wid.view.refresh;
+	~wid.bounds.debug("bounds");
+	~wid.bounds.debug("bounds2");
+
+	//~wid.viewport = Rect(0,0,0.1,0.1);
+	//~wid.viewport = Rect(0,0,1,20/128);
+	~wid.areasize = ~size;
+	~wid.bounds.debug("bounds");
+	~model = Dictionary.new;
+
+	~wid.createNodeHook = { arg node, nodeidx;
+		var new_event;
+		var point;
+		var key = \midinote;
+		point = ~wid.normPointToGridPoint(node.origin);
+		[nodeidx, node.origin, point].debug("createNodeHook");
+		new_event = (
+			time: point.x,
+			sustain: ~wid.normPointToGridPoint(node.extent).x,
+		);
+		new_event[key] = point.y;
+		~model[nodeidx] = new_event;
+		~update_event_list.();
+	};
+
+	~wid.deleteNodeHook = { arg node, nodeidx;
+		[node, nodeidx].debug("deleteNodeHook");
+		~model[nodeidx] = nil;
+		~update_event_list.();
+	};
+
+	~update_event_list = { arg timeline;
+		var res;
+		res = ~model.values;
+		res.debug("update_event_list1");
+		res = ~event_sort.(res);
+		res.debug("update_event_list2");
+		res = ~add_start_node.(res);
+		res.debug("update_event_list3");
+		res = ~event_abs_to_rel.(res);
+		res.debug("update_event_list4");
+		res.last[\dur] = ~size.x - res.last[\time];
+		~notes = res;
+	};
+
+	~wid.nodeTrackAction = { arg node, nodeidx, gnodeloc;
+		var point = gnodeloc;
+		var key = \midinote;
+		[node, nodeidx, point].debug("node, idx, point");
+		~model[nodeidx][\time] = point.x;
+		~model[nodeidx][key] = point.y;
+		~model[nodeidx][\sustain] = ~wid.normPointToGridPoint(node.extent).x * TempoClock.default.tempo;
+		~update_event_list.();
+	};
+
+	~notes.do { arg note, noteidx;
+		var sus;
+		sus = note[\legato]*note[\dur];
+
+		note.use{ ~sustain.value }.debug("ssss");
+		note[\sustain].asCompileString.debug("sus");
+		[~time, note[\midinote], note[\legato]].debug("loop create node: time, midi");
+		~wid.createNode(~time, note[\midinote], Point(note.use{~sustain.value},1), Color.green);
+		~time = ~time + note[\dur];
+	};
+	~wid.enableQuant = false;
+) 
+
+~timeline = EventBuffer.new;
+~timeline.edit;
+	~pat = Pbind(
+		\instrument, \default,
+		//\midinote, Pseq([0,1,2,52,62,120,127],inf),
+		//\midinote, ~xx.(t)Pseq([0,1,2,6,12,17]+40,inf),
+		\midinote, Pseq([0,1,2,6,12,17]+40,inf),
+		\dur, 1/2,
+	);
+~timeline.write(~pat, 10)
+~timeline.recordMidi(\piano)
+
+);
+(
+	Pdef(\hey, 
+		Pbind(
+			\stretch, 1
+		) <>
+		~timeline.lazy.loop
+	).play
+)
+
+
+EventList
+List
+ZTimeline.list
+ZEventTimeline.seq
+PZEventTimeline()
+
+(
+(
+	midinote:60,
+	sustain: 1,
+).play
+)
+
+EventList
+
+
+~el = EventList.new;
+~el.edit // create a timeline window
+
+
+- fonctionalités
+	- utilisable dans les patterns
+	- enregistrement en temps reel
+	- utilisable pour les notes mais aussi percu et autres evenements (pattern change, ...)
+	- editable en GUI
+
+
+
+
+(
+	a = EventList[];
+
+	// add some time-stamped events to it
+	a.start;
+	a.addEvent((absTime: 0, midinote: 50, sustain:1));    // events should begin with time 0;
+	a.addEvent((absTime: 0.3, midinote: 47, sustain:1));
+	a.addEvent((absTime: 0.52, midinote: 42, sustain:1));
+	a.addEvent((absTime: 0.72, midinote: 52, sustain:1));
+	a.addEvent((absTime: 0.93, midinote: 54, sustain:1));
+	//a.finish(1.88);
+	a.finish(3.88);
+
+)
+a.changed(\refresh)
+Pn(a).play
+(
+
+	w = Window.new(bounds:Rect(800,0,500,700));
+	~layout = HLayout.new;
+	w.layout = ~layout;
+	~vlayout = VLayout.new;
+	~wid = TimelineView.new;
+	~layout.add(~vlayout);
+	~hrange = RangeSlider.new;
+	~hrange.orientation = \horizontal;
+	~vrange = RangeSlider.new;
+	~vrange.orientation = \vertical;
+	~layout.add(~vrange);
+	~vlayout.add(~wid.view);
+	~vlayout.add(~hrange);
+
+	~wid.viewport = Rect(0,0,1,1);
+	~vrange.action = { arg slider;
+		var range = slider.range.clip(0.0001,1); // prevent division by 0
+		~wid.viewport.top = (1-slider.hi) / range;
+		~wid.viewport.height = range;
+		[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+		~wid.refresh;
+	};
+	~hrange.action = { arg slider;
+		var range = slider.range.clip(0.0001,1); // prevent division by 0
+		~wid.viewport.left = slider.lo / range;
+		~wid.viewport.width = range;
+		[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+		~wid.refresh;
+	};
+
+	~size = 8@128;
+	~time = 0;
+	~notesize = 10@10;
+	w.front;
+	w.alwaysOnTop = true;
+	~wid.view.refresh;
+	~wid.bounds.debug("bounds");
+	~wid.bounds.debug("bounds2");
+
+	//~wid.viewport = Rect(0,0,0.1,0.1);
+	//~wid.viewport = Rect(0,0,1,20/128);
+	~wid.areasize = ~size;
+	~wid.bounds.debug("bounds");
+
+	~wid.mapEventList(a);
+	~wid.refresh;
+
+)
+
+
+~a = [4,1,3,4]
+~a.sort
+~a
+(
+	a = EventList[];
+
+	// add some time-stamped events to it
+	a.start;
+	a.addEvent((absTime: 0, midinote: 0, sustain:1));    // events should begin with time 0;
+	a.addEvent((absTime: 0.52, midinote: 2, sustain:1));
+	a.addEvent((absTime: 0.3, midinote: 127, sustain:1));
+	a.addEvent((absTime: 0.72, midinote: 128, sustain:1));
+	a.addEvent((absTime: 0.93, midinote: 14, sustain:1));
+	a.finish(1.88);
+
+)
+a.print
+a.reorder
+
+
+(
+	a = EventList[];
+
+	// add some time-stamped events to it
+	a.start;
+	a.addEvent((absTime: 0, midinote: 0, sustain:1));    // events should begin with time 0;
+	a.addEvent((absTime: 0.3, midinote: 42, sustain:1));
+	a.addEvent((absTime: 0.52, midinote: 20, sustain:1));
+	a.addEvent((absTime: 0.72, midinote: 58, sustain:1));
+	a.addEvent((absTime: 0.93, midinote: 54, sustain:1));
+	a.finish(3.88);
+
+)
+
+EventPattern
+Pattern
+~s = a.asPattern.asStream
+~s.next(Event.default)
+
+(
+	
+	Pdef(\plop, 
+		Pbind(
+			\instrument, \plop,
+			\lpf, Pseq([1000,2000,300,500,1200,5000,8000],inf),
+			\rq, Pseq([0.1,0.7,0.3,0.5,0.3],inf),
+			\rq, Ndef(\lfo1, { SinOsc.kr(1/4).range(0.1,1)  }),
+
+			\dist, Ndef(\lfo2, { SinOsc.kr(1/14).range(1,100)  }),
+			\adsr, Plazy({ arg ev;
+				Pseq([
+					[ Env.adsr(0.1,0.1,0.8,0.1+1.rand) ],
+					[ Env.adsr(0.01+0.1.rand,0.1,0.8,0.1) ],
+				],1)
+			}).loop,
+		) <> Pn(a) 
+	).play
+)
+(
+SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var lfo1;
+	var lfo2;
+	lfo1 = LFNoise1.kr(2 ! 3).range(1.0,1.5);
+	lfo2 = LFNoise1.kr(2 ! 3).range(0.1,1.5);
+	lfo1 = XLine.kr(lfo1, 0.1, lfo2);
+	sig = LFSaw.ar(freq);
+	sig = RLPF.ar(sig, \lpf.kr(800) * lfo1, \rq.kr(0.5));
+	sig = (sig * \dist.kr(10) * [1,1.1,0.9] * lfo1).tanh;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan * Rand(rrand(-1,1)/4 ! sig.size), amp).flop;
+	sig.debug("sig");
+	Out.ar(out, sig);
+}).store;
+);
+a.print
+
+
+(
+a = EventList.newFrom(
+	Pbind(
+		\midinote, Pseq([40,41,42, 43,48,50],inf),
+		\dur, 1/4,
+	)
+)
+)
+a.print
+
+(
+	~eventfactory = (
+		new: { arg self, pat;
+			self = self.deepCopy;
+		
+			self.pat = pat;
+			self.resetFactory;
+			
+		
+			self;
+		},
+
+		resetFactory: { arg self;
+			self.str = self.pat.asStream;
+		},
+
+		generateNext: { arg self, index=60, velocity=1;
+			var ev = self.str.next(Event.default);
+			var xyevent = ();
+			"what".debug;
+			xyevent[\midinote] = index;
+			xyevent[\velocity] = velocity;
+			
+			[ev, xyevent, ev.copy.putAll(xyevent)];
+		},
+
+		voice: { arg self, index, velocity=1;
+			var evs = self.generateNext(index);
+			var ev = evs[2].copy;
+			ev[\latency] = Ref(nil);
+			ev.play;
+		},
+
+		timeline: { arg self, index, velocity=1;
+			var evs = self.generateNext(index, velocity);
+			var ev = evs[1];
+			ev;
+		},
+
+		score: { arg self, index, velocity=1;
+			var evs = self.generateNext(index, velocity);
+			var ev = evs[0];
+			ev;
+		}
+
+
+	);
+
+	~ef = ~eventfactory.new(
+		Pbind(
+			\instrument, \plop,
+			\lpf, Pseq([1000,2000,300,500,1200,5000,8000],inf),
+			\rq, Pseq([0.1,0.7,0.3,0.5,0.3],inf),
+		)
+	);
+	~ef.resetFactory;
+	~ef.str.next(Event.default);
+
+	~ef.generateNext;
+	~ef.voice(60)
+	~ef.score
+)
+
+(a:1, b:2).putAll((c:122, b:23))
+
+
+(
+	~midinoteTimeline = (
+		new: { arg self, eventloop;
+			self = self.deepCopy;
+		
+			self.eventloop = eventloop;
+			
+		
+			self;
+		},
+
+		makeLayout: { arg self;
+			var layout;
+			var vlayout, timeline, vrange, hrange, size;
+			var eventloop = self.eventloop;
+			"AZE".debug;
+			layout = HLayout.new;
+			self.layout = layout;
+			vlayout = VLayout.new;
+			timeline = TimelineView.new;
+			layout.add(vlayout);
+			hrange = RangeSlider.new;
+			hrange.orientation = \horizontal;
+			vrange = RangeSlider.new;
+			vrange.orientation = \vertical;
+			layout.add(
+				VLayout(
+					vrange,
+					HLayout(
+						XSimpleButton.new.label_("<").action_({
+							timeline.areasize = timeline.areasize - Point(4,0);
+							timeline.refresh;
+						}).fixedSize_(Point(10,20)),
+						XSimpleButton.new.label_(">").action_({
+							timeline.areasize = timeline.areasize + Point(4,0);
+							timeline.refresh;
+						}).fixedSize_(Point(10,20)),
+					).spacing_(0)
+				)
+			);
+			vlayout.add(timeline.view);
+			vlayout.add(hrange);
+
+			timeline.viewport = Rect(0,0,1,1);
+			vrange.action = { arg slider;
+				var range = slider.range.clip(0.0001,1); // prevent division by 0
+				timeline.viewport.top = (1-slider.hi) / range;
+				timeline.viewport.height = range;
+				[timeline.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+				timeline.refresh;
+			};
+			hrange.action = { arg slider;
+				var range = slider.range.clip(0.0001,1); // prevent division by 0
+				timeline.viewport.left = slider.lo / range;
+				timeline.viewport.width = range;
+				[timeline.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+				timeline.refresh;
+			};
+
+			size = 8@128;
+			timeline.view.refresh;
+			//timeline.viewport = Rect(0,0,0.1,0.1);
+			//timeline.viewport = Rect(0,0,1,20/128);
+			timeline.areasize = size;
+			timeline.mapEventList(eventloop.list);
+			timeline.refresh;
+			self.timeline = timeline;
+			self.layout = layout;
+			"iiAZE".debug;
+			layout;
+		},
+
+		refresh: { arg self;
+			self.timeline.mapEventList(self.eventloop.list);
+		},
+	);
+	~recorder = { arg eventloop;
+
+		var window = Window.new;
+		var layout;
+		var recb, stopb, playb;
+		var updateRecState = {
+			var view = recb;
+			if(eventloop.isRecording) {
+				view.background = Color.red;
+			} {
+				view.background = Color.white;
+			};
+		};
+		var timeline;
+		var newevent = { arg midival;
+			var ev;
+			var playev;
+						"youfuck!!!".debug;
+			ev = (midinote:midival, sustain:1/4);
+			playev = ev.copy;
+			playev[\latency] = Ref(nil);
+			eventloop.recordEvent(ev);
+			playev.play;
+		};
+		"hii	".debug;
+		timeline = ~midinoteTimeline.new(eventloop);
+		"iihii	".debug;
+		~timeline = timeline;
+
+		layout = 
+		VLayout (
+			timeline.makeLayout,
+			HLayout (
+				recb = XSimpleButton.new.action_({ arg view;
+					eventloop.startRec(false);
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Rec"),
+				XSimpleButton.new.action_({
+					eventloop.stopRec;
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Stop"),
+				XSimpleButton.new.action_({
+					eventloop.play;
+				})
+				.label_("Play"),
+			),
+			HLayout.new(*
+				12.collect { arg x;
+					var midival = x+0 *2;
+					XSimpleButton.new.action_({
+						"fuck!!!".debug;
+						newevent.(midival);
+					})
+					.label_(midival.asString)
+			
+				}
+			),
+			VLayout (
+				Button.new,
+				MIDIKeyboardView.new(nil, Rect(0,0,150,150))
+					.keyDownAction_({ arg midival;
+						newevent.(midival);
+					})
+					.keyTrackAction_({ arg midival;
+						newevent.(midival);
+					})
+				
+				.view.minHeight_(50),
+			)
+
+		);
+		"iiiiihii	".debug;
+
+		window.layout = layout;
+		window.alwaysOnTop = true;
+		window.front;
+	};
+	~recorder.(EventLoop(\e));
+
+)
+		(
+		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
+
+							areasize.x * viewport.width 
+							+ ( areasize.x * viewport.origin.x ).debug("other end");
+			 "FUCKCK".debug;
+				DrawGrid(
+					//Rect.fromPoints(areasize * viewport.origin, bounds.rightBottom),
+					Rect(0 - (viewport.origin.x * bounds.width),0 - (viewport.origin.y * bounds.height), bounds.width / viewport.width, bounds.height / viewport.height),
+					
+					//Rect(10,0,bounds.width+100,bounds.height), 
+					DenseGridLines(ControlSpec(
+							0,8,
+							//( areasize.x * viewport.origin.x ).debug("start"), 
+							//( areasize.x * viewport.origin.x ).debug("end"), 
+							\lin,
+							0,
+							0
+					)).density_(1),
+					//DenseGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
+					MidinoteGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
+				);
+			};
+			~timeline.timeline.refresh;
+		)
+
+
+		(
+				DrawGrid.test(
+					DenseGridLines(ControlSpec(
+							0,8,
+							\lin,
+							0,
+							0
+					)).density_(1),
+					MidinoteGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
+				);
+		)
+
+
+
+
+EventLoop(\e).list.print
+
+GridLines
+
+DenseGridLines(\midinote.asSpec).getParams(0,128, 000,1000)
+							timeline.refresh;
+							MIDIKeyboard.new
+							MIDIKeyboard
+
+
+
+(
+k = MIDIKeyboard.new;
+
+k.keyDownAction_({arg note; "Key down : ".post; note.postln;});
+
+k.keyUpAction_({arg note; "Key up : ".post; note.postln;});
+
+k.keyTrackAction_({arg note; "Key tracking : ".post; note.postln;});
+
+k.showScale([0, 2, 4, 6, 8, 10], 48, Color.new(0.4, 0.6,0.8));
+)
+
+(
+~tv = {
+	var window = Window.new;
+	var layout;
+	layout = HLayout(
+		~t = MIDIKeyboardView.new.view
+	);
+	window.layout = layout;
+	//window.alwaysOnTop = true;
+	window.front;
+}.value;
+)
+
+Button.view
+
+
+
+(
+
+var chord, chords, chordnames;
+
+var menu, play;
+
+var fString, fundamental=60;
+
+
+w = GUI.window.new("Common Chords", Rect(10, 260, 820, 252)).front;
+
+k = MIDIKeyboard.new(w, Rect(20, 60, 776, 160), 4, 48);
+
+
+k.keyDownAction_({arg note; fundamental = note; 
+
+						fString.string_(note.asString);
+
+						k.showScale(chord, fundamental, Color.new255(103, 148, 103));
+
+				});
+
+k.keyTrackAction_({arg note; fundamental = note; 
+
+						fString.string_(note.asString);
+
+						k.showScale(chord, fundamental, Color.new255(103, 148, 103));
+
+				});
+
+k.keyUpAction_({arg note; fundamental = note; 
+
+						fString.string_(note.asString);
+
+						k.showScale(chord, fundamental, Color.new255(103, 148, 103));
+
+				});
+
+
+GUI.staticText.new(w, Rect(350, 20, 100, 20)).string_("Fundamental :");
+
+fString = GUI.staticText.new(w, Rect(436, 20, 50, 20)).string_(fundamental.asString);
+
+
+chords = [["Major", [0, 4, 7]], ["Minor", [0, 3, 7]],["5", [0, 7]], ["Dominant 7th", [0, 4, 7, 10]], ["Major 7th", [0, 4, 7, 11]], ["Minor 7th", [0, 3, 7, 10]], ["Minor Major 7th", [0, 3, 7, 11]], ["Sus 4", [0, 5, 7]], ["Sus 2",  [0, 2, 7]], ["6", [0, 4, 7, 9]], ["Minor 6", [0, 3, 7, 9]], ["9", [0, 2, 4, 7, 10]], ["Minor 9", [0, 2, 3, 7, 10]], ["Major 9", [0, 2, 4, 7, 11]], ["Minor Major 9", [0, 2, 3, 7, 11]], ["11", [0, 2, 4, 5, 7, 11]], ["Minor 11", [0, 2, 3, 5, 7, 10]], ["Major 11", [0, 2, 4, 5, 7, 11]], ["Minor Major 11", [0, 2, 3, 5, 7, 11]], ["13", [0, 2, 4, 7, 9, 10]], ["Minor 13", [0, 2, 3, 7, 9, 10]], ["Major 13", [0, 2, 4, 7, 9, 11]], ["Minor Major 13", [0, 2, 3, 7, 9, 11]], ["add 9", [0, 2, 4, 7]], ["Minor add 9", [0, 2, 3, 7]], ["6 add 9", [0, 2, 4, 7, 9]], ["Minor 6 add 9", [0, 2, 3, 7, 9]], ["Dominant 7th add 11", [0, 4, 5, 7, 10]], ["Major 7th add 11", [0, 4, 5, 7, 11]], ["Minor 7th add 11", [0, 3, 5, 7, 10]], ["Minor Major 7th add 11", [0, 3, 5, 7, 11]], ["Dominant 7th add 13", [0, 4, 7, 9, 10]], ["Major 7th add 13", [0, 4, 7, 9, 11]], ["Minor 7th add 13", [0, 3, 7, 9, 10]], ["Minor Major 7th add 13", [0, 3, 7, 9, 11]], ["7b5", [0, 4, 6, 10]], ["7#5", [0, 4, 8, 10]], ["7b9", [0, 1, 4, 7, 10]], ["7#9", [0, 3, 4, 7, 10]], ["7#5b9", [0, 1, 4, 8, 10]], ["m7b5", [0, 3, 6, 10]], ["m7#5", [0, 3, 8, 10]], ["m7b9", [0, 1, 3, 7, 10]], ["9#11", [0, 2, 4, 6, 7, 10]], ["9b13", [0, 2, 4, 7, 8, 10]], ["6sus4", [0, 5, 7, 9]], ["7sus4", [0, 5, 7, 10]], ["Major 7th Sus4", [0, 5, 7, 11]], ["9sus4", [0, 2, 5, 7, 10]], ["Major 9 Sus4", [0, 2, 5, 7, 11]]];
+
+
+chordnames = [];
+
+chords.do({arg item; item[0].postln; chordnames = chordnames.add(item[0])});
+
+chord = chords[0][1];
+
+
+menu = GUI.popUpMenu.new(w,Rect(500,20,150,20))
+
+		.items_(chordnames)
+
+		.background_(Color.white)
+
+		.action_({arg item;
+
+			chord = chords[item.value][1];
+
+			k.showScale(chord, fundamental, Color.new255(103, 148, 103));
+
+			play.focus;
+
+		});
+
+
+play = GUI.button.new(w,Rect(660,20,60,20))
+
+	.states_([["play", Color.black, Color.clear]])
+
+	.action_({
+
+		Task({
+
+			chord.do({arg note;
+
+				note = note + fundamental;
+
+				Synth(\midikeyboardsine, [\freq, note.midicps]);
+
+				0.4.wait;
+
+			});
+
+			0.6.wait;
+
+			chord.do({arg note;
+
+				note = note + fundamental;
+
+				Synth(\midikeyboardsine, [\freq, note.midicps, \amp, 0.1]);
+
+			});
+
+		}).start;
+
+	});
+
+)
+
+
+
+(
+SynthDef(\midikeyboardsine, {arg freq, amp = 0.25;
+
+	Out.ar(0, (SinOsc.ar(freq,0,amp)*EnvGen.ar(Env.perc, doneAction:2)).dup)
+
+}).add;
+)

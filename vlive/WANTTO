@@ -8,6 +8,19 @@ ControlSpec(0,1,\exp)
 
 ////////////////////////////////
 
+/////////////////// example broken : http://doc.sccode.org/Guides/WritingClasses.html#Catching%20methods%20that%20are%20not%20explicitly%20defined
+
+class does not understand ++
+
+
+
+//////////////////// specs needed
+- spec which can step with 1/32, 1/16, 1/8, 1/4, etc
+- spec which substract 0.0001 in exponential mode to have 0 at 0
+- spec which is exponential positively then exponential negatively
+- spec which is sync with tempo (not sure if it's the best place to put this, maybe in param ?)
+- center for spec: \unipolar has minval (0), \bipolar has middle (0), because MultiSliderView can show a middle
+
 //////// NumberBox
 don't increment exponentialy
 

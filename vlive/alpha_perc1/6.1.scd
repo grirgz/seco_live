@@ -43,3 +43,7 @@ Pdef(~name +++ \pre, Pbind(
 		//Pser([0.1,0.2],16),
 	],inf).stutter(2) / 2,
 ));
+
+// END
+
+Pdef(~name).asStream.next(Event.default).keysValuesDo({ arg k,v; "%: %,".format(k.asCompileString, v.asCompileString).postln })

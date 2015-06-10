@@ -1327,6 +1327,11 @@ if(s.volume.volume == 0) {
 	Veco(~name).make_mixer;
 };
 
+~clear_channel = {
+	// TODO
+	// is Pdef(~name).play hardcoded ??? :(
+};
+
 ~stop_ndef = { arg fxname;
 	var fadetime;
 	fadetime = Ndef(fxname).getHalo(\fadeOut) ?? Ndef(fxname).fadeTime;

@@ -812,6 +812,7 @@ Ndef(\blax).set(\freqenv, Env([3400,130,1300],[0.1,0.3]));
 ~p.set(Env([4000,100,300],[0.1,0.3]))
 ~p.set(Env([3400,130,1300],[0.1,0.3]))
 ~p.get.asCompileString
+~p.edit
 
 
 ///////////////////////////////// env gui
@@ -2459,3 +2460,59 @@ Ndef(\bla).setn(\freq, [100,212,1555])
 Ndef(\bla).set(\freq, [100,212,1555])
 Ndef(\bla).set(\freq, 1555)
 Ndef(\bla1).set(\freq, 1555)
+
+///////////////////////////////// string representation
+FreqSpec
+
+~p = Param(Ndef(\bla), \freq, \freq.asSpec)
+~p
+~p.postln;
+~p.asCompileString
+~p.debug("db")
+~p.asString
+Post << ~p
+
+List.newFrom([0,54,7])
+
+[10.2444555,1.5544444].asStringPrec(2)
+List.name.asCompileString
+Env().class.name.asCompileString
+"%(%)".format('Env', [[1.5456484684684,6554.121321],[1.54554,5]].collect({ arg seq; seq.collect({ arg val; val.asFloat.asStringPrec(4) }) }).join(", "))
+
+", ".join([2,4,5])
+[[2],4,5].join(", ")
+
+ParamGroup([~p]).asList
+
+//////////////////////////////////////////////// list
+
+
+~list = List[1,0,1,0,0.5];
+~p = Param(~list, \list, \unipolar);
+~p.set([1,0.3,1,0,0.5]);
+Param.fromList()
+~p.edit
+
+~p.set([1,1,1,0,1,1,1,0]);
+
+~list.class
+~ll = List[1,3,4,5]
+~ll.array = [1,3]
+~ll.size
+
+~pitch = List[0,4,2,0];
+~pp = Param(~pitch, \list, ControlSpec(-20,41,\lin,0,1))
+
+~pp.set([1,0,1,0,4,4,4,4])
+
+~p.at(0).edit
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\degree, Pseq(~pitch,inf),
+	\isRest, Pseq(~list,inf).coin.not,
+	\dur, 1/4,
+	\amp, 0.1
+)).play;
+);

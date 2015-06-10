@@ -19,6 +19,7 @@ Veco.load_lib("main.scd");
 ~load_standard_quickpad.();
 ~set_project_tempo.(1);
 ~set_default_quant.(4);
+CmdPeriod.run;
 )
 
 (
