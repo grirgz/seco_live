@@ -84,7 +84,6 @@ Pdef(\xbass).addSpec(\rq2, \rq);
 Pdef(\xbass).asParamGroup.edit
 
 Env.perc(0,4).asArray
-Param(Env.perc(0,4), 
 ~bass.make_gui
 
 ~sequencer.(\seq1,

@@ -992,6 +992,7 @@ a.print
 			self = self.deepCopy;
 		
 			self.eventloop = eventloop;
+			self.area_size = 8@128;
 			
 		
 			self;
@@ -1045,7 +1046,8 @@ a.print
 				timeline.refresh;
 			};
 
-			size = 8@128;
+			size = self.area_size;
+			size.debug("size!!!");
 			timeline.view.refresh;
 			//timeline.viewport = Rect(0,0,0.1,0.1);
 			//timeline.viewport = Rect(0,0,1,20/128);
@@ -1134,7 +1136,30 @@ a.print
 					})
 				
 				.view.minHeight_(50),
-			)
+			);
+
+		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
+
+							areasize.x * viewport.width 
+							+ ( areasize.x * viewport.origin.x ).debug("other end");
+			 "FUCKCK".debug;
+				DrawGrid(
+					//Rect.fromPoints(areasize * viewport.origin, bounds.rightBottom),
+					Rect(0 - (viewport.origin.x * bounds.width),0 - (viewport.origin.y * bounds.height), bounds.width / viewport.width, bounds.height / viewport.height),
+					
+					//Rect(10,0,bounds.width+100,bounds.height), 
+					DenseGridLines(ControlSpec(
+							0,8,
+							//( areasize.x * viewport.origin.x ).debug("start"), 
+							//( areasize.x * viewport.origin.x ).debug("end"), 
+							\lin,
+							0,
+							0
+					)).density_(1),
+					//DenseGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
+					MidinoteGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
+				);
+			};
 
 		);
 		"iiiiihii	".debug;
@@ -1224,121 +1249,125 @@ k.showScale([0, 2, 4, 6, 8, 10], 48, Color.new(0.4, 0.6,0.8));
 }.value;
 )
 
-Button.view
-
-
-
 (
+	~clipTimeline = (
+		parent: ~midinoteTimeline,
+		new: { arg self, eventloop;
+			self = self.deepCopy;
+		
+			"what ?".debug;
+			self.eventloop = eventloop;
+			self.area_size = 8@4;
+			
+		
+			self;
+		},
+	);
+	~recorder = { arg eventloop;
 
-var chord, chords, chordnames;
+		var window = Window.new;
+		var layout;
+		var recb, stopb, playb;
+		var updateRecState = {
+			var view = recb;
+			if(eventloop.isRecording) {
+				view.background = Color.red;
+			} {
+				view.background = Color.white;
+			};
+		};
+		var timeline;
+		var newevent = { arg midival;
+			var ev;
+			var playev;
+						"youfuck!!!".debug;
+			ev = (midinote:midival, sustain:1/4);
+			playev = ev.copy;
+			playev[\latency] = Ref(nil);
+			eventloop.recordEvent(ev);
+			playev.play;
+		};
+		"hii	".debug;
+		timeline = ~clipTimeline.new(eventloop);
+		"iihii	".debug;
+		~timeline = timeline;
 
-var menu, play;
+		layout = 
+		VLayout (
+			timeline.makeLayout,
+			HLayout (
+				recb = XSimpleButton.new.action_({ arg view;
+					eventloop.startRec(false);
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Rec"),
+				XSimpleButton.new.action_({
+					eventloop.stopRec;
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Stop"),
+				XSimpleButton.new.action_({
+					eventloop.play;
+				})
+				.label_("Play"),
+			),
+			HLayout.new(*
+				12.collect { arg x;
+					var midival = x+0 *2;
+					XSimpleButton.new.action_({
+						"fuck!!!".debug;
+						newevent.(midival);
+					})
+					.label_(midival.asString)
+			
+				}
+			),
+			VLayout (
+				Button.new,
+				//MIDIKeyboardView.new(nil, Rect(0,0,150,150))
+				//	.keyDownAction_({ arg midival;
+				//		newevent.(midival);
+				//	})
+				//	.keyTrackAction_({ arg midival;
+				//		newevent.(midival);
+				//	})
+				//
+				//.view.minHeight_(50),
+			);
 
-var fString, fundamental=60;
+			~yspec = ControlSpec(0,3, \lin,1);
+		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
 
+							areasize.x * viewport.width 
+							+ ( areasize.x * viewport.origin.x ).debug("other end");
+			 "FUCKCK".debug;
+				DrawGrid(
+					//Rect.fromPoints(areasize * viewport.origin, bounds.rightBottom),
+					Rect(0 - (viewport.origin.x * bounds.width),0 - (viewport.origin.y * bounds.height), bounds.width / viewport.width, bounds.height / viewport.height),
+					
+					//Rect(10,0,bounds.width+100,bounds.height), 
+					DenseGridLines(ControlSpec(
+							0,8,
+							//( areasize.x * viewport.origin.x ).debug("start"), 
+							//( areasize.x * viewport.origin.x ).debug("end"), 
+							\lin,
+							0,
+							0
+					)).density_(1),
+					//DenseGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
+					MidinoteGridLines(~yspec).density_(1).labelDensity_(1)
+				);
+			};
 
-w = GUI.window.new("Common Chords", Rect(10, 260, 820, 252)).front;
+		);
+		"iiiiihii	".debug;
 
-k = MIDIKeyboard.new(w, Rect(20, 60, 776, 160), 4, 48);
+		window.layout = layout;
+		window.alwaysOnTop = true;
+		window.front;
+	};
+	~recorder.(EventLoop(\clip));
 
-
-k.keyDownAction_({arg note; fundamental = note; 
-
-						fString.string_(note.asString);
-
-						k.showScale(chord, fundamental, Color.new255(103, 148, 103));
-
-				});
-
-k.keyTrackAction_({arg note; fundamental = note; 
-
-						fString.string_(note.asString);
-
-						k.showScale(chord, fundamental, Color.new255(103, 148, 103));
-
-				});
-
-k.keyUpAction_({arg note; fundamental = note; 
-
-						fString.string_(note.asString);
-
-						k.showScale(chord, fundamental, Color.new255(103, 148, 103));
-
-				});
-
-
-GUI.staticText.new(w, Rect(350, 20, 100, 20)).string_("Fundamental :");
-
-fString = GUI.staticText.new(w, Rect(436, 20, 50, 20)).string_(fundamental.asString);
-
-
-chords = [["Major", [0, 4, 7]], ["Minor", [0, 3, 7]],["5", [0, 7]], ["Dominant 7th", [0, 4, 7, 10]], ["Major 7th", [0, 4, 7, 11]], ["Minor 7th", [0, 3, 7, 10]], ["Minor Major 7th", [0, 3, 7, 11]], ["Sus 4", [0, 5, 7]], ["Sus 2",  [0, 2, 7]], ["6", [0, 4, 7, 9]], ["Minor 6", [0, 3, 7, 9]], ["9", [0, 2, 4, 7, 10]], ["Minor 9", [0, 2, 3, 7, 10]], ["Major 9", [0, 2, 4, 7, 11]], ["Minor Major 9", [0, 2, 3, 7, 11]], ["11", [0, 2, 4, 5, 7, 11]], ["Minor 11", [0, 2, 3, 5, 7, 10]], ["Major 11", [0, 2, 4, 5, 7, 11]], ["Minor Major 11", [0, 2, 3, 5, 7, 11]], ["13", [0, 2, 4, 7, 9, 10]], ["Minor 13", [0, 2, 3, 7, 9, 10]], ["Major 13", [0, 2, 4, 7, 9, 11]], ["Minor Major 13", [0, 2, 3, 7, 9, 11]], ["add 9", [0, 2, 4, 7]], ["Minor add 9", [0, 2, 3, 7]], ["6 add 9", [0, 2, 4, 7, 9]], ["Minor 6 add 9", [0, 2, 3, 7, 9]], ["Dominant 7th add 11", [0, 4, 5, 7, 10]], ["Major 7th add 11", [0, 4, 5, 7, 11]], ["Minor 7th add 11", [0, 3, 5, 7, 10]], ["Minor Major 7th add 11", [0, 3, 5, 7, 11]], ["Dominant 7th add 13", [0, 4, 7, 9, 10]], ["Major 7th add 13", [0, 4, 7, 9, 11]], ["Minor 7th add 13", [0, 3, 7, 9, 10]], ["Minor Major 7th add 13", [0, 3, 7, 9, 11]], ["7b5", [0, 4, 6, 10]], ["7#5", [0, 4, 8, 10]], ["7b9", [0, 1, 4, 7, 10]], ["7#9", [0, 3, 4, 7, 10]], ["7#5b9", [0, 1, 4, 8, 10]], ["m7b5", [0, 3, 6, 10]], ["m7#5", [0, 3, 8, 10]], ["m7b9", [0, 1, 3, 7, 10]], ["9#11", [0, 2, 4, 6, 7, 10]], ["9b13", [0, 2, 4, 7, 8, 10]], ["6sus4", [0, 5, 7, 9]], ["7sus4", [0, 5, 7, 10]], ["Major 7th Sus4", [0, 5, 7, 11]], ["9sus4", [0, 2, 5, 7, 10]], ["Major 9 Sus4", [0, 2, 5, 7, 11]]];
-
-
-chordnames = [];
-
-chords.do({arg item; item[0].postln; chordnames = chordnames.add(item[0])});
-
-chord = chords[0][1];
-
-
-menu = GUI.popUpMenu.new(w,Rect(500,20,150,20))
-
-		.items_(chordnames)
-
-		.background_(Color.white)
-
-		.action_({arg item;
-
-			chord = chords[item.value][1];
-
-			k.showScale(chord, fundamental, Color.new255(103, 148, 103));
-
-			play.focus;
-
-		});
-
-
-play = GUI.button.new(w,Rect(660,20,60,20))
-
-	.states_([["play", Color.black, Color.clear]])
-
-	.action_({
-
-		Task({
-
-			chord.do({arg note;
-
-				note = note + fundamental;
-
-				Synth(\midikeyboardsine, [\freq, note.midicps]);
-
-				0.4.wait;
-
-			});
-
-			0.6.wait;
-
-			chord.do({arg note;
-
-				note = note + fundamental;
-
-				Synth(\midikeyboardsine, [\freq, note.midicps, \amp, 0.1]);
-
-			});
-
-		}).start;
-
-	});
-
-)
-
-
-
-(
-SynthDef(\midikeyboardsine, {arg freq, amp = 0.25;
-
-	Out.ar(0, (SinOsc.ar(freq,0,amp)*EnvGen.ar(Env.perc, doneAction:2)).dup)
-
-}).add;
 )
