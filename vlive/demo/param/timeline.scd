@@ -1064,7 +1064,7 @@ a.print
 			self.timeline.mapEventList(self.eventloop.list);
 		},
 	);
-	~recorder = { arg eventloop;
+	~pitch_recorder = { arg eventloop;
 
 		var window = Window.new;
 		var layout;
@@ -1149,7 +1149,7 @@ a.print
 					
 					//Rect(10,0,bounds.width+100,bounds.height), 
 					DenseGridLines(ControlSpec(
-							0,8,
+							0,areasize.x,
 							//( areasize.x * viewport.origin.x ).debug("start"), 
 							//( areasize.x * viewport.origin.x ).debug("end"), 
 							\lin,
@@ -1168,9 +1168,136 @@ a.print
 		window.alwaysOnTop = true;
 		window.front;
 	};
-	~recorder.(EventLoop(\e));
+	~clipTimeline = (
+		parent: ~midinoteTimeline,
+		new: { arg self, eventloop;
+			self = self.deepCopy;
+		
+			"what ?".debug;
+			self.eventloop = eventloop;
+			self.area_size = 8@4;
+			
+		
+			self;
+		},
+	);
+	~clip_recorder = { arg eventloop;
+
+		var window = Window.new;
+		var layout;
+		var recb, stopb, playb;
+		var updateRecState = {
+			var view = recb;
+			if(eventloop.isRecording) {
+				view.background = Color.red;
+			} {
+				view.background = Color.white;
+			};
+		};
+		var timeline;
+		var newevent = { arg midival;
+			var ev;
+			var playev;
+						"youfuck!!!".debug;
+			ev = (midinote:midival, sustain:1/4);
+			playev = ev.copy;
+			playev[\latency] = Ref(nil);
+			eventloop.recordEvent(ev);
+			playev.play;
+		};
+		"hii	".debug;
+		timeline = ~clipTimeline.new(eventloop);
+		"iihii	".debug;
+		~timeline = timeline;
+
+		layout = 
+		VLayout (
+			timeline.makeLayout,
+			HLayout (
+				recb = XSimpleButton.new.action_({ arg view;
+					eventloop.startRec(false);
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Rec"),
+				XSimpleButton.new.action_({
+					eventloop.stopRec;
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Stop"),
+				XSimpleButton.new.action_({
+					eventloop.play;
+				})
+				.label_("Play"),
+			),
+			HLayout.new(*
+				12.collect { arg x;
+					var midival = x+0 *1;
+					XSimpleButton.new.action_({
+						"fuck!!!".debug;
+						newevent.(midival);
+					})
+					.label_(midival.asString)
+			
+				}
+			),
+			VLayout (
+				Button.new,
+				//MIDIKeyboardView.new(nil, Rect(0,0,150,150))
+				//	.keyDownAction_({ arg midival;
+				//		newevent.(midival);
+				//	})
+				//	.keyTrackAction_({ arg midival;
+				//		newevent.(midival);
+				//	})
+				//
+				//.view.minHeight_(50),
+			);
+
+			~yspec = ControlSpec(0,3, \lin,1);
+		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
+
+							areasize.x * viewport.width 
+							+ ( areasize.x * viewport.origin.x ).debug("other end");
+			 "FUCKCK".debug;
+				DrawGrid(
+					//Rect.fromPoints(areasize * viewport.origin, bounds.rightBottom),
+					Rect(0 - (viewport.origin.x * bounds.width),0 - (viewport.origin.y * bounds.height), bounds.width / viewport.width, bounds.height / viewport.height),
+					
+					//Rect(10,0,bounds.width+100,bounds.height), 
+					DenseGridLines(ControlSpec(
+							0,areasize.x,
+							//( areasize.x * viewport.origin.x ).debug("start"), 
+							//( areasize.x * viewport.origin.x ).debug("end"), 
+							\lin,
+							0,
+							0
+					)).density_(1),
+					//DenseGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
+					MidinoteGridLines(~yspec).density_(1).labelDensity_(1)
+				);
+			};
+
+		);
+		"iiiiihii	".debug;
+
+		window.layout = layout;
+		window.alwaysOnTop = true;
+		window.front;
+	};
+	//~pitch_recorder.(EventLoop(\e));
+	~clip_recorder.(EventLoop(\clip));
 
 )
+
+EventLoop(\clip).list
+
+
+EventLoop(\clip).clear
+~timeline.refresh
+~timeline.refreshEventList
+~timeline.timeline.refreshEventList
 		(
 		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
 
@@ -1250,124 +1377,67 @@ k.showScale([0, 2, 4, 6, 8, 10], 48, Color.new(0.4, 0.6,0.8));
 )
 
 (
-	~clipTimeline = (
-		parent: ~midinoteTimeline,
-		new: { arg self, eventloop;
-			self = self.deepCopy;
-		
-			"what ?".debug;
-			self.eventloop = eventloop;
-			self.area_size = 8@4;
-			
-		
-			self;
-		},
-	);
-	~recorder = { arg eventloop;
-
-		var window = Window.new;
-		var layout;
-		var recb, stopb, playb;
-		var updateRecState = {
-			var view = recb;
-			if(eventloop.isRecording) {
-				view.background = Color.red;
-			} {
-				view.background = Color.white;
-			};
-		};
-		var timeline;
-		var newevent = { arg midival;
-			var ev;
-			var playev;
-						"youfuck!!!".debug;
-			ev = (midinote:midival, sustain:1/4);
-			playev = ev.copy;
-			playev[\latency] = Ref(nil);
-			eventloop.recordEvent(ev);
-			playev.play;
-		};
-		"hii	".debug;
-		timeline = ~clipTimeline.new(eventloop);
-		"iihii	".debug;
-		~timeline = timeline;
-
-		layout = 
-		VLayout (
-			timeline.makeLayout,
-			HLayout (
-				recb = XSimpleButton.new.action_({ arg view;
-					eventloop.startRec(false);
-					timeline.refresh;
-					updateRecState.();
-				})
-				.label_("Rec"),
-				XSimpleButton.new.action_({
-					eventloop.stopRec;
-					timeline.refresh;
-					updateRecState.();
-				})
-				.label_("Stop"),
-				XSimpleButton.new.action_({
-					eventloop.play;
-				})
-				.label_("Play"),
-			),
-			HLayout.new(*
-				12.collect { arg x;
-					var midival = x+0 *2;
-					XSimpleButton.new.action_({
-						"fuck!!!".debug;
-						newevent.(midival);
-					})
-					.label_(midival.asString)
-			
-				}
-			),
-			VLayout (
-				Button.new,
-				//MIDIKeyboardView.new(nil, Rect(0,0,150,150))
-				//	.keyDownAction_({ arg midival;
-				//		newevent.(midival);
-				//	})
-				//	.keyTrackAction_({ arg midival;
-				//		newevent.(midival);
-				//	})
-				//
-				//.view.minHeight_(50),
-			);
-
-			~yspec = ControlSpec(0,3, \lin,1);
-		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
-
-							areasize.x * viewport.width 
-							+ ( areasize.x * viewport.origin.x ).debug("other end");
-			 "FUCKCK".debug;
-				DrawGrid(
-					//Rect.fromPoints(areasize * viewport.origin, bounds.rightBottom),
-					Rect(0 - (viewport.origin.x * bounds.width),0 - (viewport.origin.y * bounds.height), bounds.width / viewport.width, bounds.height / viewport.height),
-					
-					//Rect(10,0,bounds.width+100,bounds.height), 
-					DenseGridLines(ControlSpec(
-							0,8,
-							//( areasize.x * viewport.origin.x ).debug("start"), 
-							//( areasize.x * viewport.origin.x ).debug("end"), 
-							\lin,
-							0,
-							0
-					)).density_(1),
-					//DenseGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
-					MidinoteGridLines(~yspec).density_(1).labelDensity_(1)
-				);
-			};
-
-		);
-		"iiiiihii	".debug;
-
-		window.layout = layout;
-		window.alwaysOnTop = true;
-		window.front;
-	};
-	~recorder.(EventLoop(\clip));
 
 )
+
+
+/////////////////////////////////
+
+
+(
+Pdef(\plop1, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0,4,5,8],inf),
+	\dur, 1/8,
+	\amp, 0.1
+)).play;
+);
+
+(
+Pdef(\plop2, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0,2],inf),
+	\octave, 3,
+	\dur, 1/2,
+	\amp, 0.1
+)).play;
+);
+
+
+
+(
+~build_pspawner = { arg patterns, el;
+	Pspawner({ arg sp;
+		var seq;
+		block { arg break;
+			el.list.do { arg ev;
+				switch(ev[\type],
+					\start, {
+						sp.wait(ev[\dur]);
+					},
+					\end, {
+						break.value;
+					},
+					{
+						sp.par(
+							Pfindur(
+								ev[\sustain], // FIXME: tempo ?
+								patterns[ev[\midinote]]
+							)
+						);
+						sp.wait(ev[\dur])
+					}
+				)
+			};
+		}
+	})
+};
+
+~part = [
+	Pdef(\plop1),
+	Pdef(\plop2),
+];
+~pat = ~build_pspawner.(~part, EventLoop(\clip));
+~pat.play;
+)
+	~clip_recorder.(EventLoop(\clip));
