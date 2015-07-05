@@ -986,310 +986,6 @@ a.print
 (a:1, b:2).putAll((c:122, b:23))
 
 
-(
-	~midinoteTimeline = (
-		new: { arg self, eventloop;
-			self = self.deepCopy;
-		
-			self.eventloop = eventloop;
-			self.area_size = 8@128;
-			
-		
-			self;
-		},
-
-		makeLayout: { arg self;
-			var layout;
-			var vlayout, timeline, vrange, hrange, size;
-			var eventloop = self.eventloop;
-			"AZE".debug;
-			layout = HLayout.new;
-			self.layout = layout;
-			vlayout = VLayout.new;
-			timeline = TimelineView.new;
-			layout.add(vlayout);
-			hrange = RangeSlider.new;
-			hrange.orientation = \horizontal;
-			vrange = RangeSlider.new;
-			vrange.orientation = \vertical;
-			layout.add(
-				VLayout(
-					vrange,
-					HLayout(
-						XSimpleButton.new.label_("<").action_({
-							timeline.areasize = timeline.areasize - Point(4,0);
-							timeline.refresh;
-						}).fixedSize_(Point(10,20)),
-						XSimpleButton.new.label_(">").action_({
-							timeline.areasize = timeline.areasize + Point(4,0);
-							timeline.refresh;
-						}).fixedSize_(Point(10,20)),
-					).spacing_(0)
-				)
-			);
-			vlayout.add(timeline.view);
-			vlayout.add(hrange);
-
-			timeline.viewport = Rect(0,0,1,1);
-			vrange.action = { arg slider;
-				var range = slider.range.clip(0.0001,1); // prevent division by 0
-				timeline.viewport.top = (1-slider.hi) / range;
-				timeline.viewport.height = range;
-				[timeline.viewport, slider.hi, slider.lo, slider.range].debug("range action");
-				timeline.refresh;
-			};
-			hrange.action = { arg slider;
-				var range = slider.range.clip(0.0001,1); // prevent division by 0
-				timeline.viewport.left = slider.lo / range;
-				timeline.viewport.width = range;
-				[timeline.viewport, slider.hi, slider.lo, slider.range].debug("range action");
-				timeline.refresh;
-			};
-
-			size = self.area_size;
-			size.debug("size!!!");
-			timeline.view.refresh;
-			//timeline.viewport = Rect(0,0,0.1,0.1);
-			//timeline.viewport = Rect(0,0,1,20/128);
-			timeline.areasize = size;
-			timeline.mapEventList(eventloop.list);
-			timeline.refresh;
-			self.timeline = timeline;
-			self.layout = layout;
-			"iiAZE".debug;
-			layout;
-		},
-
-		refresh: { arg self;
-			self.timeline.mapEventList(self.eventloop.list);
-		},
-	);
-	~pitch_recorder = { arg eventloop;
-
-		var window = Window.new;
-		var layout;
-		var recb, stopb, playb;
-		var updateRecState = {
-			var view = recb;
-			if(eventloop.isRecording) {
-				view.background = Color.red;
-			} {
-				view.background = Color.white;
-			};
-		};
-		var timeline;
-		var newevent = { arg midival;
-			var ev;
-			var playev;
-						"youfuck!!!".debug;
-			ev = (midinote:midival, sustain:1/4);
-			playev = ev.copy;
-			playev[\latency] = Ref(nil);
-			eventloop.recordEvent(ev);
-			playev.play;
-		};
-		"hii	".debug;
-		timeline = ~midinoteTimeline.new(eventloop);
-		"iihii	".debug;
-		~timeline = timeline;
-
-		layout = 
-		VLayout (
-			timeline.makeLayout,
-			HLayout (
-				recb = XSimpleButton.new.action_({ arg view;
-					eventloop.startRec(false);
-					timeline.refresh;
-					updateRecState.();
-				})
-				.label_("Rec"),
-				XSimpleButton.new.action_({
-					eventloop.stopRec;
-					timeline.refresh;
-					updateRecState.();
-				})
-				.label_("Stop"),
-				XSimpleButton.new.action_({
-					eventloop.play;
-				})
-				.label_("Play"),
-			),
-			HLayout.new(*
-				12.collect { arg x;
-					var midival = x+0 *2;
-					XSimpleButton.new.action_({
-						"fuck!!!".debug;
-						newevent.(midival);
-					})
-					.label_(midival.asString)
-			
-				}
-			),
-			VLayout (
-				Button.new,
-				MIDIKeyboardView.new(nil, Rect(0,0,150,150))
-					.keyDownAction_({ arg midival;
-						newevent.(midival);
-					})
-					.keyTrackAction_({ arg midival;
-						newevent.(midival);
-					})
-				
-				.view.minHeight_(50),
-			);
-
-		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
-
-							areasize.x * viewport.width 
-							+ ( areasize.x * viewport.origin.x ).debug("other end");
-			 "FUCKCK".debug;
-				DrawGrid(
-					//Rect.fromPoints(areasize * viewport.origin, bounds.rightBottom),
-					Rect(0 - (viewport.origin.x * bounds.width),0 - (viewport.origin.y * bounds.height), bounds.width / viewport.width, bounds.height / viewport.height),
-					
-					//Rect(10,0,bounds.width+100,bounds.height), 
-					DenseGridLines(ControlSpec(
-							0,areasize.x,
-							//( areasize.x * viewport.origin.x ).debug("start"), 
-							//( areasize.x * viewport.origin.x ).debug("end"), 
-							\lin,
-							0,
-							0
-					)).density_(1),
-					//DenseGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
-					MidinoteGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
-				);
-			};
-
-		);
-		"iiiiihii	".debug;
-
-		window.layout = layout;
-		window.alwaysOnTop = true;
-		window.front;
-	};
-	~clipTimeline = (
-		parent: ~midinoteTimeline,
-		new: { arg self, eventloop;
-			self = self.deepCopy;
-		
-			"what ?".debug;
-			self.eventloop = eventloop;
-			self.area_size = 8@4;
-			
-		
-			self;
-		},
-	);
-	~clip_recorder = { arg eventloop;
-
-		var window = Window.new;
-		var layout;
-		var recb, stopb, playb;
-		var updateRecState = {
-			var view = recb;
-			if(eventloop.isRecording) {
-				view.background = Color.red;
-			} {
-				view.background = Color.white;
-			};
-		};
-		var timeline;
-		var newevent = { arg midival;
-			var ev;
-			var playev;
-						"youfuck!!!".debug;
-			ev = (midinote:midival, sustain:1/4);
-			playev = ev.copy;
-			playev[\latency] = Ref(nil);
-			eventloop.recordEvent(ev);
-			playev.play;
-		};
-		"hii	".debug;
-		timeline = ~clipTimeline.new(eventloop);
-		"iihii	".debug;
-		~timeline = timeline;
-
-		layout = 
-		VLayout (
-			timeline.makeLayout,
-			HLayout (
-				recb = XSimpleButton.new.action_({ arg view;
-					eventloop.startRec(false);
-					timeline.refresh;
-					updateRecState.();
-				})
-				.label_("Rec"),
-				XSimpleButton.new.action_({
-					eventloop.stopRec;
-					timeline.refresh;
-					updateRecState.();
-				})
-				.label_("Stop"),
-				XSimpleButton.new.action_({
-					eventloop.play;
-				})
-				.label_("Play"),
-			),
-			HLayout.new(*
-				12.collect { arg x;
-					var midival = x+0 *1;
-					XSimpleButton.new.action_({
-						"fuck!!!".debug;
-						newevent.(midival);
-					})
-					.label_(midival.asString)
-			
-				}
-			),
-			VLayout (
-				Button.new,
-				//MIDIKeyboardView.new(nil, Rect(0,0,150,150))
-				//	.keyDownAction_({ arg midival;
-				//		newevent.(midival);
-				//	})
-				//	.keyTrackAction_({ arg midival;
-				//		newevent.(midival);
-				//	})
-				//
-				//.view.minHeight_(50),
-			);
-
-			~yspec = ControlSpec(0,3, \lin,1);
-		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
-
-							areasize.x * viewport.width 
-							+ ( areasize.x * viewport.origin.x ).debug("other end");
-			 "FUCKCK".debug;
-				DrawGrid(
-					//Rect.fromPoints(areasize * viewport.origin, bounds.rightBottom),
-					Rect(0 - (viewport.origin.x * bounds.width),0 - (viewport.origin.y * bounds.height), bounds.width / viewport.width, bounds.height / viewport.height),
-					
-					//Rect(10,0,bounds.width+100,bounds.height), 
-					DenseGridLines(ControlSpec(
-							0,areasize.x,
-							//( areasize.x * viewport.origin.x ).debug("start"), 
-							//( areasize.x * viewport.origin.x ).debug("end"), 
-							\lin,
-							0,
-							0
-					)).density_(1),
-					//DenseGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
-					MidinoteGridLines(~yspec).density_(1).labelDensity_(1)
-				);
-			};
-
-		);
-		"iiiiihii	".debug;
-
-		window.layout = layout;
-		window.alwaysOnTop = true;
-		window.front;
-	};
-	//~pitch_recorder.(EventLoop(\e));
-	~clip_recorder.(EventLoop(\clip));
-
-)
 
 EventLoop(\clip).list
 
@@ -1441,3 +1137,640 @@ Pdef(\plop2, Pbind(
 ~pat.play;
 )
 	~clip_recorder.(EventLoop(\clip));
+
+
+////////////////////////////////////////////:
+
+
+(
+~build_pspawner = { arg patterns, el;
+	Pspawner({ arg sp;
+		var seq;
+		block { arg break;
+			el.list.do { arg ev;
+				switch(ev[\type],
+					\start, {
+						sp.wait(ev[\dur]);
+					},
+					\end, {
+						break.value;
+					},
+					{
+						sp.par(
+							Pfindur(
+								ev[\sustain], // FIXME: tempo ?
+								patterns[ev[\midinote]]
+							)
+						);
+						sp.wait(ev[\dur])
+					}
+				)
+			};
+		}
+	})
+};
+	~midinoteTimeline = (
+		new: { arg self, eventloop;
+			self = self.deepCopy;
+		
+			self.eventloop = eventloop;
+			self.area_size = 8@128;
+			
+		
+			self;
+		},
+
+		makeLayout: { arg self;
+			var layout;
+			var vlayout, timeline, vrange, hrange, size;
+			var eventloop = self.eventloop;
+			"AZE".debug;
+			layout = HLayout.new;
+			self.layout = layout;
+			vlayout = VLayout.new;
+			timeline = TimelineView.new;
+			layout.add(vlayout);
+			hrange = RangeSlider.new;
+			hrange.orientation = \horizontal;
+			vrange = RangeSlider.new;
+			vrange.orientation = \vertical;
+			layout.add(
+				VLayout(
+					vrange,
+					HLayout(
+						XSimpleButton.new.label_("<").action_({
+							timeline.areasize = timeline.areasize - Point(4,0);
+							timeline.refresh;
+						}).fixedSize_(Point(10,20)),
+						XSimpleButton.new.label_(">").action_({
+							timeline.areasize = timeline.areasize + Point(4,0);
+							timeline.refresh;
+						}).fixedSize_(Point(10,20)),
+					).spacing_(0)
+				)
+			);
+			vlayout.add(timeline.view);
+			vlayout.add(hrange);
+
+			timeline.viewport = Rect(0,0,1,1);
+			vrange.action = { arg slider;
+				var range = slider.range.clip(0.0001,1); // prevent division by 0
+				timeline.viewport.top = (1-slider.hi) / range;
+				timeline.viewport.height = range;
+				[timeline.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+				timeline.refresh;
+			};
+			hrange.action = { arg slider;
+				var range = slider.range.clip(0.0001,1); // prevent division by 0
+				timeline.viewport.left = slider.lo / range;
+				timeline.viewport.width = range;
+				[timeline.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+				timeline.refresh;
+			};
+
+			size = self.area_size;
+			size.debug("size!!!");
+			timeline.view.refresh;
+			//timeline.viewport = Rect(0,0,0.1,0.1);
+			//timeline.viewport = Rect(0,0,1,20/128);
+			timeline.areasize = size;
+			timeline.mapEventList(eventloop.list);
+			timeline.refresh;
+			self.timeline = timeline;
+			self.layout = layout;
+			"iiAZE".debug;
+			layout;
+		},
+
+		refresh: { arg self;
+			self.timeline.mapEventList(self.eventloop.list);
+		},
+	);
+	~pitch_recorder = { arg eventloop;
+
+		var window = Window.new;
+		var layout;
+		var recb, stopb, playb;
+		var updateRecState = {
+			var view = recb;
+			if(eventloop.isRecording) {
+				view.background = Color.red;
+			} {
+				view.background = Color.white;
+			};
+		};
+		var timeline;
+		var newevent = { arg midival;
+			var ev;
+			var playev;
+						"youfuck!!!".debug;
+			ev = (midinote:midival, sustain:1/4);
+			playev = ev.copy;
+			playev[\latency] = Ref(nil);
+			eventloop.recordEvent(ev);
+			playev.play;
+		};
+		"hii	".debug;
+		timeline = ~midinoteTimeline.new(eventloop);
+		"iihii	".debug;
+		~timeline = timeline;
+
+		layout = 
+		VLayout (
+			timeline.makeLayout,
+			HLayout (
+				recb = XSimpleButton.new.action_({ arg view;
+					eventloop.startRec(false);
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Rec"),
+				XSimpleButton.new.action_({
+					eventloop.stopRec;
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Stop"),
+				XSimpleButton.new.action_({
+					eventloop.play;
+				})
+				.label_("Play"),
+			),
+			HLayout.new(*
+				12.collect { arg x;
+					var midival = x+0 *2;
+					XSimpleButton.new.action_({
+						"fuck!!!".debug;
+						newevent.(midival);
+					})
+					.label_(midival.asString)
+			
+				}
+			),
+			VLayout (
+				Button.new,
+				MIDIKeyboardView.new(nil, Rect(0,0,150,150))
+					.keyDownAction_({ arg midival;
+						newevent.(midival);
+					})
+					.keyTrackAction_({ arg midival;
+						newevent.(midival);
+					})
+				
+				.view.minHeight_(50),
+			);
+
+
+		);
+		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
+
+							areasize.x * viewport.width 
+							+ ( areasize.x * viewport.origin.x ).debug("other end");
+			 "FUCKCK".debug;
+				DrawGrid(
+					//Rect.fromPoints(areasize * viewport.origin, bounds.rightBottom),
+					Rect(0 - (viewport.origin.x * bounds.width),0 - (viewport.origin.y * bounds.height), bounds.width / viewport.width, bounds.height / viewport.height),
+					
+					//Rect(10,0,bounds.width+100,bounds.height), 
+					DenseGridLines(ControlSpec(
+							0,areasize.x,
+							//( areasize.x * viewport.origin.x ).debug("start"), 
+							//( areasize.x * viewport.origin.x ).debug("end"), 
+							\lin,
+							0,
+							0
+					)).density_(1),
+					//DenseGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
+					MidinoteGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
+				);
+			};
+		"iiiiihii	".debug;
+
+		window.layout = layout;
+		window.alwaysOnTop = true;
+		window.front;
+	};
+	~clipTimeline = (
+		parent: ~midinoteTimeline,
+		new: { arg self, eventloop;
+			self = self.deepCopy;
+		
+			"what ?".debug;
+			self.eventloop = eventloop;
+			self.area_size = 8@4;
+			
+		
+			self;
+		},
+	);
+	~clip_recorder = { arg eventloop;
+
+		var window = Window.new;
+		var layout;
+		var recb, stopb, playb;
+		var updateRecState = {
+			var view = recb;
+			if(eventloop.isRecording) {
+				view.background = Color.red;
+			} {
+				view.background = Color.white;
+			};
+		};
+		var timeline;
+		var newevent = { arg midival;
+			var ev;
+			var playev;
+						"youfuck!!!".debug;
+			ev = (midinote:midival, sustain:1/4);
+			playev = ev.copy;
+			playev[\latency] = Ref(nil);
+			eventloop.recordEvent(ev);
+			playev.play;
+		};
+		"hii	".debug;
+		timeline = ~clipTimeline.new(eventloop);
+		"iihii	".debug;
+		~timeline = timeline;
+
+		layout = 
+		VLayout (
+			timeline.makeLayout,
+			HLayout (
+				recb = XSimpleButton.new.action_({ arg view;
+					eventloop.startRec(false);
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Rec"),
+				XSimpleButton.new.action_({
+					eventloop.stopRec;
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Stop"),
+				XSimpleButton.new.action_({
+					eventloop.play;
+				})
+				.label_("Play"),
+			),
+			HLayout.new(*
+				12.collect { arg x;
+					var midival = x+0 *1;
+					XSimpleButton.new.action_({
+						"fuck!!!".debug;
+						newevent.(midival);
+					})
+					.label_(midival.asString)
+			
+				}
+			),
+			VLayout (
+				Button.new,
+				//MIDIKeyboardView.new(nil, Rect(0,0,150,150))
+				//	.keyDownAction_({ arg midival;
+				//		newevent.(midival);
+				//	})
+				//	.keyTrackAction_({ arg midival;
+				//		newevent.(midival);
+				//	})
+				//
+				//.view.minHeight_(50),
+			);
+
+			~yspec = ControlSpec(0,3, \lin,1);
+		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
+
+							areasize.x * viewport.width 
+							+ ( areasize.x * viewport.origin.x ).debug("other end");
+			 "FUCKCK".debug;
+				DrawGrid(
+					//Rect.fromPoints(areasize * viewport.origin, bounds.rightBottom),
+					Rect(0 - (viewport.origin.x * bounds.width),0 - (viewport.origin.y * bounds.height), bounds.width / viewport.width, bounds.height / viewport.height),
+					
+					//Rect(10,0,bounds.width+100,bounds.height), 
+					DenseGridLines(ControlSpec(
+							0,areasize.x,
+							//( areasize.x * viewport.origin.x ).debug("start"), 
+							//( areasize.x * viewport.origin.x ).debug("end"), 
+							\lin,
+							0,
+							0
+					)).density_(1),
+					//DenseGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
+					MidinoteGridLines(~yspec).density_(1).labelDensity_(1)
+				);
+			};
+
+		);
+		"iiiiihii	".debug;
+
+		window.layout = layout;
+		window.alwaysOnTop = true;
+		window.front;
+	};
+	~timeline_of_timeline = { arg eventloop;
+		var window = Window.new;
+		var layout;
+		var recb, stopb, playb;
+		var updateRecState = {
+			var view = recb;
+			if(eventloop.isRecording) {
+				view.background = Color.red;
+			} {
+				view.background = Color.white;
+			};
+		};
+		var timeline;
+		var newevent = { arg midival;
+			var ev;
+			var playev;
+						"youfuck!!!".debug;
+			ev = (midinote:midival, sustain:1/4);
+			playev = ev.copy;
+			playev[\latency] = Ref(nil);
+			eventloop.recordEvent(ev);
+			playev.play;
+		};
+		"hii	".debug;
+		timeline = ~clipTimeline.new(eventloop);
+		"iihii	".debug;
+		~timeline = timeline;
+
+		layout = 
+		VLayout (
+			HLayout(*
+				timeline.area_size.y.collect({ arg x;
+					XSimpleButton.new.action_({
+						~pitch_recorder.(EventLoop(\pr_+++x))
+					}).label_("timeline"+(x+1))
+				})
+			),
+			timeline.makeLayout,
+			HLayout (
+				recb = XSimpleButton.new.action_({ arg view;
+					eventloop.startRec(false);
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Rec"),
+				XSimpleButton.new.action_({
+					eventloop.stopRec;
+					timeline.refresh;
+					updateRecState.();
+				})
+				.label_("Stop"),
+				XSimpleButton.new.action_({
+					eventloop.play;
+				})
+				.label_("Play"),
+			),
+			HLayout.new(*
+				12.collect { arg x;
+					var midival = x+0 *1;
+					XSimpleButton.new.action_({
+						"fuck!!!".debug;
+						newevent.(midival);
+					})
+					.label_(midival.asString)
+			
+				}
+			),
+			VLayout (
+				Button.new,
+				//MIDIKeyboardView.new(nil, Rect(0,0,150,150))
+				//	.keyDownAction_({ arg midival;
+				//		newevent.(midival);
+				//	})
+				//	.keyTrackAction_({ arg midival;
+				//		newevent.(midival);
+				//	})
+				//
+				//.view.minHeight_(50),
+			);
+
+			~yspec = ControlSpec(0,3, \lin,1);
+		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
+
+							areasize.x * viewport.width 
+							+ ( areasize.x * viewport.origin.x ).debug("other end");
+			 "FUCKCK".debug;
+				DrawGrid(
+					//Rect.fromPoints(areasize * viewport.origin, bounds.rightBottom),
+					Rect(0 - (viewport.origin.x * bounds.width),0 - (viewport.origin.y * bounds.height), bounds.width / viewport.width, bounds.height / viewport.height),
+					
+					//Rect(10,0,bounds.width+100,bounds.height), 
+					DenseGridLines(ControlSpec(
+							0,areasize.x,
+							//( areasize.x * viewport.origin.x ).debug("start"), 
+							//( areasize.x * viewport.origin.x ).debug("end"), 
+							\lin,
+							0,
+							0
+					)).density_(1),
+					//DenseGridLines(\midinote.asSpec).density_(8).labelDensity_(2)
+					MidinoteGridLines(~yspec).density_(1).labelDensity_(1)
+				);
+			};
+
+		);
+		"iiiiihii	".debug;
+
+		window.layout = layout;
+		window.alwaysOnTop = true;
+		window.front;
+		
+	};
+	//~pitch_recorder.(EventLoop(\e));
+	//~clip_recorder.(EventLoop(\clip));
+	~timeline_of_timeline.(EventLoop(\tot));
+)
+
+(
+Pdef(\plop1, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0,4,5,8],inf),
+	\dur, 1/8,
+	\amp, 0.1
+)).play;
+);
+
+(
+Pdef(\plop2, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0,2],inf),
+	\octave, 3,
+	\dur, 1/2,
+	\amp, 0.1
+)).play;
+);
+(
+~part = [
+	Pdef(\plop1),
+	Pdef(\plop2),
+].collect({ arg pat, x;
+	Pn(EventLoop(\pr_+++x).list) <> pat
+});
+~pat = ~build_pspawner.(~part, EventLoop(\tot));
+~pat.play;
+)
+
+
+
+(
+var scroll = ScrollView(bounds:Rect(0,0,300,300).center_(Window.availableBounds.center));
+var canvas = View();
+var layout;
+var i = 0;
+
+var makeEntry = {
+    var view = View().background_(Color.rand).layout_(
+        HLayout(
+            TextField().string_( ("This is entry number " + i.asString) ),
+            Button().states_([["Delete"]]).action_({view.remove; i = i - 1;})
+        )
+    );
+    i = i + 1;
+    view;
+};
+
+layout = VLayout();
+layout.add ( View().background_(Color.black).layout_(
+    HLayout(
+        Button().states_([["Add"]]).action_({ layout.insert(makeEntry.(), i) }),
+        nil // stretch remaining empty space
+    )
+));
+
+canvas.layout = layout;
+10.do { canvas.layout.add( makeEntry.() ) };
+canvas.layout.add(nil); // stretch remaining empty space
+
+scroll.canvas = canvas;
+scroll.front;
+)
+
+
+(
+w = Window.new;
+
+b = ScrollView(w, Rect(0, 0, 300, 300)).hasBorder_(true);
+c = CompositeView(b, Rect(0, 0, 500, 500)); // 'canvas' is this big
+c.decorator = FlowLayout(c.bounds); // now we can use a decorator
+
+Slider2D(c, Rect(0, 0, 240, 240));
+Slider2D(c, Rect(0, 0, 240, 240));
+Slider2D(c, Rect(0, 0, 240, 240));
+
+c.decorator.nextLine;
+w.front;
+)
+
+
+(
+var drawFunc;
+w = Window.new;
+
+a = ScrollView(w, Rect(40, 40, 300, 300));
+b = ScrollView(w, Rect(0, 40, 40, 300)).hasHorizontalScroller_(false).hasVerticalScroller_(false);
+c = ScrollView(w, Rect(40, 0, 300, 40)).hasHorizontalScroller_(false).hasVerticalScroller_(false);
+b.background = Color.grey;
+c.background = Color.grey;
+
+d = UserView(a, Rect(0, 0, 620, 620));
+e = UserView(b, Rect(0, 0, 40, 630));
+f = UserView(c, Rect(0, 0, 630, 40));
+
+a.action = { var origin;
+    origin = a.visibleOrigin;
+    b.visibleOrigin = 0@(origin.y);
+    c.visibleOrigin = (origin.x)@0;
+};
+
+drawFunc = {
+    30.do({arg i;
+        (i+1).asString.drawAtPoint((i+1 * 20)@0, Font("Courier", 9), Color.black);
+    });
+};
+
+d.drawFunc = {
+    Pen.use({
+        Pen.translate(0, 5);
+        drawFunc.value;
+    });
+    Pen.translate(15, 0).rotate(0.5pi);
+    drawFunc.value;
+};
+
+e.drawFunc = {
+    Pen.translate(40, 0).rotate(0.5pi);
+    drawFunc.value;
+};
+
+f.drawFunc = {
+    Pen.translate(0, 25);
+    drawFunc.value;
+};
+
+w.front;
+)
+
+(
+	
+	var window = Window.new;
+	var layout;
+	var cview = View.new;
+	var scrollview;
+	cview.layout = VLayout(*
+		20.collect({ arg x;
+			XSimpleButton.new.label_("bla"+x)
+			//.minHeight_(100)
+		})
+	);
+	layout = HLayout(
+		scrollview = ScrollView.new.canvas_(cview).hasVerticalScroller_(false)
+			.hasBorder_(false),
+		XSimpleButton.new.label_("ksdfjksj"),
+		UserView.new.background_(Color.blue).fixedWidth_(100),
+		RangeSlider.new.orientation_(\vertical).action_({ arg view;
+			view.lo.debug("range");
+			scrollview.visibleOrigin = Point(0,view.lo * 100);
+			//cview.resizeTo( cview.bounds.width,view.range * 100);
+			cview.fixedHeight = view.range * 3500;
+		
+		})
+	);
+	window.layout = layout;
+	//window.alwaysOnTop = true;
+	window.front;
+)
+
+
+(
+	~make = {
+		var window = Window.new;
+		var layout;
+
+		a = EventList[];
+
+		// add some time-stamped events to it
+		a.start;
+		a.addEvent((absTime: 0, midinote: 50, sustain:1/4));    // events should begin with time 0;
+		a.addEvent((absTime: 0.3, midinote: 47, sustain:1/4));
+		a.addEvent((absTime: 0.52, midinote: 42, sustain:1/4));
+		a.addEvent((absTime: 0.72, midinote: 52, sustain:1/4));
+		a.addEvent((absTime: 0.93, midinote: 54, sustain:1/4));
+		//a.finish(1.88);
+		a.finish(3.88);
+
+
+		~timeline = TimelinePreview.new;
+		~timeline.mapEventList(a);
+		layout = VLayout(
+			~timeline.view
+		);
+		window.layout = layout;
+		//window.alwaysOnTop = true;
+		window.front;
+	};
+	~make.();
+)
