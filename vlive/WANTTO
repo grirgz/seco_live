@@ -8,6 +8,9 @@ ControlSpec(0,1,\exp)
 
 ////////////////////////////////
 
+http://doc.sccode.org/Overviews/Methods.html#insetAllhttp://doc.sccode.org/Overviews/Methods.html#insetAll
+what is a, b, c, d ???
+
 /////////////////// example broken : http://doc.sccode.org/Guides/WritingClasses.html#Catching%20methods%20that%20are%20not%20explicitly%20defined
 
 class does not understand ++

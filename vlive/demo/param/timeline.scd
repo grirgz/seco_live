@@ -1580,10 +1580,11 @@ Pdef(\plop2, Pbind(
 		window.front;
 		
 	};
-	//~pitch_recorder.(EventLoop(\e));
+	~pitch_recorder.(EventLoop(\e));
 	//~clip_recorder.(EventLoop(\clip));
-	~timeline_of_timeline.(EventLoop(\tot));
+	//~timeline_of_timeline.(EventLoop(\tot));
 )
+EventLoop(\e).list.print
 
 (
 Pdef(\plop1, Pbind(
@@ -1746,6 +1747,7 @@ w.front;
 
 
 (
+	// timeline preview
 	~make = {
 		var window = Window.new;
 		var layout;
@@ -1760,7 +1762,7 @@ w.front;
 		a.addEvent((absTime: 0.72, midinote: 52, sustain:1/4));
 		a.addEvent((absTime: 0.93, midinote: 54, sustain:1/4));
 		//a.finish(1.88);
-		a.finish(3.88);
+		a.finish(1.50);
 
 
 		~timeline = TimelinePreview.new;
@@ -1774,3 +1776,281 @@ w.front;
 	};
 	~make.();
 )
+
+(
+	// timeline of timeline with preview in each clip
+	~make = {
+		var window = Window.new;
+		var layout;
+		var tot;
+
+		a = EventList[];
+
+		// add some time-stamped events to it
+		a.start;
+		a.addEvent((absTime: 0, midinote: 50, sustain:1/4));    // events should begin with time 0;
+		a.addEvent((absTime: 0.3, midinote: 47, sustain:1/4));
+		a.addEvent((absTime: 0.52, midinote: 42, sustain:1/4));
+		a.addEvent((absTime: 0.72, midinote: 52, sustain:1/4));
+		a.addEvent((absTime: 0.93, midinote: 54, sustain:1/4));
+		//a.finish(1.88);
+		a.finish(1.50);
+
+
+		tot = EventList[];
+		tot.start;
+		tot.addEvent((
+			absTime: 1, 
+			midinote: 1, 
+			nodeType: \eventlist,
+			eventlist: a,
+			sustain:4
+		)); 
+		tot.finish(8);
+
+
+		~timeline = TimelineView.new;
+		~timeline.eventFactory = { arg pos;
+			var el = EventList.new;
+			el.start;
+			el.finish(1);
+			(
+				absTime: pos.x, 
+				label: "unnamed_"++(100.rand),
+				midinote: pos.y, 
+				nodeType: \eventlist,
+				eventlist: el,
+				sustain:1/4,
+			); 
+		};
+		~timeline.keyDownAction = { arg me, key, modifiers, unicode, keycode;
+			if(key == $e) {
+
+			}
+		};
+		~timeline.mapEventList(tot);
+		~timeline.areasize = 10@4;
+		layout = VLayout(
+			~timeline.view
+		);
+		window.layout = layout;
+		//window.alwaysOnTop = true;
+		window.front;
+	};
+	~make.();
+)
+
+
+(
+	// timeline of eventloops
+	~make = {
+		var window = Window.new;
+		var layout;
+		var tot;
+
+		a = EventList[];
+
+		// add some time-stamped events to it
+		a.start;
+		a.addEvent((absTime: 0, midinote: 50, sustain:1/4));    // events should begin with time 0;
+		a.addEvent((absTime: 0.3, midinote: 47, sustain:1/4));
+		a.addEvent((absTime: 0.52, midinote: 42, sustain:1/4));
+		a.addEvent((absTime: 0.72, midinote: 52, sustain:1/4));
+		a.addEvent((absTime: 0.93, midinote: 54, sustain:1/4));
+		//a.finish(1.88);
+		a.finish(1.50);
+
+
+		tot = EventList[];
+		tot.start;
+		tot.addEvent((
+			absTime: 1, 
+			midinote: 1, 
+			nodeType: \eventlist,
+			eventlist: a,
+			sustain:4
+		)); 
+		tot.finish(8);
+
+
+		~timeline = TimelineView.new;
+		~timeline.eventFactory = { arg pos;
+			var el = EventLoop.newInstance;
+			el.list.start;
+			el.list.finish(1);
+			(
+				absTime: pos.x, 
+				label: "unnamed_"++(100.rand),
+				midinote: pos.y, 
+				nodeType: \eventloop,
+				eventloop: el,
+				sustain:1/4,
+			); 
+		};
+		~timeline.keyDownAction = { arg me, key, modifiers, unicode, keycode;
+			if(key == $e) {
+				var el = ~timeline.chosennode.model[\eventloop].debug("EEEEEEEEE");
+				~pitch_recorder.(el);
+
+			}
+		};
+		~timeline.mapEventList(tot);
+		~timeline.areasize = 10@4;
+		layout = VLayout(
+			~timeline.view
+		);
+		window.layout = layout;
+		//window.alwaysOnTop = true;
+		window.front;
+	};
+	~make.();
+)
+
+
+(
+w = Window.new.front;
+w.view.background_(Color.white);
+w.drawFunc = {
+    10.do{
+        // set the Color
+        Pen.color = Color.green(rrand(0.0, 1), rrand(0.0, 0.5));
+        Pen.fillRect(
+            Rect(0, 0, 0.2, 0.3)
+        );
+		Pen.scale(2,2);
+		//Pen.skew(1.0.rand, 1.0.rand);
+        //Pen.perform([\stroke, \fill].choose);
+    }
+};
+w.refresh;
+)
+
+
+(
+w = Window.new("Transparency Layer test", Rect(400,400,430,450)).front;
+w.drawFunc = {
+    Color.blue.setStroke;
+
+    Pen.use {
+    Pen.setShadow(2@2, 10, Color.black);
+    Pen.beginTransparencyLayer;
+
+    Color.red.setFill;
+    Pen.addOval(Rect(20,40,100,100));
+    Pen.fill;
+
+    Color.green.setFill;
+    Pen.addOval(Rect(30,70,100,100));
+    Pen.fill;
+
+    Color.blue.setFill;
+    Pen.addOval(Rect(60,40,100,100));
+    Pen.fill;
+
+    "With Transparency Layer".drawCenteredIn(Rect(30, 40, 100, 100), Font.default, Color.white);
+    Pen.endTransparencyLayer;
+    };
+
+    Pen.use {
+    Pen.translate(200, 0);
+    Pen.setShadow(2@2, 10, Color.black);
+
+
+    Color.red.setFill;
+    Pen.addOval(Rect(20,40,100,100));
+    Pen.fill;
+
+    Color.green.setFill;
+    Pen.addOval(Rect(30,70,100,100));
+    Pen.fill;
+
+    Color.blue.setFill;
+    Pen.addOval(Rect(60,40,100,100));
+    Pen.fill;
+
+    "Without Transparency Layer".drawCenteredIn(Rect(30, 40, 100, 100), Font.default, Color.white);
+    };
+
+    Pen.use {
+        Pen.translate(0, 200);
+        Pen.setShadow(2@2, 10, Color.black);
+        Pen.beginTransparencyLayer;
+
+        Pen.push;
+        Pen.addOval(Rect(20,40,170,170));
+        Pen.fillAxialGradient(w.view.bounds.leftTop, w.view.bounds.rightBottom, Color.rand, Color.rand);
+        Pen.pop;
+
+        "With Transparency Layer".drawCenteredIn(Rect(20,40,170,170), Font.default, Color.white);
+
+        Pen.endTransparencyLayer;
+    };
+
+    Pen.use {
+        Pen.translate(200, 200);
+        Pen.setShadow(2@2, 10, Color.black);
+        Pen.addOval(Rect(20,40,170,170));
+        Pen.fillAxialGradient(w.view.bounds.leftTop, w.view.bounds.rightBottom, Color.rand, Color.rand);
+
+        "Without Transparency Layer".drawCenteredIn(Rect(20,40,170,170), Font.default, Color.white);
+    };
+};
+w.refresh;
+)
+
+
+
+(
+w = Window.new.front;
+w.view.background_(Color.white);
+w.drawFunc = {
+    // outline the clipping path
+	//Pen.use {
+	Pen.push;
+
+    Pen.moveTo(110@110);
+    Pen.lineTo(290@110);
+    Pen.lineTo(290@240);
+    Pen.lineTo(110@240);
+    Pen.lineTo(110@110);
+    // now clip
+    Pen.clip;
+
+    // everything else we draw is now clipped
+    Pen.fillColor = Color.yellow;
+    Pen.fillRect(Rect(0,0,400,400));
+    Pen.fillColor = Color.red;
+    Pen.moveTo(200@100);
+
+    Pen.lineTo(250@200);
+    Pen.lineTo(300@200);
+    Pen.lineTo(200@250);
+    Pen.lineTo(100@200);
+    Pen.lineTo(150@200);
+
+    Pen.fill;
+	//};
+	Pen.pop;
+    //Pen.clip;
+	Pen.pop;
+	Pen.scale(2,2);
+    Pen.moveTo(110@110);
+    Pen.lineTo(290@110);
+    Pen.lineTo(290@240);
+    Pen.lineTo(110@240);
+    Pen.lineTo(110@110);
+    // now clip
+    Pen.clip;
+    Pen.lineTo(250@200);
+    Pen.lineTo(300@200);
+    Pen.lineTo(200@250);
+    Pen.lineTo(100@200);
+    Pen.lineTo(150@200);
+
+    Pen.fill;
+};
+w.refresh;
+)
+
+
+EventLoopNode.new
