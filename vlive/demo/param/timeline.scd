@@ -1273,7 +1273,7 @@ Pdef(\plop2, Pbind(
 		"hii	".debug;
 		timeline = ~midinoteTimeline.new(eventloop);
 		"iihii	".debug;
-		~timeline = timeline;
+		//~timeline = timeline;
 
 		layout = 
 		VLayout (
@@ -1322,7 +1322,7 @@ Pdef(\plop2, Pbind(
 
 
 		);
-		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
+		 timeline.timeline.mygrid = { arg bounds, areasize, viewport;
 
 							areasize.x * viewport.width 
 							+ ( areasize.x * viewport.origin.x ).debug("other end");
@@ -1390,7 +1390,7 @@ Pdef(\plop2, Pbind(
 		"hii	".debug;
 		timeline = ~clipTimeline.new(eventloop);
 		"iihii	".debug;
-		~timeline = timeline;
+		//~timeline = timeline;
 
 		layout = 
 		VLayout (
@@ -1438,7 +1438,7 @@ Pdef(\plop2, Pbind(
 			);
 
 			~yspec = ControlSpec(0,3, \lin,1);
-		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
+		 timeline.timeline.mygrid = { arg bounds, areasize, viewport;
 
 							areasize.x * viewport.width 
 							+ ( areasize.x * viewport.origin.x ).debug("other end");
@@ -1494,7 +1494,7 @@ Pdef(\plop2, Pbind(
 		"hii	".debug;
 		timeline = ~clipTimeline.new(eventloop);
 		"iihii	".debug;
-		~timeline = timeline;
+		//~timeline = timeline;
 
 		layout = 
 		VLayout (
@@ -1549,7 +1549,7 @@ Pdef(\plop2, Pbind(
 			);
 
 			~yspec = ControlSpec(0,3, \lin,1);
-		 ~timeline.timeline.mygrid = { arg bounds, areasize, viewport;
+		 timeline.timeline.mygrid = { arg bounds, areasize, viewport;
 
 							areasize.x * viewport.width 
 							+ ( areasize.x * viewport.origin.x ).debug("other end");
@@ -1580,7 +1580,73 @@ Pdef(\plop2, Pbind(
 		window.front;
 		
 	};
-	~pitch_recorder.(EventLoop(\e));
+	// timeline of eventloops
+	~make_timeline_of_eventloops = {
+		var window = Window.new;
+		var layout;
+		var tot;
+		var firstel;
+		var a;
+
+		a = EventList[];
+
+		// add some time-stamped events to it
+		a.start;
+		a.addEvent((absTime: 0, midinote: 50, sustain:1/4));    // events should begin with time 0;
+		a.addEvent((absTime: 0.3, midinote: 47, sustain:1/4));
+		a.addEvent((absTime: 0.52, midinote: 42, sustain:1/4));
+		a.addEvent((absTime: 0.72, midinote: 52, sustain:1/4));
+		a.addEvent((absTime: 0.93, midinote: 54, sustain:1/4));
+		//a.finish(1.88);
+		a.finish(1.50);
+		firstel = EventLoop.newInstance;
+		firstel.list = a;
+
+
+		tot = EventList[];
+		tot.start;
+		tot.addEvent((
+			absTime: 1, 
+			midinote: 1, 
+			nodeType: \eventloop,
+			eventloop: firstel,
+			sustain:4
+		)); 
+		tot.finish(8);
+
+
+		~timeline = TimelineView.new;
+		~timeline.eventFactory = { arg pos;
+			var el = EventLoop.newInstance;
+			el.list.start;
+			el.list.finish(1);
+			(
+				absTime: pos.x, 
+				label: "unnamed_"++(100.rand),
+				midinote: pos.y, 
+				nodeType: \eventloop,
+				eventloop: el,
+				sustain:1/4,
+			); 
+		};
+		~timeline.keyDownAction = { arg me, key, modifiers, unicode, keycode;
+			if(key == $e) {
+				var el = ~timeline.chosennode.model[\eventloop].debug("EEEEEEEEE");
+				~pitch_recorder.(el);
+
+			}
+		};
+		~timeline.areasize = 10@4;
+		~timeline.mapEventList(tot);
+		layout = VLayout(
+			~timeline.view
+		);
+		window.layout = layout;
+		//window.alwaysOnTop = true;
+		window.front;
+	};
+	~make_timeline_of_eventloops.();
+	//~pitch_recorder.(EventLoop(\e));
 	//~clip_recorder.(EventLoop(\clip));
 	//~timeline_of_timeline.(EventLoop(\tot));
 )
@@ -1756,9 +1822,9 @@ w.front;
 
 		// add some time-stamped events to it
 		a.start;
-		a.addEvent((absTime: 0, midinote: 50, sustain:1/4));    // events should begin with time 0;
-		a.addEvent((absTime: 0.3, midinote: 47, sustain:1/4));
-		a.addEvent((absTime: 0.52, midinote: 42, sustain:1/4));
+		a.addEvent((absTime: 0, midinote: 40, sustain:1/4));    // events should begin with time 0;
+		a.addEvent((absTime: 0.3, midinote: 42, sustain:1/4));
+		a.addEvent((absTime: 0.52, midinote: 46, sustain:1/4));
 		a.addEvent((absTime: 0.72, midinote: 52, sustain:1/4));
 		a.addEvent((absTime: 0.93, midinote: 54, sustain:1/4));
 		//a.finish(1.88);
@@ -1788,9 +1854,9 @@ w.front;
 
 		// add some time-stamped events to it
 		a.start;
-		a.addEvent((absTime: 0, midinote: 50, sustain:1/4));    // events should begin with time 0;
-		a.addEvent((absTime: 0.3, midinote: 47, sustain:1/4));
-		a.addEvent((absTime: 0.52, midinote: 42, sustain:1/4));
+		a.addEvent((absTime: 0, midinote: 40, sustain:1/4));    // events should begin with time 0;
+		a.addEvent((absTime: 0.3, midinote: 42, sustain:1/4));
+		a.addEvent((absTime: 0.52, midinote: 46, sustain:1/4));
 		a.addEvent((absTime: 0.72, midinote: 52, sustain:1/4));
 		a.addEvent((absTime: 0.93, midinote: 54, sustain:1/4));
 		//a.finish(1.88);
@@ -1828,8 +1894,8 @@ w.front;
 
 			}
 		};
-		~timeline.mapEventList(tot);
 		~timeline.areasize = 10@4;
+		~timeline.mapEventList(tot);
 		layout = VLayout(
 			~timeline.view
 		);
@@ -1842,70 +1908,10 @@ w.front;
 
 
 (
-	// timeline of eventloops
-	~make = {
-		var window = Window.new;
-		var layout;
-		var tot;
-
-		a = EventList[];
-
-		// add some time-stamped events to it
-		a.start;
-		a.addEvent((absTime: 0, midinote: 50, sustain:1/4));    // events should begin with time 0;
-		a.addEvent((absTime: 0.3, midinote: 47, sustain:1/4));
-		a.addEvent((absTime: 0.52, midinote: 42, sustain:1/4));
-		a.addEvent((absTime: 0.72, midinote: 52, sustain:1/4));
-		a.addEvent((absTime: 0.93, midinote: 54, sustain:1/4));
-		//a.finish(1.88);
-		a.finish(1.50);
-
-
-		tot = EventList[];
-		tot.start;
-		tot.addEvent((
-			absTime: 1, 
-			midinote: 1, 
-			nodeType: \eventlist,
-			eventlist: a,
-			sustain:4
-		)); 
-		tot.finish(8);
-
-
-		~timeline = TimelineView.new;
-		~timeline.eventFactory = { arg pos;
-			var el = EventLoop.newInstance;
-			el.list.start;
-			el.list.finish(1);
-			(
-				absTime: pos.x, 
-				label: "unnamed_"++(100.rand),
-				midinote: pos.y, 
-				nodeType: \eventloop,
-				eventloop: el,
-				sustain:1/4,
-			); 
-		};
-		~timeline.keyDownAction = { arg me, key, modifiers, unicode, keycode;
-			if(key == $e) {
-				var el = ~timeline.chosennode.model[\eventloop].debug("EEEEEEEEE");
-				~pitch_recorder.(el);
-
-			}
-		};
-		~timeline.mapEventList(tot);
-		~timeline.areasize = 10@4;
-		layout = VLayout(
-			~timeline.view
-		);
-		window.layout = layout;
-		//window.alwaysOnTop = true;
-		window.front;
-	};
-	~make.();
 )
 
+Rect(0,0,-10,-25).leftTop
+Rect(0,0,-10,-25).leftBottom
 
 (
 w = Window.new.front;
@@ -2054,3 +2060,118 @@ w.refresh;
 
 
 EventLoopNode.new
+
+(
+SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq * [1,1.01,1.001, 1+0.1.rand]);
+	sig = RLPF.ar(sig, \lpf.kr(400), \rq.kr(0.1));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.4),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).flop;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\plop, 
+	Ppar([
+		PbindSeqDef(\h1) <>
+		Pbind(
+			\instrument, \plop,
+			\freq, 500,
+			\isRest, Pfunc({ arg ev;
+				ev[\velo] > 4
+			}),
+		),
+		PbindSeqDef(\h2) <>
+		Pbind(
+			\freq, 200,
+			\isRest, Pfunc({ arg ev;
+				//ev[\velo].debug("velo200");
+				//(ev[\velo] <= 2).debug("velo200bool");
+				ev[\velo] <= 2
+			}),
+		),
+		PbindSeqDef(\h3) <>
+		Pbind(
+			\freq, 800,
+			\isRest, Pfunc({ arg ev;
+				//ev[\velo].debug("velo800");
+				//(ev[\velo] <= 2).debug("velo800bool");
+				ev[\velo] > 6
+			}),
+		),
+		
+	].collect({ arg pat;
+
+	
+		Pbind(
+			\isRest, Pfunc({ arg ev;
+				if(ev[\resty] == 0) {
+					true
+				} {
+					ev[\isRest]
+				}
+			})
+
+		)
+		<> pat 
+		<> Pn(PbindSeqDef(\heyi,8)) 
+		<> Pbind(
+			\instrument, \default,
+			\velo, Pseq([1,0,4],inf),
+			\degree, Pseq([0],inf),
+			\dur, 1/8,
+			\amp, 0.1
+		)
+
+	}))
+
+).play;
+);
+
+Param(PbindSeqDef(\heyi), \velo, ControlSpec(0,8,\lin)).edit
+Param(PbindSeqDef(\heyi), \lpf, \freq).edit
+Param(PbindSeqDef(\heyi), \resty, ControlSpec(0,1,\lin,1)).edit
+PbindSeqDef(\heyi).setVal(\velo, List.newFrom(2!8))
+PbindSeqDef(\heyi).setVal(\lpf, 600!8)
+PbindSeqDef(\heyi).setVal(\resty, 0!32)
+PbindSeqDef(\heyi).setVal(\rq, 0.8)
+PbindSeqDef(\heyi).get(\velo)
+(
+ParamGroup([
+	Param(PbindSeqDef(\heyi), \velo, ControlSpec(0,8,\lin)),
+	Param(PbindSeqDef(\heyi), \lpf, \freq),
+	Param(PbindSeqDef(\heyi), \resty, ControlSpec(0,1,\lin,1)),
+	Param(PbindSeqDef(\heyi), \rq, \rq),
+	Param(PbindSeqDef(\h1), \freq, \freq),
+	Param(PbindSeqDef(\h2), \freq, \freq),
+	Param(PbindSeqDef(\h3), \freq, \freq),
+]).edit
+)
+nil ? 1
+
+(
+Pdef(\bla, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+
+Pseq
+
+(
+	~list = List[0,1,4,7,8];
+Pdef(\plopx, Pbind(
+	\instrument, \default,
+	\degree, Pseq(~list,inf),
+	\dur, 1/4,
+	\amp, 0.1
+)).play;
+);
+
+~list[0] = 14
+~list.array = [4,4,4,5,8,9]
+List
