@@ -64,12 +64,27 @@ Pdef(\plop3, Pbind(
 };
 //~make_sequencer.( ~tracks );
 
+~make_sequencer_line = { arg param;
+	var butlist;
+	var mapParam;
+	HLayout(*
+		butlist = param.collect({ arg subparam;
+			subparam.asButton;
+		})
+	).addUniqueMethod(\mapParam, { arg param;
+		butlist.do { arg but, n; 
+			but.mapParam(param.at(n));
+		}
+	})
+};
+
 ~class_score_manager = (
 	new: { arg self, track_count, delta=1/8, duration=1;
 		self = self.deepCopy;
 	
-		self.score_delta = delta,
-		self.score_duration = duration,
+		self.score_delta = delta;
+		self.score_duration = duration;
+		self.current_score = 0;
 		
 		self.scores = List.new;
 		self.add_score;
@@ -79,38 +94,88 @@ Pdef(\plop3, Pbind(
 
 	add_score: { arg self;
 		self.scores.add(
+			self.track_count.do { arg x;
+				self.add_row;
+			}
+		);
+		self.refresh_grid;
+	},
+
+	add_row: { arg self;
+		self.scores[self.current_score].add(
 			List.newFrom(0!( self.score_duration/self.score_delta ))
-		)
+		);
+		self.refresh_grid;
+	},
+
+	remove_row: { arg self, x;
+		self.scores[self.current_score].removeAt(x);
+		self.refresh_grid;
+	},
+
+	refresh_grid: { arg self;
+		if(self.score_select_view.notNil) {
+			var val;
+			val = self.score_select_view.value;
+			self.score_select_view.items_( (1..self.scores.size) );
+			self.score_select_view.value = val;
+		};
+		if(self.gridview.notNil) {
+			self.gridview.layout = GridLayout.rows(*
+				self.buttonrows = List.new;
+				self.scores[self.current_score].collect({ arg score, x;
+					[
+						StaticText.new.string_("track "++(x+1)),
+						XSimpleButton.new
+						.action_({
+							self.selected = x
+						}),
+						self.buttonrows.add(~make_sequencer_line.(score)); self.buttonrows.last,
+					]
+				})
+			)
+		}
 	},
 
 	make_layout: { arg self;
 		// TODO: find the file where I defined a widget which is a row of button corresponding to a Param(\list) and make it a Class
-		VLayout(
+		var buttonrows;
+		var gridlayout;
+		var layout;
+		layout = VLayout(
 			HLayout(
-				PopUpMenu.new // score chooser
+				self.score_select_view = PopUpMenu.new // score chooser
+					.items_( (1..self.scores.size) )
 					.action_({ arg view;
-						buttonrows[view.value].mapParam(self.scores[view.value])
-					}),
-				XSimpleButton.new.label_("+") // add
+						//buttonrows[view.value].mapParam(self.scores[self.current_score][view.value])
+						self.current_score = view.value;
+						self.refresh_grid;
+					});
+					self.score_select_view,
+				XSimpleButton.new.label_("t+") // track add
 					.action_({
-
+						self.add_row;
 					}),
-				XSimpleButton.new.label_("-") // delete
+				XSimpleButton.new.label_("t-") // track delete
 					.action_({
-
+						self.remove_row(self.selected);
+					}),
+				XSimpleButton.new.label_("s+") // score add
+					.action_({
+						self.add_score;
+					}),
+				XSimpleButton.new.label_("s-") // score delete
+					.action_({
+						self.remove_score(self.current_score);
 					}),
 			),
 
-			GridLayout.rows(*
-				self.scores.collect({ arg score, x;
-					[
-						StaticText.new.string_("track "++(x+1)),
-						ButtonRow.new.mapParam(score)
-					]
-				})
-			)
-		)
+			self.gridview = View.new; self.gridview, // seq grid
 
+		);
+		self.refresh_grid;
+
+		layout;
 
 	},
 
@@ -123,6 +188,9 @@ Pdef(\plop3, Pbind(
 		window.front;
 	}
 );
+
+~sm = ~class_score_manager.new;
+~sm.make_window;
 
 );
 
