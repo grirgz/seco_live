@@ -1416,3 +1416,20 @@ SynthDef(\aSynth, { |rel = 0, choose = 0, amp = 0|
 }.fork;
 
 )
+
+
+(
+	w = Window("test", Rect(800, 200, 200, 100));
+	w.layout = HLayout(
+		        //n = NumberBox.new.fixedWidth_(60),
+		        n = NumberBox.new::,
+				        l = Slider.new.orientation_(\horizontal)
+
+	);
+	w.front;
+
+)
+
+// This gets the *appearance* I want.
+n.fixedHeight = l.bounds.height;
+
