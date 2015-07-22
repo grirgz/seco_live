@@ -1,3 +1,18 @@
+/////////////////////////////////////
+
+one thing need to be known, where to store files ?
+NiceGui {
+	classvar <>folder = "/home/workflow/stuff/supercollider/NiceGui/";
+create a Project class with push/pop ?
+	a path assigned to each project
+	and variables associated to each project
+
+and how to save non-code data
+	- into archive
+	- into local archive
+	- into asCompileString local file
+
+
 /////////////////////////////////
 common errors:
 /////
