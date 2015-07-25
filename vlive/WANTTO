@@ -12,6 +12,9 @@ and how to save non-code data
 	- into local archive
 	- into asCompileString local file
 
+/////////////////
+
+why Slider change range when setting lo but Rect change top when setting bottom ????
 
 /////////////////////////////////
 common errors:

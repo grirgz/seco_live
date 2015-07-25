@@ -312,6 +312,7 @@ MidinoteTimeline([])
 
 	~zoom_fit = { arg timeline;
 		var maxy=0, miny=127;
+		var range;
 		timeline.model.do { arg ev, x;
 			var midi = ev.use { ev.midinote };
 			[x, maxy, miny, midi, ev].debug("zoom_fit: midi");
@@ -326,12 +327,29 @@ MidinoteTimeline([])
 			}
 		};
 		[timeline.viewport, timeline.viewport.top, maxy/timeline.areasize.y, timeline.viewport.height, (maxy-miny)/timeline.areasize.y].debug("ZOOM ZOOOOOOOOOOOOOOOOOOOOM viewport before");
-		timeline.viewport.top = 1-(maxy/timeline.areasize.y);
-		timeline.viewport.height = (maxy-miny)/timeline.areasize.y;
+		[timeline.areasize].debug("areasize");
+		range = (maxy-miny+1)/timeline.areasize.y;
+		timeline.viewport.top = (miny/timeline.areasize.y).debug("top");
+		timeline.viewport.height = range;
+
+		//timeline.viewport.top = 42/128;
+		//timeline.viewport.height = ((54-42)/128);
+
 		timeline.viewport.debug("ZOOM ZOOOOOOOOOOOOOOOOOOOOM viewport");
+
 		timeline.changed(\viewport);
 		timeline.refresh;
 	};
+
+	/*
+	a = Rect(0,0,1,1)
+	a.top
+	a.top = 0.2
+	a
+	a.bottom 
+	a.bottom = 0.3
+	a.height = 0.1
+	*/
 
 	~zoom_bar = (
 		new: { arg self;
@@ -379,6 +397,7 @@ MidinoteTimeline([])
 			layout.add(vlayout);
 
 			timeline = MidinoteTimelineView.new;
+			~mytl = timeline;
 			ruler_x = TimelineRulerView.new;
 			ruler_y = MidinoteTimelineRulerView.new;
 			locatorbar = TimelineLocatorBarView.new;
@@ -387,38 +406,24 @@ MidinoteTimeline([])
 			ruler_x.mimicTimeline(timeline);
 			locatorbar.mimicTimeline(timeline);
 
-			//hrange = RangeSlider.new;
 			hrange = TimelineScroller.new;
 			hrange.mapTimeline(timeline);
 			hrange.orientation = \horizontal;
-			//vrange = RangeSlider.new;
 			vrange = TimelineScroller.new;
 			vrange.mapTimeline(timeline);
 			vrange.orientation = \vertical;
-
-			ruler_y.viewport.debug("viewport1");
-
-			//ruler_y.viewport = Rect(0,0,1,1); // FUCKING BUG with viewport
-
-
-			sizer_action = { arg timeline, point;
-				timeline.areasize = timeline.areasize + point;
-				timeline.refresh;
-			};
 
 			sizer = 
 				HLayout(
 					XSimpleButton.new.label_("<").action_({
 						var point = 0 - Point(4,0);
-						sizer_action.(timeline, point);
-						sizer_action.(locatorbar, point);
-						sizer_action.(ruler_x, point);
+						timeline.areasize = timeline.areasize + point;
+						timeline.refresh;
 					}).fixedSize_(Point(10,20)),
 					XSimpleButton.new.label_(">").action_({
 						var point = Point(4,0);
-						sizer_action.(timeline, point);
-						sizer_action.(locatorbar, point);
-						sizer_action.(ruler_x, point);
+						timeline.areasize = timeline.areasize + point;
+						timeline.refresh;
 					}).fixedSize_(Point(10,20)),
 				).spacing_(0);
 
@@ -448,43 +453,10 @@ MidinoteTimeline([])
 			);
 			layout.spacing = 0;
 
-			timeline.viewport = Rect(0,0,1,1);
-			ruler_y.viewport = Rect(0,0,1,1);
-			//vrange.action = { arg slider;
-			//	var refresh = { arg timeline;
-			//		var range = slider.range.clip(0.01,1); // prevent division by 0
-			//		timeline.viewport.top = (1-slider.hi) / range;
-			//		timeline.viewport.height = range;
-			//		[timeline.viewport, slider.hi, slider.lo, slider.range].debug("range action");
-			//		timeline.refresh;
-			//	};
-			//	refresh.(timeline);
-			//	refresh.(ruler_y);
-			//};
-			//hrange.action = { arg slider;
-			//	var refresh = { arg timeline;
-			//		var range = slider.range.clip(0.01,1); // prevent division by 0
-			//		timeline.viewport.left = slider.lo / range;
-			//		timeline.viewport.width = range;
-			//		[timeline.viewport, slider.hi, slider.lo, slider.range].debug("range action");
-			//		timeline.refresh;
-			//	};
-			//	refresh.(timeline);
-			//	refresh.(locatorbar);
-			//	refresh.(ruler_x);
-			//};
-
-
 			size = self.area_size;
 			size.debug("size!!!");
-			timeline.view.refresh;
 
 			timeline.areasize = size;
-			locatorbar.areasize = size;
-			ruler_x.areasize = size;
-			ruler_y.areasize = size;
-
-			ruler_y.viewport.debug("viewport");
 
 			ruler_x.view.minSize = Point(10,10);
 			ruler_y.view.minSize = Point(40,10);
@@ -492,65 +464,6 @@ MidinoteTimeline([])
 
 			timeline.mapEventList(eventloop.list);
 			locatorbar.mapEventList(eventloop.list);
-
-			timeline.refresh;
-
-			//ruler_y.drawFunc = { 
-				~draw_piano_bar.(ruler_y, 7/8);
-				//var thi = ruler_y;
-				//var grid;
-				//var bounds = thi.bounds;
-				//var piano_pattern = Pseq([0,1,0,1,0, 0,1,0,1,0,1,0],inf).asStream;
-				//var areasize = thi.areasize;
-				//var roll_start_x = 2*thi.bounds.width/3;
-				//Pen.alpha = 0.7;
-				//Pen.color = Color.black;
-
-
-				//areasize.debug("drawFunc: areasize");
-				//areasize.y.do { arg py;
-				//	var start;
-				//	var smallstart;
-				//	var next;
-				//	var end;
-				//	var pkey;
-				//	//[this.gridPointToPixelPoint(Point(0,py)),this.gridPointToPixelPoint(Point(areasize.x, py))].debug("line");
-				//	start = thi.gridPointToPixelPoint(Point(0,py));
-				//	start = Point(0, start.y);
-				//	smallstart = thi.gridPointToPixelPoint(Point(0,py));
-				//	smallstart = Point(roll_start_x, start.y);
-				//	end = thi.gridPointToPixelPoint(Point(0, py));
-				//	end = Point(thi.bounds.width, end.y);
-				//	next = thi.gridPointToPixelPoint(Point(0,py+1));
-				//	pkey = Rect(roll_start_x, start.y,  thi.bounds.width, next.y-start.y  ).flipY;
-
-
-				//	Pen.color = if(piano_pattern.next == 0) {
-				//		Color.white;
-				//	} {
-				//		Color.black
-				//	};
-				//	Pen.fillRect( pkey );
-
-
-				//	if((py+1)%12==0) {
-				//		Pen.line( start, end );
-				//		Pen.color = Color.black;
-				//		Pen.stroke;
-				//	} {
-				//		Pen.line(smallstart, end);
-				//		Pen.color = Color.black;
-				//		Pen.stroke;
-				//	};
-				//	[start, end, pkey].debug("pianooooooooooooo");
-				//	//Pen.fill;
-				//};
-				//Pen.color = Color.black;
-				//Pen.line(Point(roll_start_x, 0), Point(roll_start_x, thi.bounds.height));
-				////Pen.line(Point(20, 0), Point(20, thi.bounds.height));
-				//Pen.stroke;
-			//};
-			ruler_y.refresh;
 
 			self.timeline = timeline;
 			self.layout = layout;
@@ -566,6 +479,10 @@ MidinoteTimeline([])
 	~mt.makeWindow;
 
 )
+
+~mytl.viewport = Rect(0, 42/128, 1,1-((52-42)/128)); ~mytl.refresh;
+~mytl.viewport = Rect(0, 1/4, 1,(1/4)); ~mytl.refresh;
+~mytl.viewport = Rect(0, 0, 1,1); ~mytl.refresh;
 
 (
 	~make = {

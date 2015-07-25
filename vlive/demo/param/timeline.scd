@@ -78,6 +78,8 @@ Rect(0,0,1,1) / 2
 	~wid.viewport = Rect(0,0,1,1);
 	~vrange.action = { arg slider;
 		var range = slider.range.clip(0.0001,1); // prevent division by 0
+
+		[slider.hi, slider.lo, slider.range].debug("slider v");
 		~wid.viewport.top = (1-slider.hi) / range;
 		~wid.viewport.height = range;
 		[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
