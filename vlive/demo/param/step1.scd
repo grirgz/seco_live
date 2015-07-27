@@ -794,3 +794,567 @@ EventSeqBank.new(
 
 - for StepList, there is no bank, only preset because they can be grouped in ParamGroup
 - EventSeq
+
+
+/////////////////////
+
+~a = 1;
+
+~a.dump
+
+
+Pbindef
+
+Pbind(
+			\instrument, \default,
+			\freq, 200,
+			\dur, 1/4,
+			\amp, 0.1
+		).play
+
+		a
+		b
+		~b
+
+(
+Pdict(
+	(
+		hel: Pbind(
+			\instrument, \default,
+			\freq, 200,
+			\dur, 1/4,
+			\amp, 0.1
+		),
+		llo: Pbind(
+			\instrument, \default,
+			\freq, 400,
+			\dur, 1/4,
+			\amp, 0.1
+		)
+	),
+	Pseq([\g, \llo]).trace
+).trace.play
+)
+
+\g.asPattern.asStream.nextN(10)
+
+(
+Pdef(\plop, 
+	Pseq([
+		Pbind(
+			\instrument, \default,
+			\limit, Pn(1,128-16),
+			\degree, Pseq(#[c, e, g, c],inf),
+			\root, Pwhite(0,-8).stutter(32),
+			\mtranspose, Pwhite(-8,8).stutter(8),
+			\dur, 1/8,
+			\isRest, Pwrand([0,1], [0.1,1],inf).coin.not,
+			\legato, Pwhite(0.1,1.2),
+			\amp, 0.1
+		),
+		Pbind(
+			\instrument, \default,
+			\limit, Pn(1,16),
+			\degree, Pseq(#[e],inf),
+			\root, Pwhite(0,-8).stutter(32),
+			\mtranspose, Pwhite(-8,8).stutter(8),
+			\dur, 1/8,
+			\isRest, Pseq([1,0,1,0],inf).coin.not,
+			\legato, Pwhite(0.1,1.2),
+			\amp, 0.1
+		),
+		Pbind(
+			\instrument, \default,
+			\limit, Pn(1,128-16),
+			\degree, Pwalk(#[c, e, g, c],1, Prand([-1,1],inf).stutter(Pwhite(1,10))),
+			\root, Pwhite(0,-8).stutter(32),
+			\mtranspose, Pwhite(-8,8).stutter(8),
+			\dur, 1/8,
+			\isRest, Pwrand([0,1], [0.1,1],inf).coin.not,
+			\legato, Pwhite(0.1,1.2),
+			\amp, 0.1
+		),
+		Pbind(
+			\instrument, \default,
+			\limit, Pn(1,16),
+			\degree, Pseq(#[c],inf),
+			\root, Pwhite(0,-8).stutter(32),
+			\mtranspose, Pwhite(-8,8).stutter(8),
+			\dur, 1/8,
+			\isRest, Pseq([1,0,1,0],inf).coin.not,
+			\legato, Pwhite(0.1,1.2),
+			\amp, 0.1
+		),
+		Pbind(
+			\instrument, \default,
+			\degree, Pwalk(#[c, e, g, c],1, Prand([-1,1],inf).stutter(Pwhite(1,10))) +
+				Pseq([Pn(0,64),
+					Prand([
+						0,
+						[0,2,3],
+					],inf)
+				]),
+			\root, Pwhite(0,-8).stutter(32),
+			\mtranspose, Pwhite(-8,8).stutter(8),
+			\dur, 1/8,
+			\isRest, Pwrand([0,1], [0.1,1],inf).coin.not,
+			\legato, Pwhite(0.1,1.2),
+			\amp, 0.1
+		)
+
+	])
+).play;
+);
+
+(
+	Pdef(\bla,
+	Pbind(
+		\instrument, \default,
+		\degree, Pwalk(#[c, e, g, c],1, Prand([-1,1],inf).stutter(Pwhite(1,10))) +
+			Pseq([Pn(0,64),
+				Prand([
+					0,
+					[0,2,3],
+				],inf)
+			]),
+		\root, Pwhite(0,-8).stutter(32),
+		\mtranspose, Pwhite(-8,8).stutter(8),
+		\dur, 1/8,
+		\isRest, Plazy({
+			Pwrand([0,1], [~rest,1 - ~rest],1).coin.not;
+		}).loop,
+		\legato, Pwhite(0.1,1.2),
+		\amp, 0.1
+	)
+).play;
+)
+(
+~rest = 0.0;
+~list = [100,200,300,400,500];
+	Pdef(\bla,
+		Pdef(\hey, Pbind()) <>
+	Pbind(
+		\instrument, \default,
+		\degree, Pwalk(#[c, e, g, c],1, Prand([-1,1],inf).stutter(Pwhite(1,10))) +
+			Pseq([Pn(0,64),
+				Prand([
+					0,
+					[0,2,3],
+				],inf)
+			]),
+			\freq, Plazy({
+				Pseq(~list)
+			}).loop,
+		\root, Pwhite(0,-8).stutter(32),
+		\mtranspose, Pwhite(-8,8).stutter(8),
+		\dur, 1/2,
+		\isRest, Plazy({
+			Pwrand([0,1], [~rest,1 - ~rest],1).coin.not;
+		}).loop,
+		\legato, Pwhite(0.1,1.2),
+		\amp, 0.1
+	)
+).play;
+)
+~list
+
+~rest
+Param(currentEnvironment, \rest, \unipolar).edit
+Param(currentEnvironment, \list, XArraySpec(\freq!5)).edit
+Param(currentEnvironment, \list, XArraySpec(\freq!5)).at(0)
+(
+	ParamGroup([
+		Param(Pdef(\hey), \dur, ControlSpec(1/8,2,\lin,1/8)),
+		Param(currentEnvironment, \rest, \unipolar),
+		Param(currentEnvironment, \list, XArraySpec(\freq!5)),
+
+	]).edit
+)
+v = VarGui([\rest, \unipolar]).gui;
+VarGui
+
+(e = (    a: Pbind(\dur, 0.1, \degree, Pseq([0, 5, 4, 3, 2])),    b: Pbind(\dur, 0.06, \degree, Pseq([7, 8, 7, 8])),    c: Pbind(\dur, 0.3, \degree, Pseq([0, 1, 2], 2)));
+x = Pdict(e, Pseq([            \a, \b,            Prand([\a, \c])        ], 4)    );x.play;)
+
+
+
+(
+	e = (    a: Pbind(\dur, 0.1, \degree, Pseq([0, 5, 4, 3, 2])),    b: Pbind(\dur, 0.06, \degree, Pseq([7, 8, 7, 8])),    c: Pbind(\dur, 0.3, \degree, Pseq([0, 1, 2], 2)));
+x = Pdict(e, Pseq([            \a, \b,            Prand([\a, \c])        ], 4)    );x.play;
+)
+
+
+{ SinOsc.ar(200) ! 2 * 0.1}.play;
+
+
+(
+Pdef(\rah, 
+	Pbindef(\hey, \bla, 1) <>
+	
+	Pbind(
+	\instrument, \default,
+	\degree, Pseq([0,12,2,3],inf),
+	\dur, 1/4,
+	\amp, 0.1
+)).play;
+);
+
+Pbindef(\rah, \degree, 1)
+Pbindef(\rah, \degree, nil)
+
+Pbindef(\hey, \degree, 1)
+Pbindef(\hey, \degree, 0)
+Pbindef(\hey, \degree, nil)
+
+
+Pdefn(\ctran, 1)
+(
+Pdef(\xplop, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	\isRest, Pseq([
+		0,0,1,0.1, 0,0,0.8,1,
+		0,1,0,1,
+	],inf).coin.not,
+	\mtranspose, Pdefn(\ctran),
+	\legato, 0.1,
+	\sustain, 0.01,
+	\dur, 1/12*2,
+	\amp, 0.1
+)).play;
+Pdef(\xlba, Pbind(
+	\instrument, \default,
+	\degree, Pseq([
+		-3,-5,-7
+	],inf).stutter(2),
+	\isRest, Pseq([
+		1,0,
+		1,0,
+		1,0,
+		1,0,
+		1,1,
+	],inf).coin.not,
+
+	\mtranspose, Pdefn(\ctran),
+	\legato, 0.1,
+	\sustain, 0.01,
+	\dur, 1/24,
+	\amp, 0.1,
+	\amp, Pseq([
+		0.3,1,0.5,
+	],inf) * 0.1,
+)).play;
+Pdef(\xcri, Pbind(
+	\instrument, \default,
+	\degree, Pseq([
+		2,2,2,4,
+	],inf),
+	\isRest, Pseq([
+		1,1,1,
+		1,1,1,
+		1,1,1,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+	],inf).coin.not,
+
+	\mtranspose, Pdefn(\ctran),
+	\legato, 0.1,
+	\sustain, 0.01,
+	\dur, 1/12/2,
+	\amp, 0.1,
+	\amp, Pseq([
+		0.3,1,0.5,
+	],inf) * 0.1/2,
+)).play;
+);
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \boom,
+	\degree, Pseq([0],inf),
+	\isRest, Pseq([
+		0,0,1,0.1, 0,0,0.8,1,
+		0,1,0,1,
+	],inf).coin.not,
+	\mtranspose, Pdefn(\ctran),
+	\legato, 0.1,
+	\sustain, 0.01,
+	\dur, 1/12,
+	\amp, 0.1,
+)).play;
+Pdef(\lba, Pbind(
+	\instrument, \boom,
+	\start, 800,
+	\nstart, 15000,
+	\nend, 10000,
+	\env, Pseq([
+		[ Env([0,1,0],[0.01,1.8].normalizeSum, 0) ],
+	],inf),
+	\nsustain, 0.1,
+	\adsr, Pseq([
+		[ Env.adsr(0.1,0.1,0.8,0.4) ],
+		[ Env.adsr(0.1,0.1,0.8,0.2) ],
+	],inf),
+	\degree, Pseq([
+		-3,-5,
+	],inf).stutter(2),
+	\isRest, Pseq([
+		1,0,
+		1,0,
+		1,0,
+		1,0,
+		1,1,
+	],inf).coin.not,
+
+	\mtranspose, Pdefn(\ctran),
+	\legato, 0.1,
+	\sustain, 0.01,
+	\dur, 1/24,
+	\amp, 0.1,
+	\amp, Pseq([
+		0.3,1,0.5,
+	],inf) * 0.4,
+)).play;
+Pdef(\cri, Pbind(
+	\instrument, \boom,
+	\start, 100,
+	\nstart, 15000,
+	\nend, 10000,
+	\degree, Pseq([
+		2,2,2,4,
+	],inf),
+	\isRest, Pseq([
+		1,1,1,
+		1,1,1,
+		1,1,1,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+
+		0,0,0,
+		0,0,0,
+		0,0,0,
+	],inf).coin.not,
+
+	\mtranspose, Pdefn(\ctran),
+	\legato, 0.1,
+	\sustain, 0.01,
+	\dur, 1/12/2,
+	\amp, 0.1,
+	\amp, Pseq([
+		0.3,1,0.5,
+	],inf) * 0.1/2*1,
+)).play;
+);
+
+(
+SynthDef(\boom, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, doneAction=2;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig = SinOsc.ar(XLine.kr(\start.kr(4400),\end.kr(10),\len.kr(0.01)));
+	sig = BRF.ar(sig, \start.kr,1.9);
+	sig = LPF.ar(sig, \start.kr/8);
+	sig1 = WhiteNoise.ar(1);
+	sig1 = LPF.ar(sig1, Line.kr(\nstart.kr(10000),\nend.kr(5000),\nlen.kr(0.1/2)),0.1);
+	sig1 = HPF.ar(sig1, 100);
+	sig1 = sig1 * EnvGen.kr(\env.kr(Env([0,2,0],[0.01,0.8].normalizeSum, -2)), gate, timeScale:\nsustain.kr(0.5));
+	sig1 = sig1 * 0.5;
+	sig = sig + sig1;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:doneAction);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+TempoClock.default.tempo = 0.27
+1/0.27*60
+
+(
+Pdef(\boom, Pbind(
+	\instrument, \boom,
+	\degree, Pseq([0],inf),
+	\sustain, 0.1,
+	\dur, 1/6,
+	\amp, 0.1
+)).play;
+);
+
+
+~b = Buffer.read(s, "/usr/local/bin/sclang")
+
+
+
+		(	// define a conductor using the default controlspecs
+
+			Conductor.specs[\spT] = ControlSpec(-60, 700, 'linear', 0, 33);
+
+			a = Conductor.make{ | con, freq1, db, pan, dur, spT3, s3pT, sp3T|	
+
+				con.name_("example 1");
+
+				con.pattern_(Pbind(*[freq: freq1, db: db, pan: pan, dur: dur]) );
+
+			};
+
+			a.show;
+
+		)
+
+		(
+
+			a.play;
+
+			a[\freq].value = 700;
+
+		)
+
+	
+
+
+(	
+	a = Conductor.new;										// create the conductor
+
+		
+
+		a.addCV(\cv1);											// add some CVs
+
+		a.addCV(\cv2);
+
+		a.addCV(\cv3);
+
+	
+
+		w = a.show; 
+		defer( { Document.current.front}, 0.05);	// display it
+
+)		
+
+(	
+	a[\cv1]	.sp(440, 20, 20000, 0, 'exp');			// set the range of cv1
+
+		a[\cv2]	.sp(0.1, 0.01, 1, 0, 'exp');			// now cv2
+
+)		
+
+(
+	w.close;												// close the display window
+
+		defer({
+
+			a[\cv3].value = 1/(1..128);						// and change cv3 to represent an array
+
+			w = a.show	
+
+		}, 0.1);												// and show it now
+
+)		
+
+(		w.close;
+
+		defer({
+
+			a.useInterpolator;										// add the use of an interpolator
+
+			a[\cv3].value = 1/(1..128); 			a.preset.addPreset;	// save some presets
+
+			a[\cv3].value = 1/(1..128).reverse; 	a.preset.addPreset;
+
+			a.preset.presetCV.value_(0);
+
+			w = a.show;   
+
+
+		}, 0.1);
+
+)		
+
+(
+
+		Task { 													// interpolate between the presets
+
+			loop {
+
+				a.preset.targetCV.value_(1);
+
+				100.do {|  i | a.preset.interpCV.value_(i/100); 0.01.wait };
+
+				a.preset.targetCV.value_(0);
+
+				100.do {|  i | a.preset.interpCV.value_(i/100); 0.02.wait }; 
+
+			}
+
+		}.play(AppClock);
+
+)
+
+		w.close;
+
+	
+
+		(
+
+		// Changing CV ranges
+
+			c = Conductor.make { |conductor, a, b, c, d | 
+
+				a	.spec_(\freq);
+
+				b	.spec_(\freq, 880);
+
+				c	.sp(1, 0, 15, 1);
+
+				d	.spec_(\unipolar,1/(1..128));
+
+			};    
+
+			c.show;
+
+		)
+
+
+
+
+		Event.addEventType(\pdef, {
+			~object.play;
+		})
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+		
+		(
+		a = (
+			type: \pdef,
+			object: Pdef(\plop),
+			finish: {
+				Pdef(\plop).stop
+			}
+		).play
+	)
+	a.stop
+
+		(
+		a = Pbind(
+			\instrument, \default,
+			\finish, {
+				"pooooooooooooooo".debug;
+				
+			},
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1
+		).play;
+		)

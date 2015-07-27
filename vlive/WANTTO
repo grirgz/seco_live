@@ -14,7 +14,12 @@ and how to save non-code data
 
 /////////////////
 
-why Slider change range when setting lo but Rect change top when setting bottom ????
+there is maybe a bug in Pbindef implementation, it check if pairs contains key but it should only check first value of each pair
+bug if the key is used as a value somewhere
+
+/////////////
+
+why RangeSlider change range when setting lo but Rect change top when setting bottom ????
 
 /////////////////////////////////
 common errors:
