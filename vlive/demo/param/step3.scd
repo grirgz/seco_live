@@ -432,3 +432,26 @@ WindowLayout({ HLayout(PopUpMenu.new.background_(Color.yellow)) })
 ~sm.superbank.current.asPattern[0].asStream.nextN(10)
 ~sm.superbank.current.asValuePattern.asStream.nextN(10)
 ~sm.superbank.current.asValuePattern.do({ arg x, y; [x,y].debug("xy") })
+
+
+
+
+
+
+(
+~p = Ptuple([
+	Pbind(
+		\degree, 1,
+		\dur, 1,
+	),
+	Pbind(
+		\degree, 0,
+		\dur, 1,
+	),
+]);
+
+~pp = Pchain(~p, Pbind(\pan, 1)).trace;
+~pp = Prout({ arg ev; ev.debug("ev!"); ev.yield }) <> ~pp;
+~pp.play;
+
+)
