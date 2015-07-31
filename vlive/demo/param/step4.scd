@@ -69,7 +69,7 @@ Pdef(\plop).addSpec(\fspread, ControlSpec(0.0001,1,\exp));
 );
 
 Ppredef(\plop)
-Pdef(\plop)
+Pdef(\plop).gui
 Ppredef(\plop).clear
 Pdef.all[\plop] = nil
 
@@ -96,3 +96,128 @@ WindowLayout({
 )
 
 29.collect
+
+/////////////////////////////////////////////////////////////////////:
+
+(
+WindowLayout({ arg win;
+	VLayout(
+		//PlayerWrapperView.new(Pdef(\plop)).layout
+		NumberEditor.new(1)
+
+	)
+})
+)
+
+
+
+(
+// so make sure you get the NumberEditor
+n=NumberEditor(440.0,\freq);
+n.gui;
+n.dump;
+)
+
+Editor.for(Env.perc).gui
+
+
+(
+WindowLayout({
+	VLayout(
+		~v.layout
+	)
+})
+)
+~v = PlayerWrapperView.new(Pdef(\plop))
+~v.model.isPlaying
+~v.model.play
+
+
+Pdef(\plop).changed(\plop, \what, \yup)
+Pdef(\plop).isPlaying
+Pdef(\plop).play
+Pdef(\plop).stop
+
+		PlayerWrapperView.new(Pdef(\plop)).guiBody
+		YourGuiClass.new((howFast:10)).gui
+(howFast:10).guiClass = YourGuiClass
+~model = (howFast:10);
+~model.guiClass = YourGuiClass
+~model.gui
+~model = MyModel.new
+~model.gui
+~model.guiClass = YourGuiClass
+Object
+
+Number.asString.dump
+
+
+
+GUI.skins.redFrik        //also includes a skin
+RedFont.new.dump
+(
+var w= Window("RedGUI test", Rect(100, 200, 400, 400)).front;
+w.view.decorator= FlowLayout(w.view.bounds);
+Red2DSlider(w);
+RedButton(w);
+RedButton(w, nil, "aaa", "bbb");
+RedKnob(w);
+RedLevelIndicator(w).value_(0.5);
+RedMultiSliderView(w);
+RedNumberBox(w);
+RedPopUpMenu(w);
+RedPopUpTreeMenu(w);
+RedSlider(w);
+RedStaticText(w, "test123");
+RedTextView(w);
+)
+
+
+
+a= RedEffectsRack();
+b= Pbind(\degree, Pseq([0, 1, 5, 4, 3, 4], inf), \dur, 0.25).play;
+a.cvs.ringMix.value_(0.5);
+a.out.value= 1
+a.free;
+b.stop;
+
+a.makeView(Window.new.front)
+
+
+a= RedEffectsRack([RedEfxRing, RedEfxGuit, RedEfxVerb]);
+b= Pbind(\degree, Pseq([0, 1, 5, 4, 3, 4], inf), \dur, 0.25).play;
+a.cvs.verbMix.input= 0.5;
+a.cvs.guitMix.input= 1;
+a.free;
+b.stop
+
+
+
+a= RedEffectsRack();
+b= Pbind(\degree, Pseq([0, 1, 5, 4, 3, 4], inf), \dur, 0.25).play;
+c= RedEffectsRackGUI(a);
+a.cvs.ringMix.value_(0.5);
+a.free;
+b.stop;
+c.close;
+
+//--
+a= RedEffectsRack([RedEfxRing, RedEfxGuit, RedEfxVerb, RedEfxRing]);
+b= Pbind(\degree, Pseq([0, 1, 5, 4, 3, 4], inf), \dur, 0.25).play;
+c= RedEffectsRackGUI(a);
+c.redEffectsRack.efxs;
+a.cvs.verbMix.value= 0.5;
+a.cvs.verbDamp.value= 0.7;
+a.free;
+b.stop;
+c.close;
+
+//--
+a= RedEffectsRack(RedEffectModule.subclasses);
+b= Pbind(\degree, Pseq([0, 1, 5, 4, 3, 4], inf), \dur, 0.25).play;
+c= RedEffectsRackGUI(a);
+c.redEffectsRack.efxs;
+a.cvs.verbMix.value= 0.5;
+a.free;
+b.stop;
+c.close;
