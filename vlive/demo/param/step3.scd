@@ -163,9 +163,10 @@ Pdef(\plop3, Pbind(
 				if(self.mode.isNil) {
 					self.set_mode(\seq)
 				};
-				[x, self.mode].debug("x, mode");
+				[x, self.mode, ev].debug("x, mode, ev");
 				switch(self.mode,
 					\seq, {
+						self.banks[x].current.debug("current");
 						ev = self.banks[x].current.embedInStream(ev);
 					},
 					\part, {
@@ -180,7 +181,7 @@ Pdef(\plop3, Pbind(
 						}
 					},
 					{
-						ev = Pbind(\dur, 1/8, \degree, Pseq([1,1,5,5])).embedInStream(ev);
+						ev = Pseq([1,1,5,5]).embedInStream(ev);
 					}
 				)
 			})
@@ -261,6 +262,7 @@ Pdef(\plop3, Pbind(
 		});
 		layout = VLayout(
 			HLayout(
+				PlayerWrapperView(Pdef(\score)).layout,
 				self.score_select_view = PopUpMenu.new // score chooser
 					.items_( (0..self.scores.size-1) )
 					.action_({ arg view;
@@ -269,14 +271,14 @@ Pdef(\plop3, Pbind(
 						self.refresh_grid;
 					});
 					self.score_select_view,
-				XSimpleButton.new.label_("t+") // track add
-					.action_({
-						self.add_row;
-					}),
-				XSimpleButton.new.label_("t-") // track delete
-					.action_({
-						self.remove_row(self.selected);
-					}),
+				//XSimpleButton.new.label_("t+") // track add
+				//	.action_({
+				//		self.add_row;
+				//	}),
+				//XSimpleButton.new.label_("t-") // track delete
+				//	.action_({
+				//		self.remove_row(self.selected);
+				//	}),
 				XSimpleButton.new.label_("s+") // score add
 					.action_({
 						self.add_score;
@@ -310,16 +312,17 @@ Pdef(\plop3, Pbind(
 
 	make_super_layout: { arg self;
 		self.superlistview = ParDictStepListView(self.superbank.current);
-		self.superlistview.addCursor({ arg view;
-			"-------------------popup cursor!!".debug;
-			view.background = Color.yellow;
-		}, { arg view;
-			"deselex-------------------popup cursor!!".debug;
-			view.background = Color.white;
-		});
 		self.superlistview.view.onChange(self.superbank, \index, {
 			self.superlistview.mapStepList(self.superbank.current);
+			self.superlistview.addCursor({ arg view;
+				"-------------------popup cursor!!".debug;
+				view.background = Color.yellow;
+			}, { arg view;
+				"deselex-------------------popup cursor!!".debug;
+				view.background = Color.white;
+			});
 		});
+		self.superbank.changed(\index);
 		
 		self.score_selectors = ~selector.new(self.superbank.size, { arg x; self.select_super(x) });
 		self.score_selectors.debug("1ca");
@@ -339,22 +342,6 @@ Pdef(\plop3, Pbind(
 		);
 		self.refresh_score;
 		self.super_layout;
-	},
-
-	refresh_super_score: { arg self;
-		var alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		var items;
-		alpha = alpha.as(Array).collect({ arg x; x.asString });
-		items = alpha.keep(self.scores.size);
-		self.views.do { arg view, x;
-			view.items = items;
-			view.value = self.hlscores[self.current_score][x];
-			view.action = { arg view;
-				"fuck".debug;
-				self.hlscores[self.current_score][x] = view.value;
-				self.refresh_score;
-			};
-		}
 	},
 
 	make_window: { arg self;
@@ -413,9 +400,18 @@ Pdef(\score, Ppar(
 ).loop);
 
 Pdef(\score).play;
-//Pdef(\hlscore).play;
+//~sm.as_pattern[0].asStream.nextN(10, Event.default);
 
 )
+Pdef(\score).play;
+
+
+~sm.banks[0].current.asPattern.asStream.nextN(10)
+
+PstepSeq([10,20,30]).asStream.nextN(10)
+Pattern.new.asStream
+
+{ SinOsc.ar(200) ! 2 * 0.1}.play;
 Pdef(\score).pause
 Pdef(\score).resume
 ~sm.as_pattern
