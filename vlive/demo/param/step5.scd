@@ -115,6 +115,14 @@ Builder(\plip, { arg builder, osctype=0, voices=1;
 		osc = oscs[osctype];
 
 		sig = osc.();
+
+		sig = RLPF.ar(sig, 
+			SelectX.kr(\kb.kr(0), [
+				\lpf.kr(500),
+				\freq.asSpec.unmap(\lpf.kr).linlin(0,1,0.5,2) * freq,
+			])
+		, \rq.kr(0.56));
+
 		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:doneAction);
 		sig = Splay.ar(sig, spread, amp, pan);
 		Out.ar(out, sig);
@@ -127,13 +135,17 @@ Builder(\plip, { arg builder, osctype=0, voices=1;
 }).build;
 
 
-~es = StepEvent.new;
-~es[\isRest] = StepList.newFrom(0!8);
-~es[\degree] = StepList.newFrom(0!8);
+if(~es.isNil) {
+	~es = StepEvent.new;
+	~es[\isRest] = StepList.newFrom(0!8).addSpec(\list, \unipolar);
+	~es[\degree] = StepList.newFrom(0!8).addSpec(\list, ControlSpec(-10,20,\lin,1));
+	~es[\lpf] = StepList.newFrom(0!8).addSpec(\list, \freq);
+	~es[\rq] = StepList.newFrom(0!8).addSpec(\list, \rq);
+};
 Pdef(\plip, 
 	
 	~es.loop <>
-	Pdef(\yup) <>
+	Pdef(\yup, Pbind()) <>
 	Pbind(
 	\instrument, \plip,
 	\dur, 1/4,
@@ -147,6 +159,37 @@ Pdef(\yup).addHalo(\instrument, \plip);
 //Pdef(\plip).addSpec(\freq, \freq);
 );
 
+(
+WindowLayout({
+	VLayout(
+		
+		PlayerWrapperView(Pdef(\plip)).layout,
+		StepEventView(~es).setCursor.view,
+		HLayout(
+			NumberBox.new.mapParam(Param(Message(~es), \stepCount, ControlSpec(1,128,\lin,1))),
+			PopUpMenu.new.items_([
+				"SinOsc",
+				"LFSaw",
+				"LFPulse",
+			]).mapParam(Param(Builder(\plip), \osctype)),
+		),
+		ParamGroupLayout.two_panes([
+			Param(Builder(\plip), \voices, ControlSpec(1,50,\lin,1)),
+			Param(Pdef(\yup), \dur, ControlSpec(1/16,1,\exp)),
+			Param(Pdef(\yup), \amp),
+			Param(Pdef(\yup), \freq),
+			Param(Pdef(\yup), \fspread),
+			Param(Pdef(\yup), \kb, \unipolar),
+			Param(Pdef(\yup), \adsr, XEnvSpec.adsr),
+		])
+	)
+})
+)
+
+~p = Param(Message(~es), \stepCount, ControlSpec(1,128,\lin,1))
+~p.get
+~p.set(16)
+~es
 Pdef(\plip).play
 Pdef(\plip).get(\adsr)
 Pdef(\yup).get(\adsr)
@@ -159,27 +202,41 @@ Pdef(\plip).gui
 Ppredef(\plip).clear
 Pdef.all[\plip] = nil
 
-(
-WindowLayout({
-	VLayout(
-		
-		PlayerWrapperView(Pdef(\plip)).layout,
-		StepEventView(~es).view,
-		PopUpMenu.new.items_([
-			"SinOsc",
-			"LFSaw",
-			"LFPulse",
-		]).mapParam(Param(Builder(\plip), \osctype)),
-		ParamGroupLayout.two_panes([
-			Param(Builder(\plip), \voices, ControlSpec(1,50,\lin,1)),
-			Param(Pdef(\yup), \dur, ControlSpec(1/16,1,\exp)),
-			Param(Pdef(\yup), \amp),
-			Param(Pdef(\yup), \freq),
-			Param(Pdef(\yup), \fspread),
-			Param(Pdef(\yup), \adsr, XEnvSpec.adsr),
-		])
-	)
-})
-)
-
 Builder(\yup)
+
+
+~es
+~es[\isRest].setSize(16)
+~es.setSize(16)
+~es.setSize(8)
+~es.changed(\refresh)
+~es[\isRest].changed(\refresh)
+~es[\degree].changed(\refresh)
+~es.extend(16)
+~a = List[1,2,3,4,5]
+~a.extend(4)
+~
+
+(a:4).size
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\degree, PstepSeq([1,2,3,4]),
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+
+PstepSeq([1,2,3,4])
+List[1,2,3,4]
+
+~es.asPattern.asStream.nextN(4, ())
+~es.
+
+
+
+ Pbind('degree', PstepSeq(StepList[ 0, 0, 0, 0, 0, 0, 0, 0 ]), 'isRest', PstepSeq(StepList[ 0, 0, 0, 0, 0, 0, 0, 0 ]).coin.not).trace.play
+ 1.isKindOf(Pn)
+
+ ().extend(4)
