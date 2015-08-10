@@ -1,7 +1,15 @@
 
+(
 ~pc = ParamCombinator(Param(Pdef(\param), \freq, \freq));
 ~pc.setBusMode(true);
+Ndef(\default).set(\inputs, [0,0,0]);
+Ndef(\default).set(\ranges, [0,0,0]);
+)
 
+Pdef(\param).clear
+Pdef(\param).adieu
+Pdef(\plop).clear
+{ SinOsc.ar(200) ! 2 * 0.1}.play;
 (
 Pdef(\plop, Pdef(\param, Pbind()) <> Pbind(
 	\instrument, \default,
@@ -14,6 +22,7 @@ Pdef(\plop, Pdef(\param, Pbind()) <> Pbind(
 
 
 Ndef(\lfo1, { SinOsc.kr(2.5).unipolar  });
+Ndef(\lfo2, { LFPulse.kr(4.5).unipolar  });
 //~pc.edit
 WindowLayout({
 	var dragSink_size = 15@15;
@@ -184,8 +193,8 @@ Pdef(\param).set(\freq, Ndef(\lfo1))
 Pdef(\param).set(\freq, 800)
 
 Ndef(\default).get(\inputs)
-Ndef(\default).set(\inputs, [1,0,0])
-Ndef(\default).set(\ranges, [1,0,0])
+Ndef(\default).set(\inputs, [0,0,0])
+Ndef(\default).set(\ranges, [0,0,0])
 Ndef(\default).get(\ranges)
 Ndef(\default).get(\base)
 
@@ -197,3 +206,81 @@ Param(Ndef(\default), \ranges, XArraySpec(\bipolar!3)).at(0).edit
 Param(Ndef(\default), \base, \freq).edit
 
 Ndef(\default).s
+
+////////////////////////////////////////////////////////////////////////////:
+
+
+
+(
+~pc = ParamCombinator(Param(Pdef(\param), \freq, \freq));
+Ndef(\default).clear;
+~pc.setBusMode(true);
+Ndef(\default).set(\inputs, [0,0,0]);
+Ndef(\default).set(\ranges, [0,0,0]);
+//Ndef(\default).clear;
+
+Ndef(\lfo1, { SinOsc.kr(2.5).unipolar  });
+Ndef(\lfo2, { LFPulse.kr(4.5).unipolar  });
+Ndef(\lfo3, { LFSaw.kr(1.5).unipolar  });
+
+
+Pdef(\plop, Pdef(\param, Pbind()) <> Pbind(
+	\instrument, \default,
+	\freq, Pseq([500],inf),
+	\dur, 1,
+	\amp, 0.1
+)).play;
+)
+
+~pc.baseParam.set(600);
+~pc.baseParam.set(400);
+~pc.rangeParam.at(0).set(0.5);
+~pc.inputParam.at(0).set(0.5);
+~pc.inputParam.at(0).set(0);
+~pc.inputParam.at(0).set(Ndef(\lfo1));
+
+Ndef(\lfo1).clear
+Ndef(\lfo1).adieu
+
+~pc.ranges
+~pc.inputs
+Ndef(\default).get(\ranges)
+Ndef(\default).get(\inputs)
+~pc.rangeParam.get
+~pc.rangeParam
+~pc.rangeParam.wrapper
+~pc.inputParam.wrapper
+~pc.inputParam.get
+~pc.inputParam.at(0).set(0.5)
+~pc.ranges.asArray
+
+		~rangeParam = Param(Ndef(\default), \ranges, XArraySpec(\bipolar ! 3));
+		~rangeParam.set(~pc.ranges.asArray);
+		~rangeParam.set([0,0,0]);
+		~rangeParam.set([0.51,0,0]);
+		~rangeParam.wrapper
+		~inputParam = Param(Ndef(\default), \inputs, XArraySpec(\unipolar ! 3));
+		~inputParam.set(~pc.inputs.asArray);
+		~inputParam.set([0.51,0,0]);
+		~inputParam.set(inputs);
+
+(
+~pc = ParamCombinator(Param(Pdef(\param), \freq, \freq));
+Ndef(\default).clear;
+~pc.setBusMode(true);
+//Ndef(\default).set(\inputs, List[0,0,0]);
+//Ndef(\default).set(\ranges, List[0,0,0]);
+//Ndef(\default).clear;
+
+Ndef(\lfo1, { SinOsc.kr(2.5).unipolar  });
+Ndef(\lfo2, { LFPulse.kr(4.5).unipolar  });
+Ndef(\lfo3, { LFSaw.kr(1.5).unipolar  });
+
+
+Pdef(\plop, Pdef(\param, Pbind()) <> Pbind(
+	\instrument, \default,
+	\freq, Pseq([500],inf),
+	\dur, 1,
+	\amp, 0.1
+)).play;
+)
