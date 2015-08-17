@@ -63,9 +63,12 @@ SynthDef(\synth_3, {|out = 0, freq = 440, gate = 1, amp = 0.01, att = 0.1, rel =
 ~score = ~pscore_1;
 Pdef(\score, ~pscore_1);
 Pdef(\track, ~ptrack_1);
-PchainT(Pdef(\score), Pdef(\track)).play
+//PchainT(Pdef(\score), Pdef(\track)).play
+PchainT(Pdef(\track), Pdef(\score)).play
 )
 
+(isRest:true).asStream
+(isRest:true).next(())
 
 Pdef(\track, ~ptrack_2)
 Pdef(\track, ~ptrack_1)

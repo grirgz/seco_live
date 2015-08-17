@@ -1,8 +1,5 @@
 
-// TODO:
-// - if 
 (
-	Please don't use this anymore, use step8.scd
 SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	sig = LFSaw.ar(freq * [1,1.01,1.001, 1+0.1.rand]);
@@ -177,7 +174,7 @@ Pdef(\plop3, Pbind(
 
 	update_proxy: { arg self;
 		self.proxy.source = if(self.list.size == 0) {
-			Ptuple([(isRest: true)])
+			Ptuple([(isRest: true, type: \rest)])
 		} {
 			Ptuple(self.list.collect({ arg item;
 				item.as_pattern;
@@ -188,10 +185,28 @@ Pdef(\plop3, Pbind(
 	as_stream: { arg self;
 		self.proxy.asStream;
 	},
+
+	remove_all_preset: { arg self;
+		self.list = List.new;
+		self.update_proxy;
+	},
+
+	play_preset: { arg self, ev=(), no_latency=false;
+		if(no_latency != false) {
+			var nola, note;
+			nola = Pn((latency: Ref(nil)),inf).asStream.next(ev);
+			note = self.proxy.asStream.next(ev);
+			[nola, note].debug("nola, note");
+			nola.composeEvents( note ).debug("WAAAA play_preset");
+			note.collect({ arg no; no.composeEvents(nola) }).debug("WAAAA play_preset").play;
+		} {
+			self.as_stream.next(ev).play;
+		}
+	},
 );
 
 
-~class_drumpad = (
+~class_drumrack = (
 	new: { arg self;
 		self = self.deepCopy;
 	
@@ -206,7 +221,7 @@ Pdef(\plop3, Pbind(
 	},
 
 	clone: { arg self;
-		var res = ~class_drumpad.new;
+		var res = ~class_drumrack.new;
 		res.rackpreset_lib = self.rackpreset_lib;
 		res.drumpreset_lib = self.drumpreset_lib;
 		res.pads = self.pads.collect({ arg x; x.clone });
@@ -271,12 +286,38 @@ Pdef(\plop3, Pbind(
 
 );
 
-~class_drumpad_view = (
+~class_drumrack_proxy = (
 	new: { arg self, drumrack;
 		self = self.deepCopy;
 	
-		self.set_drumrack(drumrack);
-		
+		self.drumrack = drumrack;
+	
+		self;
+	},
+
+	set_drumrack: { arg self, drumrack;
+		self.drumrack = drumrack;
+		if(self.current_pdrumstep.notNil) {
+			self.current_pdrumstep.dict = drumrack.pads;
+		};
+	},
+
+	as_pattern: { arg self, score;
+		if(score.notNil) {
+			self.current_pdrumstep = PdrumStep(self.drumrack.pads, score);
+			self.current_pdrumstep;
+		} {
+			nil
+		};
+	},
+);
+
+~class_drumrack_view = (
+	new: { arg self, drumrackproxy;
+		self = self.deepCopy;
+
+		self.drumrackproxy = drumrackproxy;
+	
 		self.pad_size = Point(4,4);
 		self.make_window;
 		self.select_drumpad(0);
@@ -290,7 +331,11 @@ Pdef(\plop3, Pbind(
 	},
 
 	set_drumrack: { arg self, drumrack;
-		self.drumrack = drumrack;
+		self.drumrackproxy.set_drumrack(drumrack);
+	},
+
+	drumrack: { arg self;
+		self.drumrackproxy.drumrack;
 	},
 
 	set_drumpad: { arg self, drumpad;
@@ -392,9 +437,46 @@ Pdef(\plop3, Pbind(
 					var name = preset_name_view.value;
 					if(name != "" and: { drumpad.notNil }) {
 						lib.save_preset(name.asSymbol, drumpad.clone);
+						window.close;
+						self.refresh_drumpreset_popup;
 					};
+				}),
+			)
+			
+		);
+		window.layout = layout;
+		//window.alwaysOnTop = true;
+		window.front;
+		
+	},
+
+	make_load_drumpreset_window: { arg self, drumpad;
+		var window = Window.new;
+		var layout;
+		var preset_name_view;
+		var lib = self.drumrack.drumpreset_lib;
+		layout = VLayout(
+			preset_name_view = TextField.new,
+			ListView.new.items_( lib.get_list ).value_(nil).action_({ arg view;
+				preset_name_view.value = view.items[view.value];
+				self.drumrack.drumpreset_lib.lib[preset_name_view.value.asSymbol].play_preset((), true);
+			}),
+			HLayout(
+				XSimpleButton.new.label_("Cancel").action_({
 					window.close;
-					self.refresh_drumpreset_popup;
+				}),
+				XSimpleButton.new.label_("Load").action_({
+					var name = preset_name_view.value;
+					if(name != "" and: { drumpad.notNil }) {
+						self.drumpad.remove_all_preset;
+						self.drumrack.get_pad(self.selected_drumpad_index).add_from_lib(
+							self.drumrack.drumpreset_lib,
+							name.asSymbol
+						);
+						self.refresh_drumpad;
+						self.refresh_pads;
+						window.close;
+					};
 				}),
 			)
 			
@@ -424,9 +506,48 @@ Pdef(\plop3, Pbind(
 					var name = preset_name_view.value;
 					if(name != "" and: { drumrack.notNil }) {
 						lib.save_preset(name.asSymbol, drumrack.clone);
+						window.close;
+						self.refresh_rackpreset_popup;
 					};
+				}),
+			)
+			
+		);
+		window.layout = layout;
+		//window.alwaysOnTop = true;
+		window.front;
+		
+	},
+
+	make_new_rackpreset_window: { arg self;
+		var window = Window.new;
+		var layout;
+		var preset_name_view;
+		var drumrack = self.drumrack;
+		var lib = drumrack.rackpreset_lib;
+		var based_on;
+		layout = VLayout(
+			preset_name_view = TextField.new,
+			StaticText.new.string_("Based on:"),
+			ListView.new.items_( ["--- None --- "] ++ lib.get_list ).value_(0).action_({ arg view;
+				if(view.value == 0) {
+					based_on = nil;
+				} {
+					based_on = view.items[view.value].asSymbol;
+				}
+			}),
+			HLayout(
+				XSimpleButton.new.label_("Cancel").action_({
 					window.close;
-					self.refresh_rackpreset_popup;
+				}),
+				XSimpleButton.new.label_("New").action_({
+					var name = preset_name_view.value;
+					if(name != "" and: { drumrack.notNil }) {
+						lib.save_preset(name.asSymbol, self.make_new_rack(based_on));
+						self.refresh_rackpreset_popup;
+						self.load_rackpreset(name.asSymbol);
+						window.close;
+					};
 				}),
 			)
 			
@@ -439,7 +560,32 @@ Pdef(\plop3, Pbind(
 
 	load_rackpreset: { arg self, rackpreset;
 		var rack = self.drumrack.rackpreset_lib.lib[rackpreset];
+		self.current_rackpreset = rackpreset;
+		//rack = rack.clone; // loaded racks are independent of the saved rack
 		self.set_drumrack(rack);
+		//[self.keys, self.drumpreset_lib.lib.keys, self.rackpreset_lib.lib.keys].debug("make_new_rack: self rack");
+		//[rack.keys, rack.drumpreset_lib.lib.keys, rack.rackpreset_lib.lib.keys].debug("make_new_rack: self rack");
+		self.set_drumpad(self.drumrack.get_pad(self.selected_drumpad_index));
+		self.refresh_drumpad;
+		self.refresh_pads;
+		self.rackpreset_popup.value = self.rackpreset_popup.items.detectIndex({ arg x; x.asSymbol == self.current_rackpreset });
+	},
+
+	make_new_rack: { arg self, basename;
+		var rack;
+		if(basename.notNil) {
+			rack = self.drumrack.rackpreset_lib.lib[basename];
+			rack = rack.clone; // loaded racks are independent of the saved rack
+			rack;
+		} {
+			rack = ~class_drumrack.new;
+			rack.drumpreset_lib = self.drumrack.drumpreset_lib;
+			rack.rackpreset_lib = self.drumrack.rackpreset_lib;
+			//[self.keys, self.drumpreset_lib.lib.keys, self.rackpreset_lib.lib.keys].debug("make_new_rack: self rack");
+			//[rack.keys, rack.drumpreset_lib.lib.keys, rack.rackpreset_lib.lib.keys].debug("make_new_rack: self rack");
+			rack;
+		}
+		
 	},
 
 	make_layout: { arg self;
@@ -485,12 +631,14 @@ Pdef(\plop3, Pbind(
 				var rpp = self.rackpreset_popup;
 				rpp.items = self.drumrack.rackpreset_lib.get_list;
 				rpp.action = {
+					rpp.items[rpp.value].debug("load rackpreset!!!");
 					self.load_rackpreset(rpp.items[rpp.value]);
 				};
 				rpp;
 			}.value,
-			XSimpleButton.new.label_("Save Rack").action_({
-				self.make_save_rackpreset_window;
+			XSimpleButton.new.label_("New Rack").action_({
+				//self.make_save_rackpreset_window;
+				self.make_new_rackpreset_window;
 			})
 		);
 
@@ -528,6 +676,9 @@ Pdef(\plop3, Pbind(
 			}),
 			XSimpleButton.new.label_("Save preset").action_({ 
 				self.make_save_drumpreset_window(self.drumpad);
+			}),
+			XSimpleButton.new.label_("Load preset").action_({ 
+				self.make_load_drumpreset_window(self.drumpad);
 			}),
 		);
 
@@ -590,7 +741,7 @@ Pdef(\plop3, Pbind(
 
 ~dl = ~class_drumpreset_lib.new;
 ~rl = ~class_drumrack_lib.new;
-~dp = ~class_drumpad.new;
+~dp = ~class_drumrack.new;
 ~dp.drumpreset_lib = ~dl;
 ~dp.rackpreset_lib = ~rl;
 ~pg = ~class_presetgroup.new;
@@ -598,374 +749,66 @@ Pdef(\plop3, Pbind(
 ~p1 = ~class_preset.new(Pbind(\degree, 1));
 ~p2 = ~class_preset.new(Pbind(\degree, 4));
 ~p3 = ~class_preset.new(Pbind(\degree, 8));
+
 ~pg.add_preset(~p1);
 ~pg.add_preset(~p2);
 ~pg2.add_preset(~p3);
 ~dl.lib[\note1] = ~pg;
 ~dl.lib[\note2] = ~pg2;
+
 ~dp.set_pad(0, ~pg.clone);
 ~dp.set_pad(1, ~pg2.clone);
+~rl.lib[\base] = ~dp.clone;
+
+~drp = ~class_drumrack_proxy.new(~dp);
+
+//~pat = ~dp.as_pattern(
+//	Ppar([
+//		Pbind(\midinote, 1, \dur, 1/4,  \legato, 0.2, \isRest, Pseq([1,0,1,0],inf).coin.not),
+//		Pbind(\midinote, 0, \dur, 1/3*2, \legato, 0.2, \isRest, Pseq([1,1,1,0],inf).coin.not),
+//	]),
+//);
+//~pat = ~dp.as_pattern(Pdef(\score));
+//~pat = ~dp.as_pattern(Pbind(\midinote, Pseq([0,\r,1,1,0,0,0,1],inf), \dur, 1));
+
+Pdef(\main, ~drp.as_pattern(Pdef(\score)).trace);
+//Pdef(\main).play;
+
+~dpv = ~class_drumrack_view.new(~drp);
+
+
+)
+
+(
 Pdef(\score, 
 	Pbind(\midinote, Pseq([0,0,1,1,4,4,4,4],inf), \dur, 1/4)
 );
-~pat = ~dp.as_pattern(
-	Ppar([
-		Pbind(\midinote, 1, \dur, 1/4,  \legato, 0.2, \isRest, Pseq([1,0,1,0],inf).coin.not),
-		Pbind(\midinote, 0, \dur, 1/3*2, \legato, 0.2, \isRest, Pseq([1,1,1,0],inf).coin.not),
-	]),
-);
-~pat = ~dp.as_pattern(Pdef(\score));
-//~pat = ~dp.as_pattern(Pbind(\midinote, Pseq([0,\r,1,1,0,0,0,1],inf), \dur, 1));
-
-Pdef(\main, ~pat.trace);
-//Pdef(\main).play;
-
-~dpv = ~class_drumpad_view.new(~dp);
-
-
 )
-
-~dl.lib.keys.asArray.sort
-~dl.lib.keys.asArray
-~dl.lib["plop"]
-~dp
-~dp.pads[4].as_stream.nextN(5)
-~dp.pads[4].update_proxy
-
-~dpv.select_drumpad(0)
-~dpv.select_drumpad(1)
 
 (
-~ev = (amp: 0.1, pan:0);
-~pl = [
-	Param(~ev, \amp, \amp),
-	Param(~ev, \pan, \pan),
-];
-WindowLayout({
-	HLayout(*
-		~pl.collect({ arg param;
-			VLayout(
-				StaticText.new.mapParamLabel(param),
-				Knob.new.mapParam(param),
-				TextField.new.mapParam(param),
-				//ParamView.knob.mapParam(param).fixedSize_(Point(200,200)).background_(Color.blue),
-				ParamView.label_knob(param.property).mapParam(param),
-			)
-		})
-	)
-
-});
+"/home/ggz/code/sc/seco/vlive/demo/param/lib/stepeditor.scd".load;
 )
-
-~ev = (amp: 0.1);
-~ev = ();
-Param(~ev, \amp, \amp).edit;
-
-
-
-
-
-
-Pdef(\score, Pbind(\midinote, Pseq([1,0,2,0,1,1,0,1],inf), \dur, 1/4));
-Pdef(\score, Pbind(\midinote, Pseq([1,0,4,4,4,4,4,1],inf), \dur, 1/4));
-~pgstr = ~pg.as_stream
-~pgstr.collect({ arg x; x.next(()) })
-~pg.list
-~p1.as_pattern
-~p1.as_pattern
-~p1.params <> ~p1.instr
-Pseq([()],inf) <> ~p1.instr
-
-
+~dpv = ~class_drumrack_view.new(~drp);
+~saveme = nil;
 (
-			~pr = Prout({ arg ev;
-				var pads = [
-					Pbind(\degree, 7),
-					Pbind(\degree, 3),
-					Pbind(\degree, 9),
-				];
-				var score = Pbind(
-					\isRest, Pseq([1,1,0,0,1,1,1,0],inf).coin.not,
-					\dur, 1/4,
-				);
-				"what".debug;
-				pads = pads.collect({ arg x; x.asStream; });
-				score.debug("score");
-				score.asStream.do({ arg scoreev;
-					//scoreev.debug("scoreev");
-					if(true) {
-						var padevs;
-						padevs = pads.collect({ arg str; str.next(()) });
-						padevs.debug("padevs");
-						padevs.collect{ arg padev, x;
-							if(x == ( padevs.size-1 )) {
-								ev = padev.composeEvents(scoreev).yield(ev);
-							} {
-								var sc = scoreev.copy;
-								sc[\delta] = 0;
-								ev = padev.composeEvents(sc).yield(ev);
-							}
-						};
-					}
-				}, ())
+~sm = ~class_score_manager.new(4);
 
-			});
+if(~saveme.isNil) { 
+	~saveme = [~sm.banks, ~sm.superbank];
+} {
+	~sm.banks = ~saveme[0]; ~sm.superbank = ~saveme[1];
+};
 
-			~pr.trace.play;
+~sm.make_window;
 
-
+Pdef(\score, Ppar(
+	~sm.as_pattern.collect({ arg pat, x;
+		Pbind(
+			\whatthefuck, Pfunc{ arg ev; ev.debug("EV!!!"); \non },
+			\isRest, pat.coin.not,
+			\midinote, x,
+			\dur, 1/4,
+		).loop;
+	})
+).loop);
 )
-
-Pbind(\degree, 0).play
-(
-	Pbind(
-		\isRest, Pseq([1,1,0,0,1,1,1,0],1).coin.not,
-		\dur, 1/4,
-	).asStream.do( { arg x;
-		x.debug("X");
-	
-	}, ());
-)
-
-(bla:4).composeEvents((rah:43))
-
-
-
-{ SinOsc.ar(200) ! 2 * 0.1}.play;
-
-
-
-
-(
-
-SynthDef(\cake, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1;
-	env1 = EnvGen.kr(Env([1,2,1/2],[0.4,0.4]/4), 1);
-	sig = LFSaw.ar(freq * env1 * [8,1,2,4]);
-	sig = RLPF.ar(sig, freq * env1 * 2);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
-	Out.ar(out, sig);
-}).add;
-
-a = Pbind(\degree, Pn(0,4));
-b = Pbind(\degree, Pn(3,4));
-c = Pbind(\degree, Pn(7,4));
-d = Pbind(\degree, Pn(9,4));
-
-//Pdef(\main,
-//	Pbind(
-//		\instrument, \cake,
-//		\out, BusDef(\myfx, \audio)) <>
-//	Pseq([
-//		Ppar([a, b, c], 1), Ppar([b, c, d], 1), Ppar([a, c, d], 1)
-//	], inf);
-//).play;
-
-Pdef(\main2,
-	Pbind(
-		\instrument, \default,
-		\degree, Pwhite(1,9),
-		\legato, 0.1,
-		\octave, Pseq([3],inf).stutter(4),
-		\dur, 1/2,
-		\out, BusDef(\myfx, \audio)
-	)
-).play;
-
-Ndef(\myfx, { arg inbus, freq=200, pan=0, amp=0.1;
-	var sig;
-	var isig;
-	sig = In.ar(inbus, 2);
-	isig = sig;
-	//sig = sig + DelayL.ar(sig, 0.1,0.0001);
-	//sig = sig + DelayL.ar(sig, 0.1,0.001);
-	sig = sig + CombL.ar(sig, 0.1, 1/Tartini.kr(sig).flop[0].clip(60,18000),1.7);
-	sig = LPF.ar(sig, 7500);
-	sig = sig + CombL.ar(sig, 0.1, 1/Tartini.kr(sig).flop[0].clip(60,18000)/2,1.7);
-	sig = sig * 1;
-	//sig = sig.wrap2(0.4) + ( sig*0.2 );
-	//sig = ( sig.abs < 1.0 ) * sig;
-	sig = sig * 7;
-	sig = sig.clip2(0.9);
-	sig = sig * 7;
-	sig = sig.clip2(0.9);
-	sig = sig * 7;
-	sig = sig.clip2(0.9);
-	sig = sig * 7;
-	sig = sig.clip2(0.9);
-	sig = sig + CombL.ar(isig, 0.1, 1/Tartini.kr(isig).flop[0].clip(60,18000)/2,0);
-	//sig = sig.clip2(0.8);
-	//sig = sig * DelayL.ar(sig, 0.1,[0,0.001]).clip2(0.4);
-	//sig = sig * sig.clip2(0.4);
-	//sig = sig * (1+ sig.clip2(0.4) );
-	//sig = sig * SinOsc.ar(Tartini.kr(sig).flop.debug("x")[0].poll);
-	//sig = sig * SinOsc.ar(Tartini.kr(sig).flop.debug("x")[0].poll);
-	//sig = sig * SinOsc.ar(Tartini.kr(sig).flop.debug("x")[0].poll);
-	//sig = sig * SinOsc.ar(Tartini.kr(sig).flop[0]);
-	//sig = sig * SinOsc.ar(Pitch.kr(sig).flop[0]);
-	//sig = sig + (sig * SinOsc.ar(ZeroCrossing.ar(sig).debug("x").poll) * 0.4);
-	sig = sig * 2;
-	sig;
-}).play;
-Ndef(\myfx).set(\inbus, BusDef(\myfx, \audio));
-)
-Ndef(\myfx).clear
-
-///////////////////////////////////////////////////// PdrumStep
-
-(
-	Pdef(\main,
-	
-		Ptrace(
-			PdrumStep(
-				[
-					Pbind(\degree, 0, \dur, 1/8),
-					Pbind(\degree, 4),
-					Pbind(\degree, 8),
-					Ptuple([
-						Pbind(\degree, 8),
-						Pbind(\degree, 5),
-					]),
-				], 
-				Pbind(
-					\midinote, Pseq([2,1,0,3,3,1,0,1,3,0],1),
-					\dur, 1/4,
-				),
-				repeats:1
-			)
-			<>
-			Pbind(
-				\bla, Pseq((1..30),inf)
-			)
-		),
-	).play;
-
-
-)
-
-///// out of bound
-
-(
-	Pdef(\main,
-	
-		Ptrace(
-			PdrumStep(
-				[
-					Pbind(\degree, 0, \dur, 1/8),
-					Pbind(\degree, 4),
-					Pbind(\degree, 8),
-					Ptuple([
-						Pbind(\degree, 8),
-						Pbind(\degree, 5),
-					]),
-				], 
-				Pbind(
-					\midinote, Pseq([2,2,1,0,13,13,13,13,13,13,13,13,0,0,0,3],inf),
-					\dur, 1/4,
-				),
-				repeats:1
-			)
-			<>
-			Pbind(
-				\bla, Pseq((1..30),inf)
-			)
-		),
-	).play;
-
-
-)
-
-///// Par
-
-(
-	Pdef(\main,
-	
-		Ptrace(
-			PdrumStep([
-				Pbind(\degree, 0, \dur, 1/8),
-				Pbind(\degree, 4),
-				Pbind(\degree, 8),
-				Ptuple([
-					Pbind(\degree, 8),
-					Pbind(\degree, 5),
-				]),
-			], 
-			Ppar([
-				Pbind(
-					\midinote, Pseq([2,0,1,0],inf),
-					\isRest, Pseq([1,0.3,0.8,0.4],inf).coin.not,
-					\dur, 1/8,
-				), 
-				Pbind(
-					\midinote, Pseq([\r,\r,0,0,\r,2,0,\r,3,\r,1,3],inf),
-					\legato, 0.1,
-					\dur, 1/2,
-				)
-			])
-			, repeats:10)
-			<>
-			Pbind(
-				\bla, Pseq((1..30),inf)
-			)
-		),
-	).play;
-
-
-)
-
-///// Pdef
-
-(
-	Pdef(\score, Pbind(\midinote, Pseq([0,1,2,3,4],inf), \dur, 1/4));
-	Pdef(\main,
-	
-		Ptrace(
-			PdrumStep([
-				Pbind(\degree, 0, \dur, 1/8),
-				Pbind(\degree, 4),
-				Pbind(\degree, 8),
-				Pdefn(\megakick, 
-					Ptuple([
-						Pbind(\degree, 8),
-						Pbind(\degree, 5),
-					]),
-				)
-			], 
-			Pdef(\score),
-			repeats:1)
-			<>
-			Pbind(
-				\bla, Pseq((1..30),inf)
-			)
-		),
-	).play;
-
-
-)
-				(
-				Pdefn(\megakick, 
-					Ptuple([
-						Pbind(\degree, 8),
-						Pbind(\degree, 2),
-						Pbind(\degree, 1),
-						Pbind(\degree, 5),
-					]),
-				)
-				)
-
-				(
-				Pdefn(\megakick, 
-					Ptuple([
-						Pbind(\degree, 7),
-						Pbind(\degree, 0),
-						Pbind(\degree, 3),
-					]),
-				)
-				)
-
-	Pdef(\score, Pbind(\midinote, Pseq([1,0,3,3,100,1,0,\r,3],2), \dur, 1/4));
-
-	Pfindur
