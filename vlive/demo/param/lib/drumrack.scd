@@ -1,67 +1,7 @@
 
+"/home/ggz/code/sc/seco/vlive/demo/param/lib/base.scd".load;
 "Init drumrack.scd".postln;
 
-~selector = (
-	// this selector version added possibility to regenere the views if they have been removed
-	selected_color: Color.red,
-	deselected_color: Color.yellow,
-	new: { arg self, selector_count=8, action;
-		self = self.deepCopy;
-	
-		"aA.".debug;
-		self.selector_count = selector_count;
-		self.selected_index = 0;
-		self.action = action;
-		
-		self.select_item(0);
-	
-		"xr.".debug;
-		self.views.debug("wtf");
-		self.debug("self!!!");
-		self;
-	},
-
-	views: { arg self;
-		if(self.pr_views.isNil or: { self.pr_views.size > 0 and: {self.pr_views.first.isClosed }}) {
-			[self.selector_count, self.selected_index].debug("refreshing selector.pr_views");
-			self.pr_views = self.selector_count.collect({ arg x;
-				XSimpleButton.new
-					.minWidth_(15) 
-					.action_({
-						self.select_item(x);
-						self[\action].(x);
-					})
-					.background_(self.deselected_color).debug("WWWTTTFF");
-			}).debug("WTF");
-			self.select_item(self.selected_index, self.pr_views);
-			self.pr_views;
-		} {
-			self.pr_views
-		}
-	},
-
-	resize: { arg self, size;
-		size.debug("selector.resize");
-		self.selector_count = size;
-		self.selected_index = self.selected_index.clip(0, size-1);
-		self.pr_views = nil; // don't know what bug can be caused by having a no more referenced views
-			// but must find a way to update views because there is more or less now
-	},
-
-	select_item: { arg self, x, views;
-		views = views ?? {self.views};
-		if(views.size > 0) {
-			views[self.selected_index].background_(self.deselected_color);
-			views[x].background_(self.selected_color);
-			self.selected_index = x;
-		}
-	},
-
-	selected_view: { arg self;
-		self.views[self.selected_index]
-	},
-
-);
 
 ~class_preset = (
 	eventClass: \preset,
@@ -80,6 +20,20 @@
 
 			self
 		}
+	},
+
+	new_load: { arg eventclass, data;
+		var self = eventclass.new(data.instr);
+		self.params = data.params;
+		self;
+	},
+
+	asArchiveData: { arg self;
+		(
+			instr: self.instr.key,
+			params: self.params,
+			load: { arg x; ~class_preset.new_load(x) },
+		)
 	},
 
 	clone: { arg self;
@@ -106,20 +60,24 @@
 				spec = Param(self.instr, param[0]).spec; // TODO: maybe avoid creating a whole Param object
 				param.add(spec);
 			};
-			retparam = Param(self.params, *param);
-			if(self.params[param[0]].isNil) {
-				if(self.instr.getHalo(\instrument).notNil) {
-					var defval = Param.getSynthDefDefaultValue(param[0], self.instr.getHalo(\instrument));
-					if(retparam.type == \env) {
-						defval = defval.asEnv;
-					};
-					retparam.set(defval); // should be retparam.default but not yep implemented
-				} {
-					retparam.set(retparam.spec.default); // should be retparam.default but not yep implemented
-				}
+			if(param[1].isKindOf(XSampleSpec)) {
+				retparam = nil;
+			} {
+				retparam = Param(self.params, *param);
+				if(self.params[param[0]].isNil) {
+					if(self.instr.getHalo(\instrument).notNil) {
+						var defval = Param.getSynthDefDefaultValue(param[0], self.instr.getHalo(\instrument));
+						if(retparam.type == \env) {
+							defval = defval.asEnv;
+						};
+						retparam.set(defval); // should be retparam.default but not yep implemented
+					} {
+						retparam.set(retparam.spec.default); // should be retparam.default but not yet implemented
+					}
+				};
 			};
 			retparam;
-		};
+		}.select(_.notNil);
 		res = res ? [];
 		//[
 		//	Param(self.params, \amp, \amp),
@@ -171,13 +129,31 @@
 		pg;
 	},
 
+	new_load: { arg eventclass, data;
+		var self = eventclass.new;
+		self.list = List.newFrom(data.list.collect({ arg x; x.load; }));
+		self.update_proxy;
+		self;
+	},
+
+	asArchiveData: { arg self;
+		(
+			list: self.list.collect({ arg x; x.asArchiveData }),
+			load: { arg self; ~class_presetgroup.new_load(self); }
+		)
+	},
+
 	add_preset: { arg self, preset;
 		self.list.add(preset);
 		self.update_proxy;
 	},
 
 	add_from_lib: { arg self, lib, key;
-		lib.lib[key].list.collect({ arg x; self.list.add(x.clone) });
+		[lib.key, key].debug("add_from_lib");
+		lib.lib[key].list.debug("list");
+		self.list.collect(_.keys).debug("before");
+		lib.lib[key].list.collect({ arg x; self.list.add(x.clone.debug("clone")) });
+		self.list.collect(_.keys).debug("after");
 		self.update_proxy;
 	},
 
@@ -223,30 +199,45 @@
 ~class_drumrack = (
 	new: { arg self;
 		self = self.deepCopy;
+
+		//self.drumrack_size = 128;
+		self.drumrack_size = 16;
 	
-		
-		self.presets = IdentityDictionary.new;
-		self.pads = List.newClear(128).collect({
+		self.pads = List.newClear(self.drumrack_size).collect({
 			~class_presetgroup.new;
 		});
-		self.padstreams = List.newClear(128);
-		self.lib_drumpad = DrumRack.lib_drumpad;
-		self.lib_drumrack = DrumRack.lib_drumrack;
-		self.lib_instr = DrumRack.lib_instr;
-		self.lib_score = DrumRack.lib_score;
+		self.padstreams = List.newClear(self.drumrack_size);
+		self.lib_drumpad = {DrumRack.lib_drumpad};
+		self.lib_drumrack = { DrumRack.lib_drumrack };
+		self.lib_instr = { DrumRack.lib_instr };
+		self.lib_score = { DrumRack.lib_score };
 	
 		self;
 	},
 
 	clone: { arg self;
 		var res = ~class_drumrack.new;
-		res.lib_drumrack = self.lib_drumrack;
-		res.lib_drumpad = self.lib_drumpad;
-		res.lib_score = self.lib_score;
-		res.lib_instr = self.lib_instr;
+		res.lib_drumrack = self[\lib_drumrack];
+		res.lib_drumpad = self[ \lib_drumpad ];
+		res.lib_score = self[ \lib_score ];
+		res.lib_instr = self[ \lib_instr ];
 		res.pads = self.pads.collect({ arg x; x.clone });
 		res;
 	},
+
+	new_load: { arg eventclass, data;
+		var self = eventclass.new(data.pads.size);
+		self.pads = List.newFrom(data.pads.collect({ arg x; x.load; }))
+	},
+
+	asArchiveData: { arg self;
+		(
+			pads: self.pads.collect({ arg x; x.asArchiveData }),
+			load: { arg self; ~class_drumrack.new_load(self); }
+		)
+	},
+
+	//////////////////
 
 	add_to_pad: { arg self, padidx, instr;
 		self.pads[padidx] = self.pads[padidx].add(~class_presetgroup.new(instr));
@@ -349,10 +340,6 @@
 		self.selected_drumpad_index = idx;
 	},
 
-	set_drumrack: { arg self, drumrack;
-		self.drumrackproxy.set_drumrack(drumrack);
-	},
-
 	drumrack: { arg self;
 		self.drumrackproxy.drumrack;
 	},
@@ -361,7 +348,7 @@
 		// currently edited drumpad
 		if(drumpad.notNil) {
 			self.drumpad = drumpad;
-			self.drumpad_row_selector = ~selector.new(self.drumpad.list.size, { });
+			self.drumpad_row_selector = ~selector.new(self.drumpad.list.size, { self.refresh_env_panel }, { arg x; x.maxWidth_(15) });
 			self.refresh_drumpad;
 		} 
 	},
@@ -370,9 +357,7 @@
 		HLayout(*
 			[
 				StaticText.new.string_("part " + rowidx),
-				self.drumpad_row_selector.views[rowidx].action_({
-					self.refresh_env_panel;
-				}),
+				self.drumpad_row_selector.views[rowidx],
 			]
 			++
 			drumpreset.paramlist.select({ arg x; x.type == \scalar }).keep(8)
@@ -380,6 +365,8 @@
 					[x, param].debug("Param");
 					self.make_knob(param.property).mapParam(param);
 				})
+			++
+			[ nil ]
 		)
 	},
 
@@ -402,6 +389,7 @@
 					})
 			)
 		} {
+			self.env_panel.removeAll;
 			self.drumpad.list.debug("refresh_env_panel : no selected");
 		}
 	},
@@ -410,6 +398,7 @@
 		if(self.drumpad_view.notNil) {
 			if(self.drumpad.notNil) {
 				self.drumpad_view.removeAll;
+				[self.drumpad.list.size, self.drumpad.list.collect(_.keys)].debug("class_drumrack_view.refresh_drumpad: drumpads");
 				self.drumpad_row_selector.resize(self.drumpad.list.size);
 				self.drumpad_view.layout = VLayout(*
 					self.drumpad.list.collect({ arg preset, x;
@@ -429,21 +418,27 @@
 		var layout;
 		layout = self.make_layout;
 		window.layout = layout;
+		//window.addToOnClose({
+		window.onClose_({
+			debug( "closing!");
+			self.drumrack.lib_drumrack.debug("lib_drumrack").save;
+			PresetDictionary(\DrumRack).save;
+		});
 		//window.alwaysOnTop = true;
 		window.front;
 		
 	},
 
 	make_knob: { arg self, label;
-		ParamView.label_knob(label);
+		ParamView.label_knob(label).maxWidth_(100);
 	},
 
 	refresh_pads: { arg self;
 		self.pad_views.do { arg view, x;
 			if(self.drumrack.pad_is_empty(x)) {
-				view.background = Color.white;
+				view.background = Color.clear;
 			} {
-				view.background = Color.yellow;
+				view.background = ParamView.color_ligth;
 			}
 		}
 	},
@@ -461,7 +456,11 @@
 		if(self.rackpreset_popup.notNil) {
 			var idx = self.rackpreset_popup.value;
 			self.rackpreset_popup.items_(self.drumrack.lib_drumrack.get_list);
-			self.rackpreset_popup.value = idx;
+			//if(self.drumrack.notNil)
+			//self.rackpreset_popup.value = idx;
+			self.rackpreset_popup.value = self.rackpreset_popup.items.detectIndex({ arg x;
+				self.drumrack.lib_drumrack[x] === self.drumrack; // identity because in-place preset system
+			})
 		}
 	},
 
@@ -605,16 +604,18 @@
 	},
 
 	load_rackpreset: { arg self, rackpreset;
-		var rack = self.drumrack.lib_drumrack.lib[rackpreset];
-		self.current_rackpreset = rackpreset;
+		var rack;
+		"load_rackpreset: begin".debug;
+		self.current_rackpreset_name = rackpreset; 
 		//rack = rack.clone; // loaded racks are independent of the saved rack
-		self.set_drumrack(rack);
+		self.drumrackproxy.loadDrumrack(rackpreset);
 		//[self.keys, self.lib_drumpad.lib.keys, self.lib_drumrack.lib.keys].debug("make_new_rack: self rack");
 		//[rack.keys, rack.lib_drumpad.lib.keys, rack.lib_drumrack.lib.keys].debug("make_new_rack: self rack");
+		self.selected_drumpad_index.debug("load_rackpreset:selected_drumpad_index");
 		self.set_drumpad(self.drumrack.get_pad(self.selected_drumpad_index));
 		self.refresh_drumpad;
 		self.refresh_pads;
-		self.rackpreset_popup.value = self.rackpreset_popup.items.detectIndex({ arg x; x.asSymbol == self.current_rackpreset });
+		self.refresh_rackpreset_popup;
 	},
 
 	make_new_rack: { arg self, basename;
@@ -672,17 +673,23 @@
 		self.drumpad_view = View.new;
 		paramlayout = ScrollView.new.canvas_(self.drumpad_view);
 
+		self.refresh_rackpreset_popup;
+		self.rackpreset_popup.action = { arg view;
+			view.items[view.value].debug("load rackpreset!!!");
+			self.load_rackpreset(view.items[view.value]);
+		};
 		padheader = HLayout(
 			PlayerWrapperView(Pdef(\main)).view,
-			{
-				var rpp = self.rackpreset_popup;
-				rpp.items = self.drumrack.lib_drumrack.get_list;
-				rpp.action = {
-					rpp.items[rpp.value].debug("load rackpreset!!!");
-					self.load_rackpreset(rpp.items[rpp.value]);
-				};
-				rpp;
-			}.value,
+			self.rackpreset_popup,
+			//{
+			//	var rpp = self.rackpreset_popup;
+			//	rpp.items = self.drumrack.lib_drumrack.get_list;
+			//	rpp.action = {
+			//		rpp.items[rpp.value].debug("load rackpreset!!!");
+			//		self.load_rackpreset(rpp.items[rpp.value]);
+			//	};
+			//	rpp;
+			//}.value,
 			XSimpleButton.new.label_("New Rack").action_({
 				//self.make_save_rackpreset_window;
 				self.make_new_rackpreset_window;
@@ -741,13 +748,16 @@
 		"xxx1".debug;
 
 		//self.env_panel = View.new.minSize_(Point(300,300)).background_(Color.red);
-		self.env_panel = View.new;
+		self.env_panel = View.new.fixedHeight_(150);
 		envpanel = self.env_panel;
 
 		self.layout = GridLayout.columns(
 			[
 				padheader,
-				padlayout,
+				VLayout(
+					[View.new.layout_(padlayout).background_(Color.clear), stretch:0],
+					nil
+				),
 			],
 			[
 				paramheader,
@@ -761,45 +771,6 @@
 		self.refresh_pads;
 
 		self.layout;
-	},
-
-);
-
-~class_lib_drumpad = (
-	new: { arg self;
-		self = self.deepCopy;
-	
-		
-		self.lib = IdentityDictionary.new;
-	
-		self;
-	},
-
-	save_preset: { arg self, name, preset;
-		self.lib[name] = preset;
-	},
-
-	get_list: { arg self;
-		self.lib.keys.asArray.sort;
-	},
-);
-
-~class_drumrack_lib = (
-	new: { arg self;
-		self = self.deepCopy;
-	
-		
-		self.lib = IdentityDictionary.new;
-	
-		self;
-	},
-
-	save_preset: { arg self, name, preset;
-		self.lib[name] = preset;
-	},
-
-	get_list: { arg self;
-		self.lib.keys.asArray.sort;
 	},
 
 );

@@ -1,4 +1,7 @@
 (
+"/home/ggz/code/sc/seco/vlive/demo/param/lib/base.scd".load;
+"Init stepeditor.scd".postln;
+
 SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	sig = LFSaw.ar(freq * [1,1.01,1.001, 1+0.1.rand]);
@@ -41,45 +44,45 @@ Pdef(\plop3, Pbind(
 
 //~make_sequencer.( ~tracks );
 
-~selector = (
-	selected_color: Color.red,
-	deselected_color: Color.yellow,
-	new: { arg self, selector_count=8, action;
-		self = self.deepCopy;
-	
-		"aA.".debug;
-		self.selector_count = selector_count;
-		self.selected_index = 0;
-		
-		self.views = selector_count.collect({ arg x;
-			XSimpleButton.new
-				.minWidth_(15) 
-				.action_({
-					self.select_item(x);
-					action.(x);
-				})
-				.background_(self.deselected_color).debug("WWWTTTFF");
-		}).debug("WTF");
-
-		self.select_item(0);
-	
-		"xr.".debug;
-		self.views.debug("wtf");
-		self.debug("self!!!");
-		self;
-	},
-
-	select_item: { arg self, x;
-		self.views[self.selected_index].background_(self.deselected_color);
-		self.views[x].background_(self.selected_color);
-		self.selected_index = x;
-	},
-
-	selected_view: { arg self;
-		self.views[self.selected_index]
-	},
-
-);
+//~selector = (
+//	selected_color: Color.red,
+//	deselected_color: Color.yellow,
+//	new: { arg self, selector_count=8, action;
+//		self = self.deepCopy;
+//	
+//		"aA.".debug;
+//		self.selector_count = selector_count;
+//		self.selected_index = 0;
+//		
+//		self.views = selector_count.collect({ arg x;
+//			XSimpleButton.new
+//				.minWidth_(15) 
+//				.action_({
+//					self.select_item(x);
+//					action.(x);
+//				})
+//				.background_(self.deselected_color).debug("WWWTTTFF");
+//		}).debug("WTF");
+//
+//		self.select_item(0);
+//	
+//		"xr.".debug;
+//		self.views.debug("wtf");
+//		self.debug("self!!!");
+//		self;
+//	},
+//
+//	select_item: { arg self, x;
+//		self.views[self.selected_index].background_(self.deselected_color);
+//		self.views[x].background_(self.selected_color);
+//		self.selected_index = x;
+//	},
+//
+//	selected_view: { arg self;
+//		self.views[self.selected_index]
+//	},
+//
+//);
 
 ~class_score_manager = (
 	new: { arg self, track_count=4, delta=1/8, duration=1;
@@ -102,9 +105,40 @@ Pdef(\plop3, Pbind(
 		self;
 	},
 
+	asArchiveData: { arg self;
+		var data = ();
+		[
+			\score_delta,
+			\score_duration,
+			\track_count,
+			\banks,
+			\superbank,
+		].collect({ arg x; data[x] = self[x] });
+
+		(
+			load: { arg self;
+				var inst = ~class_score_manager.new;
+				inst.putAll(self.data);
+				inst.setStepSpec(self.spec);
+				inst;
+			},
+			spec: self.getSpec(\list),
+			data: data
+		)
+	},
+
 	make_row: { arg self;
 		StepList.newFrom(0!( self.score_duration/self.score_delta ))
-			.addSpec(\list, \unipolar);
+			.addSpec(\list, this.getSpec(\list));
+	},
+
+	setStepSpec: { arg self, spec;
+		self.banks.do { arg bank;
+			bank.do { arg list;
+				list.addSpec(\list, spec);
+			}
+		};
+		self.addSpec(\list, spec);
 	},
 
 	add_score: { arg self;
@@ -201,7 +235,7 @@ Pdef(\plop3, Pbind(
 							XSimpleButton.new
 								.background_({
 									if(self.selected == x) {
-										Color.yellow;
+										ParamView.color_ligth;
 									} {
 										Color.white;
 									}
@@ -212,7 +246,7 @@ Pdef(\plop3, Pbind(
 									self.selected = x;
 
 									self.select_row_buttons[self.old_selected].background_(Color.white);
-									self.select_row_buttons[self.selected].background_(Color.yellow);
+									self.select_row_buttons[self.selected].background_(ParamView.color_ligth);
 								})
 						); 
 						self.select_row_buttons.last,
@@ -222,14 +256,14 @@ Pdef(\plop3, Pbind(
 								var color = view.color;
 								val.debug("val");
 								color[0] = if(val.notNil and: {val > 0.5}) {
-									Color.red;
+									ParamView.color_dark;
 								} {
-									Color.yellow
+									ParamView.color_ligth;
 								}; 
 								view.color = color;
 							}, { arg view;
 								var color = view.color;
-								color[0] = Color.white;
+								color[0] = Color.clear;
 								view.color = color;
 							}) 
 						);
@@ -308,10 +342,10 @@ Pdef(\plop3, Pbind(
 			self.superlistview.mapStepList(self.superbank.current);
 			self.superlistview.addCursor({ arg view;
 				"-------------------popup cursor!!".debug;
-				view.background = Color.yellow;
+				view.background = ParamView.color_ligth;
 			}, { arg view;
 				"deselex-------------------popup cursor!!".debug;
-				view.background = Color.white;
+				view.background = Color.clear;
 			});
 		});
 		self.superbank.changed(\index);
@@ -341,6 +375,9 @@ Pdef(\plop3, Pbind(
 		var layout;
 		layout = self.make_layout;
 		window.layout = layout;
+		window.onClose_({
+			StepSeq.save;
+		});
 		//window.alwaysOnTop = true;
 		window.front;
 	}

@@ -1,5 +1,7 @@
 
+DrumRack(\plop).loadDrumrack(\newrack);
 (
+EventPrototype.initPrototypes(true);
 SynthDef(\dr_kick, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0.01, spread=0.8, timeScale=1|
 	var env0, env1, env1m, son;
 
@@ -24,7 +26,15 @@ SynthDef(\dr_kick, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0
 	son = Splay.ar(son, spread, amp, pan);
 	
 	OffsetOut.ar(out, son);
-}).add;
+}, metadata:(specs:(
+	timeScale: ControlSpec(0.001,4,\lin, 0, 1),
+))).add;
+
+/////////////////////////////
+
+DrumRack(\plop);
+
+	////////////////
 
 	Pdef(\dr_kick, Pbind(
 		\instrument, \dr_kick,
@@ -40,42 +50,154 @@ SynthDef(\dr_kick, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=0
 
 	DrumRack.addInstr(\dr_kick);
 
+	////////////////
+
 	Pdef(\dr_kick2, Pbind(
 		\instrument, \dr_kick,
 
 	));
+
+	Pdef(\dr_kick2).addHalo(\params, [
+		\amp, \fratio, \timeScale
+	]);
+
+	DrumRack.addInstr(\dr_kick2);
+
+	////////////////
 
 	Pdef(\dr_kick3, Pbind(
 		\instrument, \dr_kick,
 
 	));
 
-DrumRack.all[\plop] = nil;
-DrumRack.lib_drumrack[\default] = nil;
-DrumRack(\plop);
+	Pdef(\dr_kick3).addHalo(\params, [
+		\amp, \fratio, \timeScale, \release, \freqpan, \spread,
+	]);
 
-~pg = ~class_presetgroup.new;
-~pg2 = ~class_presetgroup.new;
-~p1 = ~class_preset.new(\dr_kick);
-~p2 = ~class_preset.new(\dr_kick2);
-~p3 = ~class_preset.new(\dr_kick3);
+	DrumRack.addInstr(\dr_kick3);
 
-~pg.add_preset(~p1);
-~pg2.add_preset(~p2);
-~pg2.add_preset(~p3);
-DrumRack.lib_drumpad[\note1] = ~pg;
-DrumRack.lib_drumpad[\note2] = ~pg2;
+//DrumRack.all[\plop] = nil;
+//DrumRack.lib_drumrack[\default] = nil;
+
+//~pg = ~class_presetgroup.new;
+//~pg2 = ~class_presetgroup.new;
+//~p1 = ~class_preset.new(\dr_kick);
+//~p2 = ~class_preset.new(\dr_kick2);
+//~p3 = ~class_preset.new(\dr_kick3);
+//
+//~pg.add_preset(~p1);
+//~pg2.add_preset(~p2);
+//~pg2.add_preset(~p3);
+//DrumRack.lib_drumpad[\note1] = ~pg;
+//DrumRack.lib_drumpad[\note2] = ~pg2;
 
 DrumRack(\plop).edit;
 )
 
+DrumRack(\plop).asArchiveData
+DrumRack.all.save
+Archive.global.at(\PresetDictionary, \DrumRack)
+Archive.global.at(\PresetDictionary, \DrumRack)[\plop]
+
+DrumRack(\plop).drumrack.get_pad(0)
+DrumRack(\plop).drumrack.list.size
+Archive
+Object
+DrumRack
+PresetDictionary(\lib_drumrack)[\het]
+PresetDictionary(\lib_drumrack).keys
+PresetDictionary.loadAll
+PresetDictionary.all.keys
+PresetDictionary(\lib_drumrack).clear
+DrumRack.all[\plop].drumrack = PresetDictionary(\lib_drumrack)
+DrumRack.all[\plop] = nil
+DrumRack.lib_drumrack.keys
+
+Archive.global.at(\PresetDictionary, \lib_drumrack)
+Archive.global.at(\PresetDictionary)[\lib_drumrack].keys
+Archive.global.at(\PresetDictionary)[\lib_drumrack][\het]
+
+Archive.global.put(\PresetDictionary, \lib_drumrack, nil)
+Archive.write
+
+this.shutdown
+thisProcess.shutdown
+1+1
+
+StepSeq(\sc1).edit;
+StepSeq(\sc1).stepseq.trackCount = 16;
+
+Pdef(\score, Ppar(
+	StepSeq(\sc1).patterns.collect({ arg pat, x;
+		Pbind(
+			\whatthefuck, Pfunc{ arg ev; ev.debug("EV!!!"); \non },
+			\isRest, pat.coin.not,
+			\midinote, x,
+			\dur, 1/4,
+		).loop;
+	})
+).loop);
+
+//////////////////////
+
+
+Archive.global.at(\PresetDictionary).keys
+
+(
+Pdef(\test, Ppar([
+	Pbind(\instrument, \1),
+	Pbind(\instrument, \2),
+	Pbind(\instrument, \3),
+]))
+)
+Pdef(\test).source.list
+
+~data = ~p1.asArchiveData
+~data.load
+
+~data = ~pg.asArchiveData
+~data.load
+
+DrumRack(\plop).drumrack
+~a = DrumRack(\plop).edit
+~a.drumrack.pads.size
+
 DrumRack.lib_drumrack[\default]
+DrumRack.lib_drumrack[\het]
+DrumRack.lib_drumrack.keys
+PresetDictionary.loadAll
+PresetDictionary.all.keys
+PresetDictionary.all = IdentityDictionary.new;
+PresetDictionary(\lib_drumrack)
+PresetDictionary(\StepSeq)
 
 DrumRack(\plop).drumrack = ~class_drumrack.new;
 DrumRack.lib_drumrack.get_list.first
 ~class_drumrack_view.new(DrumRack(\plop));
 
 			"/home/ggz/code/sc/seco/vlive/demo/param/lib/drumrack.scd".load;
+DrumRack.lib_drumpad.load
+DrumRack.lib_drumpad.keys
+DrumRack.lib_drumpad.save
+DrumRack.lib_drumpad.collect({ arg x; x.dump })
+DrumRack.lib_drumpad[\ddd]
+DrumRack.lib_drumpad[\note1]
+Archive.global.put(\PresetDictionary, \bla, 2)
+Archive.global.put(\PresetDictionary, 3, nil)
+Archive.global.put(\PresetDictionary, 2, nil)
+Archive.global.put(\PresetDictionary, \lib_drumrack, nil)
+Archive.global.removeAtPath([\PresetDictionary])
+Archive.global.at(\PresetDictionary)
+Archive.global.at(\PresetDictionary).keys
+Archive.global.at(\PresetDictionary)[\lib_drumrack].keys
+Archive.global.at(\PresetDictionary)[\lib_drumrack][\default]
+Archive.global.at(\PresetDictionary)[\lib_drumpad].keys
+Archive.global.keys
+Archive.global.dictionary.keys
+Archive.global.put(\testndef, nil)
+Archive.write
+
+DrumRack(\plop).drumrack.asArchiveData.asCompileString
 
 (
 Pn(DrumRack(\plop, Pbind(
@@ -227,3 +349,64 @@ Pseq(
 	);
 	Pdef(\dr_kick).play;
 )
+
+		Archive.global.at(\PresetDictionnary)
+
+
+~a = (bla: 4, fun:{ arg self, x=100; x+1 })
+~a.tryPerform(\fun)
+~a.perform(\fun)
+~a.fun
+
+~ssm = StepSeqManager.new(8)
+~ssm.make_window
+
+		"/home/ggz/code/sc/seco/vlive/demo/param/lib/stepeditor.scd".load;
+		~class_score_manager.new
+
+CaTestClass.my = 1000
+CaTestClass.my 
+CbTestClass.my 
+EventPrototype.initPrototypes(true)
+StepSeq.all.save
+EventPrototype.new
+
+
+
+Archive.global.at(\PresetDictionary, \StepSeq, \het, \stepseq, \data, \banks)
+Archive.global.at(\PresetDictionary, \StepSeq, \het, \stepseq).load
+Archive.global.at(\PresetDictionary, \StepSeq, \het).load
+Archive.global.put(\PresetDictionary, \StepSeq, \het, nil)
+
+PresetDictionary.loadIfNotInitialized
+
+StepSeq(\het).edit
+StepSeq(\het).setStepSpec(\unipolar)
+StepSeq(\het).setStepSpec(\bipolar)
+StepSeq(\het).stepseq.setStepSpec(\unipolar)
+StepSeq(\het).stepseq.banks[0][1].getSpec(\list)
+StepSeq(\het).addSpecgtg
+StepSeq(\het).stepseq
+StepSeq(\het).stepseq.asArchiveData
+StepSeq.new(\het).
+StepSeq.save
+Archive.write
+
+	(
+	{ arg self, spec;
+		self.banks.do { arg bank;
+			bank.do { arg list;
+				list.addSpec(\list, spec);
+				list.debug("list===");
+				list.getSpec(\list).debug("spec");
+			}
+		};
+		self.addSpec(\list, spec);
+	}.value(StepSeq(\het).stepseq, \unipolar);
+	)
+
+
+
+///////////////////////////////////////////////////
+
+

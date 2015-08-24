@@ -1,3 +1,24 @@
+
+//////////////////////////
+
+what !!! there is a way to browse and test and even see and change parameters builtin!!!
+not resizable and specs are missing but it's cool!
+
+
+SynthDescLib.global.browse;
+SynthDescLib.at(\dr_kick)
+
+
+///////////////////////
+
+collect on Archive make random data appear
+
+inst.putAll( Archive.global.at(\PresetDictionary, pkey).collect({ arg x, n; 
+	[n, pkey, this.all.keys].debug("3 loadAll: in your PresetDictionary, loading its content");
+	x.load;
+}) );
+
+
 //////////////////////////////
 
 why not showing the index ??? this could help a lot!
