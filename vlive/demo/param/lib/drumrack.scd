@@ -16,7 +16,7 @@
 				instr = Pdef(instr);
 			};
 			self.instr = instr;
-			self.params = (amp: 0.1, pan:0);
+			self.params = ();
 
 			self
 		}
@@ -24,14 +24,28 @@
 
 	new_load: { arg eventclass, data;
 		var self = eventclass.new(data.instr);
-		self.params = data.params;
+		self.params = data.params.collect({ arg x;
+			// TODO: hack: find a better way to save and load buffer
+			if(x.class == XSamplePlaceholder) {
+				x.load;
+			} {
+				x
+			}
+		});
 		self;
 	},
 
 	asArchiveData: { arg self;
 		(
 			instr: self.instr.key,
-			params: self.params,
+			params: self.params.collect({ arg x; 
+				// TODO: hack: find a better way to save and load buffer
+				if(x.class == Buffer) {
+					XSamplePlaceholder.new(x.path, x.numChannels)
+				} {
+					x
+				} 
+			}),
 			load: { arg x; ~class_preset.new_load(x) },
 		)
 	},
@@ -41,6 +55,18 @@
 		preset = ~class_preset.new(self.instr);
 		preset.params = self.params.deepCopy;
 		preset;
+	},
+
+	isSpecialSpec: { arg self, obj;
+		// disable when new control GUIs are written
+		[
+			//XBufferSpec,
+			XTrigSpec,
+			XGateSpec,
+			XBusSpec,
+			XWavetableSpec,
+			XDoneActionSpec,
+		].any({ arg x; obj.isKindOf(x) })
 	},
 
 	paramlist: { arg self;
@@ -60,21 +86,24 @@
 				spec = Param(self.instr, param[0]).spec; // TODO: maybe avoid creating a whole Param object
 				param.add(spec);
 			};
-			if(param[1].isKindOf(XSampleSpec)) {
+			if(self.isSpecialSpec(param[1])) {
+				// also filtered by .type in ~class_drumrack
+				// disable when new control GUIs are written
 				retparam = nil;
 			} {
-				retparam = Param(self.params, *param);
-				if(self.params[param[0]].isNil) {
-					if(self.instr.getHalo(\instrument).notNil) {
-						var defval = Param.getSynthDefDefaultValue(param[0], self.instr.getHalo(\instrument));
-						if(retparam.type == \env) {
-							defval = defval.asEnv;
-						};
-						retparam.set(defval); // should be retparam.default but not yep implemented
-					} {
-						retparam.set(retparam.spec.default); // should be retparam.default but not yet implemented
-					}
-				};
+				self.params.addHalo(\instrument, self.instr.getHalo(\instrument));
+				retparam = Param(self.params.addHalo(\nestMode, true), *param);
+				//if(self.params[param[0]].isNil) {
+				//	if(self.instr.getHalo(\instrument).notNil) {
+				//		var defval = Param.getSynthDefDefaultValue(param[0], self.instr.getHalo(\instrument));
+				//		if(retparam.type == \env) {
+				//			defval = defval.asEnv;
+				//		};
+				//		retparam.set(defval); // should be retparam.default but not yep implemented
+				//	} {
+				//		retparam.set(retparam.spec.default); // should be retparam.default but not yet implemented
+				//	}
+				//};
 			};
 			retparam;
 		}.select(_.notNil);
@@ -297,6 +326,7 @@
 );
 
 ~class_drumrack_proxy = (
+	// replaced by DrumRack
 	new: { arg self, drumrack;
 		self = self.deepCopy;
 	
@@ -356,11 +386,11 @@
 	make_drumpreset_layout: { arg self, drumpreset, rowidx;
 		HLayout(*
 			[
-				StaticText.new.string_("part " + rowidx),
+				StaticText.new.string_(drumpreset.instr.key + rowidx),
 				self.drumpad_row_selector.views[rowidx],
 			]
 			++
-			drumpreset.paramlist.select({ arg x; x.type == \scalar }).keep(8)
+			drumpreset.paramlist.select({ arg x; x.type == \scalar }).keep(32)
 				.collect({ arg param, x;
 					[x, param].debug("Param");
 					self.make_knob(param.property).mapParam(param);
@@ -378,14 +408,21 @@
 			self.env_panel.layout = HLayout(*
 				self.drumpad.list[self.drumpad_row_selector.selected_index].paramlist
 					.select({ arg x;
-						x.type != \scalar;
+						x.type != \scalar and: { x.type != \other or: { x.spec.isKindOf(XBufferSpec) } };
 					}).do({ arg x; x.property.debug("refresh_env_panel: selected params") })
 					.collect({ arg param;
-						VLayout(
-							param.asStaticTextLabel,
-							param.asView,
-							param.asTextField,
-						)
+						if(param.spec.isKindOf(XBufferSpec)) {
+							VLayout(
+								StaticText.new.string_(param.property),
+								param.asView,
+							)
+						} {
+							VLayout(
+								StaticText.new.string_(param.property),
+								param.asView,
+								param.asTextField,
+							)
+						}
 					})
 			)
 		} {
@@ -404,6 +441,8 @@
 					self.drumpad.list.collect({ arg preset, x;
 						self.make_drumpreset_layout(preset, x)
 					})
+					++
+					[ nil ]
 				)
 			} {
 				self.drumpad_view.removeAll;
@@ -419,6 +458,12 @@
 		layout = self.make_layout;
 		window.layout = layout;
 		//window.addToOnClose({
+		window.view.keyDownAction = { arg me, key, modifiers, unicode, keycode;
+			[me, key.asCompileString, modifiers, unicode, keycode].debug("keyDownAction");
+			if(key == $\r) {
+				self.drumpad.play_preset;
+			}
+		};
 		window.onClose_({
 			debug( "closing!");
 			self.drumrack.lib_drumrack.debug("lib_drumrack").save;

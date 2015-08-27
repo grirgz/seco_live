@@ -1,3 +1,25 @@
+////////////////////////
+
+bug when setting background color of popup menu
+
+		self.superlistview.view.onChange(self.superbank, \index, {
+			self.superlistview.mapStepList(self.superbank.current);
+			self.superlistview.addCursor({ arg view;
+				"-------------------popup cursor!!".debug;
+				//view.background = ParamView.color_ligth;
+			}, { arg view;
+				"deselex-------------------popup cursor!!".debug;
+				//view.background = Color.white;
+			});
+		});
+////////////////////
+
+
+http://doc.sccode.org/Guides/WritingClasses.html#External%20Method%20Files
+should mention that must be at the end of the file and is considered to be a new file regarding error line number
+
+http://doc.sccode.org/Guides/WritingClasses.html#Catching%20methods%20that%20are%20not%20explicitly%20defined
+should mention how to throw DoesNotUnderstandError
 
 //////////////////////////
 

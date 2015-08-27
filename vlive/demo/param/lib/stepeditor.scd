@@ -88,16 +88,18 @@ Pdef(\plop3, Pbind(
 	new: { arg self, track_count=4, delta=1/8, duration=1;
 		self = self.deepCopy;
 	
-		self.score_delta = delta;
-		self.score_duration = duration;
+		self.score_delta = delta; // not used currently
+		self.score_duration = duration; // not used currently
 		self.selector_count = 8;
-		self.banks = {BankList.new} ! track_count;
+		self.banks = List.newFrom({BankList.new} ! track_count);
 		self.superbank = BankList.newFrom(self.selector_count.collect({ 
 			ParDictStepList.newFrom(0!8).dicts_(self.banks)
 		}));
 		self.track_count = track_count ? 4;
 		self.selected = 0;
 		self.banks.debug("wtf");
+
+		self.playerWrapper = PlayerWrapper.new;
 		
 		self.add_score;
 
@@ -113,6 +115,7 @@ Pdef(\plop3, Pbind(
 			\track_count,
 			\banks,
 			\superbank,
+			\current_score,
 		].collect({ arg x; data[x] = self[x] });
 
 		(
@@ -125,6 +128,40 @@ Pdef(\plop3, Pbind(
 			spec: self.getSpec(\list),
 			data: data
 		)
+	},
+
+	set_track_count: { arg self, count;
+		var diff;
+		self.track_count = count;
+		diff = count - self.banks.size;
+		if( diff > 0 ) {
+			diff.do {
+				var bank;
+				bank = BankList.new;
+				self.banks[0].size.do {
+					bank.add( self.make_row );
+				};
+				self.banks.add(bank);
+			};
+		} {
+			if(diff < 0) {
+				diff.abs.do {
+					self.banks.pop
+				}
+			}
+		}
+	},
+
+	current_step_count: { arg self;
+		self.banks.first[self.current_score].size
+	},
+
+	current_step_count_: { arg self, val;
+		self.current_score.debug("current_step_count: current_score");
+		self.banks.do { arg bank;
+			bank.current.stepCount_(val)
+		};
+		self.refresh_grid;
 	},
 
 	make_row: { arg self;
@@ -152,13 +189,14 @@ Pdef(\plop3, Pbind(
 	remove_score: { arg self;
 		if(self.scores.size > 1) {
 			self.scores.removeAt(self.current_score);
-			self.current_score = self.current_score.clip(0, self.scores.size-1);
+			//self.current_score = self.current_score.clip(0, self.scores.size-1);
 			self.refresh_grid;
 		};
 
 	},
 
 	add_row: { arg self, pos;
+		// deprecated
 		pos = pos ? self.current_score;
 		( self.score_duration/self.score_delta ).debug("row size");
 		self.scores[pos].add(
@@ -168,15 +206,21 @@ Pdef(\plop3, Pbind(
 	},
 
 	remove_row: { arg self, x;
+		// deprecated
 		self.scores[self.current_score].removeAt(x);
 		self.selected = self.selected.clip(0, self.scores[self.current_score].size-1);
 		self.refresh_grid;
 	},
 
 	select_score: { arg self, x;
+		// refresh is in calling method, is it ok ?
 		self.banks.do { arg bank;
 			bank.index = x;
 		};
+	},
+
+	current_score: { arg self;
+		self.banks.first.index
 	},
 
 	as_pattern: { arg self;
@@ -211,6 +255,8 @@ Pdef(\plop3, Pbind(
 	},
 
 	refresh_grid: { arg self;
+		self.changed(\set, [\current_step_count]); // FIXME: should not be in view but model
+
 		if(self.score_select_view.notNil) {
 			var val;
 			//val = self.score_select_view.value;
@@ -220,16 +266,16 @@ Pdef(\plop3, Pbind(
 		};
 		self.selected = self.selected.clip(0, self.banks.size-1);
 		if(self.gridview.notNil) {
-			self.select_row_buttons = List.new;
+			self.select_row_buttons = List.new; // TODO: use ~selector instead
 			self.buttonrows = List.new;
 			self.scores.debug("scores");
-			self.current_score.debug("curscore");
+			//self.current_score.debug("curscore");
 
 			self.gridview.removeAll;
 			self.gridview.layout = GridLayout.rows(*
 				self.banks.collect({ arg bank, x;
 					[
-						StaticText.new.string_("track "++(x+1)),
+						StaticText.new.string_("track "++(x)),
 
 						self.select_row_buttons.add(
 							XSimpleButton.new
@@ -288,7 +334,8 @@ Pdef(\plop3, Pbind(
 		scrollview.canvas = self.gridview;
 		layout = VLayout(
 			HLayout(
-				PlayerWrapperView(Pdef(\score)).layout,
+				PlayerWrapperView(self.playerWrapper).layout,
+				NumberBox.new.mapParam(Param(Message(self), \current_step_count, ControlSpec(1,128,\lin, 1))),
 				self.score_select_view = PopUpMenu.new // score chooser
 					.items_( (0..self.scores.size-1) )
 					.action_({ arg view;
@@ -342,10 +389,13 @@ Pdef(\plop3, Pbind(
 			self.superlistview.mapStepList(self.superbank.current);
 			self.superlistview.addCursor({ arg view;
 				"-------------------popup cursor!!".debug;
-				view.background = ParamView.color_ligth;
+				//view.background = ParamView.color_ligth;
+				//view.stringColor = ParamView.color_ligth;
+				view.font = Font.default.bold_(true)
 			}, { arg view;
 				"deselex-------------------popup cursor!!".debug;
-				view.background = Color.clear;
+				//view.background = Color.white;
+				view.font = Font.default.bold_(false)
 			});
 		});
 		self.superbank.changed(\index);
@@ -370,11 +420,71 @@ Pdef(\plop3, Pbind(
 		self.super_layout;
 	},
 
+	copy_selected_score: { arg self;
+		~score_manager_score_clipboard = self.banks.collect { arg b; b.current };
+	},
+
+	paste_selected_score: { arg self;
+		if(~score_manager_score_clipboard.notNil) {
+			min(self.banks.size, ~score_manager_score_clipboard.size).do { arg x;
+				self.banks[x].current = ~score_manager_score_clipboard[x].copy;
+				self.banks[x].current.addSpec(\list, ~score_manager_score_clipboard[x].getSpec(\list));
+			}
+		};
+		self.refresh_grid;
+		
+	},
+
+	copy_selected_row: { arg self;
+		~score_manager_row_clipboard = self.banks[self.selected].current;
+	},
+
+	paste_selected_row: { arg self;
+		if(~score_manager_row_clipboard.notNil) {
+			self.banks[self.selected].current = ~score_manager_row_clipboard.copy;
+			self.banks[self.selected].current.addSpec(\list, ~score_manager_row_clipboard.getSpec(\list));
+			self.refresh_grid;
+		}
+	},
+
+	keyDownAction: { arg self;
+		{ arg me, key, modifiers, unicode, keycode;
+			[me, key.asCompileString, modifiers, unicode, keycode].debug("keyDownAction1");
+			if(modifiers != 0) {
+				key = (key.ascii + 96).asAscii
+			};
+			[me, key.asCompileString, modifiers, unicode, keycode].debug("keyDownAction");
+			if(modifiers.isCtrl and: modifiers.isAlt.not) {
+				key.debug("row copy/paste");
+				switch(key,
+					$c, {
+						self.copy_selected_row;
+					},
+					$v, {
+						self.paste_selected_row;
+					}
+				)
+			}; 
+			if(modifiers.isCtrl and: modifiers.isAlt) {
+				key.debug("yeye");
+				switch(key,
+					$c, {
+						self.copy_selected_score;
+					},
+					$v, {
+						self.paste_selected_score;
+					}
+				)
+			} 
+		};
+	},
+
 	make_window: { arg self;
 		var window = Window.new;
 		var layout;
 		layout = self.make_layout;
 		window.layout = layout;
+		window.view.keyDownAction = self.keyDownAction;
 		window.onClose_({
 			StepSeq.save;
 		});
