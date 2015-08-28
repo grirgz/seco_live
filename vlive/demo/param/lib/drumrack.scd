@@ -26,11 +26,12 @@
 		var self = eventclass.new(data.instr);
 		self.params = data.params.collect({ arg x;
 			// TODO: hack: find a better way to save and load buffer
-			if(x.class == XSamplePlaceholder) {
-				x.load;
-			} {
-				x
-			}
+			//if(x.class == SamplePlaceholder) {
+			//	x.load;
+			//} {
+			//	x
+			//}
+			x;
 		});
 		self;
 	},
@@ -41,7 +42,7 @@
 			params: self.params.collect({ arg x; 
 				// TODO: hack: find a better way to save and load buffer
 				if(x.class == Buffer) {
-					XSamplePlaceholder.new(x.path, x.numChannels)
+					SampleProxy.new(x.path, x.numChannels)
 				} {
 					x
 				} 
@@ -289,7 +290,7 @@
 		idx.debug("play_pad!!");
 		Ppar(
 			self.pdrumstep.dictNext(idx, ev).collect({ arg x; Pn((latency: Ref(nil))) <> Pn(x,1) }),
-		).play
+		).trace.play
 	},
 	
 

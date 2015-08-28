@@ -155,8 +155,19 @@ Archive.write
 DrumRack.lib_drumrack
 DrumRack.lib_drumrack.keys
 DrumRack.lib_drumrack.save
+DrumRack.lib_drumrack.load
 Archive.global.at(\PresetDictionary, \lib_drumrack).keys
 DrumRack(\test).edit
+DrumRack(\test)
+
+(
+	File.use("/home/ggz/.local/share/SuperCollider/PresetDictionary/lib_drumrack", "w", { arg file;
+		file << (0..300000).asCompileString;
+	})
+)
+
+"/home/ggz/.local/share/SuperCollider/PresetDictionary/lib_drumrack".load
+
 
 Pdef(\yaa).addHalo(\jaune,3)
 Pbindef(\yaa).getHalo(\jaune)
@@ -205,6 +216,19 @@ Archive.global.at(\PresetDictionary, \lib_drumrack)[\default].
 Archive.global.at(\PresetDictionary, \lib_drumrack)[\default].
 Archive.global.at(\PresetDictionary, \lib_drumrack)[\default].drumrack.browse
 Archive.global.at(\PresetDictionary, \lib_drumrack)[\default].inspect
+Archive.global.at(\PresetDictionary)
+
+~a = List.new;
+~a add: "kk"
+
+(
+
+	~a add: (\plop -> (
+		a:4,
+		b:55,
+
+	)
+)
 
 
 (
@@ -229,3 +253,86 @@ Archive.global.at(\PresetDictionary, \lib_drumrack)[\default].inspect
 	}.value
 )
 ~field.string = "plop"
+
+
+
+
+(
+
+
+
+var quant=0.5, tol=0.5, strenght=0.5;
+
+
+
+Window.closeAll;
+
+w=Window.new.alwaysOnTop_(true).front;
+
+
+
+f={
+
+	b.value=a.value.collect(_.quantize(quant, tol, strenght))
+
+};
+
+
+
+w.layout_(
+
+	VLayout([
+
+		HLayout(
+
+			StaticText().string_("quantum"),
+
+			Slider().value_(quant).action_({arg self; quant=self.value.postln; f.()}),
+
+			StaticText().string_("tolerance"),
+
+			Slider().value_(tol).action_({arg self; tol=self.value.postln; f.()}),
+
+			StaticText().string_("strength"),
+
+			Slider().value_(strenght).action_({arg self; strenght=self.value.postln; f.()})
+
+		),stretch:1],
+
+		[VLayout(
+
+			HLayout(
+
+				a=MultiSliderView()
+
+				.elasticMode_(true)
+
+				.value_((0..100)/100)
+
+				.action_(f),
+
+				Button().action_({
+
+					a.value=(0..100)/100;
+
+					f.();
+
+				})
+
+			),
+
+			b=MultiSliderView()
+
+			.editable_(false)
+
+			.elasticMode_(true)
+
+			.value_(a.value)
+
+		),stretch:1]
+
+	)
+
+);
+
+)

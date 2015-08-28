@@ -1,3 +1,7 @@
+//////////////////////
+Doc:
+when typing try or catch (catch keyword is not used in SC), nothing show in help, maybe add it to control structures and add a tag to Exception page
+
 ////////////////////////
 
 bug when setting background color of popup menu

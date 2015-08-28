@@ -410,3 +410,25 @@ Archive.write
 ///////////////////////////////////////////////////
 
 
+BufDef(\viper, "vipere/DrumRack")
+~s = SampleProxy.new("/home/ggz/Musique/sc/samplekit/vipere/amenbreak.wav" )
+
+		BufDef(\amen, "vipere/amenbreak.wav");
+
+(instrument: \playbuf, bufnum:~s).play
+(instrument: \playbuf, bufnum:BufDef(\amen)).play
+
+(
+SynthDef(\playbuf, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum=0;
+	var sig;
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum), 1, 1, startPos: 0, doneAction:2, loop: 1);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+)
+
+
+~s = SampleProxy("/home/ggz/Musique/boom1.wav")
+SampleProxy("/home/ggz/Musique/boom1.wav").bufnum
+SampleProxy("/home/ggz/Musique/boom1.wav").source.play

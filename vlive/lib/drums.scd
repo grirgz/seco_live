@@ -125,3 +125,33 @@ DrumRack.lib_instr
 DrumRack.lib_drumpad[\dr_oscsampler].list.first.params
 DrumRack.lib_drumpad[\dr_oscsampler].list.first.paramlist.do(_.postln)
 DrumRack.lib_drumpad[\dr_oscsampler].list.first.instr.getHalo(\params).do(_.postln)
+
+BufferPool.get_stereo_sample("vipere/amenbreak.wav")
+~buf = BufDef(\amen, "vipere/amenbreak.wav");
+~buf.numChannels
+~buf.bufnum
+
+Pn((bufnum:Pfunc({ 4 }))).asStream.nextN(10,())
+Buffer
+Pbind(*(bufnum:Pfunc({ 4 }))).asStream.nextN(10,())
+(bufnum:Pfunc({ 4 })).asPair
+
+Pbind(*(bufnum:Pfunc({ 4 })).getPairs).asStream.nextN(10,())
+
+~ev = (bufnum:Pfunc({ 4 }));
+~str = Pbind(* ~ev.getPairs).asStream
+~str.nextN(10,())
+~ev[\bla] = 4
+
+
+
+~ev = (bufnum:Pfunc({ 4 }));
+~str = Pn( ~ev).asStream
+~str.nextN(10,())
+~ev[\bla] = 5
+
+~str = Pevent(~ev).asStream
+
+~str
+BufferPoo
+
