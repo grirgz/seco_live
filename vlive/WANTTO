@@ -1,3 +1,7 @@
+////////////////
+
+Doc:
+add a link to j operators in PstepNadd and PstepNfunc, because there is an operator which do just this, and perhaps says that it have nothing to do with Pstep
 //////////////////////
 Doc:
 when typing try or catch (catch keyword is not used in SC), nothing show in help, maybe add it to control structures and add a tag to Exception page

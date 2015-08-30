@@ -480,6 +480,8 @@ MidinoteTimeline([])
 
 )
 
+(Pbind(\instrument, \default) <> EventLoop(\a)).play
+
 ~mytl.viewport = Rect(0, 42/128, 1,1-((52-42)/128)); ~mytl.refresh;
 ~mytl.viewport = Rect(0, 1/4, 1,(1/4)); ~mytl.refresh;
 ~mytl.viewport = Rect(0, 0, 1,1); ~mytl.refresh;
