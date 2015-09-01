@@ -295,6 +295,7 @@ MidinoteTimeline([])
 
 
 ~el = nil;
+a.print
 (
 	if(~el.isNil) {
 		~el = EventList.new;

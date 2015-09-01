@@ -1,6 +1,8 @@
+///////////////
+// in this file, I try to combine multiple timeline into one view and has a common locator bar and scrollbars
+// the problem is that everything else is not common : selection, can't move some block on another row
+//////////////////////////////
 
-EventLoop(\pdef).list
-~el
 ~el = nil;
 (
 	if(~el.isNil) {
@@ -9,24 +11,22 @@ EventLoop(\pdef).list
 			Pbind(
 				\nodeType, \eventlist,
 				\label, Pkey(\key),
+				\midinote, 0,
 			) <>
 			Pseq([
 			(
 				key: \plop2,
 				sustain: 2.0,
-				midinote: 1,
 				dur: 3,
 			),
 			(
 				key: \plop,
 				sustain: 0.5,
-				midinote: 1,
 				dur: 1,
 			),
 			(
 				key: \plop2,
 				sustain: 2.0,
-				midinote: 1,
 				dur: 3,
 			),
 		],1));
@@ -92,7 +92,7 @@ EventLoop(\pdef).list
 			self = self.deepCopy;
 		
 			self.eventloop = eventloop;
-			self.area_size = 9@2;
+			self.area_size = 9@1;
 			
 		
 			self;
@@ -122,6 +122,173 @@ EventLoop(\pdef).list
 
 			timeline = PdefTimelineView.new;
 			~mytl = timeline;
+			//ruler_x = TimelineRulerView.new;
+			////ruler_y = MidinoteTimelineRulerView.new;
+			//locatorbar = TimelineLocatorBarView.new;
+
+			////ruler_y.mimicTimeline(timeline);
+			//ruler_x.mimicTimeline(timeline);
+			//locatorbar.mimicTimeline(timeline);
+
+			//hrange = TimelineScroller.new;
+			//hrange.mapTimeline(timeline);
+			//hrange.orientation = \horizontal;
+			//vrange = TimelineScroller.new;
+			//vrange.mapTimeline(timeline);
+			//vrange.orientation = \vertical;
+
+			//sizer = 
+			//	HLayout(
+			//		XSimpleButton.new.label_("<").action_({
+			//			var point = 0 - Point(4,0);
+			//			timeline.areasize = timeline.areasize + point;
+			//			timeline.refresh;
+			//		}).fixedSize_(Point(10,20)),
+			//		XSimpleButton.new.label_(">").action_({
+			//			var point = Point(4,0);
+			//			timeline.areasize = timeline.areasize + point;
+			//			timeline.refresh;
+			//		}).fixedSize_(Point(10,20)),
+			//	).spacing_(0);
+
+			//layout = GridLayout.rows(
+			//		[
+			//			nil,
+			//			VLayout(
+			//				locatorbar.view,
+			//				ruler_x.view,
+			//			),
+			//			XSimpleButton.new.label_("z")
+			//				.maxWidth_(10)
+			//				.action_({
+			//					~zoom_fit.(timeline);
+			//				})
+			//		],
+			//		[
+			//			//ruler_y.view,
+			//			nil,
+			//			timeline.view,
+			//			vrange.view,
+			//		],
+			//		[
+			//			nil,
+			//			hrange.view,
+			//			sizer,
+			//		]
+			//);
+			layout = HLayout(timeline.view);
+			//layout.spacing = 0;
+
+			size = self.area_size;
+			size.debug("size!!!");
+
+			timeline.areasize = size;
+
+			//ruler_x.view.minSize = Point(10,10);
+			//ruler_y.view.minSize = Point(40,10);
+			//locatorbar.view.minSize = Point(10,15);
+
+			timeline.mapEventList(eventloop.list);
+			//locatorbar.mapEventList(eventloop.list);
+
+			self.timeline = timeline;
+			self.layout = layout;
+			"iiAZE".debug;
+			layout;
+		},
+
+		refresh: { arg self;
+			self.timeline.mapEventList(self.eventloop.list);
+		},
+	);
+
+	~multiTimeline = (
+		new: { arg self;
+			self = self.deepCopy;
+		
+			
+		
+			self;
+		},
+
+		makeWindow: { arg self;
+			var window = Window.new;
+			var layout;
+			layout = self.makeLayout;
+			window.layout = layout;
+			window.alwaysOnTop = true;
+			window.front;	
+		},
+
+		make_vrange: { arg self;
+			self.ruler_y_view = RangeSlider.new;
+			self.ruler_y_view.action = { arg slider;
+				self.timelines_view.fixedHeight = 1/slider.range * self.timelines_scrollview.bounds.height;
+				self.timelines_scrollview.visibleOrigin = Point(0, ( 1-slider.hi ) / slider.range) * self.timelines_scrollview.bounds.height;
+			
+			};
+			//~vrange.action = { arg slider;
+			//	var range = slider.range.clip(0.0001,1); // prevent division by 0
+
+			//	[slider.hi, slider.lo, slider.range].debug("slider v");
+			//	~wid.viewport.top = (1-slider.hi) / range;
+			//	~wid.viewport.height = range;
+			//	[~wid.viewport, slider.hi, slider.lo, slider.range].debug("range action");
+			//	~wid.refresh;
+			//};
+			
+			self.ruler_y_view;
+		},
+
+		makeLayout: { arg self;
+			var layout;
+			var timelines_layout;
+			var timelines;
+			var vlayout, timeline, vrange, hrange, size;
+			var eventloop;
+			var ruler_x, ruler_y, sizer;
+			var locatorbar;
+			var sizer_action;
+			var timelines_view;
+			var timelines_scrollview;
+			timelines = [
+				~pdefTimeline.new(EventLoop(\pdef)),
+				~pdefTimeline.new(EventLoop(\pdef)),
+				~pdefTimeline.new(EventLoop(\pdef)),
+				~pdefTimeline.new(EventLoop(\pdef)),
+				~pdefTimeline.new(EventLoop(\pdef)),
+				~pdefTimeline.new(EventLoop(\pdef)),
+				~pdefTimeline.new(EventLoop(\pdef)),
+				~pdefTimeline.new(EventLoop(\pdef)),
+				~pdefTimeline.new(EventLoop(\pdef)),
+			];
+			self.timelines = timelines;
+			timelines_layout = VLayout(*
+				timelines.collect({ arg x; 
+					x.makeLayout;
+					x.timeline.debug("timeline---");
+					//x.timeline.view.minHeight_(100);
+					x.layout;
+					//View.new.layout_(x.layout).minHeight_(200);
+				})
+			).spacing_(0).margins_(0);
+			timelines_view = View.new.layout_(timelines_layout);
+			self.timelines_view = timelines_view;
+			//timelines_view = ScrollView.new.layout_(timelines_layout);
+			timelines_scrollview = ScrollView.new.canvas_(timelines_view);
+			timelines_scrollview.hasBorder = false;
+			timelines_scrollview.hasVerticalScroller = false;
+			self.timelines_scrollview = timelines_scrollview;
+
+			timeline = timelines[0].timeline;
+			eventloop = timelines[0].eventloop;
+
+			"multiTimelines".debug;
+			layout = HLayout.new;
+			self.layout = layout;
+			vlayout = VLayout.new;
+			layout.add(vlayout);
+
 			ruler_x = TimelineRulerView.new;
 			//ruler_y = MidinoteTimelineRulerView.new;
 			locatorbar = TimelineLocatorBarView.new;
@@ -129,13 +296,17 @@ EventLoop(\pdef).list
 			//ruler_y.mimicTimeline(timeline);
 			ruler_x.mimicTimeline(timeline);
 			locatorbar.mimicTimeline(timeline);
+			//timeline.mimicTimeline(timelines[1].timeline);
+			//timelines[1].timeline.mimicTimeline(timeline);
+			timelines.reduce({ arg a, b; b.timeline.mimicTimeline(a.timeline); a });
 
 			hrange = TimelineScroller.new;
 			hrange.mapTimeline(timeline);
 			hrange.orientation = \horizontal;
-			vrange = TimelineScroller.new;
-			vrange.mapTimeline(timeline);
-			vrange.orientation = \vertical;
+			//vrange = TimelineScroller.new;
+			//vrange.mapTimeline(timeline);
+			//vrange.orientation = \vertical;
+			vrange = self.make_vrange;
 
 			sizer = 
 				HLayout(
@@ -167,8 +338,10 @@ EventLoop(\pdef).list
 					[
 						//ruler_y.view,
 						nil,
-						timeline.view,
-						vrange.view,
+						timelines_scrollview,
+						//[timelines_view, columns:2],
+						vrange,
+						//vrange.view,
 					],
 					[
 						nil,
@@ -178,36 +351,27 @@ EventLoop(\pdef).list
 			);
 			layout.spacing = 0;
 
-			size = self.area_size;
-			size.debug("size!!!");
-
-			timeline.areasize = size;
-
 			ruler_x.view.minSize = Point(10,10);
 			//ruler_y.view.minSize = Point(40,10);
 			locatorbar.view.minSize = Point(10,15);
 
 			timeline.mapEventList(eventloop.list);
 			locatorbar.mapEventList(eventloop.list);
+			//layout = timelines_layout;
 
-			self.timeline = timeline;
 			self.layout = layout;
-			"iiAZE".debug;
 			layout;
 		},
-
-		refresh: { arg self;
-			self.timeline.mapEventList(self.eventloop.list);
-		},
+		
 	);
-	~pt = ~pdefTimeline.new(EventLoop(\pdef));
+	~pt = ~multiTimeline.new;
 	~pt.makeWindow;
 
 )
 
 
 ////////////////////////////////////////////////
-/////////////// testing PtimeGate
+/////////////// testing PtimeGatePunch
 
 (
 
@@ -226,15 +390,15 @@ EventLoop(\pdef).list
 		\instrument, \plop,
 		\isRest, false,
 		\dur, 1/8,
-		\degree, Pseq([1,2,3,4],inf),
+		\degree, Pseq((1..24),inf),
 	));
 
 	Pdef(\plop2, Pbind(
 		\instrument, \plop,
 		\isRest, false,
-		//\ffreq, 2000,
+		\ffreq, 8000,
 		\dur, 1/4,
-		\degree, Pseq([1,2,3,4]+10,inf),
+		\degree, Pseq((1..24)+08,inf),
 	));
 
 	Pdef(\plop_amp, Pbind(
@@ -285,12 +449,12 @@ Pdef(\pscore1b, Pseq([
 Pdef(\pscore1c, Pseq([
 	(
 		key: \plop2,
-		sustain: 2.0,
+		sustain: 3.0,
 		dur: 4,
 	),
 	(
 		key: \plop,
-		sustain: 2,
+		sustain: 3,
 		dur: 4,
 	),
 ],10));
@@ -348,9 +512,10 @@ Pdef(\pscore_ffreq, Pseq([
 Pdef(\main, 
 	Ptrace(
 		//~ppdef.(Pdef(\pscore1c))
-		PtimeGate(Pdef(\pscore1c))
-		<> PtimeGate(Pdef(\pscore1b))
-		<> PtimeGate(Pdef(\pscore_ffreq))
+		//PtimeGatePunch(Pdef(\pscore1c), 0.5)
+		PtimeGatePunch(Pdef(\pscore1c), 0.2)
+		//<> PtimeGate(Pdef(\pscore1b))
+		//<> PtimeGate(Pdef(\pscore_ffreq))
 		//<> PtimeGate(Pdef(\pscore2))
 	)
 
@@ -360,149 +525,4 @@ Pdef(\main,
 //~ev = a
 //~ev.next(())
 
-//Pdef(\main, 
-//
-//	Ptrace(
-//
-//		Pspawn(
-//			Pbind(
-//				\pattern, Pfunc({ arg ev; 
-//					ev.use({
-//						Pfindur( ev[\sustain].(ev), Pdef(ev[\key].(ev)) )
-//					})
-//				}),
-//				\sustain, Pfunc({ arg ev; Pdef(ev[\sustain]) }),
-//				\method, \par,
-//			)
-//			<>
-//			Pdef(\pscore)
-//		)
-//		<>
-//		Pspawn(
-//			Pbind(
-//				\pattern, Pfunc({ arg ev; 
-//					ev.use({
-//						Pfindur( ev[\sustain].(ev), Pdef(ev[\key].(ev)) )
-//					})
-//				}),
-//				\sustain, Pfunc({ arg ev; Pdef(ev[\sustain]) }),
-//				\method, \par,
-//			)
-//			<>
-//			Pdef(\pscore2)
-//		)
-//
-//	)
-//
-//).play
-
 )
-
-Pdef(\pscore).asStream.do({ arg ev; ev.postln("plop") }, ()).play
-
-(
-	////////////////////////////////////////////
-	/// 1 in, 2 out: proof that's _impossible_
-	////////////////////////////////////////////
-	// to output a value, you should call yield, and yield automatically pull a value from the input stream
-	// that's why it's Pdrumstep(drumrack, score) and not Pdrumstep(drumrack) <> score
-	// note also that Pdrumstep(drumrack) <> score is Pchain(drumrack, score) so finally <> is not so important
-	// we should think of it as a banal binary operator or two argument function
-
-	// Pdrumstep take one in and many after
-
-	Pdef(\proof, 
-		Ptrace(
-			Prout({ arg ev;
-				while({ ev.notNil }) {
-					(degree: 10).yield;
-					ev = ev.yield(ev);
-				}
-			})
-			<>
-			Pbind(
-				\degree, Pseq([1,2,3,4,5,6,7,8,9]),
-				\dur, 1/4,
-			)
-		)
-	
-	
-	).play;
-
-)
-
-
-Pseg
-
-(
-	Pdef(\yep,
-		Pbind(\dur, 1/2)
-		<>
-		Pstep(
-			Pdef(\plop),
-			Pseq([1,3,1])
-		) 
-
-	)
-
-	.play
-)
-
-
-
-///////////////////////////////
-
-(
-Ndef(\syn1, { arg freq=300;
-	var sig;
-	sig = SinOsc.ar(freq * [1,1.01]);
-});
-Ndef(\syn2, { arg freq=400;
-	var sig;
-	sig = LFSaw.ar(freq * [1,1.01]);
-});
-
-Ndef(\syn3, { arg freq=400;
-	var sig;
-	sig = LFSaw.ar(freq * [1,1.01] * ( 1 + ( SinOsc.kr(1/16).lag(4) * 1 )));
-});
-)
-
-Ndef(\main, Ndef(\syn1));
-Ndef(\main).set(\freq, 500)
-Ndef(\syn1).set(\freq, 500)
-
-(
-Ndef(\main).put(0, Ndef(\syn1));
-Ndef(\main).put(1, Ndef(\syn2));
-Ndef(\main).put(10, \filter -> { arg in; in * 0.1 });
-)
-Ndef(\main).put(1, Ndef(\syn3));
-Ndef(\main).play;
-
-
-{ SinOsc.kr(1/8).lag([0,2,4,8]) }.plot(16)
-
-{ LagUD.kr(SinOsc.kr(1/1),0,[0,8]) }.plot(4)
-
-
-
-Pdef(\pscore, Pseq([
-	(
-		key: \plop2,
-		sustain: 2.0,
-		dur: 3,
-	),
-	(
-		key: \plop,
-		sustain: 0.5,
-		dur: 1,
-	),
-	(
-		key: \plop2,
-		sustain: 2.0,
-		dur: 3,
-	),
-],1));
-
-XEventList.newFrom(Pdef(\pscore)).print
