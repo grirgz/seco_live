@@ -390,7 +390,7 @@
 		\instrument, \plop,
 		\isRest, false,
 		\dur, 1/8,
-		\degree, Pseq((1..24),inf),
+		\degree, Pseq((0..23),inf),
 	));
 
 	Pdef(\plop2, Pbind(
@@ -398,7 +398,7 @@
 		\isRest, false,
 		\ffreq, 8000,
 		\dur, 1/4,
-		\degree, Pseq((1..24)+08,inf),
+		\degree, Pseq((0..23)+08,inf),
 	));
 
 	Pdef(\plop_amp, Pbind(
@@ -457,7 +457,7 @@ Pdef(\pscore1c, Pseq([
 		sustain: 3,
 		dur: 4,
 	),
-],10));
+],1));
 
 Pdef(\pscore2, Pseq([
 	(
@@ -513,11 +513,159 @@ Pdef(\main,
 	Ptrace(
 		//~ppdef.(Pdef(\pscore1c))
 		//PtimeGatePunch(Pdef(\pscore1c), 0.5)
-		PtimeGatePunch(Pdef(\pscore1c), 0.2)
+		Pfindur(3, PtimeGatePunch(Pdef(\pscore1c), 1.5))
+		//PtimeGate(Pdef(\pscore1c))
+		//3/ ( 1/4 )
+		//9+12
 		//<> PtimeGate(Pdef(\pscore1b))
 		//<> PtimeGate(Pdef(\pscore_ffreq))
 		//<> PtimeGate(Pdef(\pscore2))
-	)
+	).loop
+
+).play;
+
+//~ev = Event.silent(2).loop.asStream;
+//~ev = a
+//~ev.next(())
+
+)
+
+Event.partialEvents.playerEvent.eventTypes.keys.do({arg x; x.asCompileString.postln})
+Event.partialEvents.playerEvent.eventTypes[\load].asCompileString
+Event.partialEvents.playerEvent.eventTypes[\tree].asCompileString
+Event.partialEvents.playerEvent.eventTypes[\setProperties].asCompileString
+Event.partialEvents.playerEvent.eventTypes[\player].asCompileString
+
+
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Pdef(\startndef, Pbind(
+	\type, \setProperties,
+	\receiver, Pfunc({Ndef(\plop)}),
+	\args, [\play],
+	\dur, 1,
+)).play;
+);
+
+(
+Pdef(\startndefxxx, DebugPbind(
+	\type, \player,
+	//\method, \stop,
+	\receiver, Ref(Ndef(\plop)),
+	\legato, 0.3,
+	\dur, 4,
+)).play;
+);
+
+(
+Event.addEventType(\player, {
+	var method = ~method ? \play;
+	var args = ~arguments ? [];
+	var receiver = ~receiver.value;
+	var quant;
+	[method, args, receiver].debug("player EventType: method, args, receiver");
+	if(~disableQuant != false) {
+		quant = receiver.tryPerform(\quant);
+		receiver.tryPerform(\quant_, 0);
+	};
+	receiver.perform(method, *args);
+	if(~disableQuant != false) {
+		receiver.tryPerform(\quant_, quant);
+	};
+	if(method == \play) {
+		TempoClock.default.sched(~sustain.value(currentEnvironment), {
+			if(~disableQuant != false) {
+				quant = receiver.tryPerform(\quant);
+				receiver.tryPerform(\quant_, 0);
+			};
+			receiver.perform(\stop, *args);
+			if(~disableQuant != false) {
+				receiver.tryPerform(\quant_, quant);
+			};
+			
+		}.inEnvir);
+	};
+
+})
+)
+
+
+Ndef(\lfo1, { SinOsc.ar(XLine.kr(100,500,20))!2 * 0.1 }).play
+
+
+
+////////////////////////////////////////////////////////
+/// PtimeGatePunch : testing durations
+
+
+
+(
+
+	(
+	SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=4000, rq=0.3;
+		var sig, sig1, sig2, sig3;
+		sig = LFSaw.ar(freq * [1.01,1,0.99]);
+		sig = RLPF.ar(sig, ffreq, rq);
+		sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+		sig = Splay.ar(sig, spread, amp, pan);
+		Out.ar(out, sig);
+	}).add;
+	);
+
+	Pdef(\plop, Pbind(
+		\instrument, \plop,
+		\isRest, false,
+		\dur, 1/4,
+		\degree, Pseq((0..3),inf),
+	));
+
+	Pdef(\plop2, Pbind(
+		\instrument, \plop,
+		\isRest, false,
+		\ffreq, 8000,
+		\dur, 1/8,
+		\degree, Pseq((0..3)+08,inf),
+	));
+
+
+
+Pdef(\pscore1c, Pseq([
+	(
+		key: \plop,
+		sustain: 0.5,
+		dur: 4,
+	),
+	(
+		key: \plop2,
+		sustain: 3.0,
+		dur: 4,
+	),
+],1));
+
+
+//~ppdef.(Pdef(\pscore)).trace.play;
+//Pdef(\pscore).trace.play
+Pdef(\main, 
+	Ptrace(
+		//~ppdef.(Pdef(\pscore1c))
+		//PtimeGatePunch(Pdef(\pscore1c), 0.5)
+		//PtimeGatePunch(Pdef(\pscore1c), 0),
+		PtimeGatePunch(XEventLoop(\pdef).list.asPattern),
+		//PtimeGate(Pdef(\pscore1c))
+		//3/ ( 1/4 )
+		//9+12
+		//<> PtimeGate(Pdef(\pscore1b))
+		//<> PtimeGate(Pdef(\pscore_ffreq))
+		//<> PtimeGate(Pdef(\pscore2))
+	).loop
 
 ).play;
 

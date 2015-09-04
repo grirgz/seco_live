@@ -1433,3 +1433,21 @@ SynthDef(\aSynth, { |rel = 0, choose = 0, amp = 0|
 // This gets the *appearance* I want.
 n.fixedHeight = l.bounds.height;
 
+
+
+SelectX.ar(keyfollow_amount, [ pitch ], [modulated_parameter])
+
+~amount = 0.5;
+~pitch = (0..10)/10;
+~param = 0.2;
+(~amount * ~pitch) + ((1 - ~amount) * ~param)
+~amount = 0.1;
+
+{ LFSaw.ar(100 + [0,0]).sum ! 2 * 0.1 }.play;
+{ LFSaw.ar(100 + [0,0.7]).sum ! 2 * 0.1 }.play;
+
+// one octave detuning
+{ LFSaw.ar([100,200] + [0,0]).sum ! 2 * 0.1 }.play;
+{ LFSaw.ar([100,200] + [0,0.7]).sum ! 2 * 0.1 }.play;
+
+{ LFSaw.ar(100 + [0,0]) }.play;

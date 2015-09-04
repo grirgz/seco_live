@@ -1,8 +1,40 @@
 
-EventLoop(\pdef).list
+Pspawner
+XEventLoop(\pdef).list
+4*0.125*1
+XEventLoop(\pdef).list
+XEventLoop(\pdef).list.print
+PtimeGatePunch(XEventLoop(\pdef).list.asPattern.trace(prefix:"yyyyyyyyyyyy"), 0).play
+PtimeGate(XEventLoop(\pdef).list.asPattern.trace(prefix:"yyyyyyyyyyyy")).play
+XEventLoop(\pdef).asPattern
+Ptrace
 ~el
 ~el = nil;
 (
+	SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=4000, rq=0.3;
+		var sig, sig1, sig2, sig3;
+		sig = LFSaw.ar(freq * [1.01,1,0.99]);
+		sig = RLPF.ar(sig, ffreq, rq);
+		sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+		sig = Splay.ar(sig, spread, amp, pan);
+		Out.ar(out, sig);
+	}).add;
+
+	Pdef(\plop, Pbind(
+		\instrument, \plop,
+		\isRest, false,
+		\dur, 1/8,
+		\degree, Pseq([1,2,3,4],inf),
+	));
+
+	Pdef(\plop2, Pbind(
+		\instrument, \plop,
+		\isRest, false,
+		\ffreq, 2000,
+		\dur, 1/8,
+		\degree, Pseq([1,2,3,4]+10,inf),
+	));
+
 	if(~el.isNil) {
 		~el = XEventList.newFrom( 
 			
@@ -13,7 +45,7 @@ EventLoop(\pdef).list
 			Pseq([
 			(
 				key: \plop2,
-				sustain: 2.0,
+				sustain: 0.5,
 				midinote: 1,
 				dur: 3,
 			),
@@ -31,7 +63,7 @@ EventLoop(\pdef).list
 			),
 		],1));
 
-		EventLoop(\pdef).list = ~el;
+		XEventLoop(\pdef).list = ~el;
 	};
 
 	~zoom_fit = { arg timeline;
@@ -87,6 +119,85 @@ EventLoop(\pdef).list
 
 	);
 
+	~clipEditor = (
+		new: { arg self, model;
+			self = self.deepCopy;
+		
+			self.model = model;
+			self.makeWindow;
+			
+		
+			self;
+		},
+
+		makeLayout: { arg self;
+			var layout;
+			var header;
+			var editor;
+			var type_popup, name_popup;
+			var model = self.model;
+			type_popup = PopUpMenu.new;
+			name_popup = PopUpMenu.new;
+			type_popup.items = [
+				'Pdef',
+				'Ndef',
+				'Timeline',
+				'MidinoteTimeline'
+			];
+			type_popup.action = {
+				switch( type_popup.items[type_popup.value],
+					\Ndef, {
+						name_popup.items = Ndef.all[\localhost].envir.keys.asArray;
+					},
+					\Pdef, {
+						name_popup.items = Pdef.all.keys.asArray;
+					}
+				);
+			};
+			name_popup.items = type_popup.items[type_popup.value].asClass.all.keys.asArray;
+			name_popup.action = {
+				var curname = name_popup.items[name_popup.value];
+				switch( type_popup.items[type_popup.value],
+					\Ndef, {
+						model[\type] = \player;
+						model[\receiver] = Ref(Ndef(curname));
+						model[\method] = \play;
+						model[\label] = curname;
+						model.changed(\refresh);
+					},
+					\Pdef, {
+						model[\type] = \spawn;
+						model[\key] = \curname;
+						model[\label] = curname;
+						model.changed(\refresh);
+					}
+				);
+			};
+
+			header = HLayout(
+				type_popup,
+				name_popup,
+			);
+			layout = VLayout(
+				header,
+				editor,
+			);
+			
+			self.layout = layout;
+			self.layout;
+		},
+
+		makeWindow: { arg self;
+			var window = Window.new;
+			var layout;
+			layout = self.makeLayout;
+			window.layout = layout;
+			//window.alwaysOnTop = true;
+			window.front;
+		},
+
+	);
+
 	~pdefTimeline = (
 		new: { arg self, eventloop;
 			self = self.deepCopy;
@@ -94,6 +205,9 @@ EventLoop(\pdef).list
 			self.eventloop = eventloop;
 			self.area_size = 9@2;
 			
+			Pdef(self.eventloop.key, Plazy({
+				PtimeGatePunch(self.eventloop.list.asPattern.trace(prefix:"xxxxxxxxxxxxxxxxxxxxx"))
+			}));
 		
 			self;
 		},
@@ -109,6 +223,7 @@ EventLoop(\pdef).list
 
 		makeLayout: { arg self;
 			var layout;
+			var tl_layout;
 			var vlayout, timeline, vrange, hrange, size;
 			var eventloop = self.eventloop;
 			var ruler_x, ruler_y, sizer;
@@ -122,6 +237,13 @@ EventLoop(\pdef).list
 
 			timeline = PdefTimelineView.new;
 			~mytl = timeline;
+			timeline.mouseDownAction = {|me, px, py, mod, buttonNumber, clickCount, chosennode|
+				if(clickCount == 2) {
+					if(chosennode.notNil) {
+						~clipEditor.new(chosennode.model)
+					};
+				}
+			};
 			ruler_x = TimelineRulerView.new;
 			//ruler_y = MidinoteTimelineRulerView.new;
 			locatorbar = TimelineLocatorBarView.new;
@@ -151,7 +273,7 @@ EventLoop(\pdef).list
 					}).fixedSize_(Point(10,20)),
 				).spacing_(0);
 
-			layout = GridLayout.rows(
+			tl_layout = GridLayout.rows(
 					[
 						nil,
 						VLayout(
@@ -176,7 +298,12 @@ EventLoop(\pdef).list
 						sizer,
 					]
 			);
-			layout.spacing = 0;
+			tl_layout.spacing = 0;
+
+			layout = VLayout(
+				PlayerWrapperView(Pdef(self.eventloop.key)).view,
+				tl_layout,
+			);
 
 			size = self.area_size;
 			size.debug("size!!!");
@@ -196,11 +323,16 @@ EventLoop(\pdef).list
 			layout;
 		},
 
+		asPattern: { arg self;
+			Pfunc({})
+			
+		},
+
 		refresh: { arg self;
 			self.timeline.mapEventList(self.eventloop.list);
 		},
 	);
-	~pt = ~pdefTimeline.new(EventLoop(\pdef));
+	~pt = ~pdefTimeline.new(XEventLoop(\pdef));
 	~pt.makeWindow;
 
 )
@@ -506,3 +638,5 @@ Pdef(\pscore, Pseq([
 ],1));
 
 XEventList.newFrom(Pdef(\pscore)).print
+
+Ndef.all[\localhost].envir.keys
