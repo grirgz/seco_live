@@ -1,25 +1,9 @@
-
-Pspawner
-XEventLoop(\pdef).list
-4*0.125*1
-XEventLoop(\pdef).list
 XEventLoop(\pdef).list.print
-PtimeGatePunch(XEventLoop(\pdef).list.asPattern.trace(prefix:"yyyyyyyyyyyy"), 0).play
-PtimeGate(XEventLoop(\pdef).list.asPattern.trace(prefix:"yyyyyyyyyyyy")).play
-XEventLoop(\pdef).asPattern
-Ptrace
-(
-Pdef(\plopx, Pbind(
-	\instrument, \default,
-	\degree, Pseq([0],10),
-	\dur, 1,
-	\amp, 0.1
-)).play;
-);
-Pdef(\plopx).isPlaying
+XEventLoop(\pdef).list
 
-~el
-~el = nil;
+~str = XEventLoop(\pdef).list.asPattern.asStream
+~str.next(Event.default)
+//////////////////// cursor
 (
 	SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=4000, rq=0.3;
 		var sig, sig1, sig2, sig3;
@@ -34,7 +18,7 @@ Pdef(\plopx).isPlaying
 		\instrument, \plop,
 		\isRest, false,
 		\dur, 1/8,
-		\degree, Pseq([1,2,3,4],inf),
+		\degree, Pseq((0..24),inf),
 	));
 
 	Pdef(\plop2, Pbind(
@@ -42,7 +26,7 @@ Pdef(\plopx).isPlaying
 		\isRest, false,
 		\ffreq, 2000,
 		\dur, 1/8,
-		\degree, Pseq([1,2,3,4]+10,inf),
+		\degree, Pseq((0..24)+10,inf),
 	));
 
 	Pdef(\plop3, Pbind(
@@ -268,7 +252,8 @@ Pdef(\plopx).isPlaying
 			
 			Pdef(self.eventloop.key, Plazy({
 				//PtimeGatePunch(self.eventloop.list.asPattern.trace(prefix:"xxxxxxxxxxxxxxxxxxxxx"))
-				~timeline_pattern.(self.eventloop.list.asPattern.trace(prefix:"xxxxxxxxxxxxxxxxxxxxx"))
+				//~timeline_pattern.(self.eventloop.list.asPattern.trace(prefix:"xxxxxxxxxxxxxxxxxxxxx"))
+				self.eventloop.list.asPattern.trace(prefix:"xxxxxxxxxxxxxxxxxxxxx")
 			}));
 		
 			self;
@@ -291,6 +276,7 @@ Pdef(\plopx).isPlaying
 			var ruler_x, ruler_y, sizer;
 			var locatorbar;
 			var sizer_action;
+			var cursor_timeline;
 			"AZE".debug;
 			layout = HLayout.new;
 			self.layout = layout;
@@ -306,6 +292,11 @@ Pdef(\plopx).isPlaying
 					};
 				}
 			};
+
+			cursor_timeline = CursorTimelineView.new;
+			~cursor_timeline = cursor_timeline;
+
+
 			ruler_x = TimelineRulerView.new;
 			//ruler_y = MidinoteTimelineRulerView.new;
 			locatorbar = TimelineLocatorBarView.new;
@@ -313,6 +304,7 @@ Pdef(\plopx).isPlaying
 			//ruler_y.mimicTimeline(timeline);
 			ruler_x.mimicTimeline(timeline);
 			locatorbar.mimicTimeline(timeline);
+			cursor_timeline.mimicTimeline(timeline);
 
 			hrange = TimelineScroller.new;
 			hrange.mapTimeline(timeline);
@@ -351,7 +343,10 @@ Pdef(\plopx).isPlaying
 					[
 						//ruler_y.view,
 						nil,
-						timeline.view,
+						StackLayout(
+							cursor_timeline.view,
+							timeline.view,
+						).mode_(1),
 						vrange.view,
 					],
 					[
@@ -377,6 +372,7 @@ Pdef(\plopx).isPlaying
 			locatorbar.view.minSize = Point(10,15);
 
 			timeline.mapEventList(eventloop.list);
+			cursor_timeline.mapEventList(eventloop.list);
 			locatorbar.mapEventList(eventloop.list);
 
 			self.timeline = timeline;
@@ -396,309 +392,31 @@ Pdef(\plopx).isPlaying
 	);
 	~pt = ~pdefTimeline.new(XEventLoop(\pdef));
 	~pt.makeWindow;
-
 )
 
-
-////////////////////////////////////////////////
-/////////////// testing PtimeGate
+////////////////////////////////////////////////////
 
 (
-
-	(
-	SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=4000, rq=0.3;
-		var sig, sig1, sig2, sig3;
-		sig = LFSaw.ar(freq * [1.01,1,0.99]);
-		sig = RLPF.ar(sig, ffreq, rq);
-		sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
-		sig = Splay.ar(sig, spread, amp, pan);
-		Out.ar(out, sig);
-	}).add;
-	);
-
-	Pdef(\plop, Pbind(
-		\instrument, \plop,
-		\isRest, false,
-		\dur, 1/8,
-		\degree, Pseq([1,2,3,4],inf),
-	));
-
-	Pdef(\plop2, Pbind(
-		\instrument, \plop,
-		\isRest, false,
-		//\ffreq, 2000,
-		\dur, 1/4,
-		\degree, Pseq([1,2,3,4]+10,inf),
-	));
-
-	Pdef(\plop_amp, Pbind(
-		\amp, 0.4,
-	));
-
-	Pdef(\plop_ffreq, Pbind(
-		\ffreq, Pseq([3550,6700,11000],inf),
-		\amp, 0.4,
-	));
-
-	Pdef(\plop_ffreq2, Pbind(
-		\ffreq, Pseq([3550,6700,11000]/2,inf),
-		\amp, 0.4,
-	));
-
-Pdef(\pscore, Pseq([
-	(
-		key: \plop2,
-		sustain: 2.0,
-		dur: 3,
-	),
-	(
-		key: \plop,
-		sustain: 0.5,
-		dur: 1,
-	),
-	(
-		key: \plop2,
-		sustain: 2.0,
-		dur: 3,
-	),
-],10));
-
-Pdef(\pscore1b, Pseq([
-	(
-		key: \plop2,
-		sustain: 2.0,
-		dur: 2,
-	),
-	(
-		key: \plop,
-		sustain: 4,
-		dur: 4,
-	),
-],10));
-
-Pdef(\pscore1c, Pseq([
-	(
-		key: \plop2,
-		sustain: 2.0,
-		dur: 4,
-	),
-	(
-		key: \plop,
-		sustain: 2,
-		dur: 4,
-	),
-],10));
-
-Pdef(\pscore2, Pseq([
-	(
-		key: \plop_amp,
-		sustain: 2,
-		dur: 4.5,
-	),
-	(
-		key: \plop_amp,
-		sustain: 2.0,
-		dur: 4,
-	),
-],10));
-
-Pdef(\pscore_ffreq, Pseq([
-	(
-		key: \plop_ffreq,
-		sustain: 1,
-		dur: 4.5,
-	),
-	(
-		key: \plop_ffreq2,
-		sustain: 1.0,
-		dur: 4,
-	),
-],10));
-
-
-~ppdef = { arg score;
-	Prout({ arg ev;
-		score.asStream.do ({ arg sev;
-			[sev, ev].debug( "ppdef: sev, ev" );
-			if(sev[\key].notNil) {
-				var wait_time;
-				ev = Pfindur(sev.use({sev[\sustain].(sev)}), Pdef(sev[\key])).embedInStream(ev);
-				wait_time = sev.use { sev[\dur].(sev) - sev[\sustain].(sev) };
-				wait_time.debug("wait_time");
-				ev = Event.silent(sev.use({sev[\dur].(sev) - sev[\sustain].(sev)})).embedInStream(ev);
-			} {
-				debug( "rest" );
-				ev = Event.silent(sev.use({sev[\sustain].(sev)})).embedInStream(ev);
-			}
-		
-		}, ev)
-	
-	})
-	
-};
-
-//~ppdef.(Pdef(\pscore)).trace.play;
-//Pdef(\pscore).trace.play
-Pdef(\main, 
-	Ptrace(
-		//~ppdef.(Pdef(\pscore1c))
-		PtimeGate(Pdef(\pscore1c))
-		<> PtimeGate(Pdef(\pscore1b))
-		<> PtimeGate(Pdef(\pscore_ffreq))
-		//<> PtimeGate(Pdef(\pscore2))
-	)
-
-).play;
-
-//~ev = Event.silent(2).loop.asStream;
-//~ev = a
-//~ev.next(())
-
-//Pdef(\main, 
-//
-//	Ptrace(
-//
-//		Pspawn(
-//			Pbind(
-//				\pattern, Pfunc({ arg ev; 
-//					ev.use({
-//						Pfindur( ev[\sustain].(ev), Pdef(ev[\key].(ev)) )
-//					})
-//				}),
-//				\sustain, Pfunc({ arg ev; Pdef(ev[\sustain]) }),
-//				\method, \par,
-//			)
-//			<>
-//			Pdef(\pscore)
-//		)
-//		<>
-//		Pspawn(
-//			Pbind(
-//				\pattern, Pfunc({ arg ev; 
-//					ev.use({
-//						Pfindur( ev[\sustain].(ev), Pdef(ev[\key].(ev)) )
-//					})
-//				}),
-//				\sustain, Pfunc({ arg ev; Pdef(ev[\sustain]) }),
-//				\method, \par,
-//			)
-//			<>
-//			Pdef(\pscore2)
-//		)
-//
-//	)
-//
-//).play
-
+	{
+		var window = Window.new;
+		var layout;
+		layout = VLayout(
+			StackLayout(
+				UserView.new.drawFunc_({
+					Pen.line(Point(60,0), Point(100,100));
+					Pen.stroke
+				}),
+				UserView.new.drawFunc_({
+					Pen.line(Point(0,0), Point(100,100));
+					Pen.stroke
+				}),
+				//UserView.new,
+			).mode_(1)
+		);
+		window.layout = layout;
+		//window.alwaysOnTop = true;
+		window.front;
+	}.value
 )
 
-Pdef(\pscore).asStream.do({ arg ev; ev.postln("plop") }, ()).play
-
-(
-	////////////////////////////////////////////
-	/// 1 in, 2 out: proof that's _impossible_
-	////////////////////////////////////////////
-	// to output a value, you should call yield, and yield automatically pull a value from the input stream
-	// that's why it's Pdrumstep(drumrack, score) and not Pdrumstep(drumrack) <> score
-	// note also that Pdrumstep(drumrack) <> score is Pchain(drumrack, score) so finally <> is not so important
-	// we should think of it as a banal binary operator or two argument function
-
-	// Pdrumstep take one in and many after
-
-	Pdef(\proof, 
-		Ptrace(
-			Prout({ arg ev;
-				while({ ev.notNil }) {
-					(degree: 10).yield;
-					ev = ev.yield(ev);
-				}
-			})
-			<>
-			Pbind(
-				\degree, Pseq([1,2,3,4,5,6,7,8,9]),
-				\dur, 1/4,
-			)
-		)
-	
-	
-	).play;
-
-)
-
-
-Pseg
-
-(
-	Pdef(\yep,
-		Pbind(\dur, 1/2)
-		<>
-		Pstep(
-			Pdef(\plop),
-			Pseq([1,3,1])
-		) 
-
-	)
-
-	.play
-)
-
-
-
-///////////////////////////////
-
-(
-Ndef(\syn1, { arg freq=300;
-	var sig;
-	sig = SinOsc.ar(freq * [1,1.01]);
-});
-Ndef(\syn2, { arg freq=400;
-	var sig;
-	sig = LFSaw.ar(freq * [1,1.01]);
-});
-
-Ndef(\syn3, { arg freq=400;
-	var sig;
-	sig = LFSaw.ar(freq * [1,1.01] * ( 1 + ( SinOsc.kr(1/16).lag(4) * 1 )));
-});
-)
-
-Ndef(\main, Ndef(\syn1));
-Ndef(\main).set(\freq, 500)
-Ndef(\syn1).set(\freq, 500)
-
-(
-Ndef(\main).put(0, Ndef(\syn1));
-Ndef(\main).put(1, Ndef(\syn2));
-Ndef(\main).put(10, \filter -> { arg in; in * 0.1 });
-)
-Ndef(\main).put(1, Ndef(\syn3));
-Ndef(\main).play;
-
-
-{ SinOsc.kr(1/8).lag([0,2,4,8]) }.plot(16)
-
-{ LagUD.kr(SinOsc.kr(1/1),0,[0,8]) }.plot(4)
-
-
-
-Pdef(\pscore, Pseq([
-	(
-		key: \plop2,
-		sustain: 2.0,
-		dur: 3,
-	),
-	(
-		key: \plop,
-		sustain: 0.5,
-		dur: 1,
-	),
-	(
-		key: \plop2,
-		sustain: 2.0,
-		dur: 3,
-	),
-],1));
-
-XEventList.newFrom(Pdef(\pscore)).print
-
-Ndef.all[\localhost].envir.keys
+~cursor_timeline.play

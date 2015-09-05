@@ -565,37 +565,6 @@ Pdef(\startndefxxx, DebugPbind(
 )).play;
 );
 
-(
-Event.addEventType(\player, {
-	var method = ~method ? \play;
-	var args = ~arguments ? [];
-	var receiver = ~receiver.value;
-	var quant;
-	[method, args, receiver].debug("player EventType: method, args, receiver");
-	if(~disableQuant != false) {
-		quant = receiver.tryPerform(\quant);
-		receiver.tryPerform(\quant_, 0);
-	};
-	receiver.perform(method, *args);
-	if(~disableQuant != false) {
-		receiver.tryPerform(\quant_, quant);
-	};
-	if(method == \play) {
-		TempoClock.default.sched(~sustain.value(currentEnvironment), {
-			if(~disableQuant != false) {
-				quant = receiver.tryPerform(\quant);
-				receiver.tryPerform(\quant_, 0);
-			};
-			receiver.perform(\stop, *args);
-			if(~disableQuant != false) {
-				receiver.tryPerform(\quant_, quant);
-			};
-			
-		}.inEnvir);
-	};
-
-})
-)
 
 
 Ndef(\lfo1, { SinOsc.ar(XLine.kr(100,500,20))!2 * 0.1 }).play
