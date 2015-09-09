@@ -1,3 +1,14 @@
+
+////////////////////
+
+why \on can't have latency set to Ref(nil)
+why release on a played \note event can't have latency set to Ref(nil)
+why Synth.basicNew can't release an already sent node
+why server crash if we send it an array like  s.sendMsg([15, ~notes[midinote][\id], \gate, 1.0]);
+why \note want to release even if i set hasGate to false
+
+
+
 ////////////////
 
 Doc:

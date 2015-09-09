@@ -98,6 +98,19 @@ Event.addEventType(\player, {
 			spawner.par(Pfindur(ev[\sustain], ~timeline_pattern.(pat, ev[\event_dropdur])));
 			spawner.wait(ev[\dur]);
 		},
+		\eventlist, {
+			ev.debug("dereference_event: eventlist!!!!");
+			ev.use {
+				spawner.par(Pfindur(
+					ev.sustain, 
+					~timeline_pattern.(
+						~eventlist_aspattern.(ev.eventlist),
+						ev.event_dropdur,
+					)
+				));
+				spawner.wait(ev.dur);
+			};
+		},
 		//\player, {
 		//	spawner.seq(Pseq([
 		//		ev
@@ -222,6 +235,102 @@ Event.addEventType(\player, {
 	} {
 		stream;
 	};
+};
+
+~eventlist_aspattern = { arg eventlist;
+	var current_offset = 0;
+	var previous_offset = 0;
+	var val;
+	var crossing_line = List.new;
+	var drop_time;
+	var original_eventlist = eventlist;
+	eventlist = eventlist.copy;
+	[eventlist].debug("entering ~eventlist_aspattern");
+
+	eventlist.do { arg ev;
+		if(ev[\type] == \start) {
+			drop_time = ev[\absTime]
+		};
+		if(ev[\playDur].notNil) {
+			ev[\dur] = ev[\playDur];
+		}
+	};
+
+	while (
+		{
+			val = eventlist.removeAt(0);
+			val.notNil and: {
+				val[\type] != \start;
+			}
+		},
+		{
+			val.use {
+				val.debug("eventlist_aspattern: val");
+				[val.dur, val.sustain].debug("eventlist_aspattern: val: dur, sustain");
+				previous_offset = current_offset;
+				current_offset = current_offset + val.dur; 
+				if(
+					val[\type] != \start and: {
+						val.sustain.notNil and: {
+							( previous_offset + val.sustain ) > drop_time
+						}
+					}
+				) {
+					val[\event_dropdur] = drop_time - previous_offset;
+					val.debug("eventlist_aspattern: added to crossing_line");
+					crossing_line.add(val);
+				};
+				[current_offset, previous_offset, val].debug("mangling");
+			}
+		}
+	);
+	// now current_offset point to the end of current event, ie: past the drop_time line
+	// now val is the start event
+
+
+	if(val.notNil) {
+
+		crossing_line = crossing_line.collect({ arg ev; 
+			ev = ~split_event.(ev.copy);
+			ev[\dur] = 0;
+			ev.debug("eventlist_aspattern: transformed crossing_line");
+		});
+
+		val.use {
+			val = val.copy;
+			val[\type] = \rest;
+		};
+
+		Prout({ arg inval;
+			original_eventlist.changed(\cursor, \play);
+			"============================= FUCKING OALAPLAY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!".debug;
+			"============================= FUCKING OALAPLAY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!".debug;
+			"============================= FUCKING OALAPLAY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!".debug;
+			"============================= FUCKING OALAPLAY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!".debug;
+			Pfindur(original_eventlist.endTime - original_eventlist.startTime, Pseq(
+				crossing_line ++ [val] ++ eventlist
+			)).embedInStream(inval);
+			//original_eventlist.changed(\cursor, \stop);
+		})
+	} {
+		"should never get there".throw;
+		// if there is only one event crossing the line but it's not the last to start 
+		// (meaning his dur < sustain), val will be nil, but not crossing_line
+		if(crossing_line.size > 0) {
+			val = crossing_line.pop;
+			val = ~split_event.(val);
+			crossing_line = crossing_line.collect({ arg ev; 
+				ev = ~split_event.(ev);
+				ev[\dur] = 0;
+				ev.debug("eventlist_aspattern: transformed crossing_line");
+			});
+			Pseq(
+				crossing_line ++ [ val, ];
+			);
+		} {
+			nil
+		}
+	}
 };
 
 ~timeline_pattern = { arg pat, drop_time, model;

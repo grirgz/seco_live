@@ -3,6 +3,12 @@ XEventLoop(\pdef).list
 
 ~str = XEventLoop(\pdef).list.asPattern.asStream
 ~str.next(Event.default)
+
+~el
+~el.reorder;
+~el = nil 
+Pdef(\pdef).play
+~timeline_pattern.(XEventLoop(\pdef).list.asPattern).play
 //////////////////// cursor
 (
 	SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=4000, rq=0.3;
@@ -37,34 +43,89 @@ XEventLoop(\pdef).list
 		\degree, Pseq([1,2,3,4]*2,inf),
 	));
 
+	~get_label = { arg ev;
+		var label;
+		var receiver = ev[\receiver].value;
+		label = if(receiver.notNil) {
+			if(
+				receiver.isKindOf(Ndef) or: {
+					receiver.isKindOf(Pdef)
+				}
+			) {
+				"% %".format(receiver.class, receiver.key);
+			} {
+				receiver.asCompileString; // FIXME: could be very long
+			}
+		} {
+			var type;
+			//type =  ev[\nodeType] ? ev[\type] ? ev[\eventType] ?
+			if(ev[\eventType] == \pattern) {
+				if(ev[\pattern].isKindOf(Pdef)) {
+					"% %".format(ev[\pattern].class, ev[\pattern].key);
+				} {
+					if(ev[\key].notNil) {
+						"Pdef %".format(ev[\key])
+					}
+				}
+			}
+		};
+		label = label ?? { "No Name" };
+		label
+	};
+
 	if(~el.isNil) {
+
+		~sub = XEventList.newFrom(
+			Pbind(
+				\instrument, \default,
+				\midinote, Pseq([54,56,57,54,57,58]+20,2),
+				\dur, 1/4,
+				\amp, 0.1
+			);
+		);
+
 		~el = XEventList.newFrom( 
 			
-			Pbind(
-				\nodeType, \eventlist,
-				\eventType, \pattern,
-				\label, Pkey(\key),
-			) <>
-			Pseq([
-			(
-				key: \plop2,
-				sustain: 0.5,
-				midinote: 1,
-				dur: 3,
-			),
-			(
-				key: \plop,
-				sustain: 0.5,
-				midinote: 1,
-				dur: 1,
-			),
-			(
-				key: \plop2,
-				sustain: 2.0,
-				midinote: 1,
-				dur: 3,
-			),
-		],1));
+			Ppar([
+				Pseq([
+					(
+						nodeType: \eventlist,
+						eventlist: ~sub,
+						sustain: 4.5,
+						midinote: 0,
+						dur: 1,
+					),
+				],1)
+				,
+				Pbind(
+					\nodeType, \eventlist,
+					\eventType, \pattern,
+					//\label, Pkey(\key),
+					\label, ~get_label,
+				) <>
+				Pseq([
+					(
+						key: \plop2,
+						sustain: 0.5,
+						midinote: 1,
+						dur: 3,
+					),
+					(
+						key: \plop,
+						sustain: 2.5,
+						midinote: 1,
+						dur: 1,
+					),
+					(
+						key: \plop2,
+						sustain: 2.0,
+						midinote: 1,
+						dur: 3,
+					),
+				],1)
+
+			])
+		);
 
 		XEventLoop(\pdef).list = ~el;
 	};
@@ -198,18 +259,22 @@ XEventLoop(\pdef).list
 				switch( type_popup.items[type_popup.value],
 					\Ndef, {
 						model[\nodeType] = \eventlist;
+						model[\eventType] = nil;
 						model[\type] = \player;
 						model[\receiver] = Ref(Ndef(curname));
 						model[\method] = \play;
-						model[\label] = curname;
+						//model[\label] = curname;
+						model[\label] = ~get_label;
 						//model.changed(\refresh);
 						self.parent_model.changed(\refresh);
 					},
 					\Pdef, {
+						model[\receiver] = nil;
 						model[\nodeType] = \eventlist;
 						model[\eventType] = \pattern;
 						model[\key] = curname;
-						model[\label] = curname;
+						//model[\label] = curname;
+						model[\label] = ~get_label;
 						//model.changed(\refresh);
 						self.parent_model.changed(\refresh);
 					}
@@ -249,11 +314,25 @@ XEventLoop(\pdef).list
 		
 			self.eventloop = eventloop;
 			self.area_size = 9@2;
+			self.quant_ref = Ref(Point(1/8,1));
 			
 			Pdef(self.eventloop.key, Plazy({
 				//PtimeGatePunch(self.eventloop.list.asPattern.trace(prefix:"xxxxxxxxxxxxxxxxxxxxx"))
-				//~timeline_pattern.(self.eventloop.list.asPattern.trace(prefix:"xxxxxxxxxxxxxxxxxxxxx"))
-				self.eventloop.list.asPattern.trace(prefix:"xxxxxxxxxxxxxxxxxxxxx")
+				var start, end;
+				var eventlist = eventloop.list;
+				if(self.cursor.notNil) {
+					start = self.cursor.startPosition - eventlist.startTime;
+					if(self.cursor.endPosition.notNil) {
+						end = self.cursor.endPosition - eventlist.endTime;
+					}
+				};
+				~timeline_pattern.(
+					~eventlist_aspattern.(
+						self.eventloop.list
+					).trace(prefix:"xxxxxxxxxxxxxxxxxxxxx"),
+					start, end
+				);
+				//self.eventloop.list.asPattern.trace(prefix:"xxxxxxxxxxxxxxxxxxxxx")
 			}));
 		
 			self;
@@ -268,6 +347,77 @@ XEventLoop(\pdef).list
 			window.front;	
 		},
 
+		add_track: { arg self;
+			self.area_size = Point(self.area_size.x, self.area_size.y+1 );
+			self.timeline.areasize = self.area_size;
+			self.timeline.refreshEventList;
+			self.timeline.refresh;
+			self.update_track_header;
+		},
+
+		update_track_header: { arg self;
+			var track_header_block = { arg x;
+				var res = View.new.layout_(
+					HLayout(
+						XSimpleButton.new.label_("track %".format(x))
+					)
+				);
+				//res.background_(Color.blue);
+				res;
+			};
+			self.track_header.canvas_(
+				self.track_header_view = View.new.layout_(
+					VLayout(*
+						self.area_size.y.collect { arg x;
+							[
+								track_header_block.(x),
+								align: \top,
+							]
+						}
+					).spacing_(0).margins_(0)
+				);
+				self.track_header_view
+			).maxWidth_(100);
+			self.update_track_header_size;
+			self.track_header.onResize = { self.update_track_header_size };
+			if(self.track_header_controller.notNil) {
+				self.track_header_controller.remove;
+			};
+			self.track_header_controller = SimpleController(self.timeline)
+				.put(\viewport, {
+					"update_track_header_size: viewport".debug;
+					//TODO: remove controller
+					self.update_track_header_size;
+				})
+				.put(\areasize, {
+					"update_track_header_size: areasize".debug;
+					self.update_track_header_size;
+					//self.update_track_header;
+				})
+			;
+		},
+
+		update_track_header_size: { arg self;
+			//self.vrange.view.doAction;
+			if(self.timeline.notNil) {
+				"update_track_header_size: real updating now!".debug;
+				[self.timeline.bounds.height, self.timeline.viewport.height].debug("bh, vh");
+				self.track_header_view.fixedHeight = self.timeline.bounds.height / self.timeline.viewport.height;
+				self.track_header.visibleOrigin = Point(0,(1-self.timeline.viewport.bottom) * self.track_header.bounds.height);
+				self.timeline.viewport.top.debug("top");
+[self.timeline.viewport, self.timeline.viewport.bottom, self.track_header.bounds.height, (1-self.timeline.viewport.bottom) * self.track_header.bounds.height].debug("[self.timeline.viewport, self.timeline.viewport.bottom, self.track_header.bounds.height, (1-self.timeline.viewport.bottom) * self.track_header.bounds.height]");
+				self.track_header.visibleOrigin.debug("update_track_header_size: visibleOrigin");
+			}
+		},
+
+		set_xquant: { arg self, quant;
+			self.quant_ref.value = Point(quant, self.quant_ref.value.y);
+		},
+
+		get_xquant: { arg self;
+			self.quant_ref.value.x;
+		},
+
 		makeLayout: { arg self;
 			var layout;
 			var tl_layout;
@@ -277,6 +427,9 @@ XEventLoop(\pdef).list
 			var locatorbar;
 			var sizer_action;
 			var cursor_timeline;
+			var track_header;
+			var track_header_view;
+			var quant_popup;
 			"AZE".debug;
 			layout = HLayout.new;
 			self.layout = layout;
@@ -293,13 +446,23 @@ XEventLoop(\pdef).list
 				}
 			};
 
+			timeline.quant = self.quant_ref;
+
+			self.cursor = CursorTimeline.new;
+			self.cursor.startPosition = self.eventloop.list.startTime;
+
 			cursor_timeline = CursorTimelineView.new;
 			~cursor_timeline = cursor_timeline;
+			cursor_timeline.mapCursor(self.cursor);
+			cursor_timeline.quant = self.quant_ref;
 
 
 			ruler_x = TimelineRulerView.new;
 			//ruler_y = MidinoteTimelineRulerView.new;
 			locatorbar = TimelineLocatorBarView.new;
+			locatorbar.mapCursor(self.cursor);
+
+			locatorbar.quant = self.quant_ref;
 
 			//ruler_y.mimicTimeline(timeline);
 			ruler_x.mimicTimeline(timeline);
@@ -312,6 +475,7 @@ XEventLoop(\pdef).list
 			vrange = TimelineScroller.new;
 			vrange.mapTimeline(timeline);
 			vrange.orientation = \vertical;
+			self.vrange = vrange;
 
 			sizer = 
 				HLayout(
@@ -325,7 +489,24 @@ XEventLoop(\pdef).list
 						timeline.areasize = timeline.areasize + point;
 						timeline.refresh;
 					}).fixedSize_(Point(10,20)),
-				).spacing_(0);
+				).spacing_(0)
+			;
+
+
+			track_header = ScrollView.new;
+			track_header.hasBorder = false;
+			track_header.hasVerticalScroller = false;
+			track_header.hasHorizontalScroller = false;
+			self.track_header = track_header;
+			self.update_track_header;
+
+
+			vrange.view.addAction({ arg slider;
+				self.track_header_view.fixedHeight = 1/slider.range * track_header.bounds.height;
+				( 1/slider.range * track_header.bounds.height ).debug("vrange.view.action: fixedHeight");
+				track_header.visibleOrigin = Point(0, ( 1-slider.hi ) / slider.range) * track_header.bounds.height;
+				( Point(0, ( 1-slider.hi ) / slider.range) * track_header.bounds.height ).debug("vrange.view.action: visibleOrigin");
+			});
 
 			tl_layout = GridLayout.rows(
 					[
@@ -342,7 +523,7 @@ XEventLoop(\pdef).list
 					],
 					[
 						//ruler_y.view,
-						nil,
+						track_header,
 						StackLayout(
 							cursor_timeline.view,
 							timeline.view,
@@ -357,8 +538,47 @@ XEventLoop(\pdef).list
 			);
 			tl_layout.spacing = 0;
 
+			quant_popup = PopUpMenu.new.items_([
+				"1/32",
+				"1/16",
+				"1/8",
+				"1/4",
+				"1/2",
+				"1",
+				"2",
+				"4",
+				"8",
+				"16",
+			]).action_({
+				self.set_xquant(quant_popup.items[quant_popup.value].interpret)
+			});
+
+			quant_popup.items.do({ arg val, x; 
+				if( val.interpret.equalWithPrecision( self.get_xquant, 1/32 ) ) {
+					quant_popup.value = x;
+				};
+			});
+					//NumberBox.new.mapParam(
+					//	Param({
+					//		self.get_xquant;
+					//	}, { arg val;
+					//		self.set_xquant = val;
+					//	},
+					//))
+
 			layout = VLayout(
-				PlayerWrapperView(Pdef(self.eventloop.key)).view,
+				HLayout(
+					PlayerWrapperView(Pdef(self.eventloop.key)).view,
+					XSimpleButton.new.label_("[]").action_({
+						self.cursor.startPosition = self.eventloop.list.startTime;
+						Pdef(self.eventloop.key).stop;
+						cursor_timeline.stop; // FIXME: should be automatic when stoping Pdef
+					}),
+					XSimpleButton.new.label_("Add track").action_({
+						self.add_track;
+					}),
+					quant_popup,
+				),
 				tl_layout,
 			);
 
@@ -420,3 +640,5 @@ XEventLoop(\pdef).list
 )
 
 ~cursor_timeline.play
+
+~mytl.viewport.bottom
