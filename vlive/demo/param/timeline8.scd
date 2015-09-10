@@ -1,53 +1,16 @@
-XEventLoop(\pdef).list.print
-XEventLoop(\pdef).list
 
-~str = XEventLoop(\pdef).list.asPattern.asStream
-~str.next(Event.default)
-
-~el
-~el.reorder;
-~el = nil 
-Pdef(\pdef).play
-~timeline_pattern.(XEventLoop(\pdef).list.asPattern).play
-~timeline_pattern.(~eventlist_aspattern.(~sub)).play
-~sub
+// in this file, I am testing the embeding feature of timelines
 
 (
 /////////////////////////////////////////////////////////////////
-"/home/ggz/code/sc/seco/vlive/demo/param/lib/timeline.scd".load
+"/home/ggz/code/sc/seco/vlive/demo/param/lib/timeline.scd".load;
+~el = nil;
 /////////////////////////////////////////////////////////////////
 )
 
+
 (
 
-	~timeline_pattern.(
-
-				Pseq([
-					(
-						nodeType: \eventlist,
-						eventlist: ~sub,
-						sustain: 4.5,
-						midinote: 0,
-						dur: 1,
-					),
-					//(
-					//nodeType: \eventlist,
-					//eventType: \pattern,
-					////\label, Pkey(\key),
-					//label: ~get_label,
-					//	key: \plop2,
-					//	sustain: 0.5,
-					//	midinote: 1,
-					//	dur: 3,
-					//),
-				],1)
-	).trace(prefix:"FFFFFFFFFFFFFFFFF").play
-
-)
-
-
-//////////////////// cursor
-(
 	SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=4000, rq=0.3;
 		var sig, sig1, sig2, sig3;
 		sig = LFSaw.ar(freq * [1.01,1,0.99]);
@@ -93,60 +56,23 @@ Pdef(\pdef).play
 
 		~el = XEventList.newFrom( 
 			
-			Ppar([
 				Pseq([
-					(
-						nodeType: \eventlist,
+					Pev((
+						parent: ~event_type_eventlist,
+						//nodeType: \eventlist,
 						eventlist: ~sub,
 						sustain: 4.5,
 						midinote: 0,
-						dur: 1,
-					),
-				],1)
-				,
-				Pbind(
-					\nodeType, \eventlist,
-					\eventType, \pattern,
-					//\label, Pkey(\key),
-					\label, ~get_label,
-				) <>
-				Pseq([
-					(
-						key: \plop2,
-						sustain: 0.5,
-						midinote: 1,
-						dur: 3,
-					),
-					(
-						key: \plop,
-						sustain: 2.5,
-						midinote: 1,
-						dur: 1,
-					),
-					(
-						key: \plop2,
-						sustain: 2.0,
-						midinote: 1,
-						dur: 3,
-					),
+						dur: 7,
+					)),
 				],1)
 
-			])
 		);
 
 		XEventLoop(\pdef).list = ~el;
 	};
 
 
-	/*
-	a = Rect(0,0,1,1)
-	a.top
-	a.top = 0.2
-	a
-	a.bottom 
-	a.bottom = 0.3
-	a.height = 0.1
-	*/
 
 	~zoom_bar = (
 		new: { arg self;
@@ -290,7 +216,7 @@ Pdef(\pdef).play
 			self = self.deepCopy;
 		
 			self.eventloop = eventloop;
-			self.area_size = 9@2;
+			self.area_size = 9@1;
 			self.quant_ref = Ref(Point(1/8,1));
 			
 			Pdef(self.eventloop.key, Plazy({
@@ -591,31 +517,118 @@ Pdef(\pdef).play
 	~pt.makeWindow;
 )
 
-////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
 
 (
-	{
-		var window = Window.new;
-		var layout;
-		layout = VLayout(
-			StackLayout(
-				UserView.new.drawFunc_({
-					Pen.line(Point(60,0), Point(100,100));
-					Pen.stroke
-				}),
-				UserView.new.drawFunc_({
-					Pen.line(Point(0,0), Point(100,100));
-					Pen.stroke
-				}),
-				//UserView.new,
-			).mode_(1)
-		);
-		window.layout = layout;
-		//window.alwaysOnTop = true;
-		window.front;
-	}.value
+Pbind(
+	\parent, (
+		label: { arg self;
+			self[\key] ++ "poooo";
+		},
+	),
+	\key, \yop,
+
+).collect({ arg ev; ev.label.debug("kkk"); ev; }).trace.play;
 )
 
-~cursor_timeline.play
+(
+	~ev  = (
+		parent: ~event_type_eventlist,
+		//nodeType: \eventlist,
+		eventlist: ~sub,
+		sustain: 4.5,
+		midinote: 0,
+		dur: 7,
+	)
+	~ev[\nodeType]
+	~ev.nodeType
+)
 
-~mytl.viewport.bottom
+
+(
+	Pseq([
+		(
+			parent: ~event_type_eventlist,
+			//nodeType: \eventlist,
+			eventlist: ~sub,
+			sustain: 4.5,
+			midinote: 0,
+			dur: 7,
+		),
+	],1).asStream.nextN(1,Event.default).collect({ arg x; x.parent.keys.debug("x"); x.keys })
+)
+
+(
+		Pev((
+			parent: ~event_type_eventlist,
+			//nodeType: \eventlist,
+			eventlist: ~sub,
+			sustain: 4.5,
+			midinote: 0,
+			dur: 7,
+		)).asStream.next(Event.default)
+)
+(
+	Pseq([
+		Pev((
+			parent: ~event_type_eventlist,
+			//nodeType: \eventlist,
+			eventlist: ~sub,
+			sustain: 4.5,
+			midinote: 0,
+			dur: 7,
+		))
+	],1).asStream.nextN(1,Event.default).collect({ arg x; x.parent.keys.debug("x"); x.keys })
+	//],1).asStream.nextN(1,Event.default).collect({ arg x;  x.keys })
+)
+
+(
+	Pseq([
+		Pev((
+			parent: ~event_type_eventlist,
+			//nodeType: \eventlist,
+			eventlist: ~sub,
+			sustain: 4.5,
+			midinote: 0,
+			dur: 7,
+		))
+		Pevent(
+			Pbind(),
+			(
+				parent: ~event_type_eventlist,
+				//nodeType: \eventlist,
+				eventlist: ~sub,
+				sustain: 4.5,
+				midinote: 0,
+				dur: 7,
+			)
+		)
+	],1).asStream.nextN(7,Event.default).collect({ arg x; x.parent.keys.debug("x"); x.keys })
+)
+(
+	Pseq([
+			Pbind(*[
+			parent: ~event_type_eventlist,
+			//nodeType: \eventlist,
+			eventlist: ~sub,
+			sustain: 4.5,
+			midinote: 0,
+			dur: 7,
+		])
+	],1).asStream.nextN(7,Event.default).collect({ arg x; x.parent.keys.debug("x"); x.keys })
+)
+(
+	Pseq([
+		(
+			parent: ~event_type_eventlist,
+			//nodeType: \eventlist,
+			eventlist: ~sub,
+			sustain: 4.5,
+			midinote: 0,
+			dur: 7,
+		),
+	],1).asStream.nextN(1,~event_type_eventlist).collect({ arg x; x.parent.keys.debug("x"); x.keys })
+)
+~event_type_eventlist
+Pbind
+Padd

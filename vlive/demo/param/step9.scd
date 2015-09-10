@@ -269,7 +269,7 @@ Pseq(
 
 	DrumRack(\plop).asPattern( StepSeq(\yep) ).play;
 	WindowLayout({ HLayout(DrumRack(\plop).asView, StepSeq(\yep).asView)  })
-	DrumSeq(\norta).edit
+	StepSeq(\norta).edit
 
 
 
