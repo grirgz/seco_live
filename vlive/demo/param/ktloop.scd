@@ -317,6 +317,8 @@ le .play du KtlLoop (et EventLoop) est un TaskProxy donc il agit comme un Ndef o
 		window.alwaysOnTop = true;
 		window.front;
 	};
-	~recorder.(EventLoop(\e));
+	~recorder.(XEventLoop(\e));
 
 )
+
+XEventLoop(\e).list.print

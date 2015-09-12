@@ -1,36 +1,145 @@
 
-// in this file, I am testing the embeding feature of timelines
+// in this file, I try to embed an eventenv event in a clip timeline
+/////////////////////////////////////////////////////////////
 
-//~mytl.paraNodes[0].preview.viewport
-~tp = TimelinePreview.new
-~tp.mapEventList(~sub)
-WindowLayout({  ~tp.view });
-~tp.viewport = Rect(0,0.2,00.8,0.91); ~tp.refresh;
-~tp.viewport = Rect(0,0,1,0.91); ~tp.refresh;
-~tp.viewport = Rect(0,0,1,1); ~tp.refresh;
-~tp.viewport = Rect(0.1,0,1,1); ~tp.refresh;
-~tp.viewport = Rect(0,0.0,1,1); ~tp.refresh;
-~tp.virtualBounds
-~tp.virtualBounds = nil; ~tp.refresh;
-~tp.virtualBounds = Rect(00,00,200,100); ~tp.refresh
-~tp.virtualBounds = Rect(00,100,200,100); ~tp.refresh
-~event_type_eventlist
+///////////////////////////////////////////////////////////// base timeline and preview timeline for env
 
-~sub
+(
+	~sub = XEventList.newFrom(
+		Pbind(
+			\instrument, \default,
+			//\midinote, Pseq([54,56,57,54,57,58]+20,2),
+			//\midinote, Pseq([0,0,1,0,127,127,127,127]),
+			//\midinote, Pseq((10..60)+40,1),
+			\midinote, Pseq((0..5)*3+60,1),
+			\dur, 1/16,
+			\amp, 0.3
+		);
+	);
+	//~te = TimelineEnvView.new;
+	~te = TimelinePreview_Env.new;
+	~te.mapEventList(~sub);
+	WindowLayout({ ~te.view });
+)
 
-~el[1][\label]
-~el[1][\parent]
-~el[2][\parent]
-~el[2].label
-~el[2].label
+//////////////////////////////////////////////////// embeded in clip timeline
 
-~str = ~eventlist_aspattern.(~el).asStream;
-~str.next(Event.default)
-~ev = ~str.nextN(3,Event.default)[2];
-~ev.parent
+(
+~sub = XEventList.newFrom(
+	Pbind(
+		\instrument, \default,
+		//\midinote, Pseq([54,56,57,54,57,58]+20,2),
+		//\midinote, Pseq([0,0,1,0,127,127,127,127]),
+		//\midinote, Pseq((10..60)+40,1),
+		\midinote, Pseq([
+			Pseq((0..20)*3+30,1),
+			Pseq((30..20)*3+30,1),
+		]),
 
-~sub.print
+		\type, \bus,
+		\out, BusDef(\freq, \control),
+		\array, Pfunc({ arg ev;
+			ev.use { [ev.midinote] }
+		}),
 
+		\dur, 1/16,
+		\amp, 0.3
+	);
+);
+
+~el = XEventList.newFrom( 
+	
+		Pseq([
+			~mkevent.((
+				//proto: ~event_type_eventlist,
+				nodeType: \eventenv,
+				freddy_brin_dacier: "oui mon pote",
+				eventlist: ~sub,
+				sustain: 6.5,
+				midinote: 0,
+				dur: 7,
+			)),
+		],1)
+
+);
+	~te = TimelineView.new;
+	~te.mapEventList(~el);
+	~te.areasize = 9@3;
+	WindowLayout({ ~te.view });
+)
+
+XEventLoop(\env).list = ~el;
+
+
+//////////////////////////////////////////////////// test playing
+
+
+(
+	Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+		var sig;
+		sig = SinOsc.ar(freq.lag(0.01));
+		sig = Pan2.ar(sig, pan, amp);
+	}).play;
+	Ndef(\plop).set(\freq, BusDef(\freq, \control).asMap)
+	BusDef(\freq).set(400)
+)
+~eventlist_aspattern.(~sub).loop.play
+~sub.reorder
+~te.refresh
+~te.refreshEventList
+
+
+(
+~sub = XEventList.newFrom(
+	Pbind(
+		\instrument, \default,
+		//\midinote, Pseq([54,56,57,54,57,58]+20,2),
+		//\midinote, Pseq([0,0,1,0,127,127,127,127]),
+		//\midinote, Pseq((10..60)+40,1),
+		\midinote, Pseq([
+			Pseq((0..20)*3+30,1),
+			Pseq((30..20)*3+30,1),
+		]),
+
+		\type, \bus,
+		\out, BusDef(\freq, \control),
+		\array, Pfunc({ arg ev;
+			ev.use { [ev.freq] }
+		}),
+
+		\dur, 1/16,
+		\amp, 0.3
+	);
+);
+
+~el = XEventList.newFrom( 
+	
+		Pseq([
+			~mkevent.((
+				//proto: ~event_type_eventlist,
+				nodeType: \eventenv,
+				freddy_brin_dacier: "oui mon pote",
+				eventlist: ~sub,
+				sustain: 6.5,
+				midinote: 0,
+				dur: 7,
+			)),
+		],1)
+
+);
+	~te = TimelineView.new;
+	~te.mapEventList(~el);
+	~te.areasize = 9@3;
+	WindowLayout({ ~te.view });
+)
+
+
+
+////////////////////////////:
+
+Ndef(\siner).isPlaying
+Ndef(\siner).monitor.isPlaying
+Ndef(\siner).play
 (
 /////////////////////////////////////////////////////////////////
 "/home/ggz/code/sc/seco/vlive/demo/param/lib/timeline.scd".load;
@@ -39,6 +148,14 @@ WindowLayout({  ~tp.view });
 //)
 //(
 
+	Ndef(\siner, { arg freq=200, pan=0, amp=0.1;
+		var sig;
+		sig = SinOsc.ar(freq.lag(0.01) * [1,1.001]);
+		sig = sig.tanh(SinOsc.kr([1,2,3,4]).abs);
+		sig = Pan2.ar(sig, pan, amp).flop.mean;
+	});
+	Ndef(\siner).set(\freq, BusDef(\freq, \control).asMap);
+	Ndef(\siner).free;
 
 
 	SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=4000, rq=0.3;
@@ -81,8 +198,8 @@ WindowLayout({  ~tp.view });
 				//\midinote, Pseq([54,56,57,54,57,58]+20,2),
 				//\midinote, Pseq([0,0,1,0,127,127,127,127]),
 				//\midinote, Pseq((10..60)+40,1),
-				\midinote, Pseq((0..5)*3+60,1),
-				\dur, 1/1,
+				\midinote, Pseq((0..45)+50,1),
+				\dur, 1/8,
 				\amp, 0.3
 			);
 		);
@@ -103,7 +220,7 @@ WindowLayout({  ~tp.view });
 
 		);
 
-		XEventLoop(\pdef).list = ~el;
+		XEventLoop(\env).list = ~sub;
 	};
 
 
@@ -250,7 +367,7 @@ WindowLayout({  ~tp.view });
 			self = self.deepCopy;
 		
 			self.eventloop = eventloop;
-			self.area_size = 9@1;
+			self.area_size = 9@128;
 			self.quant_ref = Ref(Point(1/8,1));
 			
 			Pdef(self.eventloop.key, Plazy({
@@ -263,6 +380,14 @@ WindowLayout({  ~tp.view });
 						end = self.cursor.endPosition - eventlist.endTime;
 					}
 				};
+
+				Pbind(
+					\type, \bus,
+					\out, BusDef(\freq, \control),
+					\array, Pfunc({ arg ev;
+						ev.use { [ev.freq] }
+					}),
+				).trace(prefix:"YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY") <>
 				~timeline_pattern.(
 					~eventlist_aspattern.(
 						self.eventloop.list
@@ -348,7 +473,8 @@ WindowLayout({  ~tp.view });
 		},
 
 		set_xquant: { arg self, quant;
-			self.quant_ref.value = Point(quant, self.quant_ref.value.y);
+			//self.quant_ref.value = Point(quant, self.quant_ref.value.y);
+			self.quant_ref.value = Point(quant, quant);
 		},
 
 		get_xquant: { arg self;
@@ -373,7 +499,8 @@ WindowLayout({  ~tp.view });
 			vlayout = VLayout.new;
 			layout.add(vlayout);
 
-			timeline = PdefTimelineView.new;
+			//timeline = PdefTimelineView.new;
+			timeline = TimelineEnvView.new;
 			~mytl = timeline;
 			timeline.mouseDownAction = {|me, px, py, mod, buttonNumber, clickCount, chosennode|
 				if(clickCount == 2) {
@@ -381,6 +508,9 @@ WindowLayout({  ~tp.view });
 						~clipEditor.new(chosennode.model, self.eventloop.list)
 					};
 				}
+			};
+			timeline.mouseUpAction = {|me, px, py, mod, buttonNumber, clickCount, chosennode|
+				timeline.refreshEventList;
 			};
 
 			timeline.quant = self.quant_ref;
@@ -437,7 +567,7 @@ WindowLayout({  ~tp.view });
 			track_header.hasVerticalScroller = false;
 			track_header.hasHorizontalScroller = false;
 			self.track_header = track_header;
-			self.update_track_header;
+			//self.update_track_header;
 
 
 			vrange.view.addAction({ arg slider;
@@ -462,7 +592,8 @@ WindowLayout({  ~tp.view });
 					],
 					[
 						//ruler_y.view,
-						track_header,
+						//track_header,
+						nil,
 						StackLayout(
 							cursor_timeline.view,
 							timeline.view,
@@ -478,6 +609,7 @@ WindowLayout({  ~tp.view });
 			tl_layout.spacing = 0;
 
 			quant_popup = PopUpMenu.new.items_([
+				"0",
 				"1/32",
 				"1/16",
 				"1/8",
@@ -508,6 +640,7 @@ WindowLayout({  ~tp.view });
 			layout = VLayout(
 				HLayout(
 					PlayerWrapperView(Pdef(self.eventloop.key)).view,
+					PlayerWrapperView(PlayerWrapper(Ndef(\siner))).view,
 					XSimpleButton.new.label_("[]").action_({
 						self.cursor.startPosition = self.eventloop.list.startTime;
 						Pdef(self.eventloop.key).stop;
@@ -549,128 +682,7 @@ WindowLayout({  ~tp.view });
 			self.timeline.mapEventList(self.eventloop.list);
 		},
 	);
-	~pt = ~pdefTimeline.new(XEventLoop(\pdef));
+	~pt = ~pdefTimeline.new(XEventLoop(\env));
 	~pt.makeWindow;
 )
-
-/////////////////////////////////////////////////////////////////////
-
-(
-Pbind(
-	\parent, (
-		label: { arg self;
-			self[\key] ++ "poooo";
-		},
-	),
-	\key, \yop,
-
-).collect({ arg ev; ev.label.debug("kkk"); ev; }).trace.play;
 )
-
-(
-	~ev  = (
-		parent: ~event_type_eventlist,
-		//nodeType: \eventlist,
-		eventlist: ~sub,
-		sustain: 4.5,
-		midinote: 0,
-		dur: 7,
-	)
-	~ev[\nodeType]
-	~ev.nodeType
-)
-
-
-(
-	Pseq([
-		(
-			parent: ~event_type_eventlist,
-			//nodeType: \eventlist,
-			eventlist: ~sub,
-			sustain: 4.5,
-			midinote: 0,
-			dur: 7,
-		),
-	],1).asStream.nextN(1,Event.default).collect({ arg x; x.parent.keys.debug("x"); x.keys })
-)
-
-(
-		Pev((
-			parent: ~event_type_eventlist,
-			//nodeType: \eventlist,
-			eventlist: ~sub,
-			sustain: 4.5,
-			midinote: 0,
-			dur: 7,
-		)).asStream.next(Event.default)
-)
-(
-	Pseq([
-		Pev((
-			parent: ~event_type_eventlist,
-			//nodeType: \eventlist,
-			eventlist: ~sub,
-			sustain: 4.5,
-			midinote: 0,
-			dur: 7,
-		))
-	],1).asStream.nextN(1,Event.default).collect({ arg x; x.parent.keys.debug("x"); x.keys })
-	//],1).asStream.nextN(1,Event.default).collect({ arg x;  x.keys })
-)
-
-(
-	Pseq([
-		Pev((
-			parent: ~event_type_eventlist,
-			//nodeType: \eventlist,
-			eventlist: ~sub,
-			sustain: 4.5,
-			midinote: 0,
-			dur: 7,
-		))
-		Pevent(
-			Pbind(),
-			(
-				parent: ~event_type_eventlist,
-				//nodeType: \eventlist,
-				eventlist: ~sub,
-				sustain: 4.5,
-				midinote: 0,
-				dur: 7,
-			)
-		)
-	],1).asStream.nextN(7,Event.default).collect({ arg x; x.parent.keys.debug("x"); x.keys })
-)
-(
-	Pseq([
-			Pbind(*[
-			parent: ~event_type_eventlist,
-			//nodeType: \eventlist,
-			eventlist: ~sub,
-			sustain: 4.5,
-			midinote: 0,
-			dur: 7,
-		])
-	],1).asStream.nextN(7,Event.default).collect({ arg x; x.parent.keys.debug("x"); x.keys })
-)
-(
-	Pseq([
-		(
-			parent: ~event_type_eventlist,
-			//nodeType: \eventlist,
-			eventlist: ~sub,
-			sustain: 4.5,
-			midinote: 0,
-			dur: 7,
-		),
-	],1).asStream.nextN(1,~event_type_eventlist).collect({ arg x; x.parent.keys.debug("x"); x.keys })
-)
-~event_type_eventlist
-Pbind
-Padd
-
-
-
-Rect(0,100,120,120).flipScreen(1000).flipScreen(1000)
-
-Rect(0,0.141, 0.1,0.1).flipScreen(1)

@@ -31,6 +31,7 @@ Event.addEventType(\player, {
 
 ~dereference_event = { arg spawner, ev; 
 	[spawner, ev].debug("entering ~dereference_event");
+	[ev[\eventType], ev[\nodeType], ev[\type]].debug("eventype, nodetype, type");
 	switch(ev[\eventType] ? ev[\nodeType] ? ev[\type],
 		\pattern, {
 			var pat;
@@ -86,7 +87,7 @@ Event.addEventType(\player, {
 	[val].debug("entering ~split_event");
 	val.use {
 		if(val.notNil) {
-			var suboffset = val[\event_dropdur];
+			var suboffset = val[\event_dropdur] - (val[\previous_event_dropdur] ? 0);
 			if(suboffset == 0) {
 				// we are on a border, do nothing;
 				val.debug("we are on a border, do nothing; ");
@@ -115,7 +116,7 @@ Event.addEventType(\player, {
 	var val;
 	var crossing_line = List.new;
 	[drop_time, stream].debug("entering ~stream_dropdur");
-	if(drop_time.notNil) {
+	if(drop_time.notNil and: { drop_time != 0}) {
 
 		while (
 			{
@@ -126,6 +127,7 @@ Event.addEventType(\player, {
 			},
 			{
 				val.use {
+					val[\previous_event_dropdur] = val[\event_dropdur]; // used by ~split_event to not substract sustain two times
 					val.debug("stream_dropdur: val");
 					[val.dur, val.sustain].debug("stream_dropdur: val: dur, sustain");
 					previous_offset = current_offset;
@@ -135,7 +137,7 @@ Event.addEventType(\player, {
 							( previous_offset + val.sustain ) > drop_time
 						}
 					) {
-						val[\event_dropdur] = drop_time - previous_offset;
+						val[\event_dropdur] = drop_time - previous_offset + (val[\event_dropdur] ? 0);
 						val.debug("stream_dropdur: added to crossing_line");
 						crossing_line.add(val);
 					};
@@ -147,11 +149,11 @@ Event.addEventType(\player, {
 
 
 		if(val.notNil) {
-			val[\event_dropdur] = drop_time - previous_offset;
-			val = ~split_event.(val);
+			val[\event_dropdur] = drop_time - previous_offset + (val[\event_dropdur] ? 0);
+			val = ~split_event.(val.copy);
 
 			crossing_line = crossing_line.collect({ arg ev; 
-				ev = ~split_event.(ev);
+				ev = ~split_event.(ev.copy);
 				ev[\dur] = 0;
 				ev.debug("stream_dropdur: transformed crossing_line");
 			});
@@ -168,9 +170,9 @@ Event.addEventType(\player, {
 			// (meaning his dur < sustain), val will be nil, but not crossing_line
 			if(crossing_line.size > 0) {
 				val = crossing_line.pop;
-				val = ~split_event.(val);
+				val = ~split_event.(val.copy);
 				crossing_line = crossing_line.collect({ arg ev; 
-					ev = ~split_event.(ev);
+					ev = ~split_event.(ev.copy);
 					ev[\dur] = 0;
 					ev.debug("stream_dropdur: transformed crossing_line");
 				});
@@ -189,11 +191,14 @@ Event.addEventType(\player, {
 		// first yield all the splitted event concurrent with current val, then val, then remaining stream
 
 	} {
+		"~stream_dropdur: return original stream untouched".debug;
 		stream;
 	};
 };
 
 ~eventlist_aspattern = { arg eventlist;
+	// to enable reading before start event or after end event, add a flag to ignore start and end event
+	// will be set by toplevel timeline view
 	var current_offset = 0;
 	var previous_offset = 0;
 	var val;
@@ -215,6 +220,7 @@ Event.addEventType(\player, {
 	while (
 		{
 			val = eventlist.removeAt(0);
+			val = val.copy;
 			val.notNil and: {
 				val[\type] != \start;
 			}
@@ -248,7 +254,7 @@ Event.addEventType(\player, {
 
 		crossing_line = crossing_line.collect({ arg ev; 
 			ev = ~split_event.(ev.copy);
-			ev[\dur] = 0;
+			ev[\dur] = 0; // every event start at the same time, \start event hold the delta to next event
 			ev.debug("eventlist_aspattern: transformed crossing_line");
 		});
 
@@ -263,8 +269,21 @@ Event.addEventType(\player, {
 			"============================= FUCKING OALAPLAY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!".debug;
 			"============================= FUCKING OALAPLAY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!".debug;
 			"============================= FUCKING OALAPLAY !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!".debug;
+			crossing_line.collect({ arg x; 
+				x.debug("crossing_line list");
+				x.proto !? { x.proto.keys.debug("-proto") }
+			});
+			[val].collect({ arg x; 
+				x.debug("val list");
+				x.proto !? { x.proto.keys.debug("-proto") }
+			});
+			eventlist.collect({ arg x; 
+				x.debug("eventlist list");
+				x.proto !? { x.proto.keys.debug("-proto") }
+			});
+			( original_eventlist.endTime - original_eventlist.startTime ).debug("handling end event in pfindur");
 			Pfindur(original_eventlist.endTime - original_eventlist.startTime, Pseq(
-				crossing_line ++ [val] ++ eventlist
+				( crossing_line ++ [val] ++ eventlist ).collect({ arg x; Pev(x) })
 			)).embedInStream(inval);
 			//original_eventlist.changed(\cursor, \stop);
 		})
@@ -272,24 +291,24 @@ Event.addEventType(\player, {
 		"should never get there".throw;
 		// if there is only one event crossing the line but it's not the last to start 
 		// (meaning his dur < sustain), val will be nil, but not crossing_line
-		if(crossing_line.size > 0) {
-			val = crossing_line.pop;
-			val = ~split_event.(val);
-			crossing_line = crossing_line.collect({ arg ev; 
-				ev = ~split_event.(ev);
-				ev[\dur] = 0;
-				ev.debug("eventlist_aspattern: transformed crossing_line");
-			});
-			Pseq(
-				crossing_line ++ [ val, ];
-			);
-		} {
-			nil
-		}
+		//if(crossing_line.size > 0) {
+		//	val = crossing_line.pop;
+		//	val = ~split_event.(val.copy);
+		//	crossing_line = crossing_line.collect({ arg ev; 
+		//		ev = ~split_event.(ev.copy);
+		//		ev[\dur] = 0;
+		//		ev.debug("eventlist_aspattern: transformed crossing_line");
+		//	});
+		//	Pseq(
+		//		crossing_line ++ [ val, ];
+		//	);
+		//} {
+		//	nil
+		//}
 	}
 };
 
-~timeline_pattern = { arg pat, drop_time, model;
+~timeline_pattern = { arg pat, drop_time, model, is_toplevel=false;
 	Pspawner({ arg spawner;
 		var stream = pat.asStream;
 		[pat, drop_time].debug("timeline_pattern: start");
@@ -420,3 +439,16 @@ Event.addEventType(\player, {
 
 //Event.partialEvents.keys
 
+
+~mkevent = { arg event;
+	var proto = event.proto;
+	if(proto.isNil) {
+		event
+	} {
+		event = event.copy;
+		event[\proto] = nil;
+		proto = proto.copy;
+		proto.putAll(event);
+		proto;
+	}
+};
