@@ -1,15 +1,22 @@
 
 // in this file, I am testing the embeding feature of timelines
 
+//~mytl.paraNodes[0].preview.viewport
+~tp = TimelinePreview.new
+~tp.mapEventList(~sub)
+WindowLayout({  ~tp.view });
+~tp.viewport = Rect(0,0.2,00.8,0.91); ~tp.refresh;
+~tp.viewport = Rect(0,0,1,1); ~tp.refresh;
+~tp.virtualBounds
+~tp.virtualBounds
+~tp.virtualBounds = Rect(200,-100,100,100); ~tp.refresh
 (
 /////////////////////////////////////////////////////////////////
 "/home/ggz/code/sc/seco/vlive/demo/param/lib/timeline.scd".load;
 ~el = nil;
 /////////////////////////////////////////////////////////////////
-)
 
 
-(
 
 	SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=4000, rq=0.3;
 		var sig, sig1, sig2, sig3;
@@ -49,6 +56,7 @@
 			Pbind(
 				\instrument, \default,
 				\midinote, Pseq([54,56,57,54,57,58]+20,2),
+				\midinote, Pseq([0,0,1,0,127,127,127,127]),
 				\dur, 1/4,
 				\amp, 0.3
 			);
