@@ -319,9 +319,10 @@ BusDef(\lpfac).set(2)
 				var default = 0;
 				var pat;
 				if(self.cursor.notNil) {
-					start = self.cursor.startPosition - eventlist.startTime;
+					start = self.cursor.startPosition;
 					if(self.cursor.endPosition.notNil) {
-						end = self.cursor.endPosition - eventlist.endTime;
+						// FIXME: this is wrong
+						//end = self.cursor.endPosition - eventlist.endTime;
 					}
 				};
 
@@ -468,6 +469,14 @@ SynthDef(\env_segment, { arg out=0, level=0.1, time=0.1, curve=0, gate=1;
 	Out.kr(out, sig);
 }).add;
 
+SynthDef(\testreader, { arg out=0, freq=100, lpfac=1, gate=1, doneAction=2, amp=0.1, pan=0;
+	var sig;
+	sig = SinOsc.ar(freq * lpfac * [1,1.001]); 
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:doneAction);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
 
 Pdef(\envtest, 
 	
@@ -480,20 +489,30 @@ Pdef(\envtest,
 		),
 		Pbind(
 			\instrument, \env_segment,
-			\level, Pseq([1,2,1,5,2,6,3],2),
+			\level, Pseq([2,2,5,2,6,3],1),
 			\time, 1,
 			\dur, 1,
 			\out, BusDef(\lpfac, \control),
 		)
-	],1),
+	],2),
 ).play;
 
-//Ndef(\siner).map(\freq, BusDef(\envtest).asMap);
-Ndef(\siner2).play;
+Pdef(\testreader, Pbind(
+	\instrument, \testreader,
+	\freq, 200,
+	\lpfac, BusDef(\lpfac, \control).asMap,
+	\dur, 40,
+	\amp, 0.1
+)).play;
+
 
 
 
 )
+Ndef(\siner2).quant
+Pdef(\envtest).quant  = nil
+Ndef(\siner2).quant = 1
+Pdef(\envtest).quant  = 1
 BusDef(\lpfac).set(1)
 Ndef(\siner).play;
 Ndef(\siner2).play;

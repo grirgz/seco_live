@@ -43,6 +43,18 @@ Event.addEventType(\player, {
 			spawner.par(Pfindur(ev[\sustain], ~timeline_pattern.(pat, ev[\event_dropdur])));
 			spawner.wait(ev[\dur]);
 		},
+		\timeline, {
+			var sustain, timeline, event_dropdur, dur;
+			ev.use {
+				sustain = ev.sustain;
+				timeline = ev.timeline;
+				event_dropdur = ev.event_dropdur;
+				dur = ev.dur;
+			};
+			ev.debug("dereference_event: timeline!!!!");
+			spawner.par(Pfindur( sustain, timeline.asPattern(event_dropdur) ));
+			spawner.wait(dur);
+		},
 		\eventlist, {
 			var sustain, eventlist, event_dropdur, dur;
 			ev.use {
@@ -65,6 +77,21 @@ Event.addEventType(\player, {
 					~eventlist_aspattern.(eventlist),
 					event_dropdur,
 				)
+			));
+			spawner.wait(dur);
+		},
+		\eventenv, {
+			var sustain, eventlist, event_dropdur, dur;
+			ev.use {
+				sustain = ev.sustain;
+				eventlist = ev.eventlist;
+				event_dropdur = ev.event_dropdur;
+				dur = ev.dur;
+			};
+			ev.debug("dereference_event: eventenv!!!!");
+			spawner.par(Pfindur(
+				sustain, 
+				~eventenv_aspattern.(eventlist, event_dropdur),
 			));
 			spawner.wait(dur);
 		},
@@ -308,7 +335,45 @@ Event.addEventType(\player, {
 	}
 };
 
+~eventenv_aspattern = { arg eventenv, relStartTime, property;
+	// drop_time is relative to start event
+	// currently, doesnt support embedding others timelines or different event types
+	var str;
+	var first;
+	var key;
+	key = eventenv.param.target.class, eventenv.param.property
+	property = property ? \midinote;
+	relStartTime = relStartTime ? eventenv.relStartTime;
+	str = ~stream_dropdur.(relStartTime, Pn(eventenv));
+	first = str.next(Event.default);
+	first
+	str = Prout({
+				Pbind(
+					\type, \bus,
+					\array, [1],
+					\dur, Pseq([0],1),
+					\out, BusDef(self.key, \control),
+				).embedInStream(inval);
+
+				pat = Pbind(
+					\instrument, \env_segment,
+					\time, Pfunc({ arg ev; ev.debug("ev!!!!!!!!!!!!!!!!!!"); ev[\dur] }),
+					\level, Pfunc({ arg ev; ev[property] ? default }),
+					\curve, 0,
+					\out, BusDef(self.key, \control),
+				).trace(prefix:"MAIIIIIIIIIIIIIIIIIIIIIIII") 
+				<> str;
+				pat.embedInStream(inval)
+				
+
+	})
+	Pfindur(eventenv.endTime, str);
+}
+
 ~timeline_pattern = { arg pat, drop_time, model, is_toplevel=false;
+	// take a pattern in so no access to startTime
+	// cut and dereference events
+	// when dereferencing, the crossings patterns are cut again recursively
 	Pspawner({ arg spawner;
 		var stream = pat.asStream;
 		[pat, drop_time].debug("timeline_pattern: start");
@@ -328,7 +393,7 @@ Event.addEventType(\player, {
 	})
 };
 
-///////////////////////////////////////
+/////////////////////////////////////// /////////////////////////////////////// timeline utilities
 
 ~zoom_fit = { arg timeline;
 	var maxy=0, miny=127;
@@ -367,6 +432,8 @@ Event.addEventType(\player, {
 	timeline.refresh;
 };
 
+
+/////////////////////////////////////// /////////////////////////////////////// event types
 
 ~event_get_label = { arg ev;
 	var label;
@@ -443,27 +510,34 @@ Event.addEventType(\player, {
 	}
 );
 
-~event_type_eventenv = (
-	// not used, ~event_type_eventlist used currently
-	parent: Event.default,
-	label: ~event_get_label,
-	type: \bus,
-	nodeType: \eventlist,
-
-	eventlist: { arg self;
-		self.eventloop.list;
-	},
-
+~event_type_eventenv = ~event_type_eventlist.copy.putAll((
+	nodeType: \eventenv,
 	pattern: { arg self;
-		~eventlist_aspattern.(self.eventlist);
+		~eventenv_aspattern.(self.eventlist);
 	},
+));
 
-	isEmbeddable: true,
-
-	embedEvent: { arg self, inval;
-		self.pattern.embedInStream(inval);
-	}
-);
+//~event_type_eventenv = (
+//	// not used, ~event_type_eventlist used currently
+//	parent: Event.default,
+//	label: ~event_get_label,
+//	type: \bus,
+//	nodeType: \eventlist,
+//
+//	eventlist: { arg self;
+//		self.eventloop.list;
+//	},
+//
+//	pattern: { arg self;
+//		~eventlist_aspattern.(self.eventlist);
+//	},
+//
+//	isEmbeddable: true,
+//
+//	embedEvent: { arg self, inval;
+//		self.pattern.embedInStream(inval);
+//	}
+//);
 
 //Event.partialEvents.keys
 
