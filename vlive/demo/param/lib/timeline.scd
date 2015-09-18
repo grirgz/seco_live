@@ -1,3 +1,10 @@
+SynthDef(\env_segment, { arg out=0, level=0.1, time=0.1, curve=1, gate=1;
+	var sig;
+	var in = In.kr(out);
+	sig = EnvGen.kr(Env([in,level], [time], curve),gate,doneAction:2);
+	sig.poll(label:"env segment");
+	Out.kr(out, sig);
+}).add;
 
 Event.addEventType(\player, {
 	var method = ~method ? \play;
@@ -336,39 +343,42 @@ Event.addEventType(\player, {
 };
 
 ~eventenv_aspattern = { arg eventenv, relStartTime, property;
-	// drop_time is relative to start event
-	// currently, doesnt support embedding others timelines or different event types
-	var str;
-	var first;
-	var key;
-	key = eventenv.param.target.class, eventenv.param.property
-	property = property ? \midinote;
-	relStartTime = relStartTime ? eventenv.relStartTime;
-	str = ~stream_dropdur.(relStartTime, Pn(eventenv));
-	first = str.next(Event.default);
-	first
-	str = Prout({
-				Pbind(
-					\type, \bus,
-					\array, [1],
-					\dur, Pseq([0],1),
-					\out, BusDef(self.key, \control),
-				).embedInStream(inval);
+	///////////// Abandoned construction site
+	"abandoned".throw;
 
-				pat = Pbind(
-					\instrument, \env_segment,
-					\time, Pfunc({ arg ev; ev.debug("ev!!!!!!!!!!!!!!!!!!"); ev[\dur] }),
-					\level, Pfunc({ arg ev; ev[property] ? default }),
-					\curve, 0,
-					\out, BusDef(self.key, \control),
-				).trace(prefix:"MAIIIIIIIIIIIIIIIIIIIIIIII") 
-				<> str;
-				pat.embedInStream(inval)
-				
+	//// drop_time is relative to start event
+	//// currently, doesnt support embedding others timelines or different event types
+	//var str;
+	//var first;
+	//var key;
+	////key = eventenv.param.target.class, eventenv.param.property
+	//property = property ? \midinote;
+	//relStartTime = relStartTime ? eventenv.relStartTime;
+	//str = ~stream_dropdur.(relStartTime, Pn(eventenv));
+	//first = str.next(Event.default);
+	//str = Prout({
+	//			Pbind(
+	//				\type, \bus,
+	//				\array, [1],
+	//				\dur, Pseq([0],1),
+	//				\out, BusDef(self.key, \control),
+	//			).embedInStream(inval);
 
-	})
-	Pfindur(eventenv.endTime, str);
-}
+	//			pat = Pbind(
+	//				\instrument, \env_segment,
+	//				\time, Pfunc({ arg ev; ev.debug("ev!!!!!!!!!!!!!!!!!!"); ev[\dur] }),
+	//				\level, Pfunc({ arg ev; ev[property] ? default }),
+	//				\curve, 0,
+	//				\out, BusDef(self.key, \control),
+	//			).trace(prefix:"MAIIIIIIIIIIIIIIIIIIIIIIII") 
+	//			<> str;
+	//			pat.embedInStream(inval)
+	//			
+
+	//});
+	//Pfindur(eventenv.endTime, str);
+};
+
 
 ~timeline_pattern = { arg pat, drop_time, model, is_toplevel=false;
 	// take a pattern in so no access to startTime
@@ -396,40 +406,46 @@ Event.addEventType(\player, {
 /////////////////////////////////////// /////////////////////////////////////// timeline utilities
 
 ~zoom_fit = { arg timeline;
+	// TODO: use timeline.spec to get initial maxy and miny
 	var maxy=0, miny=127;
 	var range;
-	timeline.model.do { arg ev, x;
-		var midi = ev.use { ev.midinote };
-		[x, maxy, miny, midi, ev].debug("zoom_fit: midi");
-		if(midi.notNil) {
-			[x, midi].debug("zoom_fit, notnil");
-			if(midi > maxy) {
-				maxy = midi;
-			};
-			if(midi < miny) {
-				miny = midi;
-			};
-		}
-	};
+	if(timeline.model.size < 3) { // if empty
+		// NOOP
+	} {
 
-	if(( maxy + 1 ) > timeline.areasize.y) {
-		timeline.areasize.y = maxy + 1;
-	};
+		timeline.model.do { arg ev, x;
+			var midi = ev.use { ev.midinote };
+			[x, maxy, miny, midi, ev].debug("zoom_fit: midi");
+			if(midi.notNil) {
+				[x, midi].debug("zoom_fit, notnil");
+				if(midi > maxy) {
+					maxy = midi;
+				};
+				if(midi < miny) {
+					miny = midi;
+				};
+			}
+		};
 
-	[timeline.viewport, timeline.viewport.top, maxy/timeline.areasize.y, timeline.viewport.height, (maxy-miny)/timeline.areasize.y].debug("ZOOM ZOOOOOOOOOOOOOOOOOOOOM viewport before");
-	[timeline.areasize].debug("areasize");
-	range = (maxy-miny+1)/timeline.areasize.y;
-	timeline.viewport.top = (miny/timeline.areasize.y);
-	timeline.viewport.height = range.clip(0.1,1);
-	[timeline.viewport.top, timeline.viewport.height, maxy, miny, timeline.areasize.y].debug("top, height, maxy, miny, areasize");
+		if(( maxy + 1 ) > timeline.areasize.y) {
+			timeline.areasize.y = maxy + 1;
+		};
 
-	//timeline.viewport.top = 42/128;
-	//timeline.viewport.height = ((54-42)/128);
+		[timeline.viewport, timeline.viewport.top, maxy/timeline.areasize.y, timeline.viewport.height, (maxy-miny)/timeline.areasize.y].debug("ZOOM ZOOOOOOOOOOOOOOOOOOOOM viewport before");
+		[timeline.areasize].debug("areasize");
+		range = (maxy-miny+1)/timeline.areasize.y;
+		timeline.viewport.top = (miny/timeline.areasize.y);
+		timeline.viewport.height = range.clip(0.1,1);
+		[timeline.viewport.top, timeline.viewport.height, maxy, miny, timeline.areasize.y].debug("top, height, maxy, miny, areasize");
 
-	timeline.viewport.debug("ZOOM ZOOOOOOOOOOOOOOOOOOOOM viewport");
+		//timeline.viewport.top = 42/128;
+		//timeline.viewport.height = ((54-42)/128);
 
-	timeline.changed(\viewport);
-	timeline.refresh;
+		timeline.viewport.debug("ZOOM ZOOOOOOOOOOOOOOOOOOOOM viewport");
+
+		timeline.changed(\viewport);
+		timeline.refresh;
+	}
 };
 
 
@@ -817,8 +833,8 @@ Event.addEventType(\player, {
 
 
 		ruler_x = TimelineRulerView.new;
+		ruler_x.mapCursor(self.cursor);
 		locatorbar = TimelineLocatorBarView.new;
-		locatorbar.mapCursor(self.cursor);
 
 		locatorbar.quant = self.quant_ref;
 

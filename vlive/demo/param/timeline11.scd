@@ -12,6 +12,8 @@
 //)
 //(
 
+/////////////////////
+
 	Ndef(\siner, { arg freq=200, pan=0, amp=0.1;
 		var sig;
 		sig = SinOsc.ar(freq.lag(0.01) * [1,1.001]);
@@ -25,14 +27,14 @@
 		var sig;
 		var freq = freqx;
 		sig = LFSaw.ar(freq * [1,1.001] * lpfac.clip(0.5,10));
-		lpfac.poll;
+		lpfac.poll(label:"lpfac");
 		//sig = RLPF.ar(sig, freq * lpfac.clip(0.5,10), rq);
 		//sig = sig.tanh(SinOsc.kr([1,2,3,4]).abs);
 		sig = Pan2.ar(sig, pan, amp).flop.mean;
 	});
 	//Ndef(\siner).set(\freq, BusDef(\freq, \control).asMap);
 	Ndef(\siner2).free;
-	Ndef(\siner2).play;
+	//Ndef(\siner2).play;
 
 
 	SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2, ffreq=4000, rq=0.3;
@@ -66,6 +68,7 @@
 		\dur, 1/6,
 		\degree, Pseq([1,2,3,4]*2,inf),
 	));
+
 
 	if(~el.isNil) {
 
@@ -146,8 +149,20 @@
 
 	~eventTimeline = (
 
+		prAdd: { arg self, name;
+			self.all[name] = self;
+			self.key = name;
+		},
+
+		makeDefaultEventList: { arg self;
+			var el = XEventList.new;
+			el.start;
+			el.finish(1);
+		},
+
 		asPatternAbs: { arg self, startPosition, endPosition;
 			var relStartTime, totalDur;
+			var eventlist = self.eventList;
 			// currentlty, startPosition and endPosition are in absolute time in the GUI, but will be relative to start event in futur
 			if(startPosition.isNil) {
 				relStartTime = eventlist.relStartTime;
@@ -160,32 +175,33 @@
 			} {
 				totalDur = endPosition - (startPosition ? eventlist.startTime);
 			};
-			self.asPattern(relStartTime, totalDur);
+			self.xasPattern(relStartTime, totalDur);
 		},
 
-		eventList: {
+		eventList: { arg self;
 			self.eventloop.list
-		}
+		},
 
 		embedInTimeline: { arg self, drop_dur, sustain;
+			var relStartTime;
 			relStartTime = self.eventList.relStartTime + drop_dur;
-			self.asPattern(relStartTime, self.eventList.totalDur min: sustain);
+			self.xasPattern(relStartTime, self.eventList.totalDur min: sustain);
 		},
 
 		xembedInStream: { arg self, inval;
-			this.asPattern
+			self.xasPattern
 		},
 
-		play: { arg self;
-			this.asPatternAbs(self.cursor.startPosition, self.cursor.endPosition).play;
+		eventPlay: { arg self;
+			self.asPatternAbs(self.cursor.startPosition, self.cursor.endPosition).play;
 		},
 
-		stop: { arg self;
+		eventStop: { arg self;
 			self.proxy.stop;
 		},
 
-		key: { arg self;
-			self.name;
+		eventIsPlaying: { arg self;
+			self.proxy.isPlaying;
 		},
 
 		label: { arg self;
@@ -201,8 +217,9 @@
 
 		new: { arg self, name;
 
-			if(~clipTimeline_all[name].notNil) {
-				self = ~clipTimeline_all[name]
+			self.all = {~clipTimeline_all};
+			if(self.all[name].notNil) {
+				self = self.all[name]
 			} {
 				self = self.deepCopy;
 				self.init.prAdd(name);
@@ -211,20 +228,20 @@
 			self;
 		},
 
-		prAdd: { arg self, name;
-			~clipTimeline_all[name] = self;
-		},
-
 		init: { arg self;
+			var el = XEventList.new;
 			self.areasize = 10@4;
-			self.eventloop = eventloop;
+			self.eventloop = (list: el); // fake eventloop for the moment
 			self.quant_ref = Ref(Point(1/8,1)); // TODO: replace by Quant class and change TimelineView code
 			self.proxy = EventPatternProxy.new;
 		},
 
-		asPattern: { arg self, relStartTime, totalDur;
+		xasPattern: { arg self, relStartTime, totalDur;
 			self.proxy.source = Plazy({
 				var eventlist = self.eventList;
+
+				relStartTime = relStartTime ? eventlist.relStartTime;
+				totalDur = totalDur ? eventlist.totalDur;
 
 				Pfindur(totalDur, ~timeline_pattern.(
 					Pn(self.eventloop.list, 1),
@@ -247,26 +264,20 @@
 
 		new: { arg self, name, param;
 
-			if(~clipTimeline_all[name].notNil) {
-				self = ~clipTimeline_all[name]
+			self.all = { ~noteTimeline_all };
+			if(self.all[name].notNil) {
+				self = self.all[name]
 			} {
 				self = self.deepCopy;
-				self.init.prAdd(name);
+				self.prAdd(name).init(param);
 			};
 		
 			self;
 		},
 
-		prAdd: { arg self, name;
-			~noteTimeline_all[name] = self;
-			self.key = name;
-		},
-
 		init: { arg self, param;
 
-			var el = XEventList.new;
-			el.start;
-			el.finish(1);
+			var el = self.makeDefaultEventList;
 			self.param = param;
 			self.eventloop = (list: el); // fake eventloop for the moment
 			self.areasize = 9@128;
@@ -277,7 +288,7 @@
 			
 		},
 
-		asPattern: { arg self, relStartTime, totalDur;
+		xasPattern: { arg self, relStartTime, totalDur;
 			// there is 3 kinds of call to asPattern:
 			// - the gui: currently relative startPosition to absTime_0 : asPatternAbs
 			// - the live code: no startPosition given, defaulting to start event : asPattern
@@ -296,7 +307,7 @@
 				Pfindur(totalDur, ~timeline_pattern.(
 					Pn(self.eventloop.list, 1),
 					relStartTime
-				));
+				))
 				<>
 				self.param.target
 			});
@@ -304,89 +315,172 @@
 		},
 
 		edit: { arg self;
-			~noteTimelineView.(this)
+			~noteTimelineView.new(self)
 		},
 
 	);
 
+	~envTimeline_all = IdentityDictionary.new;
 	~envTimeline = (
-		parent: ~timelinePanelView,
+		parent: ~eventTimeline,
 
 		new: { arg self, name, param;
-			self = ~timelinePanelView[\new].(self, eventloop);
 		
-			if(~clipTimeline_all[name].notNil) {
-				self = ~clipTimeline_all[name]
+			self.all = { ~envTimeline_all };
+			if(self.all[name].notNil) {
+				self = self.all[name]
 			} {
 				self = self.deepCopy;
-				self.init.prAdd(name);
+				self.prAdd(name).init(param);
 			};
 		
 			self;
 		},
 
-		asPattern: { arg self;
+		outBus: { arg self;
+			BusDef(self.key, \control);
+		},
+
+		init: { arg self, param;
+
+			var el = self.makeDefaultEventList;
+			self.param = param;
+			self.eventloop = (list: el, key: { self.key }); // fake eventloop for the moment
+			self.areasize = 9@128;
+			self.proxy = EventPatternProxy.new;
+			self.cursor = CursorTimeline.new;
+
+			// note: this is grid quant, not playing quant
+			self.quant_ref = Ref(Point(1/8,1)); // TODO: replace by Quant class and change TimelineView code
+
+			self.xasPattern; // init proxy
+
+			self;
+			
+		},
+
+
+		xasPattern: { arg self, relStartTime, totalDur;
 			self.proxy.source = Prout({ arg inval;
-				//PtimeGatePunch(self.eventloop.list.asPattern.trace(prefix:"xxxxxxxxxxxxxxxxxxxxx"))
-				var start, end;
+				var totalDur;
+				var relStartTime;
 				var eventlist = self.eventloop.list;
-				var default = 0;
 				var pat;
-				if(self.cursor.notNil) {
-					start = self.cursor.startPosition;
-					if(self.cursor.endPosition.notNil) {
-						// FIXME: this is wrong
-						//end = self.cursor.endPosition - eventlist.endTime;
-					}
-				};
+				var str;
+				var first;
+				var first_level;
 
+				relStartTime = relStartTime ? eventlist.relStartTime;
+				totalDur = totalDur ? eventlist.totalDur;
 
-				//Pbind(
-				//	\type, \param,
-				//	\param, self.param,
-				//	\method, \set,
-				//	\val, Pfunc({ arg ev; ev[self.param.property]; })
-				//) <>
-
+				// FIXME: this should be an event
 				if(self.param.notNil) {
-					self.param.set(BusDef(self.key, \control).asMap);
-					default = self.param.default;
+					self.param.set(self.outBus.asMap);
+					//default = self.param.default;
 				};
 
-				//Pbind(
-				//	\type, \bus,
-				//	\out, BusDef
-				//	\array, Pfunc({ arg ev; 
-				//		ev.use({ ev.freq })
-				//	})
-				//) <>
-				Pbind(
-					\type, \bus,
-					\array, [1],
-					\dur, Pseq([0],1),
-					\out, BusDef(self.key, \control),
-				).embedInStream(inval);
+				pat = 
+					Pbind(
+						\instrument, \env_segment,
+						//\level, Pfunc({ arg ev; ev[self.param.property] ? default }),
+						\curve, 0,
+						\out, self.outBus,
+						\time, Pfunc({ arg ev; ev.debug("ev!!!!!!!!!!!!!!!!!!"); ev[\dur] }),
+					).trace(prefix:"MAIIIIIIIIIIIIIIIIIIIIIIII")
+					<>
+					Pfindur(totalDur, ~timeline_pattern.(
+						Pn(self.eventloop.list, 1),
+						relStartTime
+					))
+				;
 
-				pat = Pbind(
-					\instrument, \env_segment,
-					\time, Pfunc({ arg ev; ev.debug("ev!!!!!!!!!!!!!!!!!!"); ev[\dur] }),
-					\level, Pfunc({ arg ev; ev[self.param.property] ? default }),
-					\curve, 0,
-					\out, BusDef(self.key, \control),
-				).trace(prefix:"MAIIIIIIIIIIIIIIIIIIIIIIII") <>
-				~timeline_pattern.(
-					~eventlist_aspattern.(
-						self.eventloop.list
-					).trace(prefix:"xxxxxxxxxxxxxxxxxxxxx"),
-					start, end
-				).trace(prefix:"YAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-				//self.eventloop.list.asPattern.trace(prefix:"xxxxxxxxxxxxxxxxxxxxx")
-				pat.embedInStream(inval);
+				self.eventloop.list.changed(\cursor, \play);
+				~pattern_to_envpattern.(pat).embedInStream(inval);
+
 			});
 			self.proxy;
 		},
 
+		edit: { arg self;
+			~envTimelinePanelView.new(self)
+		},
+
 	);
+
+	//////////////////////////////// Views
+
+	~envTimelinePanelView = (
+		parent: ~timelinePanelView,
+
+		new: { arg self, timeline;
+			self = ~timelinePanelView[\new].(self, timeline.eventloop);
+		
+			// self.timeline is timelineView actually
+			self.timeline_model = timeline;
+
+			self.makeWindow;
+			
+			self;
+		},
+
+		cursor: { arg self;
+			self.timeline_model.cursor;
+		},
+
+		key: { arg self;
+			self.timeline_model.key;
+		},
+
+		timelineClass: { arg self;
+			TimelineEnvView;
+		},
+
+		make_track_header: { arg self, timeline;
+			//self.track_header = View.new;
+			//self.ruler_y = MidinoteTimelineRulerView.new;
+			//self.track_header = self.ruler_y;
+			//self.ruler_y.mimicTimeline(timeline);
+			//self.ruler_y.view.minWidth_(50);
+			nil
+		},
+
+		param: { arg self;
+			self.timeline_model.param;
+		},
+
+		make_header: { arg self;
+			HLayout(
+				PlayerWrapperView(EventPlayerWrapper(self.timeline_model)).view,
+				PlayerWrapperView(PlayerWrapper(self.param.target)).view,
+				self.make_quant_popup,
+			)
+		},
+
+		makeLayout: { arg self;
+			self.layout = VLayout(
+				//HLayout(
+				//	PlayerWrapperView(Pdef(self.eventloop.key)).view,
+				//	XSimpleButton.new.label_("yep"),
+				//),
+				self.parent[\makeLayout].(self),
+				//self.parent.makeLayout,
+			);
+			self.timeline.eventFactory = { arg pos, nodesize;
+				(absTime: pos.x, level: pos.y, legato:1);
+			};
+			self.timeline.mapParam(Param(self.param.target, \level, self.param.spec));
+			self.set_yquant(self.param.spec.step);
+			self.timeline.mouseUpAction = {|me, px, py, mod, buttonNumber, clickCount, chosennode|
+				self.timeline.refreshEventList;
+			};
+			self.layout;
+		},
+
+	);
+
+
+
+	////////////////////////////////////// Tests
 
 	//~pt = ~pdefTimeline.new(XEventLoop(\pdef));
 	//~pt.makeWindow;
@@ -395,6 +489,115 @@
 	//~pt = ~envTimeline.new(XEventLoop(\env), Param(Ndef(\siner), \midinote, \midinote));
 	//~pt.makeWindow;
 
-	~pt = ~envTimeline.new(XEventLoop(\lpfac), Param(Ndef(\siner2), \lpfac, ControlSpec(0.1,5,\exp)));
-	~pt.makeWindow;
+	~pt = ~envTimeline.new(\lpfac, Param(Ndef(\siner2), \lpfac, ControlSpec(0.1,5,\lin)));
+	~pt.edit;
 )
+
+~pt
+~pt.edit.new
+~pt.eventList.print
+~pt.proxy.source
+~pt.xasPattern.play
+~pt.init
+(proxy:4).proxy
+
+~pt.xasPattern
+~str = ~pt.xasPattern.asStream;
+~str.next(Event.default)
+
+Param(Ndef(\siner2), \lpfac, ControlSpec(0.1,5,\lin)).get.get(_.debug("get"))
+Param(Ndef(\siner2), \lpfac, ControlSpec(0.1,5,\lin)).get.set(2)
+
+Ndef(\siner2).play
+Ndef(\siner2).edit
+
+(
+~compute_eventenv_sustain = { arg eventlist;
+	var previous;
+	var el = eventlist.copy;
+	previous = eventlist.removeAt(0);
+	eventlist.do { arg ev;
+		if([\start, \end].includes(ev.type)) {
+			// NOOP
+		} {
+			previous[\sustain]  
+			previous = ev;
+
+		}
+	};
+	
+},
+
+~pattern_to_envpattern = { arg pattern;
+	Prout({ arg inval;
+		var str = pattern.asStream;
+		var val;
+		var first = true;
+		var previous_val;
+		
+		block { arg break;
+			while({
+				val = str.next(Event.default);
+				val.notNil;
+			}, {
+				val.debug("pattern_to_envpattern");
+				//if(val.type == \start or: { val.type == \end }) { // don't know where and why it's transformed in rest
+				if(val.type == \rest or: { val.type == \start or: { val.type == \end } }) { 
+					val.type.debug("pattern_to_envpattern: start/end");
+					val.yield;
+					first = true;
+				} {
+					if(first == true) {
+						var level = val.use { val.level };
+						var busev = val.copy;
+						level.debug("pattern_to_envpattern: first");
+						busev.putAll(
+							(
+								type: \bus,
+								array: [level],
+								delta: 0,
+							)
+						);
+						busev.yield;
+						previous_val = val;
+						first = false;
+					} {
+						previous_val[\level] = val.use { val.level };
+						previous_val.debug("pattern_to_envpattern: yield previous");
+						previous_val.yield;
+						previous_val = val;
+					};
+				};
+			});
+		};
+		previous_val[\type] = \rest;
+		previous_val.yield;
+	})
+
+};
+)
+
+
+(
+
+
+~pat = ~pattern_to_envpattern.(
+	Pbind(
+		\instrument, \env_segment,
+		\level, Pseq([1,5,2,3],2),
+		\dur, 1,
+		\legato, 1,
+		\time, Pkey(\sustain),
+		\out, BusDef(\test, \control),
+		\amp, 0.1
+	);
+);
+
+//~pat.play;
+Pseq([~pat, ~pat]).play;
+
+
+)
+
+
+Ndef(\siner2).set(\lpfac, BusDef(\test).asMap).play
