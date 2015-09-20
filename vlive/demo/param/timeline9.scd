@@ -390,15 +390,15 @@ BusDef(\lpfac).set(2)
 
 	);
 
-	//~pt = ~pdefTimeline.new(XEventLoop(\pdef));
-	//~pt.makeWindow;
+	~pt = ~pdefTimeline.new(XEventLoop(\pdef));
+	~pt.makeWindow;
 	//~pt = ~midinoteTimeline.new(XEventLoop(\midinote));
 	//~pt.makeWindow;
 	//~pt = ~envTimeline.new(XEventLoop(\env), Param(Ndef(\siner), \midinote, \midinote));
 	//~pt.makeWindow;
 
-	~pt = ~envTimeline.new(XEventLoop(\lpfac), Param(Ndef(\siner2), \lpfac, ControlSpec(0.1,5,\exp)));
-	~pt.makeWindow;
+	//~pt = ~envTimeline.new(XEventLoop(\lpfac), Param(Ndef(\siner2), \lpfac, ControlSpec(0.1,5,\exp)));
+	//~pt.makeWindow;
 )
 ~pt.timeline.param
 ~pt.timeline.mapParam(~pt.param)

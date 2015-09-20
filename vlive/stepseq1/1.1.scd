@@ -336,3 +336,8 @@ w.layout_(
 );
 
 )
+
+
+MultiEQGUI.new(MultiEQ.new)
+MultiEQ
+\plop.isSymbol

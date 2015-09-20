@@ -43,7 +43,7 @@ Event.addEventType(\player, {
 		\pattern, {
 			var pat;
 			debug("dereference_event: sub pattern type");
-			pat = ev[\pattern].value ?? (ev[\key] !? { Pdef(ev[\key]) } );
+			pat = ev.pattern ?? (ev[\key] !? { Pdef(ev[\key]) } );
 			if(ev[\pattern].isNil) {
 				pat.debug("pat!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 			};
@@ -59,7 +59,7 @@ Event.addEventType(\player, {
 				dur = ev.dur;
 			};
 			ev.debug("dereference_event: timeline!!!!");
-			spawner.par(Pfindur( sustain, timeline.asPattern(event_dropdur) ));
+			spawner.par(Pfindur( sustain, timeline.xasPattern(event_dropdur) ));
 			spawner.wait(dur);
 		},
 		\eventlist, {
@@ -455,6 +455,9 @@ Event.addEventType(\player, {
 	var label;
 	var receiver = ev[\receiver].value;
 	label = if(receiver.notNil) {
+		if(receiver.isKindOf(PlayerWrapper)) {
+			receiver = receiver.target;
+		};
 		if(
 			receiver.isKindOf(Ndef) or: {
 				receiver.isKindOf(Pdef)
@@ -475,6 +478,9 @@ Event.addEventType(\player, {
 					"Pdef %".format(ev[\key])
 				}
 			}
+		};
+		if(ev[\type] == \timeline) {
+			ev.timeline.label
 		}
 	};
 	label = label ?? { "No Name" };
@@ -487,10 +493,26 @@ Event.addEventType(\player, {
 	type: \player,
 );
 
+~event_type_timeline = (
+	parent: Event.default,
+	label: ~event_get_label,
+	type: \timeline,
+	eventlist: { arg self;
+		self.timeline.eventList
+	},
+);
+
 ~event_type_pattern = (
 	parent: Event.default,
 	label: ~event_get_label,
 	eventType: \pattern,
+	type: \pattern,
+
+	key: { arg self;
+		if(self.receiver.notNil) {
+			self.receiver.value.key
+		}
+	},
 
 	pattern: { arg self;
 		if(self.key.notNil) {
@@ -613,7 +635,7 @@ Event.addEventType(\player, {
 	make_stop_button: { arg self;
 		XSimpleButton.new.label_("[]").action_({
 			self.cursor.startPosition = self.eventloop.list.startTime;
-			Pdef(self.eventloop.key).stop;
+			EventPlayerWrapper(self.timeline_model).stop;
 			self.cursor_timeline.stop; // FIXME: should be automatic when stoping Pdef
 		});
 	},
@@ -822,8 +844,8 @@ Event.addEventType(\player, {
 
 		timeline.quant = self.quant_ref;
 
-		self.cursor = CursorTimeline.new;
-		self.cursor.startPosition = self.eventloop.list.startTime;
+		//self.cursor = CursorTimeline.new;
+		//self.cursor.startPosition = self.eventloop.list.startTime;
 
 		cursor_timeline = CursorTimelineView.new;
 		~cursor_timeline = cursor_timeline;
@@ -942,10 +964,15 @@ Event.addEventType(\player, {
 	
 		self.model = model;
 		self.parent_model = parent;
-		self.makeWindow;
+		//self.makeWindow;
 		
 	
 		self;
+	},
+
+	clearEditor: { arg self;
+		self.type_popup.items = [""];
+		self.name_popup.items = [""];
 	},
 
 	makeUpdater: { arg self;
@@ -956,13 +983,14 @@ Event.addEventType(\player, {
 			if(self.type_popup.isNil or: {self.type_popup.isClosed}) {
 				self.controller.remove;
 			} {
+				self.refreshPopups;
 				switch(ev[\eventType] ? ev[\nodeType] ? ev[\type],
 					\player, {
 						ev.debug("clipEditor: updater: player");
 						self.type_popup.value = self.type_popup.items.detectIndex({ arg x; x == \Ndef });
 						self.name_popup.items = Ndef.all[\localhost].envir.keys.asArray;
 						self.name_popup.value = self.name_popup.items.detectIndex({ arg x; 
-							x == ( ev[\key] ?? { ev[\receiver].value.key } )
+							x == ( ev.key ?? { ev[\receiver].value.key } )
 						});
 						[self.name_popup.value, self.name_popup.items, ev[\key], ev[\receiver], ev[\receiver].value.key].debug("name, items, key, rec, reckey");
 					},
@@ -971,18 +999,71 @@ Event.addEventType(\player, {
 						self.type_popup.value = self.type_popup.items.detectIndex({ arg x; x == \Pdef });
 						self.name_popup.items = Pdef.all.keys.asArray;
 						self.name_popup.value = self.name_popup.items.detectIndex({ arg x; 
-							x == ( ev[\key] ?? { ev[\receiver].value.key } ) 
+							x == ( ev.key ?? { ev[\receiver].value.key } ) 
 						});
 						[self.name_popup.value, self.name_popup.items, ev[\key], ev[\receiver], ev[\receiver].value.key].debug("name, items, key, rec, reckey");
+					},
+					\timeline, {
+						var type;
+						ev.debug("clipEditor: updater: timeline");
+						if(ev.timeline.notNil) {
+							switch(ev.timeline.eventType,
+								\envTimeline, {
+									type = 'EnvTimeline'
+								},
+								\clipTimeline, {
+									type = 'ClipTimeline'
+								},
+								\noteTimeline, {
+									type = 'noteTimeline'
+								},
+							)
+						};
+						self.type_popup.value = self.type_popup.items.detectIndex({ arg x; x == type });
+
+						self.name_popup.items = ev.timeline.all.keys.asArray;
+						self.name_popup.value = self.name_popup.items.detectIndex({ arg x; 
+							x == ( ev.key ?? { ev.timeline.key } ) 
+						});
+						[self.name_popup.value, self.name_popup.items, ev.key].debug("name, items, key, rec, reckey");
 					}, {
 
 						ev.debug("clipEditor: updater: other");
 					}
 				)
 			}
-
-
 		});
+	},
+
+	refreshPopups: { arg self;
+		var name_popup = self.name_popup;
+		self.type_popup.items = [
+			'Pdef',
+			'Ndef',
+			'ClipTimeline',
+			'NoteTimeline',
+			'EnvTimeline',
+		];
+		self.type_popup.action = {
+			switch( self.type_popup.items[self.type_popup.value],
+				\Ndef, {
+					name_popup.items = Ndef.all[\localhost].envir.keys.asArray;
+				},
+				\Pdef, {
+					name_popup.items = Pdef.all.keys.asArray;
+				},
+				\NoteTimeline, {
+					name_popup.items = ~noteTimeline.all.keys.asArray;
+				},
+				\ClipTimeline, {
+					name_popup.items = ~clipTimeline.all.keys.asArray;
+				},
+				\EnvTimeline, {
+					name_popup.items = ~envTimeline.all.keys.asArray;
+				}
+			);
+		};
+		self.type_popup.valueAction = 0;
 	},
 
 	makeLayout: { arg self;
@@ -997,30 +1078,14 @@ Event.addEventType(\player, {
 		self.type_popup = type_popup;
 		name_popup.allowsReselection = true;
 		//type_popup.allowsReselection = true; // lose selection
-		
-		type_popup.items = [
-			'Pdef',
-			'Ndef',
-			'Timeline',
-			'MidinoteTimeline'
-		];
-		type_popup.action = {
-			switch( type_popup.items[type_popup.value],
-				\Ndef, {
-					name_popup.items = Ndef.all[\localhost].envir.keys.asArray;
-				},
-				\Pdef, {
-					name_popup.items = Pdef.all.keys.asArray;
-				}
-			);
-		};
-		name_popup.items = type_popup.items[type_popup.value].asClass.all.keys.asArray;
+		//name_popup.items = type_popup.items[type_popup.value].asClass.all.keys.asArray;
 		name_popup.action = {
 			var curname = name_popup.items[name_popup.value];
+			var model = self.model;
 			switch( type_popup.items[type_popup.value],
 				\Ndef, {
 					model.putAll(~event_type_player);
-					model[\receiver] = Ref(Ndef(curname));
+					model[\receiver] = Ref(PlayerWrapper(Ndef(curname)));
 					//model.changed(\refresh);
 					self.parent_model.changed(\refresh);
 				},
@@ -1029,13 +1094,50 @@ Event.addEventType(\player, {
 					model.receiver = Ref(Pdef(curname));
 					//model.changed(\refresh);
 					self.parent_model.changed(\refresh);
-				}
+				},
+				\NoteTimeline, {
+					model.putAll(~event_type_timeline);
+					model[\timeline] = ~noteTimeline.new(curname);
+					self.parent_model.changed(\refresh);
+				},
+				\ClipTimeline, {
+					model.putAll(~event_type_timeline);
+					model[\timeline] = ~clipTimeline.new(curname);
+					self.parent_model.changed(\refresh);
+				},
+				\EnvTimeline, {
+					model.putAll(~event_type_timeline);
+					model[\timeline] = ~envTimeline.new(curname);
+					self.parent_model.changed(\refresh);
+				},
 			);
 		};
+
+		self.refreshPopups;
 
 		header = HLayout(
 			type_popup,
 			name_popup,
+			XSimpleButton.new.label_("Edit").action_({
+				var model = self.model;
+				[model.type, model].debug("Edit: type");
+				switch(model.type,
+					\player, {
+						var player = model.receiver.value;
+						if(player.class == PlayerWrapper) {
+							player = player.target;
+						};
+						player.edit;
+					},
+					\pattern, {
+						model.receiver.value.asParamGroup.debug("Edit: pattern");
+						model.receiver.value.asParamGroup.edit;
+					},
+					\timeline, {
+						model.timeline.edit;
+					}
+				);
+			})
 		);
 		layout = VLayout(
 			header,
@@ -1059,3 +1161,141 @@ Event.addEventType(\player, {
 	},
 
 );
+
+
+
+/////////////////////////////////////////////////////////////////////
+
+
+
+~compute_eventenv_sustain = { arg eventlist;
+	var previous;
+	var el = eventlist.copy;
+	eventlist.do { arg ev;
+		if([\start, \end].includes(ev.type)) {
+			// noop
+		} {
+			if(previous.notNil) {
+				if(previous[\dur] != 0) {
+					previous[\legato] = ( ev[\absTime] - previous[\absTime] ) / previous[\dur];  
+				};
+				previous[\next_level] = ev[\level];  
+				previous[\next_absTime] = ev[\absTime];  
+			};
+			previous = ev;
+
+		}
+	};
+	
+};
+
+~eventlist_to_envpattern = { arg eventlist, start;
+	//var el = eventlist.copy;
+	////var startev = eventlist.
+	//var endlist = List.new;
+	//var previous;
+	//var start_level;
+	//var bus_event;
+	//~compute_eventenv_sustain.(eventlist);
+	//block { arg break;
+	//	eventlist.do { arg ev;
+	//		if(ev[\type] == \start) {
+	//			if(ev.dur == 0 or: { ev.delta == 0 }) {
+	//				el.removeAt(0);
+	//			};
+	//			break.value;
+	//		} {
+	//			previous = el.removeAt(0);
+	//		}
+	//	};
+	//};
+	//if(previous.notNil) {
+	//	var level = val.use { val.level };
+	//	var busev = val.copy;
+	//	var next_level, next_absTime;
+	//	next_level = val[\next_level];
+	//	next_absTime = val[\next_absTime];
+	//	level = 
+	//		( next_level - busev.level ) * busev.event_dropdur 
+	//		/ (next_absTime - busev.absTime) 
+	//		+ busev.level
+	//	;
+	//	bus_event = (
+	//		type: \bus,
+	//		array: [level]
+	//	)
+
+	//};
+};
+
+~pattern_to_envpattern = { arg pattern;
+	Prout({ arg inval;
+		var str = pattern.asStream;
+		var val;
+		var first = true;
+		var previous_val;
+		var nextval; // ugly hack
+		
+		block { arg break;
+			while({
+				if(nextval.notNil) {
+					val = nextval;
+				} {
+					val = str.next(Event.default);
+				};
+				val.notNil;
+			}, {
+				var is_rest = { arg val;
+					val.type == \rest or: { val.type == \start or: { val.type == \end } };
+				};
+				val.debug("pattern_to_envpattern");
+				if(first == true) {
+					if(is_rest.(val)) {
+						val.type.debug("pattern_to_envpattern: start/end");
+						previous_val = val;
+						previous_val.yield;
+					} {
+						var level = val.use { val.level };
+						var busev = val.copy;
+						var next_level, next_absTime;
+						level.debug("pattern_to_envpattern: first");
+						if(busev[\event_dropdur].notNil) {
+							next_level = val[\next_level];
+							next_absTime = val[\next_absTime];
+							[ next_level, next_absTime, busev ].debug("nlevel, nabstime, busev");
+							level = 
+								( next_level - busev.level ) * busev.event_dropdur 
+								/ (next_absTime - busev.absTime) 
+								+ busev.level
+							;
+						};
+						level.debug("pattern_to_envpattern: first: altered level");
+						busev.putAll(
+							(
+								type: \bus,
+								array: [level],
+								delta: 0,
+							)
+						);
+						busev.yield;
+						previous_val = val;
+						first = false;
+					}
+				} {
+					if(previous_val.use { previous_val.sustain} <= 0) {
+						previous_val[\array] = [previous_val[\next_level]];
+						previous_val[\type] = \bus;
+					} {
+						previous_val[\level] = previous_val[\next_level];
+						previous_val.debug("pattern_to_envpattern: yield previous");
+					};
+					previous_val.yield;
+					previous_val = val;
+				};
+			});
+		};
+		previous_val[\type] = \rest;
+		previous_val.yield;
+	})
+
+};

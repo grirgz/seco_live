@@ -155,3 +155,103 @@ Pbind(*(bufnum:Pfunc({ 4 })).getPairs).asStream.nextN(10,())
 ~str
 BufferPoo
 
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.4;
+	var sig;
+	sig = LFSaw.ar(freq * ( 1 + ( SinOsc.kr(4) * 1 )));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.4;
+	var sig;
+	sig = LFPulse.ar(freq * ( 1 + ( SinOsc.kr(XLine.kr(4,4000,40)) * 1 )));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.4;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1;
+	env1 = ( 1 + ( SinOsc.kr(1/4) * 1 ));
+	env1 = env1 + ( 1 + ( SinOsc.kr(1/16) * 1 ));
+	sig = LFPulse.ar(freq * ( 1 + ( SinOsc.ar(XLine.kr(4,4000,40)) * 1 )));
+	sig1 = LFSaw.ar(freq * ( 1 + ( SinOsc.ar(40 * ( 1 + ( SinOsc.kr(1/16) * 7 ))) * 1 )));
+	sig = SelectX.ar( env1, [sig, sig1]);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.4;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1;
+
+	sig = SinOsc.ar( freq * ( 1 + ( SinOsc.ar(\fm.kr(91)) * \fmfac.kr(7.4) )) ) ;
+
+
+	//env1 = ( 1 + ( SinOsc.kr(1/4) * 1 ));
+	//env1 = env1 + ( 1 + ( SinOsc.kr(1/16) * 1 ));
+	//sig = LFPulse.ar(freq * ( 1 + ( SinOsc.ar(XLine.kr(4,4000,40)) * 1 )));
+	//sig1 = LFSaw.ar(freq * ( 1 + ( SinOsc.ar(40 * ( 1 + ( SinOsc.kr(1/16) * 7 ))) * 1 )));
+	//sig = SelectX.ar( env1, [sig, sig1]);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.4;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1;
+
+	sig = SinOsc.ar( freq * ( 1 + ( SinOsc.ar(\fm.kr(91) * ( (1..8)/ SinOsc.kr(\forkfreq.kr(1/8) * (1..8)/8).range(1,\max.kr(80)) + 0.5 ) ) * \fmfac.kr(7.4) )) ) ;
+
+
+	//env1 = ( 1 + ( SinOsc.kr(1/4) * 1 ));
+	//env1 = env1 + ( 1 + ( SinOsc.kr(1/16) * 1 ));
+	//sig = LFPulse.ar(freq * ( 1 + ( SinOsc.ar(XLine.kr(4,4000,40)) * 1 )));
+	//sig1 = LFSaw.ar(freq * ( 1 + ( SinOsc.ar(40 * ( 1 + ( SinOsc.kr(1/16) * 7 ))) * 1 )));
+	//sig = SelectX.ar( env1, [sig, sig1]);
+	sig = Pan2.ar(sig, pan, amp).flop;
+}).play;
+);
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.4;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1;
+	var freqtab;
+
+	freqtab = \freqtab.kr([1,2,3,4]);
+	freq = freq * freqtab;
+
+	sig = SinOsc.ar( freq * ( 1 + ( SinOsc.ar(\fm.kr(91) * ( (1..8)/ SinOsc.kr(\forkfreq.kr(1/8) * (1..8)/8).range(1,\max.kr(80)) + 0.5 ) ) * \fmfac.kr(7.4) )) ) ;
+
+
+	sig1 = RLPF.ar(sig, \lpf.kr(1100), \lprq.kr(0.5));
+	sig = SelectX.ar(\lpmix.kr(0.5), [sig, sig1]);
+
+	sig1 = \distpreamp.kr(8) * sig;
+	sig1 = sig1.tanh * \distpostamp.kr(1/2);
+	sig = SelectX.ar(\distmix.kr(0.5), [sig, sig1]);
+	//env1 = ( 1 + ( SinOsc.kr(1/4) * 1 ));
+	//env1 = env1 + ( 1 + ( SinOsc.kr(1/16) * 1 ));
+	//sig = LFPulse.ar(freq * ( 1 + ( SinOsc.ar(XLine.kr(4,4000,40)) * 1 )));
+	//sig1 = LFSaw.ar(freq * ( 1 + ( SinOsc.ar(40 * ( 1 + ( SinOsc.kr(1/16) * 7 ))) * 1 )));
+	//sig = SelectX.ar( env1, [sig, sig1]);
+	sig = Pan2.ar(sig, pan, amp).flop;
+}).play;
+);
+
+Ndef(\plop).fadeTime = 1
+Ndef(\plop).fadeTime = 0
+Ndef(\plop).edit
+Ndef(\plop).asParamGroup.edit
+Ndef(\plop).asParamGroup.asView
