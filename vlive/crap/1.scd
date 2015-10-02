@@ -1451,3 +1451,11 @@ SelectX.ar(keyfollow_amount, [ pitch ], [modulated_parameter])
 { LFSaw.ar([100,200] + [0,0.7]).sum ! 2 * 0.1 }.play;
 
 { LFSaw.ar(100 + [0,0]) }.play;
+
+~x = [\bla, \plop];
+
+~s = Pbindef(~x[0],
+ \dur, 0.5
+).asCompileString;
+
+"{ % }".format(~s)

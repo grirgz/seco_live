@@ -62,7 +62,7 @@ Pdef.all[\plop] = nil
 WindowLayout({
 	VLayout(
 		
-		PlayerWrapperView(Pdef(\plop)).layout,
+		PlayerWrapper(Pdef(\plop)).asView,
 		StepListView(~steps).addCursor.view,
 		StepListView(~degree).addCursor.view,
 		PopUpMenu.new.items_([
@@ -160,31 +160,37 @@ Pdef(\yup).addHalo(\instrument, \plip);
 );
 
 (
-WindowLayout({
-	VLayout(
-		
-		PlayerWrapperView(Pdef(\plip)).layout,
-		StepEventView(~es).setCursor.view,
-		HLayout(
-			NumberBox.new.mapParam(Param(Message(~es), \stepCount, ControlSpec(1,128,\lin,1))),
-			PopUpMenu.new.items_([
-				"SinOsc",
-				"LFSaw",
-				"LFPulse",
-			]).mapParam(Param(Builder(\plip), \osctype)),
-		),
-		ParamGroupLayout.two_panes([
-			Param(Builder(\plip), \voices, ControlSpec(1,50,\lin,1)),
-			Param(Pdef(\yup), \dur, ControlSpec(1/16,1,\exp)),
-			Param(Pdef(\yup), \amp),
-			Param(Pdef(\yup), \freq),
-			Param(Pdef(\yup), \fspread),
-			Param(Pdef(\yup), \kb, \unipolar),
-			Param(Pdef(\yup), \adsr, XEnvSpec.adsr),
-		])
-	)
-})
+~make_stepevent_gui = {
+
+	WindowLayout({
+		VLayout(
+			
+			PlayerWrapper(Pdef(\plip)).asView,
+			StepEventView(~es).setCursor.view,
+			HLayout(
+				NumberBox.new.mapParam(Param(Message(~es), \stepCount, ControlSpec(1,128,\lin,1))),
+				PopUpMenu.new.items_([
+					"SinOsc",
+					"LFSaw",
+					"LFPulse",
+				]).mapParam(Param(Builder(\plip), \osctype)),
+			),
+			ParamGroupLayout.two_panes([
+				Param(Builder(\plip), \voices, ControlSpec(1,50,\lin,1)),
+				Param(Pdef(\yup), \dur, ControlSpec(1/16,1,\exp)),
+				Param(Pdef(\yup), \amp),
+				Param(Pdef(\yup), \freq),
+				Param(Pdef(\yup), \fspread),
+				Param(Pdef(\yup), \kb, \unipolar),
+				Param(Pdef(\yup), \adsr, XEnvSpec.adsr),
+			])
+		)
+	})
+};
 )
+
+Pdef(\plip).addHalo(\edit, ~make_stepevent_gui)
+~clipTimeline.new(\yep).edit
 
 ~p = Param(Message(~es), \stepCount, ControlSpec(1,128,\lin,1))
 ~p.get
