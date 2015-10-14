@@ -255,3 +255,21 @@ Ndef(\plop).fadeTime = 0
 Ndef(\plop).edit
 Ndef(\plop).asParamGroup.edit
 Ndef(\plop).asParamGroup.asView
+
+DrumRack(\yep).edit
+
+SynthDesc(\dr_oscsampler).asParamGroup
+
+(
+Pdef(\osmp, Pbind(
+	\instrument, \dr_oscsampler,
+	\bufnum, BufDef(\amen),
+	\degree, Pseq([0],inf),
+	\dur, Pkey(\dur,1),
+	\amp, Pkey(\amp, 0.1),
+)).play;
+);
+
+Pdef(\osmp).asParamGroup.edit
+Pdef(\osmp).addHalo(\instrument, \dr_oscsampler)
+PlayerWrapper(nil).asView

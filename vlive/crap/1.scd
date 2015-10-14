@@ -1459,3 +1459,459 @@ SelectX.ar(keyfollow_amount, [ pitch ], [modulated_parameter])
 ).asCompileString;
 
 "{ % }".format(~s)
+
+
+p = Pmono(\default, \dur, 0.2, \freq, Pwhite(1,8) * 100 ).play
+
+	SynthDef(\default,{
+		arg freq =400,gate=1;
+		var env = EnvGen.kr(Env.adsr(0.0,0.1,0.1,0.01),gate,doneAction:2);
+		var sig = SinOsc.ar(freq)*env ! 2;
+		Out.ar(0,sig);
+	}).add
+
+
+Pbind(\instrument,\default, \dur, 0.2, \freq, Pwhite(1,8.0) * 100 ,\isRest,0).play
+Pbind(\instrument,\default, \dur, 0.4, \freq, Pwhite(1,8.0) * 100 ,\isRest,0).play
+{ SinOsc.ar(200) ! 2 * 0.1}.play;
+
+(
+Pdef(\plop, Ppar([
+
+	Pbind(\instrument,\default, \dur, 0.2, \freq, Pwhite(1,8.0) * 100 ,\isRest,0),
+	Pbind(\lag, 0.2.rand, \instrument,\default, \dur, 0.4, \freq, Pwhite(1,8.0) * 100 ,\isRest,0),
+	Pbind(\lag, 0.2.rand, \instrument,\default, \dur, 0.6, \freq, Pwhite(1,8.0) * 100 ,\isRest,0),
+])).play
+)
+
+
+
+// For more SynthDefs and examples please head to: https://mycelialcordsblog.wordpress.com/ 
+
+(
+	SynthDef(\hasherTest,
+		{
+			arg rate = 1, freq = 60, index = 1000, tRate = 100,
+			out = 0, fRate = 0.1;
+
+			var t_trig = LFPulse.kr(0.5/fRate, 0.5);
+			var random = LFNoise0.ar(rate, add:1);
+			var noise = Hasher.ar(random);
+			var sound = Saw.ar((freq+(noise*index)), Decay.kr(Impulse.kr(tRate), noise*0.001)).tanh;
+			sound = Pan2.ar(sound, noise-0.3*2);
+			FreeSelf.kr(t_trig);
+			//sound = sound * \amp.kr(0.1);
+			sound = sound.clip2(\amp.kr(0.1));
+			Out.ar(out, sound);
+
+		}).store;
+
+)
+
+(
+	Pbind(
+		\instrument, \hasherTest,
+		\dur, 5,
+		\rate, Pfuncn({100.rand}, inf),
+		\freq, Pfuncn({10000.rand}, inf),
+		\index, Pfuncn({20000.rand}, inf),
+		\tRate, Pfuncn({1000.rand}, inf),
+		\amp, 0.01,
+		\fRate, 5,
+
+	).play;
+
+)
+
+
+
+
+
+
+
+
+(
+var paddlePositions = [0.5,0.5]; // Paddle position from 0 (left) to 1 (right)
+var paddleWidths = [100, 100];
+var paddleSpeed = 0.005;
+var paddleMaxSpeed = 0.02;
+var paddleMovements = [0,0];
+var friction = 1.15;
+var width = 600, height = 700;
+var ballPosition = Point(width/2, height/2);
+var ballSize = 10;
+var ballXMovement = rand2(1.5);
+var ballYMovement = 3.0*((rand(2)*2)-1);
+var ballMaxSpeed = 30;
+var scores = [0,0];
+var notes = Scale.phrygian.degrees+60;
+
+k = Set[]; // keep track of held keys
+
+// SynthDef
+SynthDef(\bounce, {
+	|out=0, gain=0.5, length=1, freq=200, depth=20|
+	var bounce, freqenv, ampenv;
+	freqenv = EnvGen.kr(Env.perc(0.01,length,depth));
+	ampenv = EnvGen.kr(Env.perc(0.01,length,1.0),doneAction:2);
+	bounce = SinOsc.ar(freq+freqenv)!2 * ampenv * gain;
+	bounce = Limiter.ar(bounce, gain, 0.001);
+	Out.ar(out,bounce);
+}).add;
+
+// GUI
+w = Window("Pong", Rect((Window.screenBounds.width/2)-(width/2), (Window.screenBounds.height/2)-(height/2), width, height), false).front;
+u = UserView(w, Rect(0, 0, width, height));
+u.background = Color.white;
+u.animate = true;
+u.frameRate = 60;
+u.drawFunc = {
+	// update paddle position
+	2.do{|i|
+		if(paddleMovements[i]<0,{
+			//  left bounds
+			// if holding left, increase left speed
+			if(  (paddleMovements[i].abs < paddleMaxSpeed)
+				&& (k.includes((i*(16777234-65))+65)),{
+					paddleMovements[i] = paddleMovements[i]-0.001;
+			});
+			if((paddlePositions[i]*width - paddleWidths[i]) >= 40,
+				{
+					paddlePositions[i] = paddlePositions[i] + paddleMovements[i];
+				}
+			);
+		},{
+			// right bounds
+			// if holding right, increase right speed
+			if(  (paddleMovements[i].abs < paddleMaxSpeed)
+				&& (k.includes(i*(16777236-68)+68)),{
+					paddleMovements[i] = paddleMovements[i]+0.001;
+			});
+			if((paddlePositions[i]*width + paddleWidths[i]) <= (width-40),
+				{
+					paddlePositions[i] = paddlePositions[i] + paddleMovements[i];
+				}
+			);
+		});
+	};
+	if((k.includes(65) || (k.includes(68))).not,
+		{
+			paddleMovements[0] = paddleMovements[0] / friction;
+	});
+	if((k.includes(16777234) || (k.includes(16777236))).not,
+		{
+			paddleMovements[1] = paddleMovements[1] / friction;
+	});
+	// update ball position
+	ballPosition.x = ballPosition.x + ballXMovement;
+	ballPosition.y = ballPosition.y + ballYMovement;
+	// collision detection
+	// top
+	if ((ballPosition.y < 45) && (ballPosition.y > (35-(ballYMovement.abs))),
+		{
+			if(  (ballPosition.x > (paddlePositions[0]*width-paddleWidths[0]))
+				&& (ballPosition.x < (paddlePositions[0]*width+paddleWidths[0])),
+				{
+					var ballRelPos = ((ballPosition.x-(paddlePositions[0]*width)) / (paddleWidths[0]*2));
+					Synth(\bounce, [\freq, notes.choose.midicps]);
+					ballYMovement = ballYMovement.abs;
+					if (ballYMovement <= ballMaxSpeed,
+						{ballYMovement = ballYMovement * (1.1);}
+					);
+					ballXMovement = ballRelPos*16;
+				}
+			);
+		}
+	);
+	// bottom
+	if ((ballPosition.y > (height-45)) && (ballPosition.y < (height-35+ballYMovement.abs)),
+		{
+			if(  (ballPosition.x > (paddlePositions[1]*width-paddleWidths[1]))
+				&& (ballPosition.x < (paddlePositions[1]*width+paddleWidths[1])),
+				{
+					// change angle based on distance from center of paddle
+					var ballRelPos = ((ballPosition.x-(paddlePositions[1]*width)) / (paddleWidths[1]*2));
+					Synth(\bounce, [\freq, notes.choose.midicps]);
+					ballYMovement = ballYMovement.abs * (-1);
+					if (ballYMovement.abs <= ballMaxSpeed,
+						{ballYMovement = ballYMovement * (1.1);}
+					);
+					ballXMovement = ballRelPos*16;
+				}
+			);
+		}
+	);
+
+	// wall bounce
+	if (ballPosition.x > (width-40),
+		{
+			Synth(\bounce, [\freq, (notes.choose-12).midicps]);
+			ballXMovement = ballXMovement.abs * (-1);
+		}
+	);
+	if (ballPosition.x < 40,
+		{
+			Synth(\bounce, [\freq, (notes.choose-12).midicps]);
+			ballXMovement = ballXMovement.abs;
+		}
+	);
+
+	// out detection
+	// out top
+	if (ballPosition.y < (0-ballYMovement.abs),
+		{
+			scores[1] = scores[1]+1;
+			Synth(\bounce, [\freq, 10, \length, (4), \depth, 100]);
+			ballPosition = Point(width/2, height/2);
+			ballXMovement = rand2(1.5);
+			ballYMovement = 3.0;
+		}
+	);
+	// out bottom
+	if (ballPosition.y > (height+(ballYMovement.abs)),
+		{
+			scores[0] = scores[0]+1;
+			Synth(\bounce, [\freq, 10, \length, (4), \depth, 100]);
+			ballPosition = Point(width/2, height/2);
+			ballXMovement = rand2(1.5);
+			ballYMovement = -3.0;
+		}
+	);
+	Pen.use {
+		// draw bounds
+		Pen.line(Point(40,40),Point(40,height-40));
+		Pen.line(Point(width-40,40),Point(width-40,height-40));
+		Pen.strokeColor = Color.green;
+		Pen.width = 3;
+		Pen.stroke;
+		// draw paddles
+		Pen.line(
+			Point(paddlePositions[0]*width-paddleWidths[0], 40),
+			Point(paddlePositions[0]*width+paddleWidths[0], 40)
+		);
+		Pen.line(
+			Point(paddlePositions[1]*width-paddleWidths[1], (height-40)),
+			Point(paddlePositions[1]*width+paddleWidths[1], (height-40))
+		);
+		Pen.strokeColor = Color.black;
+		Pen.width = 5;
+		Pen.stroke;
+		// draw ball
+		Pen.fillOval(Rect(ballPosition.x-(ballSize/2),ballPosition.y-(ballSize/2),ballSize,ballSize));
+		// Draw score
+		(scores[0]+"").drawAtPoint(
+			Point(width/2,height/2-100),
+			Font("Courier", 30),
+			Color.blue(0.3, 0.5));
+		(scores[1]+"").drawAtPoint(
+			Point(width/2,height/2+100),
+			Font("Courier", 30),
+			Color.blue(0.3, 0.5));
+	};
+};
+
+w.view.keyDownAction = {
+	arg view, char, modifiers, unicode, keycode, key;
+	if(k.includes(key).not,{
+		k.add(key); // add keystroke to list of keys being held
+		switch(key,
+			65, {paddleMovements[0] = paddleSpeed*(-1)},  // left player 0
+			68, {paddleMovements[0] = paddleSpeed},  // right player 0
+			16777234, {paddleMovements[1] = paddleSpeed*(-1)},  // left player 1
+			16777236, {paddleMovements[1] = paddleSpeed}  // right player 1
+		);
+	});
+};
+w.view.keyUpAction_({
+	arg view, char, mod, uni, keycode, key;
+	switch(key,
+		65, {if(k.includes(68),{paddleMovements[0] = paddleSpeed})},  // left
+		68, {if(k.includes(65),{paddleMovements[0] = paddleSpeed*(-1)})},  // right
+		16777234, {if(k.includes(16777236),{paddleMovements[1] = paddleSpeed})},  // left
+		16777236, {if(k.includes(16777234),{paddleMovements[1] = paddleSpeed*(-1)})},  // right
+	);
+	k.remove(key); // remove keystroke from list of keys being held
+});
+)
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////
+
+
+
+// Rumush
+// https://mycelialcordsblog.wordpress.com/
+// https://fungorumush.bandcamp.com/releases
+// https://soundcloud.com/fungorum
+
+(
+f = {
+	var rep = [4, 8, 16, 32];
+	var n = rep.choose;
+	var x = [
+
+	      54, 60, 66, 72, 81, 90, 96, 102,
+	      108, 128, 132, 144, 162, 180, 192, 204,
+	      216, 240, 264, 288, 324, 360, 384, 408,
+	      432, 480, 528, 576, 648, 720, 768, 816,
+	      864, 960, 1056, 1152, 1296, 1440, 1536, 1632,
+	      1728, 1920, 2112, 2304, 2592, 2880, 3072, 3264,
+	      3456, 3840, 4224, 4608, 5184, 5760, 6144, 6528,
+	      6912, 7680, 8448, 9216, 10368, 11520, 12288, 528
+
+       ];
+	Mix.fill(n,
+		{
+			var detune = 5.rand;
+			var sin = SinOsc.ar(x.choose, 4.rand, 0.25);
+			var saw = RLPF.ar(Saw.ar(x.choose*0.01+detune, 0.75), x.choose, 2.rand).tanh;
+			Pan2.ar((sin+saw) * EnvGen.kr(Env.sine(12, 1/n), 1, doneAction:2),
+			1.rand2) }
+	);
+};
+)
+
+(
+// DEFINE A ROUTINE
+r = Routine({
+
+    inf.do({
+		f.play;
+        10.wait;
+    })
+});
+)
+
+r.reset.play;
+
+
+
+
+// Rumush
+// https://mycelialcordsblog.wordpress.com/
+// https://fungorumush.bandcamp.com/releases
+// https://soundcloud.com/fungorum
+
+(
+f = {
+	var rep = [4, 8, 16, 32];
+	var n = rep.choose;
+	var x = [
+
+	      54, 60, 66, 72, 81, 90, 96, 102,
+	      108, 128, 132, 144, 162, 180, 192, 204,
+	      216, 240, 264, 288, 324, 360, 384, 408,
+	      432, 480, 528, 576, 648, 720, 768, 816,
+	      864, 960, 1056, 1152, 1296, 1440, 1536, 1632,
+	      1728, 1920, 2112, 2304, 2592, 2880, 3072, 3264,
+	      3456, 3840, 4224, 4608, 5184, 5760, 6144, 6528,
+	      6912, 7680, 8448, 9216, 10368, 11520, 12288, 528
+
+       ];
+	Mix.fill(n,
+		{
+			var detune = 5.rand;
+			var sin = SinOsc.ar(x.choose * ( 1 + ( SinOsc.ar(x.choose) * x.choose/5001 )), 4.rand, 0.25);
+			var saw = RLPF.ar(Saw.ar(x.choose*0.01+detune, 0.75), x.choose, 2.rand).tanh;
+			Pan2.ar((sin+saw) * EnvGen.kr(Env.sine(12, 1/n), 1, doneAction:2),
+			1.rand2) 
+		}
+	);
+};
+)
+
+(
+// DEFINE A ROUTINE
+r = Routine({
+
+    inf.do({
+		f.play;
+        10.wait;
+    })
+});
+)
+
+r.reset.play;
+
+
+(
+f = {
+	var rep = [4, 8, 16, 32];
+	var n = rep.choose;
+	var x = [
+
+	      54, 60, 66, 72, 81, 90, 96, 102,
+	      108, 128, 132, 144, 162, 180, 192, 204,
+	      216, 240, 264, 288, 324, 360, 384, 408,
+	      432, 480, 528, 576, 648, 720, 768, 816,
+	      864, 960, 1056, 1152, 1296, 1440, 1536, 1632,
+	      1728, 1920, 2112, 2304, 2592, 2880, 3072, 3264,
+	      3456, 3840, 4224, 4608, 5184, 5760, 6144, 6528,
+	      6912, 7680, 8448, 9216, 10368, 11520, 12288, 528
+
+       ];
+	var fac1 = [1,10,100,1000].choose;
+	var fac2 = [1,10,100,1000].choose;
+	var fac3 = [1,10,100,1000].choose;
+	Mix.fill(n,
+		{
+			var detune = 5.rand;
+			var saw;
+			var sin;
+			detune = XLine.kr(0.1,1+250.0.rand ,2+9.0.rand) * 2.0.rand* [1,-1].choose;
+			sin = SinOsc.ar(x.choose * ( 1 + ( SinOsc.ar(x.choose/fac1) * x.choose/fac2 )) + detune, 4.rand, 0.25);
+			saw = RLPF.ar(Saw.ar(x.choose*0.01+detune, 0.75), x.choose, 2.rand);
+			saw = [
+				saw,
+				saw.fold2( SinOsc.ar(x.choose/fac3).range(0.1,1) ),
+				saw.wrap2( SinOsc.ar(x.choose/fac3).range(0.1,1) ),
+				saw *  SinOsc.ar(x.choose/2),
+				( saw *  SinOsc.ar(x.choose/fac3).range(1,20) ).tanh/2,
+			].choose;
+			Pan2.ar((sin+saw) * EnvGen.kr(Env.sine(12, 1/n), 1, doneAction:2),
+			1.rand2) 
+		}
+	);
+};
+)
+
+(
+// DEFINE A ROUTINE
+r = Routine({
+
+    inf.do({
+		f.play;
+        10.wait;
+    })
+});
+)
+
+r.reset.play;
+
+
+
+(
+    Pbind(
+        \instrument, \default,
+        \degree, Pwalk(#[c, e, g, c],1, Prand([-1,1],inf).stutter(Pwhite(1,10))) +
+            Pseq([Pn(0,64),
+                Prand([
+                    0,
+                    [0,2,3],
+                ],inf)
+            ]),
+        \root, Pwhite(0,-8).stutter(32),
+        \mtranspose, Pwhite(-8,8).stutter(8),
+        \dur, 1/8,
+        \isRest, Pwrand([0,1], [0.1,1],inf).coin.not,
+        \legato, Pwhite(0.1,1.2),
+        \amp, 0.1
+    ).play;
+)
+
+
+
+

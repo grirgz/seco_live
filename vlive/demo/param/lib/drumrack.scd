@@ -725,7 +725,11 @@
 			self.load_rackpreset(view.items[view.value]);
 		};
 		padheader = HLayout(
-			PlayerWrapperView(Pdef(\main)).view,
+			if(self.drumrackproxy.playerWrapper.notNil) {
+				PlayerWrapper(self.drumrackproxy.playerWrapper).asView
+			} { 
+				nil
+			},
 			self.rackpreset_popup,
 			//{
 			//	var rpp = self.rackpreset_popup;

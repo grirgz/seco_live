@@ -2,6 +2,7 @@
 // in this serie, I need to build:
 // - a pdef with a way to replace a knob with a stepsequencer
 // - a pdef with a way to replace a knob with a curve timeline
+//		- does this make any sense ? 
 // - both stepsequencer and timeline
 // - same with ndef
 // - same with multiple pdefs
@@ -297,12 +298,33 @@ sel
 ////////////////////////////////////////// - a pdef with a way to replace a knob with a curve timeline
 Param(BusDef(\bla, \control), \bus).target
 
+	(
+	SynthDef(\rlpf, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+		var sig;
+		var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+		sig = LFSaw.ar(freq * [1,1/2,1] * [1, ( 1 + ( SinOsc.kr(1/4) * 0.1 ))]);
+		sig = RLPF.ar(sig, \lpf.kr(4100), \rq.kr(0.5));
+		sig1 = sig * sig.fold2( ( 1 + ( SinOsc.kr(1/3*8 + Rand(1/24,1/8)) * 1 )) );
+		sig2 = sig + sig.fold2( ( 1 + ( SinOsc.kr(1/2*8 + Rand(1/24,1/8)) * 1 )) );
+		//sig = sig2 * ( 1+sig1 );
+		sig = SelectX.ar( SinOsc.kr(1/3).range(0.3,0.71), [sig1, sig2]);
+		//sig = sig2;
+		//sig1 = SinOsc.ar(sig + 1  * SinOsc.kr(1/3).range(1,70) );
+		//sig = sig1;
+		//sig = SelectX.ar( SinOsc.kr(1/9).range(0,1), [sig, sig1]);
+
+		sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.5,0.2),gate,doneAction:2);
+		sig = Pan2.ar(sig, pan, amp).flop;
+		Out.ar(out, sig);
+	}).add;
+	)
+
 (
 "/home/ggz/code/sc/seco/vlive/demo/param/lib/timeline.scd".load;
 Spec.add(\stepCount, ControlSpec(1,64,\lin,1,8));
 	SynthDef(\rlpf, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 		var sig;
-		sig = LFSaw.ar(freq);
+		sig = LFSaw.ar(freq * [1,1.01]);
 		sig = RLPF.ar(sig, \lpf.kr(4100), \rq.kr(0.5));
 		sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
 		sig = Pan2.ar(sig, pan, amp);
@@ -513,3 +535,5 @@ Spec.add(\stepCount, ControlSpec(1,64,\lin,1,8));
 ~mod.stepevent.asPattern.asStream.nextN(10,())
 
 \freq.asSpec.range
+
+S

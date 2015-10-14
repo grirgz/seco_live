@@ -1,3 +1,7 @@
+
+// "~/code/sc/seco/vlive/demo/param/lib/timeline.scd".standardizePath.load;
+
+
 SynthDef(\env_segment, { arg out=0, level=0.1, time=0.1, curve=1, gate=1;
 	var sig;
 	var in = In.kr(out);
@@ -596,548 +600,567 @@ Event.addEventType(\player, {
 ///////////////////////////////////////////////////////////////////// timeline objects
 
 
-	~eventTimeline = (
+~eventTimeline = (
 
-		prAdd: { arg self, name;
-			self.all[name] = self;
-			self.key = name;
-			self;
-		},
+	prAdd: { arg self, name;
+		self.all[name] = self;
+		self.key = name;
+		self;
+	},
 
-		makeDefaultEventList: { arg self;
-			var el = XEventList.new;
-			el.start;
-			el.finish(1);
-		},
+	makeDefaultEventList: { arg self;
+		var el = XEventList.new;
+		el.start;
+		el.finish(1);
+	},
 
-		asPatternAbs: { arg self, startPosition, endPosition;
-			var relStartTime, totalDur;
+	asPatternAbs: { arg self, startPosition, endPosition;
+		var relStartTime, totalDur;
+		var eventlist = self.eventList;
+		// currentlty, startPosition and endPosition are in absolute time in the GUI, but will be relative to start event in futur
+		if(startPosition.isNil) {
+			relStartTime = eventlist.relStartTime;
+		} {
+			relStartTime = ( startPosition - eventlist.firstTime ).clip(0,inf);
+			// now relStartTime is independent of start event
+			relStartTime = eventlist.relStartTime max: relStartTime;
+			// now relStartTime is always after start event
+		};
+
+		if(endPosition.isNil) {
+			totalDur = self.eventloop.list.totalDur - (startPosition - eventlist.startTime ).clip(0,inf);
+		} {
+			totalDur = endPosition - (startPosition ? eventlist.startTime);
+		};
+		[startPosition, endPosition, relStartTime, totalDur].debug("asPatternAbs: start, end, relstart, totdur");
+		self.xasPattern(relStartTime, totalDur);
+	},
+
+	eventList: { arg self;
+		self.eventloop.list
+	},
+
+	embedInTimeline: { arg self, drop_dur, sustain;
+		var relStartTime;
+		relStartTime = self.eventList.relStartTime + drop_dur;
+		self.xasPattern(relStartTime, self.eventList.totalDur min: sustain);
+	},
+
+	xembedInStream: { arg self, inval;
+		self.xasPattern
+	},
+
+	eventPlay: { arg self;
+		[ self.cursor.startPosition, self.cursor.endPosition ].debug("eventPlay: start, end");
+		self.asPatternAbs(self.cursor.startPosition, self.cursor.endPosition).play;
+	},
+
+	eventStop: { arg self;
+		self.proxy.stop;
+	},
+
+	eventIsPlaying: { arg self;
+		self.proxy.isPlaying;
+	},
+
+	label: { arg self;
+		self.key;
+	},
+
+
+	repeatCount: inf,
+
+);
+
+if(~clipTimeline_all.isNil) {
+	~clipTimeline_all = IdentityDictionary.new;
+};
+~clipTimeline = (
+	parent: ~eventTimeline,
+	all: { ~clipTimeline_all },
+	eventType: \clipTimeline,
+
+	new: { arg self, name;
+
+		if(self.all[name].notNil) {
+			self = self.all[name]
+		} {
+			self = self.deepCopy;
+			self.prAdd(name).init;
+		};
+	
+		self;
+	},
+
+	init: { arg self;
+		var el = self.makeDefaultEventList;
+		self.areasize = 10@4;
+		self.eventloop = (list: el, key: { self.key }); // fake eventloop for the moment
+		self.quant_ref = Ref(Point(1/8,1)); // TODO: replace by Quant class and change TimelineView code
+		self.proxy = EventPatternProxy.new;
+		self.cursor = CursorTimeline.new;
+		self.cursor.startPosition = self.eventList.startTime;
+		"=============clipTimeline: end init".debug;
+
+		self;
+	},
+
+	xasPattern: { arg self, relStartTime, totalDur;
+		self.proxy.source = Plazy({
 			var eventlist = self.eventList;
-			// currentlty, startPosition and endPosition are in absolute time in the GUI, but will be relative to start event in futur
-			if(startPosition.isNil) {
-				relStartTime = eventlist.relStartTime;
-			} {
-				relStartTime = ( startPosition - eventlist.firstTime ).clip(0,inf);
-				// now relStartTime is independent of start event
-				relStartTime = eventlist.relStartTime max: relStartTime;
-				// now relStartTime is always after start event
-			};
 
-			if(endPosition.isNil) {
-				totalDur = self.eventloop.list.totalDur - (startPosition - eventlist.startTime ).clip(0,inf);
-			} {
-				totalDur = endPosition - (startPosition ? eventlist.startTime);
-			};
-			[startPosition, endPosition, relStartTime, totalDur].debug("asPatternAbs: start, end, relstart, totdur");
-			self.xasPattern(relStartTime, totalDur);
-		},
+			relStartTime = relStartTime ? eventlist.relStartTime;
+			totalDur = totalDur ? eventlist.totalDur;
 
-		eventList: { arg self;
-			self.eventloop.list
-		},
+			[relStartTime, totalDur].debug("clip xasPattern: plazy: relstart, totdur");
 
-		embedInTimeline: { arg self, drop_dur, sustain;
-			var relStartTime;
-			relStartTime = self.eventList.relStartTime + drop_dur;
-			self.xasPattern(relStartTime, self.eventList.totalDur min: sustain);
-		},
+			self.eventloop.list.changed(\cursor, \play);
+			Pfindur(totalDur, ~timeline_pattern.(
+				Pn(self.eventloop.list, 1),
+				relStartTime
+			));
+		}).repeat(self.repeatCount);
+		self.proxy;
+	},
 
-		xembedInStream: { arg self, inval;
-			self.xasPattern
-		},
+	edit: { arg self;
+		~clipTimelinePanelView.new(self);
+	},
 
-		eventPlay: { arg self;
-			[ self.cursor.startPosition, self.cursor.endPosition ].debug("eventPlay: start, end");
-			self.asPatternAbs(self.cursor.startPosition, self.cursor.endPosition).play;
-		},
-
-		eventStop: { arg self;
-			self.proxy.stop;
-		},
-
-		eventIsPlaying: { arg self;
-			self.proxy.isPlaying;
-		},
-
-		label: { arg self;
-			self.key;
-		},
+);
 
 
-		repeatCount: inf,
+if(~noteTimeline_all.isNil) {
+	~noteTimeline_all = IdentityDictionary.new;
+};
+~noteTimeline = (
+	parent: ~eventTimeline,
+	all: { ~noteTimeline_all },
 
-	);
+	eventType: \noteTimeline,
+	composeParamPattern: true,
 
-	if(~clipTimeline_all.isNil) {
-		~clipTimeline_all = IdentityDictionary.new;
-	};
-	~clipTimeline = (
-		parent: ~eventTimeline,
-		all: { ~clipTimeline_all },
-		eventType: \clipTimeline,
+	new: { arg self, name, param;
 
-		new: { arg self, name;
+		if(self.all[name].notNil) {
+			self = self.all[name]
+		} {
+			self = self.deepCopy;
+			self.prAdd(name).init(param);
+		};
+	
+		self;
+	},
 
-			if(self.all[name].notNil) {
-				self = self.all[name]
-			} {
-				self = self.deepCopy;
-				self.prAdd(name).init;
-			};
+	init: { arg self, param;
+
+		var el = self.makeDefaultEventList;
+		self.param = param;
+		self.eventloop = (list: el, key: { self.key }); // fake eventloop for the moment
+		self.areasize = 9@128;
+		self.proxy = EventPatternProxy.new;
+		self.cursor = CursorTimeline.new;
+		self.cursor.startPosition = self.eventList.startTime;
+
+		// note: this is grid quant, not playing quant
+		self.quant_ref = Ref(Point(1/8,1)); // TODO: replace by Quant class and change TimelineView code
 		
-			self;
-		},
+	},
 
-		init: { arg self;
-			var el = self.makeDefaultEventList;
-			self.areasize = 10@4;
-			self.eventloop = (list: el, key: { self.key }); // fake eventloop for the moment
-			self.quant_ref = Ref(Point(1/8,1)); // TODO: replace by Quant class and change TimelineView code
-			self.proxy = EventPatternProxy.new;
-			self.cursor = CursorTimeline.new;
-			self.cursor.startPosition = self.eventList.startTime;
-			"=============clipTimeline: end init".debug;
+	xasPattern: { arg self, relStartTime, totalDur;
+		// there is 3 kinds of call to asPattern:
+		// - the gui: currently relative startPosition to absTime_0 : asPatternAbs
+		// - the live code: no startPosition given, defaulting to start event : asPattern
+		// - when embedded in bigger timeline: startPosition is relative to start event : embedInTimeline
 
-			self;
-		},
+		// timeline_pattern take a start time relative to firstEvent
+		// XEventList.relStartTime is relative to firstEvent
+		self.proxy.source = Plazy({
+			var eventlist = self.eventloop.list;
+			var pat;
 
-		xasPattern: { arg self, relStartTime, totalDur;
-			self.proxy.source = Plazy({
-				var eventlist = self.eventList;
+			relStartTime = relStartTime ? eventlist.relStartTime;
+			totalDur = totalDur ? eventlist.totalDur;
 
-				relStartTime = relStartTime ? eventlist.relStartTime;
-				totalDur = totalDur ? eventlist.totalDur;
+			self.eventloop.list.changed(\cursor, \play);
+			pat = Pfindur(totalDur, ~timeline_pattern.(
+				Pn(self.eventloop.list, 1),
+				relStartTime
+			));
 
-				[relStartTime, totalDur].debug("clip xasPattern: plazy: relstart, totdur");
-
-				self.eventloop.list.changed(\cursor, \play);
-				Pfindur(totalDur, ~timeline_pattern.(
-					Pn(self.eventloop.list, 1),
-					relStartTime
-				));
-			}).repeat(self.repeatCount);
-			self.proxy;
-		},
-
-		edit: { arg self;
-			~clipTimelinePanelView.new(self);
-		},
-
-	);
-
-
-	if(~noteTimeline_all.isNil) {
-		~noteTimeline_all = IdentityDictionary.new;
-	};
-	~noteTimeline = (
-		parent: ~eventTimeline,
-		all: { ~noteTimeline_all },
-
-		eventType: \noteTimeline,
-
-		new: { arg self, name, param;
-
-			if(self.all[name].notNil) {
-				self = self.all[name]
-			} {
-				self = self.deepCopy;
-				self.prAdd(name).init(param);
+			if(self.composeParamPattern == true) {
+				pat = pat <> self.param.target;
 			};
+
+			pat;
+		}).repeat(self.repeatCount);
+		self.proxy;
+	},
+
+	edit: { arg self;
+		~noteTimelinePanelView.new(self)
+	},
+
+	asView: { arg self;
+		~noteTimelinePanelView.newView(self).makeLayout;
+	},
+
+);
+
+if(~envTimeline_all.isNil) {
+	~envTimeline_all = IdentityDictionary.new;
+};
+~envTimeline = (
+	parent: ~eventTimeline,
+	all: { ~envTimeline_all },
+	eventType: \envTimeline,
+
+	new: { arg self, name, param;
+	
+		if(self.all[name].notNil) {
+			self = self.all[name]
+		} {
+			self = self.deepCopy;
+			self.prAdd(name).init(param);
+		};
+	
+		self;
+	},
+
+	newInstance: { arg self, param, bus;
+		// param target should be a bus
+		self = self.deepCopy;
+		self.key = \instance;
+		param.debug("envTimeline: newInstance: param");
+		self[\outBus] = param.target;
+		"xx".debug;
+		self.init(param)
+	},
+
+	levelParam: { arg self;
+		// this is a fake param,
+		// target is not used, property is the key where data is stored (\level) and his spec
+		// destined to TimelineEnvView
+		if(self.param.notNil) {
+			Param(self.param.target, \level, self.param.spec);
+		} {
+			// FIXME: this is wrong
+			Param((), \level);
+		}
+	},
+
+	outBus: { arg self;
+		BusDef(self.key, \control);
+	},
+
+	// when clicking play in GUI, it call to asPatternAbs
+	//listenToCursor: { arg self;
+	//	self.cursor_controller = SimpleController(self.cursor).put(\refresh, {
+	//		self.asPatternAbs;
+	//	})
+	//},
+
+	init: { arg self, param;
+
+		var el = self.makeDefaultEventList;
+		self.param = param;
+		self.eventloop = (list: el, key: { self.key }); // fake eventloop for the moment
+		self.areasize = 9@128;
+		self.proxy = EventPatternProxy.new;
+		self.cursor = CursorTimeline.new;
+		self.cursor.startPosition = self.eventList.startTime;
+
+		// note: this is grid quant, not playing quant
+		self.quant_ref = Ref(Point(1/8,1)); // TODO: replace by Quant class and change TimelineView code
+
+		self.xasPattern; // init proxy
+
+		self;
 		
-			self;
-		},
+	},
 
-		init: { arg self, param;
 
-			var el = self.makeDefaultEventList;
-			self.param = param;
-			self.eventloop = (list: el, key: { self.key }); // fake eventloop for the moment
-			self.areasize = 9@128;
-			self.proxy = EventPatternProxy.new;
-			self.cursor = CursorTimeline.new;
-			self.cursor.startPosition = self.eventList.startTime;
+	xasPattern: { arg self, relStartTime, totalDur;
+		[relStartTime, totalDur].debug("xasPattern: relstart, totdur");
+		self.proxy.source = Prout({ arg inval;
+			var eventlist = self.eventloop.list;
+			var pat;
+			var str;
+			var first;
+			var first_level;
 
-			// note: this is grid quant, not playing quant
-			self.quant_ref = Ref(Point(1/8,1)); // TODO: replace by Quant class and change TimelineView code
-			
-		},
+			relStartTime = relStartTime ? eventlist.relStartTime;
+			totalDur = totalDur ? eventlist.totalDur;
 
-		xasPattern: { arg self, relStartTime, totalDur;
-			// there is 3 kinds of call to asPattern:
-			// - the gui: currently relative startPosition to absTime_0 : asPatternAbs
-			// - the live code: no startPosition given, defaulting to start event : asPattern
-			// - when embedded in bigger timeline: startPosition is relative to start event : embedInTimeline
+			[relStartTime, totalDur].debug("xasPattern: prout: relstart, totdur");
 
-			// timeline_pattern take a start time relative to firstEvent
-			// XEventList.relStartTime is relative to firstEvent
-			self.proxy.source = Plazy({
-				var eventlist = self.eventloop.list;
+			// FIXME: this should be an event
+			if(self.param.notNil and:{ self.param.target.isKindOf(Bus).not }) {
+				self.param.set(self.outBus.asMap);
+				//default = self.param.default;
+			};
 
-				relStartTime = relStartTime ? eventlist.relStartTime;
-				totalDur = totalDur ? eventlist.totalDur;
+			~compute_eventenv_sustain.(self.eventloop.list);
 
-				self.eventloop.list.changed(\cursor, \play);
+			pat = 
+				Pbind(
+					\instrument, \env_segment,
+					//\level, Pfunc({ arg ev; ev[self.param.property] ? default }),
+					\curve, 0,
+					\out, self.outBus,
+					\time, Pfunc({ arg ev; ev.debug("ev!!!!!!!!!!!!!!!!!!"); ev.use { ev.sustain } }),
+				).trace(prefix:"MAIIIIIIIIIIIIIIIIIIIIIIII")
+				<>
 				Pfindur(totalDur, ~timeline_pattern.(
 					Pn(self.eventloop.list, 1),
 					relStartTime
 				))
-				<>
-				self.param.target
-			}).repeat(self.repeatCount);
-			self.proxy;
-		},
+			;
 
-		edit: { arg self;
-			~noteTimelinePanelView.new(self)
-		},
+			self.eventloop.list.changed(\cursor, \play);
+			~pattern_to_envpattern.(pat).embedInStream(inval);
 
-	);
+		}).repeat(self.repeatCount);
+		self.proxy;
+	},
 
-	if(~envTimeline_all.isNil) {
-		~envTimeline_all = IdentityDictionary.new;
-	};
-	~envTimeline = (
-		parent: ~eventTimeline,
-		all: { ~envTimeline_all },
-		eventType: \envTimeline,
+	edit: { arg self;
+		~envTimelinePanelView.new(self)
+	},
 
-		new: { arg self, name, param;
+);
+
+//////////////////////////////// Views
+
+~clipTimelinePanelView = (
+	parent: ~timelinePanelView,
+
+	new: { arg self, timeline;
+		self = ~timelinePanelView[\new].(self, timeline.eventloop);
+	
+		self.timeline_model = timeline;
+		self.areasize = self.timeline_model.areasize;
 		
-			if(self.all[name].notNil) {
-				self = self.all[name]
-			} {
-				self = self.deepCopy;
-				self.prAdd(name).init(param);
-			};
+		self.makeWindow;
+	
+		self;
+	},
+
+	cursor: { arg self;
+		self.timeline_model.cursor;
+	},
+
+	key: { arg self;
+		self.timeline_model.key;
+	},
+
+	param: { arg self;
+		self.timeline_model.param;
+	},
+
+
+	make_header: { arg self;
+		self.header_layout = HLayout(
+			PlayerWrapperView(EventPlayerWrapper(self.timeline_model)).view,
+			self.make_stop_button,
+			XSimpleButton.new.label_("Add track").action_({
+				self.add_track;
+			}),
+			self.make_quant_popup,
+		);
 		
-			self;
-		},
+		self.header_layout;
+	},
 
-		newInstance: { arg self, param, bus;
-			// param target should be a bus
-			self = self.deepCopy;
-			self.key = \instance;
-			param.debug("envTimeline: newInstance: param");
-			self[\outBus] = param.target;
-			"xx".debug;
-			self.init(param)
-		},
+	timelineClass: { arg self;
+		PdefTimelineView
+	},
 
-		levelParam: { arg self;
-			// this is a fake param,
-			// target is not used, property is the key where data is stored (\level) and his spec
-			// destined to TimelineEnvView
-			if(self.param.notNil) {
-				Param(self.param.target, \level, self.param.spec);
+	makeLayout: { arg self;
+		self.clipEditor = ~clipEditor.new(nil, self.timeline_model.eventList);
+		self.clipEditorLayout = self.clipEditor.makeLayout;
+		self.clipEditor.clearEditor;
+		self.layout = VLayout(
+			//HLayout(
+			//	PlayerWrapperView(Pdef(self.eventloop.key)).view,
+			//	XSimpleButton.new.label_("yep"),
+			//),
+			[self.parent[\makeLayout].(self), stretch:1],
+			self.clipEditorLayout,
+			//self.parent.makeLayout,
+		);
+		self.timeline.mouseDownAction = { arg me, px, py, mod, buttonNumber, clickCount, chosennode;
+			if(chosennode.notNil) {
+				self.clipEditor.model = chosennode.model;
+				self.clipEditor.makeUpdater;
+				chosennode.model.changed(\refresh);
 			} {
-				// FIXME: this is wrong
-				Param((), \level);
+				self.clipEditor.model = nil;
+				self.clipEditor.clearEditor;
 			}
-		},
+		};
+		self.layout;
+	},
+);
 
-		outBus: { arg self;
-			BusDef(self.key, \control);
-		},
+~envTimelinePanelView = (
+	parent: ~timelinePanelView,
 
-		// when clicking play in GUI, it call to asPatternAbs
-		//listenToCursor: { arg self;
-		//	self.cursor_controller = SimpleController(self.cursor).put(\refresh, {
-		//		self.asPatternAbs;
-		//	})
-		//},
+	new: { arg self, timeline;
+		self = ~timelinePanelView[\new].(self, timeline.eventloop);
+	
+		// self.timeline is timelineView actually
+		self.timeline_model = timeline;
 
-		init: { arg self, param;
-
-			var el = self.makeDefaultEventList;
-			self.param = param;
-			self.eventloop = (list: el, key: { self.key }); // fake eventloop for the moment
-			self.areasize = 9@128;
-			self.proxy = EventPatternProxy.new;
-			self.cursor = CursorTimeline.new;
-			self.cursor.startPosition = self.eventList.startTime;
-
-			// note: this is grid quant, not playing quant
-			self.quant_ref = Ref(Point(1/8,1)); // TODO: replace by Quant class and change TimelineView code
-
-			self.xasPattern; // init proxy
-
-			self;
-			
-		},
-
-
-		xasPattern: { arg self, relStartTime, totalDur;
-			[relStartTime, totalDur].debug("xasPattern: relstart, totdur");
-			self.proxy.source = Prout({ arg inval;
-				var eventlist = self.eventloop.list;
-				var pat;
-				var str;
-				var first;
-				var first_level;
-
-				relStartTime = relStartTime ? eventlist.relStartTime;
-				totalDur = totalDur ? eventlist.totalDur;
-
-				[relStartTime, totalDur].debug("xasPattern: prout: relstart, totdur");
-
-				// FIXME: this should be an event
-				if(self.param.notNil and:{ self.param.target.isKindOf(Bus).not }) {
-					self.param.set(self.outBus.asMap);
-					//default = self.param.default;
-				};
-
-				~compute_eventenv_sustain.(self.eventloop.list);
-
-				pat = 
-					Pbind(
-						\instrument, \env_segment,
-						//\level, Pfunc({ arg ev; ev[self.param.property] ? default }),
-						\curve, 0,
-						\out, self.outBus,
-						\time, Pfunc({ arg ev; ev.debug("ev!!!!!!!!!!!!!!!!!!"); ev.use { ev.sustain } }),
-					).trace(prefix:"MAIIIIIIIIIIIIIIIIIIIIIIII")
-					<>
-					Pfindur(totalDur, ~timeline_pattern.(
-						Pn(self.eventloop.list, 1),
-						relStartTime
-					))
-				;
-
-				self.eventloop.list.changed(\cursor, \play);
-				~pattern_to_envpattern.(pat).embedInStream(inval);
-
-			}).repeat(self.repeatCount);
-			self.proxy;
-		},
-
-		edit: { arg self;
-			~envTimelinePanelView.new(self)
-		},
-
-	);
-
-	//////////////////////////////// Views
-
-	~clipTimelinePanelView = (
-		parent: ~timelinePanelView,
-
-		new: { arg self, timeline;
-			self = ~timelinePanelView[\new].(self, timeline.eventloop);
+		self.makeWindow;
 		
-			self.timeline_model = timeline;
-			self.areasize = self.timeline_model.areasize;
-			
-			self.makeWindow;
+		self;
+	},
+
+	newView: { arg self, timeline;
+		self = ~timelinePanelView[\new].(self, timeline.eventloop);
+	
+		// self.timeline is timelineView actually
+		self.timeline_model = timeline;
+
+		self;
+	},
+
+	cursor: { arg self;
+		self.timeline_model.cursor;
+	},
+
+	key: { arg self;
+		self.timeline_model.key;
+	},
+
+	param: { arg self;
+		self.timeline_model.param;
+	},
+
+	levelParam: { arg self;
+		self.timeline_model.levelParam;
+	},
+
+	timelineClass: { arg self;
+		TimelineEnvView;
+	},
+
+	make_track_header: { arg self, timeline;
+		//self.track_header = View.new;
+		//self.ruler_y = MidinoteTimelineRulerView.new;
+		//self.track_header = self.ruler_y;
+		//self.ruler_y.mimicTimeline(timeline);
+		//self.ruler_y.view.minWidth_(50);
+		nil
+	},
+
+	make_header: { arg self;
+		HLayout(
+			PlayerWrapperView(EventPlayerWrapper(self.timeline_model)).view,
+			if(self.param.target.isKindOf(Bus)) {
+				nil;
+			} {
+				PlayerWrapperView(PlayerWrapper(self.param.target)).view;
+			},
+			self.make_quant_popup,
+		)
+	},
+
+	makeLayout: { arg self;
+		self.layout = VLayout(
+			//HLayout(
+			//	PlayerWrapperView(Pdef(self.eventloop.key)).view,
+			//	XSimpleButton.new.label_("yep"),
+			//),
+			self.parent[\makeLayout].(self),
+			//self.parent.makeLayout,
+		);
+		self.timeline.eventFactory = { arg pos, nodesize;
+			(absTime: pos.x, level: pos.y, legato:1);
+		};
+		self.timeline.mapParam(self.levelParam);
+		self.set_yquant(self.param.spec.step);
+		self.timeline.mouseUpAction = {|me, px, py, mod, buttonNumber, clickCount, chosennode|
+			self.timeline.refreshEventList;
+		};
+		self.layout;
+	},
+);
+
+
+~noteTimelinePanelView = (
+	parent: ~timelinePanelView,
+
+	new: { arg self, timeline;
+		self = ~timelinePanelView[\new].(self, timeline.eventloop);
+	
+		self.timeline_model = timeline;
+		self.areasize = self.timeline_model.areasize;
+		self.makeWindow;
+	
+		self;
+	},
+
+	newView: { arg self, timeline;
+		self = ~timelinePanelView[\new].(self, timeline.eventloop);
+	
+		self.timeline_model = timeline;
+		self.areasize = self.timeline_model.areasize;
+	
+		self;
+	},
+
+	cursor: { arg self;
+		self.timeline_model.cursor;
+	},
+
+	key: { arg self;
+		self.timeline_model.key;
+	},
+
+	param: { arg self;
+		self.timeline_model.param;
+	},
+
+
+	make_header: { arg self;
+		self.header_layout = HLayout(
+			PlayerWrapperView(EventPlayerWrapper(self.timeline_model)).view,
+			self.make_stop_button,
+			Param(Message(self.timeline_model), \repeatCount, ControlSpec(1,inf,\lin)).asNumberBox,
+			self.make_quant_popup,
+		);
 		
-			self;
-		},
-
-		cursor: { arg self;
-			self.timeline_model.cursor;
-		},
-
-		key: { arg self;
-			self.timeline_model.key;
-		},
-
-		param: { arg self;
-			self.timeline_model.param;
-		},
+		self.header_layout;
+	},
 
 
-		make_header: { arg self;
-			self.header_layout = HLayout(
-				PlayerWrapperView(EventPlayerWrapper(self.timeline_model)).view,
-				self.make_stop_button,
-				XSimpleButton.new.label_("Add track").action_({
-					self.add_track;
-				}),
-				self.make_quant_popup,
-			);
-			
-			self.header_layout;
-		},
+	timelineClass: { arg self;
+		MidinoteTimelineView;
+	},
 
-		timelineClass: { arg self;
-			PdefTimelineView
-		},
+	make_track_header: { arg self, timeline;
+		//self.track_header = View.new;
+		self.ruler_y = MidinoteTimelineRulerView.new;
+		self.track_header = self.ruler_y;
+		self.ruler_y.mimicTimeline(timeline);
+		self.ruler_y.view.minWidth_(50);
+	},
 
-		makeLayout: { arg self;
-			self.clipEditor = ~clipEditor.new(nil, self.timeline_model.eventList);
-			self.clipEditorLayout = self.clipEditor.makeLayout;
-			self.clipEditor.clearEditor;
-			self.layout = VLayout(
-				//HLayout(
-				//	PlayerWrapperView(Pdef(self.eventloop.key)).view,
-				//	XSimpleButton.new.label_("yep"),
-				//),
-				[self.parent[\makeLayout].(self), stretch:1],
-				self.clipEditorLayout,
-				//self.parent.makeLayout,
-			);
-			self.timeline.mouseDownAction = { arg me, px, py, mod, buttonNumber, clickCount, chosennode;
-				if(chosennode.notNil) {
-					self.clipEditor.model = chosennode.model;
-					self.clipEditor.makeUpdater;
-					chosennode.model.changed(\refresh);
-				} {
-					self.clipEditor.model = nil;
-					self.clipEditor.clearEditor;
-				}
-			};
-			self.layout;
-		},
-	);
+	makeLayout: { arg self;
+		self.layout = VLayout(
+			//HLayout(
+			//	PlayerWrapperView(EventPlayerWrapper(self.timeline_model)).view,
+			//	XSimpleButton.new.label_("yep"),
+			//),
+			self.parent[\makeLayout].(self),
+			//self.parent.makeLayout,
+		);
+		self.layout;
+	},
 
-	~envTimelinePanelView = (
-		parent: ~timelinePanelView,
-
-		new: { arg self, timeline;
-			self = ~timelinePanelView[\new].(self, timeline.eventloop);
-		
-			// self.timeline is timelineView actually
-			self.timeline_model = timeline;
-
-			self.makeWindow;
-			
-			self;
-		},
-
-		newView: { arg self, timeline;
-			self = ~timelinePanelView[\new].(self, timeline.eventloop);
-		
-			// self.timeline is timelineView actually
-			self.timeline_model = timeline;
-
-			self;
-		},
-
-		cursor: { arg self;
-			self.timeline_model.cursor;
-		},
-
-		key: { arg self;
-			self.timeline_model.key;
-		},
-
-		param: { arg self;
-			self.timeline_model.param;
-		},
-
-		levelParam: { arg self;
-			self.timeline_model.levelParam;
-		},
-
-		timelineClass: { arg self;
-			TimelineEnvView;
-		},
-
-		make_track_header: { arg self, timeline;
-			//self.track_header = View.new;
-			//self.ruler_y = MidinoteTimelineRulerView.new;
-			//self.track_header = self.ruler_y;
-			//self.ruler_y.mimicTimeline(timeline);
-			//self.ruler_y.view.minWidth_(50);
-			nil
-		},
-
-		make_header: { arg self;
-			HLayout(
-				PlayerWrapperView(EventPlayerWrapper(self.timeline_model)).view,
-				if(self.param.target.isKindOf(Bus)) {
-					nil;
-				} {
-					PlayerWrapperView(PlayerWrapper(self.param.target)).view;
-				},
-				self.make_quant_popup,
-			)
-		},
-
-		makeLayout: { arg self;
-			self.layout = VLayout(
-				//HLayout(
-				//	PlayerWrapperView(Pdef(self.eventloop.key)).view,
-				//	XSimpleButton.new.label_("yep"),
-				//),
-				self.parent[\makeLayout].(self),
-				//self.parent.makeLayout,
-			);
-			self.timeline.eventFactory = { arg pos, nodesize;
-				(absTime: pos.x, level: pos.y, legato:1);
-			};
-			self.timeline.mapParam(self.levelParam);
-			self.set_yquant(self.param.spec.step);
-			self.timeline.mouseUpAction = {|me, px, py, mod, buttonNumber, clickCount, chosennode|
-				self.timeline.refreshEventList;
-			};
-			self.layout;
-		},
-	);
-
-
-	~noteTimelinePanelView = (
-		parent: ~timelinePanelView,
-
-		new: { arg self, timeline;
-			self = ~timelinePanelView[\new].(self, timeline.eventloop);
-		
-			self.timeline_model = timeline;
-			self.areasize = self.timeline_model.areasize;
-			self.makeWindow;
-		
-			self;
-		},
-
-		cursor: { arg self;
-			self.timeline_model.cursor;
-		},
-
-		key: { arg self;
-			self.timeline_model.key;
-		},
-
-		param: { arg self;
-			self.timeline_model.param;
-		},
-
-
-		make_header: { arg self;
-			self.header_layout = HLayout(
-				PlayerWrapperView(EventPlayerWrapper(self.timeline_model)).view,
-				self.make_stop_button,
-				Param(Message(self.timeline_model), \repeatCount, ControlSpec(1,inf,\lin)).asNumberBox,
-				self.make_quant_popup,
-			);
-			
-			self.header_layout;
-		},
-
-
-		timelineClass: { arg self;
-			MidinoteTimelineView;
-		},
-
-		make_track_header: { arg self, timeline;
-			//self.track_header = View.new;
-			self.ruler_y = MidinoteTimelineRulerView.new;
-			self.track_header = self.ruler_y;
-			self.ruler_y.mimicTimeline(timeline);
-			self.ruler_y.view.minWidth_(50);
-		},
-
-		makeLayout: { arg self;
-			self.layout = VLayout(
-				//HLayout(
-				//	PlayerWrapperView(EventPlayerWrapper(self.timeline_model)).view,
-				//	XSimpleButton.new.label_("yep"),
-				//),
-				self.parent[\makeLayout].(self),
-				//self.parent.makeLayout,
-			);
-			self.layout;
-		},
-
-	);
+);
 
 ///////////////////////////////////////////////////////////////////// timeline panel
 
