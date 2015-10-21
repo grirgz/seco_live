@@ -137,7 +137,7 @@ Pdef(\plop).stop
 ////////////////////////////////
 
 (
-	~make_pbind_param
+	//~make_pbind_param
 	~model = [
 		\isRest, \coin,
 		\legato, ControlSpec(0.1,2,\lin),
@@ -157,7 +157,7 @@ Pdef(\plop).stop
 		};
 		~modellist.add(seq);
 	};
-	ParamGroupDef(\)
+	//ParamGroupDef(\)
 
 	~pp = PseqParam(
 		\isRest, \coin,

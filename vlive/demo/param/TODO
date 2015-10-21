@@ -1,0 +1,39 @@
+
+- StepListDef
+- a way to have quicly a gui for step sequencer (button or coin.not) with StepList/StepListDef, best location for adding a cursor
+	- maybe add a spec StepSpec for buttons and CoinStepSpec for \unipolar knobs ?
+- a way to combine them in a multitrack stepseq
+- WindowDef to remember position and size of window + if already open, just .front it
+- where is the block gui which add a play/stop button at the left of the block header ?
+- FIXME: how i can refresh ListParamLayout.button when changing stepCount ?
+	- maybe StepListView ?
+		- yes but not button anymore :(
+
+
+//////////////// use case 1
+
+- create a ndef or pdef
+- create a gui to edit its parameters
+- create another pdef or ndef
+- create a gui to edit its parameters
+- add a stepseq with gui
+- add a gui to start/stop the two tracks + the stepseq
+- add a stepCount control to gui
+- add an edit button for each track
+- refine the instr editor
+- use WindowDef to remember position and size of window + if already open, just .front it
+
+
+////////////////// refine instr view
+- remove target label from each parameter label
+	- transform it in a ParamGroupLayout.block
+- add a play button
+
+//////////////// what i would like to add
+- arbitrary insert effect on a track
+- arbitrary send effects on tracks
+- a multitrack editor/sequencer
+- BIG: can record 8 steps changes in a longer stepseq
+- a row of 8 preset buttons with a crossfader in the instr editor
+- a preset chooser in the instr editor
+- a way to add a custom gui for each instr and have it retrieved in the multitrack editor

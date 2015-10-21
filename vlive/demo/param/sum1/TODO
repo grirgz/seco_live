@@ -1,0 +1,18 @@
+
+////////// bugs
+
+- envTimeline: when last node is on end line, it's ignored
+- Timeline: mouse scroll wheel is broken
+- noteTimeline: when viewport is not at top, moving end event doesnt work
+
+
+////////// TODO
+- envTimeline: remove start and end events before processing to make it easier to process
+- find a way to remember the viewport when refreshing or recreating the gui
+- write an example of view with only one horizontal scroller
+- write record event and live play system
+- 
+
+
+///////////// futur
+- display to current edited param value in a view somewhere

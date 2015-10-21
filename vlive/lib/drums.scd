@@ -1,4 +1,5 @@
 
+// should not be used anymore, see param/Proto/synth.scd
 (
 
 // standard specs

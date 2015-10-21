@@ -1,3 +1,5 @@
+why with Window we can't retrieve fullScreen state ???
+why availableBounds don't match win.bounds when maximized ???
 
 ////////////////////
 
