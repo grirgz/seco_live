@@ -12,6 +12,8 @@
 - write an example of view with only one horizontal scroller
 - write record event and live play system
 - 
+- PlayerWrapper could be a Param, when knob is at 0, stop, when at 1, play
+- find an architecture to integrate special control which when at 0, stop, when > 1, play and set some param, like amp or morph
 
 
 ///////////// futur
