@@ -144,6 +144,7 @@ WindowLayout({
 	}).add;
 
 	~seq = ~sequencer.new(\sinn);
+	//~seq = ~sequencer.new(\dr_kick);
 	~seq.makeWindow;
 
 )

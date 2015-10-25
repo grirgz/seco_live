@@ -1,3 +1,17 @@
+
+
+/home/ggz/code/sc/seco/vlive/demo/param/sum1/layout_bug.scd
+buttons doesnt have same size as knob is some condition
+
+////////////////////////////
+
+why ServerMeter doesnt use LevelIndicator
+
+why both aren't adapted to layouts and can't resize 
+
+/////////////////
+
+
 why with Window we can't retrieve fullScreen state ???
 why availableBounds don't match win.bounds when maximized ???
 

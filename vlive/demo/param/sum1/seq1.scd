@@ -41,7 +41,7 @@ Ndef(\hi, { arg freq=770, pan=0, amp=0.1;
 Pdef(\kick, Pbind(
 	\instrument, \dr_kick,
 	\degree, Pseq([0],inf),
-	\dur, 1,
+	\dur, Pkeyd(\dur, 1),
 	\amp, Pkeyd(\amp,0.1),
 )).play;
 Pdef(\kick).addHalo(\instrument, \dr_kick);
@@ -125,3 +125,8 @@ Pdef(\kick2).asParamGroup.edit
 ~sl_kick2.edit
 Ndef(\popop).asParamGroup
 Window
+
+///////////////////////////////////////////
+
+
+

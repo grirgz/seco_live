@@ -14,7 +14,14 @@
 - 
 - PlayerWrapper could be a Param, when knob is at 0, stop, when at 1, play
 - find an architecture to integrate special control which when at 0, stop, when > 1, play and set some param, like amp or morph
+- sequencer: add visual marker to count knobs by 8 or 4 or maybe a ruler at top
 
 
 ///////////// futur
 - display to current edited param value in a view somewhere
+- step sequencer: 
+	- make it to scale \dur
+	- can scroll and zoom
+	- in step mode, color show coin value
+- levelindicator for server
+- levelindicator made easy (just point to bus or Ndef)
