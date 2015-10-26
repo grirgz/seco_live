@@ -5,6 +5,7 @@
 ///////////////// in current:
 // - StepEvent Bank
 // - in ScrollView
+// - Part editor
 
 (
 Ndef.defaultQuant = 4;

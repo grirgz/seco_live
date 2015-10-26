@@ -164,4 +164,29 @@ WindowLayout({
 
 
 
-///////////////////////////////////// preset + ?
+///////////////////////////////////// preset + envEventView
+(
+	SynthDef(\sinn, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+		var sig;
+		sig = SinOsc.ar(freq);
+		sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+		sig = Pan2.ar(sig, pan, amp);
+		Out.ar(out, sig);
+	}).add;
+
+	~presetEvent = PresetEvent.new;
+	~presetEvent[\instrument] = \sinn;
+
+)
+
+(
+
+	// test envEventView
+
+	~stepEvent = StepEvent.new;
+	~stepEvent.addHalo(\instrument, \sinn);
+
+	~sev = ~envEventView.new(~stepEvent);
+	~sev.makeWindow;
+
+)

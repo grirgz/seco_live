@@ -4,15 +4,15 @@
 
 
 ///////////////// next level:
-// - add repeat
-// - track selector and common display for stepCount and repeat
-// - Part editor
+// + add repeat
+// + track selector and common display for stepCount and repeat
 // - mixer
 // - insert fx
-// - stepseq instr parameters
+// + stepseq instr parameters
 // - envtimeline instr parameters
 // - multiple instr in one track
 // - copy/paste score
+// - support for Ndef
 
 (
 Ndef.defaultQuant = 4;
@@ -83,12 +83,13 @@ Pdef(\kick2).addHalo(\instrument, \dr_kick);
 			self.scoreEvent = StepEvent.new;
 			self.envEvent = StepEvent.new;
 			self.stepEvent = StepEvent.new;
+			self.stepEvent.repeats_(inf);
 		
 			self;
 		},
 
 		xasPattern: { arg self;
-			self.scoreEvent.asPattern <> self.stepEvent.asPattern
+			self.envEvent.asPattern <> self.scoreEvent.asPattern <> self.stepEvent.asPattern
 			//self.scoreEvent.asPattern
 		},
 	);
@@ -123,7 +124,8 @@ Pdef(\kick2).addHalo(\instrument, \dr_kick);
 		all: {PresetDictionary.new(\full_sequencer)},
 		new: { arg self, key, instrs;
 		
-			if(self.all[key].isNil) {
+			//if(self.all[key].isNil) { 
+			if(true) { // debug
 				self = self.deepCopy;
 				self.instrs = instrs;
 				self.playerWrapper;
@@ -162,6 +164,10 @@ Pdef(\kick2).addHalo(\instrument, \dr_kick);
 			self.bank[key].current.scoreEvent
 		},
 
+		get_current_score: { arg self, key;
+			self.bank[key].current
+		},
+
 		set_current_stepevent: { arg self, key, val;
 			//TODO
 			//self.bank[key].current = val
@@ -175,6 +181,7 @@ Pdef(\kick2).addHalo(\instrument, \dr_kick);
 			var playerWrapper = self.get_instr_playerWrapper(instr);
 			var key = self.get_instr_key(instr);
 			var stepEventView = View.new;
+			var envEventView = View.new;
 			var update_track_editor_page;
 			var stacklayout = StackLayout(
 				View.new.layout_(VLayout(
@@ -185,11 +192,16 @@ Pdef(\kick2).addHalo(\instrument, \dr_kick);
 					[nil, stretch:1],
 				)),
 				stepEventView,
+				envEventView,
 			);
 			update_track_editor_page = {
 				stepEventView.removeAll;
 				stepEventView.layout = 
 					~stepEventView.new( self.bank[key].current.stepEvent, instr.asParamGroup).makeLayout;
+
+				envEventView.removeAll;
+				envEventView.layout = 
+					~envEventView.new( self.bank[key].current.envEvent, instr.asParamGroup).makeLayout;
 			};
 			update_track_editor_page.();
 			stacklayout.mode = 0;
@@ -201,10 +213,16 @@ Pdef(\kick2).addHalo(\instrument, \dr_kick);
 						playerWrapper.asView,
 						~bank_selector_view.(self.bank, { self.new_score }, { update_track_editor_page.() }),
 						Param(Message(stacklayout), \index, MenuSpec(
+							//[
+							//	"Params" -> 0,
+							//	"Steps" -> 1,
+							//	"Env" -> 1,
+							//]
 							[
-								"Params" -> 0,
-								"Steps" -> 1,
-							]
+								"Params",
+								"Steps",
+								"Env",
+							].collect({ arg x, i; x -> i  })
 						)).asPopUpMenu,
 						XSimpleButton.new.label_("main").action_({
 							WindowDef(\main_editor).front
@@ -240,40 +258,52 @@ Pdef(\kick2).addHalo(\instrument, \dr_kick);
 
 		asView: { arg self;
 			var header;
+			var track_selector;
+			var repeatField;
+			repeatField = TextField.new;
+			track_selector = ~view_selector.new(self.instrs.size, { arg i;
+				var key = self.get_instr_key(self.instrs[i]);
+				repeatField.mapParam(Param(Message(self.get_current_score(key).scoreEvent), \repeats, ControlSpec(1,128,\lin)))
+			});
 			self.coinViews = IdentityDictionary.new;
 
 			header = HLayout(
-				~bank_selector_view.(self.bank, { self.new_score }, { self.updatePage })
+				~bank_selector_view.(self.bank, { self.new_score }, { self.updatePage }),
+				repeatField,
 			);
 
 			self.layout = VLayout (
 				header,
 				ScrollView.new.canvas_(View.new.layout_(
-					GridLayout.rows (
-						*self.instrs.collect { arg track, i;
-							var key = self.get_instr_key(track);
-							var playerWrapper = PlayerWrapper(self.players[key]);
-							var stepEvent = self.get_current_stepevent(key);
-							var playerWrapperView = PlayerWrapperView(playerWrapper);
-							var playerWrapperViewAsView = playerWrapperView.layout;
-							var coinView = ~stepEventCoinView.new(stepEvent);
-							self.coinViews[key] = coinView;
-							playerWrapperView.button.mouseDownAction_({arg view, x, y, modifiers, buttonNumber, clickCount;
-								if(buttonNumber == 1) {
-									[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
-									self.show_track_editor(track);
-									"hinn".debug;
-								}
-							});
-							stepEvent.debug("stepEvent", track);
-							[
-								//StaticText.new.string_(playerWrapper.label),
-								playerWrapperViewAsView,
-								coinView.asView,
-							]
-						} ++ [[nil,nil]]
-					),
-					nil
+					VLayout (
+						GridLayout.rows (
+							*self.instrs.collect { arg track, i;
+								var key = self.get_instr_key(track);
+								var playerWrapper = PlayerWrapper(self.players[key]);
+								var stepEvent = self.get_current_stepevent(key);
+								var playerWrapperView = PlayerWrapperView(playerWrapper);
+								var playerWrapperViewAsView = playerWrapperView.layout;
+								var coinView = ~stepEventCoinView.new(stepEvent);
+								coinView.hasCursor = true;
+								self.coinViews[key] = coinView;
+								playerWrapperView.button.mouseDownAction_({arg view, x, y, modifiers, buttonNumber, clickCount;
+									if(buttonNumber == 1) {
+										[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+										self.show_track_editor(track);
+										"hinn".debug;
+									}
+								});
+								stepEvent.debug("stepEvent", track);
+								[
+									//StaticText.new.string_(playerWrapper.label),
+									track_selector.views[i],
+									playerWrapperViewAsView,
+									coinView.asView,
+								]
+							} ++ [[nil,nil]]
+						),
+						nil
+					)
 				)
 			));
 			self.layout;
@@ -293,13 +323,14 @@ Pdef(\kick2).addHalo(\instrument, \dr_kick);
 		},
 	);
 
-	WindowDef(\yep, {
+	WindowDef(\main_editor, {
 		~full_sequencer.new(\myseq1, [Pdef(\kick), Pdef(\kick2)]).asView;
 	}).front;
 )
 ~full_sequencer.new(\myseq1, [Pdef(\kick), Pdef(\kick2)])
 		PresetDictionary.new(\full_sequencer)
 ~full_sequencer.new(\myseq1, [Pdef(\kick), Pdef(\kick2)]).bank.pageCount
+~full_sequencer.new(\myseq1, [Pdef(\kick), Pdef(\kick2)]).get_current_score(\kick).scoreEvent.repeat
 
 
 
@@ -320,3 +351,31 @@ WindowLayout({
 	)
 	
 })
+
+
+~sl = StepList[1,0,1,1,0,0,1];
+~sl.addSpec(\list, \unipolar)
+~sl.addHalo(\seqstyle, \button)
+~sl.addHalo(\seqstyle, \cursor)
+~sl.addHalo(\seqstyle, \knob)
+~sl.addCursor
+(
+Pdef(\test, Pbind(
+	\instrument, \default,
+	\freq, 200,
+	\isRest, ~sl.asPattern.coin.not.loop,
+	\dur, 1/4,
+	\amp, 0.1
+)).play;
+)
+(
+WindowLayout({
+	VLayout (
+		//ListParamLayout.button(Param(List[1,0,1,0,0,0], \list, \unipolar)),
+		//Button.new,
+		//XSimpleButton.new,
+		StepListView(~sl).addCursor.asView,
+	)
+	
+})
+)
