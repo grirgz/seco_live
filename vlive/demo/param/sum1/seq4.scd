@@ -89,8 +89,12 @@ Pdef(\kick2).addHalo(\instrument, \dr_kick);
 		},
 
 		xasPattern: { arg self;
-			self.envEvent.asPattern <> self.scoreEvent.asPattern <> self.stepEvent.asPattern
+			self.envEvent.asPattern.loop <> self.scoreEvent.asPattern <> self.stepEvent.asPattern
 			//self.scoreEvent.asPattern
+		},
+
+		asSidePattern: { arg self;
+			self.envEvent.asSidePattern;
 		},
 	);
 
@@ -154,9 +158,31 @@ Pdef(\kick2).addHalo(\instrument, \dr_kick);
 				instr.debug("populate_tracks");
 				self.coins[key] = self.coins[key] ? StepEvent.new;
 				self.bank[key] = self.bank[key] ? BankList[ self.new_score ];
-				self.players[key] = self.players[key] ? EventPatternProxy.new;
-				self.players[key].addHalo(\label, key);
-				self.players[key].source = Plazy({ self.bank[key].current.xasPattern }).loop <> instr
+				case
+					{ instr.isKindOf(Pdef) } {
+						self.players[key] = self.players[key] ? EventPatternProxy.new;
+						self.players[key].addHalo(\label, key);
+						self.players[key].source = Ppar([
+							Plazy({ self.bank[key].current.xasPattern }).loop <> instr,
+							Plazy({ self.bank[key].current.asSidePattern }).loop
+						]);
+
+					}
+					{ instr.isKindOf(Ndef) } {
+						self.players[key] = self.players[key] ? instr;
+						self.players[key].addHalo(\label, key);
+						instr[100] = \set -> Plazy({ 
+							self.bank[key].current.xasPattern.collect({ arg ev;
+								ev.debug("yiiiiiiiiiii");
+								ev[\out] = nil;
+								ev[\group] = nil;
+								ev.debug("yiiiiiiiiiii2");
+								ev;
+							
+							})
+						}).loop;
+					}
+				;
 			})
 		},
 
@@ -324,7 +350,7 @@ Pdef(\kick2).addHalo(\instrument, \dr_kick);
 	);
 
 	WindowDef(\main_editor, {
-		~full_sequencer.new(\myseq1, [Pdef(\kick), Pdef(\kick2)]).asView;
+		~full_sequencer.new(\myseq1, [Pdef(\kick), Pdef(\kick2), Ndef(\popop)]).asView;
 	}).front;
 )
 ~full_sequencer.new(\myseq1, [Pdef(\kick), Pdef(\kick2)])
@@ -379,3 +405,39 @@ WindowLayout({
 	
 })
 )
+
+
+(
+Ppar([
+	Pbind(
+		\instrument, \default,
+		\freq, 900,
+		\dur, Pn(1/4,4),
+		\amp, 0.1
+	),
+	Plazy({
+		~yep
+	})
+]).loop.play
+)
+
+(
+~yep = Pbind(
+	\instrument, \default,
+	\freq, 4200,
+	\dur, Pn(1/2,2),
+	\amp, 0.1
+);
+)
+~yep = nil
+
+Ndef(\popop).play
+Ndef(\popop)[100]
+Ndef(\popop).unset(\freq)
+Ndef(\popop)[10] = Pbind(
+	\instrument, \default,
+	\freq, 200,
+	\dur, 1,
+	\amp, 0.1
+	\out, BusDef(\plop, \audio)
+);
