@@ -441,3 +441,65 @@ Ndef(\popop)[10] = Pbind(
 	\amp, 0.1
 	\out, BusDef(\plop, \audio)
 );
+
+
+~a = [1,2,3];
+~b = [4,5,6,7,8];
+~b = [4,5];
+~a.extend(~b.size, 0)
+
+(
+~remplace = { arg a, b;
+	a.wrapExtend(b.size);
+	b.do { arg x, i;
+		a[i] = x;
+	};
+	a
+}
+)
+
+
+
+a = List[1,2,3];
+b = List[4,5,6,7,8,9]
+~remplace.(a, b)
+
+a
+a.grow(b.size)
+
+
+
+play{t=Impulse.ar(7)*SinOsc.ar(331);Limiter.ar(GVerb.ar(t,1)*RLPF.ar(LFSaw.ar(333),LFNoise1.kr(2,4,100).midicps))};
+
+(
+Ndef(\yep)[0] = {
+	t=Impulse.ar(7)*SinOsc.ar(331);
+	Limiter.ar(
+		GVerb.ar(t,1)*RLPF.ar(LFSaw.ar(333),LFNoise1.kr(2,4,100).midicps)
+	)
+};
+)
+Ndef(\yep).play;
+
+Ndef(\yep)[1] = nil
+Ndef(\yep)[2] = nil
+
+(
+Ndef(\yep)[1] = \filter -> { arg in;
+	var sig = in;
+	sig = ( sig + CombL.ar(sig, 0.1,0.0001 * SinOsc.kr((1..20) * SinOsc.kr(1/16).range(0,70)).range(0,10),1) );
+	sig = Splay.ar(sig, 0.8, 0.5, 0);
+
+}
+)
+
+(
+Ndef(\yep)[2] = \filter -> { arg in;
+	var sig = in;
+	sig = ( sig + CombL.ar(sig, 0.1,0.001 * SinOsc.kr((1..5)).range(0,1),1) );
+
+}
+)
+
+
+
