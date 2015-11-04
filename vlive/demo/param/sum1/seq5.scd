@@ -150,7 +150,8 @@ ParamProto.init;
 
 	init: { arg self;
 		var el = self.makeDefaultEventList;
-		self.areasize = 10@4;
+		//self.mod_eventlists = List.new;
+		self.areasize = 10@1;
 		self.eventloop = (list: el, key: { self.key }); // fake eventloop for the moment
 		self.quant_ref = Ref(Point(1/8,1)); // TODO: replace by Quant class and change TimelineView code
 		self.proxy = EventPatternProxy.new;
@@ -182,6 +183,44 @@ ParamProto.init;
 
 	edit: { arg self;
 		~stepTimelinePanelView.new(self);
+	},
+
+	initStepEvent: { arg self, ev;
+		ev.putAll(~event_type_pattern);
+		ev[\stepseq_page] = ~stepseq_page.new;
+		ev[\label] = { arg me; me.stepseq_page.label };
+		ev[\edit] = { arg me, drumrack; me.stepseq_page.edit(drumrack) };
+		ev[\pattern] = { arg me; 
+			Ppar(
+				me.stepseq_page.asPatternList.collect({ arg pat,i;
+					~pdemul.(
+						PchainT(
+							pat, 
+							Plazy({
+								me[\drumrack].debug("event drumrack ?");
+								if(me[\drumrack].notNil) {
+									[i,me[\drumrack].get_pad(i)].debug("drum i");
+									me[\drumrack].get_pad(i).proxy.keep(1);
+									//Pbind(
+									//	\instrument, \default,
+									//	\freq, 400,
+									//).keep(1);
+								} {
+									Ptuple([Pbind().keep(1)])
+								}
+							}).loop
+						)
+					)
+				})
+			)
+			//Pbind(
+			//	\instrument, \default,
+			//	\freq, 200,
+			//	\dur, 1/8,
+			//	\amp, 0.1
+			//);
+		};
+		
 	},
 
 );
@@ -248,41 +287,11 @@ ParamProto.init;
 			var ev = self.selected_event;
 			if(ev.notNil) {
 				if(ev[\stepseq_page].notNil) {
-					ev[\stepseq_page].edit(self.drumrack);
+					ev.edit(self.drumrack);
 				} {
-					ev.putAll(~event_type_pattern);
-					ev[\stepseq_page] = ~stepseq_page.new;
-					ev[\pattern] = { arg me; 
-						Ppar(
-							me.stepseq_page.asPatternList.collect({ arg pat,i;
-								~pdemul.(
-									PchainT(
-										pat, 
-										Plazy({
-											me[\drumrack].debug("event drumrack ?");
-											if(me[\drumrack].notNil) {
-												[i,me[\drumrack].get_pad(i)].debug("drum i");
-												me[\drumrack].get_pad(i).proxy.keep(1);
-												//Pbind(
-												//	\instrument, \default,
-												//	\freq, 400,
-												//).keep(1);
-											} {
-												Ptuple([Pbind().keep(1)])
-											}
-										}).loop
-									)
-								)
-							})
-						)
-						//Pbind(
-						//	\instrument, \default,
-						//	\freq, 200,
-						//	\dur, 1/8,
-						//	\amp, 0.1
-						//);
-					};
-					ev[\stepseq_page].edit(self.drumrack);
+					self.timeline_model.initStepEvent(ev);
+					ev.edit(self.drumrack);
+					self.timeline_model.eventList.changed(\refresh);
 				}
 			}
 		});
@@ -350,6 +359,7 @@ ParamProto.init;
 				se;
 			})
 		);
+		self.label = "No name";
 	
 		self;
 	},
@@ -367,11 +377,16 @@ ParamProto.init;
 		var drumrack = self.drumrack;
 		var drkey = drumrack !? { drumrack.key } ? "";
 		VLayout (
-			XSimpleButton.new.label_("Edit DrumRack " ++ drkey).action_({
-				if(self.drumrack.notNil) {
-					self.drumrack.edit;
-				}
-			}),
+			HLayout (
+				TextField.new.string_(self.label).action_({ arg view;
+					self.label = view.string;
+				}),
+				XSimpleButton.new.label_("Edit DrumRack " ++ drkey).action_({
+					if(self.drumrack.notNil) {
+						self.drumrack.edit;
+					}
+				}),
+			),
 			ScrollView.new.canvas_(View.new.layout_(
 				VLayout (
 					* self.lines.collect({ arg stepevent, i;
