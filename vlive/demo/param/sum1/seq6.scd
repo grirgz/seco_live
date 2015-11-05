@@ -129,24 +129,26 @@ ParamProto.init;
 	xasPattern: { arg self, relStartTime, totalDur;
 		self.proxy.source = Plazy({
 			var eventlist = self.eventList;
+			var xtotalDur; 
+			var xrelStartTime;
 
-			relStartTime = relStartTime ? eventlist.relStartTime;
-			totalDur = totalDur ? eventlist.totalDur;
+			xrelStartTime = relStartTime ? eventlist.relStartTime;
+			xtotalDur = totalDur ? eventlist.totalDur;
 
-			[relStartTime, totalDur].debug("clip xasPattern: plazy: relstart, totdur");
+			[xrelStartTime, xtotalDur].debug("clip xasPattern: plazy: relstart, totdur");
 
 			self.eventloop.list.changed(\cursor, \play);
-			Pfindur(totalDur, ~timeline_pattern.(
+			Pfindur(xtotalDur, ~timeline_pattern.(
 				Pn(eventlist, 1) <> (drumrack: self.drumrack, modulators: self[\modulators]),
 				//Pn(eventlist, 1),
-				relStartTime
+				xrelStartTime
 			));
 		}).repeat(self.repeatCount);
 		self.proxy;
 	},
 
 	edit: { arg self;
-		~stepTimelinePanelView.new(self);
+		self.editor = ~stepTimelinePanelView.new(self);
 	},
 
 	initStepEvent: { arg self, ev;
@@ -303,7 +305,19 @@ ParamProto.init;
 			self.last_pixelpos = Point(px,py);
 			if(chosennode.notNil) {
 				self.selected_event = chosennode.model;
-				edit_button.background_(ParamView.color_ligth)
+				edit_button.background_(ParamView.color_ligth);
+				if(clickCount == 2) {
+					var ev = self.selected_event;
+					if(ev.notNil) {
+						if(ev[\stepseq_page].notNil) {
+							ev.edit(self.drumrack);
+						} {
+							self.timeline_model.initStepEvent(ev);
+							ev.edit(self.drumrack);
+							self.timeline_model.eventList.changed(\refresh);
+						}
+					}
+				};
 			} {
 				self.selected_event = nil;
 				edit_button.background_(Color.white)
@@ -370,6 +384,25 @@ ParamProto.init;
 		self.xasPattern; // update proxy
 	},
 
+	remove_modulator: { arg self, idx;
+		// TODO: changed signal
+		if(idx >= 0) {
+			self.mod_timelines.removeAt(idx);
+			self.xasPattern; // update proxy
+		}
+	},
+
+	toggle_bypass_modulator: { arg self, idx;
+		var param = self.mod_timelines[idx].param;
+		if(idx >= 0) {
+			if(param.target.bypass[param.property] == true) {
+				param.target.bypassKey(param.property, false);
+			} {
+				param.target.bypassKey(param.property, true);
+			}
+		}
+	},
+
 	get_pad_modulator_pattern: { arg self, idx, subidx;
 		self.pad_modulators[idx][subidx].asPattern
 	},
@@ -427,7 +460,8 @@ ParamProto.init;
 	},
 
 	edit: { arg self;
-		~modStepTimelinePanelView.new(self).makeWindow;
+		self.editor = ~modStepTimelinePanelView.new(self);
+		self.editor.makeWindow;
 	},
 );
 
@@ -494,32 +528,77 @@ ParamProto.init;
 		self.quant_popup;
 	}, 
 
+	save_timelines_properties: { arg self;
+		self.timelines.do { arg tl;
+			tl.timeline_model.addHalo(\viewport, tl.timeline.viewport);
+			tl.timeline_model.addHalo(\areasize, tl.timeline.areasize);
+		};
+	},
+
+	load_timelines_properties: { arg self;
+		self.timelines.do { arg tl;
+			var cur;
+			cur = tl.timeline_model.getHalo(\viewport);
+			if(cur.notNil) {
+				tl.timeline.viewport = cur;
+			};
+			cur = tl.timeline_model.getHalo(\areasize);
+			if(cur.notNil) {
+				tl.timeline.areasize = cur;
+			};
+		};
+	},
+
 	refresh_timelines_view: { arg self;
 		var stepTimelineView;
 		var timeline;
+		var selector;
+
+		selector = ~view_selector.new(self.model.mod_timelines.size+1, {
+
+		});
+		if(self.track_selector.notNil) {
+			selector.select_item(self.track_selector.selected_index);
+		};
+		self.track_selector = selector;
+
+		self.save_timelines_properties;
 
 		self.timelines = 
 			[
 				~stepTimelinePanelView.newView(self.model.stepTimeline)
 					.make_header_(nil)
+					.make_track_header_({})
+					.update_track_header_({})
 					.disable_footer_(true)
 					.disable_hrange_(true) 
 					.disable_track_header_(true)
 			]
 			++
-			self.model.mod_timelines.collect({ arg x; 
+			self.model.mod_timelines.collect({ arg x, i; 
 				~envTimelinePanelView.newView(x)
-					.track_header_({ arg self; 
-						var label = x.param.getHalo(\track_label);
-						VLayout(
-							[XSimpleButton.new.label_(label), align:\top]
-						).margins_(10)
-					
-					})
 					.make_header_(nil) 
 					.disable_hrange_(true)
 			})
 		;
+
+		self.timelines.do({ arg x, i;
+			x.track_header_({ arg self; 
+				var label;
+				if(i == 0) {
+					label = "steps"
+				} {
+					label = x.param.getHalo(\track_label);
+					if(self.param.target.bypass[self.param.property] == true) {
+						label = "[%]".format(label)
+					}
+				};
+				VLayout(
+					[selector.views[i].label_(label), align:\top]
+				).margins_(10)
+			
+			})
+		});
 
 		stepTimelineView = self.timelines.first;
 		self.stepTimelineView = stepTimelineView;
@@ -535,6 +614,8 @@ ParamProto.init;
 		).spacing_(0).margins_(0);
 		self.timelines_layout.setColumnStretch(0,0);
 		self.timelines_layout.setColumnStretch(1,1);
+
+		self.load_timelines_properties;
 
 		timeline = stepTimelineView.timeline;
 
@@ -618,7 +699,12 @@ ParamProto.init;
 			XSimpleButton.new.label_("Add track").action_({
 				WindowLayout({ arg win;
 					var params = self.model.get_params;
-					var popupmenu = PopUpMenu.new.items_(params.collect(_.getHalo(\label)));
+					var popupmenu;
+					params = params.reject({ arg p; 
+						// reject already included
+						self.model.mod_timelines.any({ arg tl; tl.param == p})
+					});
+					popupmenu = PopUpMenu.new.items_(params.collect(_.getHalo(\label)));
 					VLayout(
 						popupmenu,
 						XSimpleButton.new.label_("OK").action_({
@@ -630,6 +716,15 @@ ParamProto.init;
 					)
 				})
 
+			}),
+			XSimpleButton.new.label_("Remove track").action_({
+				(self.track_selector.selected_index-1).debug("remove track");
+				self.model.remove_modulator(self.track_selector.selected_index-1);
+				self.refresh_timelines_view;
+			}),
+			XSimpleButton.new.label_("Bypass track").action_({
+				self.model.toggle_bypass_modulator(self.track_selector.selected_index-1);
+				self.refresh_timelines_view;
 			}),
 			self.stepTimelineView_header,
 			self.make_quant_popup,
@@ -674,9 +769,25 @@ ParamProto.init;
 ~st.drumrack.get_pad(0).update_proxy
 ~st.drumrack.get_pad(0)[\update_proxy].asCompileString
 
+~st.remove_modulator(0)
+~st.mod_timelines
+~st.editor.refresh_timelines_view
+
+~st.proxy.stop
+~st.proxy
+~st.stepTimeline.proxy.stop
+~st.stepTimeline.proxy.play
+~st.stepTimeline.proxy.source.asCompileString
+~st.stepTimeline.eventList.print
+~st.stepTimeline.eventList.totalDur
+
 ~st.get_pad_modulator_pattern(0,0).asStream.nextN(10,Event.default)
 ~st.mod_timelines.first.xasPattern.play
 ~st.xasPattern
+
+~st.mod_timelines[0].param.target.bypass
+~st.mod_timelines[0].param.target.bypassKey(~st.mod_timelines[0].param.property)
+~st.mod_timelines[0].param.property
 
 (
 Pdef(\plop, (bla:1) <> Pbind(
@@ -908,3 +1019,4 @@ Pdef(\plop, (bla:1) <> Pbind(
 ~cs.next(Event.default)
 
 
+Param((), \bla) == Param((), \bla)
