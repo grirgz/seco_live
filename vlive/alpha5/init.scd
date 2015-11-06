@@ -6,6 +6,8 @@ Veco.main.board_size = Point(32,64);
 ~set_project_tempo.(80/60);
 ~load_standard_quickpad.();
 
+ParamProto.init;
+
 // END
 
 Veco.main.fadeout_time = 16;
