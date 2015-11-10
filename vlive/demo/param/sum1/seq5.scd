@@ -547,3 +547,21 @@ Pcollect({ arg x; x.debug("xxx"); (freq: 300) }, Pseq([1,2,3])).play
 		).asStream.next(Event.default)
 		)
 		
+
+
+//////////////////// crap
+
+
+(
+127.do { arg chan;
+	127.do { arg note;
+		[0,127].do { arg veloc;
+			m.noteOn (chan, note, veloc)
+		}
+	}
+}
+)
+
+m = MIDIOut(0)
+
+"kjkj"

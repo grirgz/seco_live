@@ -5,6 +5,7 @@ Pdef(~name+++\mod,
 
 // END
 
+Pdef(~name+++\mod).quant = nil
 Pdef(~name+++\mod).quant 
 Pdef.defaultQuant
 
