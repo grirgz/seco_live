@@ -25,3 +25,11 @@
 	- in step mode, color show coin value
 - levelindicator for server
 - levelindicator made easy (just point to bus or Ndef)
+
+
+/// use case
+i have a range of potards, i want them to control params of an instr
+i want several presets to map to theses instr
+i want several instr, and a way to switch the controlled instr
+i want a way to play/stop the instr
+

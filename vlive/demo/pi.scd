@@ -430,7 +430,7 @@ SynthDef(\vache2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, totem=1, spoon;
 						Pseq([2**a[7].wrap(0,5)/8],inf),
 						//Pseq([2**8.rand/8],inf),
 					].wrapAt(a[4]),
-					\amp, 0.1/4
+					\amp, Pkeyd(\amp, 0.1/4),
 				)
 			)
 		})
@@ -481,7 +481,7 @@ Pdef(\soni, Ppar(
 ~decimals = ~get_decimals.(2000, "s(0.5)"); // sin(0.5)
 
 (
-~decimals = ~get_decimals.(2000, "1/29"); 
+~decimals = ~get_decimals.(2000, "1/44448888"); 
 ~decimals.asCompileString.debug("playing");
 ~str = Pseq( ~decimals.as(Array).collect(_.asString.asInteger) ).asStream; // pi decimals
 //~str = Prand((0..9),inf).asStream; // same with random decimals
@@ -498,7 +498,7 @@ Pdef(\soni, Ppar(
 
 
 (
-~decimals = ~get_decimals.(2000, "2/12345"); 
+~decimals = ~get_decimals.(2000, "2/123457"); 
 ~decimals.asCompileString.debug("playing");
 ~str = Pseq( ~decimals.as(Array).collect(_.asString.asInteger) ).asStream; // pi decimals
 //~str = Prand((0..9),inf).asStream; // same with random decimals
@@ -519,3 +519,267 @@ Pdef(\soni,
 	}).loop;
 ).play;
 )
+
+
+
+(
+
+~str.nextN(70)
+)
+
+(
+// fibonacci
+~str = Prout({ 
+	var i = 1, last=0; 
+	inf.do { arg x=0; 
+		var cur = i+last;
+		last = i;
+		i = cur;
+		i.asString.as(Array).collect({ arg num;
+			num.asString.asInteger.yield;
+		});
+	}
+}).asStream;
+//~str = Prand((0..9),inf).asStream; // same with random decimals
+Pdef(\soni, Ppar(
+	4.collect { arg i;
+		Pspawner({ arg sp;
+			inf.do { arg x;
+				sp.seq(~genpat.(~str), i);
+			}
+		})
+	}
+)).play;
+)
+
+(
+// golden number
+~decimals = ~get_decimals.(2000, "(1+sqrt(5))/2"); 
+~decimals.asCompileString.debug("playing");
+~str = Pseq( ~decimals.as(Array).collect(_.asString.asInteger) ).asStream; // pi decimals
+Pdef(\soni, Ppar(
+	4.collect { arg i;
+		Pspawner({ arg sp;
+			inf.do { arg x;
+				sp.seq(~genpat.(~str), i);
+			}
+		})
+	}
+)).play;
+)
+
+
+~plist = List.newFrom(0 ! 10);
+(
+
+	~param = Param(~plist, \list, ControlSpec(0,9,\lin,1,0));
+	~str = PstepSeq(~param.get,inf).asStream;
+	~str.nextN(10)
+)
+
+(
+	~palist = [
+		List.newFrom(0 ! 10),
+		List.newFrom(0 ! 10),
+		List.newFrom(0 ! 10),
+		List.newFrom(0 ! 10),
+		List.newFrom(0 ! 10),
+		List.newFrom(0 ! 10),
+		List.newFrom(0 ! 10),
+		List.newFrom(0 ! 10),
+	]
+)
+~palist
+
+(
+WindowDef(\pi, {
+	var make_block;
+	make_block = { arg list, i=0;
+		var str = PstepSeq(list,inf).asStream;
+		var param = Param(list, \list, ControlSpec(0,9,\lin,1,0));
+		var player;
+		var preset;
+		str.debug("str");
+		player = Pdef(\pat+++i, ~genpat.(str).loop);
+		VLayout(
+			HLayout(
+				PlayerWrapper(player).asView,
+				XSimpleButton.new.label_("Rand").action_({
+					list.do { arg x, j;
+						param.at(j).set(9.rand);
+					};
+				})
+			),
+			Param(player, \amp, \amp).asSlider.orientation_(\horizontal),
+			HLayout(
+				*param.collect({ arg sp;
+					VLayout (
+						sp.asSlider,
+						sp.asStaticText.align_(\center),
+					)
+				})
+				 
+			)
+		)
+	};
+	GridLayout.columns(
+		* ~palist.collect({ arg li, i; make_block.(li, i) }).clump(2)
+	).hSpacing_(20)
+}).alwaysRecreate_(true).front
+)
+
+9.rand
+
+(
+WindowLayout({
+	Button.new.toolTip_("plop")
+	
+})
+)
+
+().asView
+
+(
+~pitocha = { arg name;
+	var model;
+	var stream;
+	if(Pdef(name).getHalo(\model).isNil) {
+
+		Pdef(name).addHalo(\model,
+			model = (
+				player: Pdef(name),
+				list: List.newFrom(0!10),
+
+				asView: { arg self;
+					var list = self.list;
+					var param;
+					param.debug("PARAM1");
+					param = Param(list, \list, ControlSpec(0,9,\lin,1,0));
+					param.debug("PARAM");
+					VLayout(
+						HLayout(
+							PlayerWrapper(self.player).asView,
+							XSimpleButton.new.label_("Rand").action_({
+								list.do { arg x, j;
+									param.at(j).set(9.rand);
+								};
+							})
+						),
+						Param(self.player, \amp, \amp).asSlider.orientation_(\horizontal),
+						HLayout(
+							*param.collect({ arg sp;
+								sp.debug("SP");
+								VLayout (
+									sp.asSlider,
+									sp.asStaticText.align_(\center),
+								)
+							})
+
+						)
+					)
+				},
+
+				key: name,
+
+				edit: { arg self;
+					name.debug("edit: name");
+					WindowDef(name, {
+						self.asView;
+					}).alwaysRecreate_(true).front
+				},
+			);
+		);
+		model[\stream] = PstepSeq(model.list,inf).asStream;
+		Pdef(name).setModel(model);
+	} {
+		model = Pdef(name).getHalo(\model)
+	};
+	Pdef(name, ~genpat.(model.stream, name).loop);
+	Pdef(name);
+};
+//~pitocha.(\yep2).edit;
+~pitocha.(\rah1).edit;
+)
+Pdef(\yep4).clear
+~pitocha.(\rah1).player.clearHalo
+(bla:323).(3)
+
+Pdef(\rah1).setModel((bla:323))
+Pdef(\rah1).getHalo(\model)
+Pdef(\rah1).addHalo(\model, (zzz:222))
+~pitocha.(\rah1).edit;
+Pdef(\rah1).getHalo(\model)
+Pdef(\rah1).clearHalo
+Pdef(\yep3).getHalo(\model).asView
+~pilist.collect({ arg x; x.player.clearHalo })
+
+(
+~pilist = [
+	~pitocha.(\rah1),
+	~pitocha.(\rah2),
+	~pitocha.(\rah3),
+	~pitocha.(\rah4),
+];
+
+WindowDef(\main, {
+	GridLayout.columns(
+		* ~pilist.collect({ arg x; x.asView }).clump(2)
+	)
+}).front;
+)
+
+(
+Ppar(
+	~pilist
+).play
+)
+
+WindowDef(\main).front
+Pdef(\rah1).setModel({ Pdef(\rah1).getHalo(\model) })
+Pdef(\rah1).edit
+Pdef(\rah1).asView
+Pdef(\rah1).model
+
+~ev = (fff:333)
+~ev.addUniqueMethod(\asPattern, { Pbind(\degree, 3, \dur, 1/8) })
+~ev.asPattern
+
+Pn().nextN(10)
+StepEvent.new.bla_(4).bypassKey(\bla).asPattern.asStream.nextN(10, Event.default)
+
+~yep = PdefAlien((
+	new: { arg self;
+		
+	},
+))
+
+~yep.(\bla)
+
+
+/////////
+// aspattern
+// edit
+// asview
+// play
+// stop
+// model
+// def/newInstance
+Param(List[ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0  ], 'list', ControlSpec(0, 9, 'linear', 1, 0, "")).edit
+
+
+~bla = ProtoClass.newFrom((
+	asPattern: { arg self;
+		Pbind(
+			\instrument, \default,
+			\freq, 200,
+			\dur, 1/8,
+			\amp, 0.1
+		);
+
+	},
+
+))
+
+~bla.asPattern
+
+Event.newFrom((bla:3))

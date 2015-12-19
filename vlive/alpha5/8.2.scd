@@ -10,3 +10,5 @@ Pdef(~name+++\mod).quant
 Pdef.defaultQuant
 
 ~modStepTimeline.new(~namex+++\step).edit
+
+ParamProto.init(true)

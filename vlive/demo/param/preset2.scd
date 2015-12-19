@@ -1,5 +1,6 @@
 
 ///// write a full eventclass for preset popup menu
+ParamProto.init
 
 (
 Pdef(\plop, Pbind(

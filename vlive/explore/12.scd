@@ -158,7 +158,7 @@ SynthDef(\rayz, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig + CombL.ar(sig, 0.1, Latch.ar(sig, Impulse.ar(freq*[1/4,1,2,4])).lag(1/1000).clip(1/15000,1/50) * ( 1 + ( LFNoise1.kr(2 * (1..8)/8).unipolar * 1 )),0.04);
 	//sig = sig.wrap2(0.7) + sig.round(0.1);
 	env = EnvGen.ar(Env.adsr(0.04,0.1,0.8,0.7),gate,doneAction:2);
-	sig1 = sig.wrap2(4.7 * env.lag(0.1));
+	sig1 = sig.wrap2(1.7 * env.lag(0.1) + 0.31);
 	sig2 = sig.clip2(1.7 * env);
 	sig = SelectX.ar( LFNoise1.kr(1/2 * (1..8)/8).range(0.0,1.0)*2, [
 		sig1,
@@ -179,10 +179,15 @@ SynthDef(\rayz, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 (
 Pdef(\plop, Pbind(
 	\instrument, \rayz,
-	\note, Pseq([0,3,2,6,5,1],inf),
-	\legato, 0.3,
+	\note, Pseq([0,3],inf).stutter(4),
+	\legato, 0.1,
+	\legato, Pseq([0.9,0.4,0.1,0.2],inf).stutter(4),
+	\isRest, Pseq([
+		1,0.5,0.81,0.5,
+		1,1,1,1,
+	],inf).coin.not,
 	\octave, 3,
-	\dur, 1,
+	\dur, 1/4,
 	\amp, 0.1
 )).play;
 );

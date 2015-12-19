@@ -5,8 +5,7 @@
 ParamProto.init(true);
 (
 
-	// in steptimeline.scd
-ParamProto.init;
+ParamProto.init; // in steptimeline.scd
 
 /////
 
@@ -64,7 +63,7 @@ Pdef(\plop, (bla:1) <> Pbind(
 /////////////////////////////////////////////////////////////////////////////////
 
 //////////// new gui for steptimeline + envtimelines
-////////// this is a draft, not final
+////////// this is an ancient draft, final is stepTimeline
 
 (
 	~multiTimeline = (
@@ -283,6 +282,7 @@ Pdef(\plop, (bla:1) <> Pbind(
 Param((), \bli) == Param((), \bla)
 
 
+///////////// ancient draft for StepListColorView
 (
 WindowLayout({ 
 

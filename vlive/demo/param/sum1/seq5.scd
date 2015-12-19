@@ -130,6 +130,7 @@ WindowLayout({ PlayerWrapperView(~clipTimeline.new(\hey)).view })
 (
 
 ParamProto.init;
+// stepTimeline is now in Proto/steptimeline.scd
 ~stepTimeline = (
 	parent: ~eventTimeline,
 	all: { PresetDictionary(\stepTimeline) },

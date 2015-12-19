@@ -8,7 +8,7 @@
 
 // EventLoop.recordEvent prend en compte le timing, mais c'est a l'user de gerer le son qui est sensé etre generé, ce qui peut etre un avantage si on utilise un autre systeme pour jouer le son que l'event enregistré (par exemple si l'enregistreur est incorporé dans un pattern qui joue deja)
 // il faut cependant prevoir un systeme qui peut jouer et enregistrer si necessaire quand on click sur un bouton ou qu'on enfonce une touche MIDI
-// il faut une EventListener qui ecoute le MIDI ou la GUI, a ne pas confondre avec l'EventPlayer qui joue l'enregistrement
+// il faut une EventListener(EventFactory ?) qui ecoute le MIDI ou la GUI, a ne pas confondre avec l'EventPlayer qui joue l'enregistrement
 // l'enregistrement doit passer par une classe separée car chaque enregistrement correspond a un EventList different, et pas forcement le meme EventLoop (car on enregistre sur la piste d'un autre instrument) mais cet EventRecorder
 // si on veut plusieurs EventListener car il peut avoir des parametres specifiques par exemple jouer un pattern particulier de \ffreq ou une arpegiation, il faut un MIDIMapper qui peut mapper une source midi (noteOn on channel 1 par exemple) vers un EventListener
 // A essayer de simplifier un max pour pas avoir a creer 15 objets pour faire un bete truc

@@ -179,6 +179,7 @@ WindowLayout({
 
 )
 
+ParamProto.init
 (
 
 	// test envEventView

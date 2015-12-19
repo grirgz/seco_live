@@ -1,3 +1,5 @@
+// in this file, clipTimeline ancient draft
+// and PtimeGate testing
 
 Pspawner
 XEventLoop(\pdef).list

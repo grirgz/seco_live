@@ -14,6 +14,7 @@ Veco.main.board_size = Point(8,64);
 
 // END
 
+TempoClock.default.tempo
 ~define_effects.(['56','57','58','59']);
 Veco.main.fadeout_time = 16;
 

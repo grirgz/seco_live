@@ -1,3 +1,4 @@
+// now in proto
 
 (
 Spec.add(\mididetune, ControlSpec(-24,24,\lin));
