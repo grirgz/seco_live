@@ -33,3 +33,8 @@ i want several presets to map to theses instr
 i want several instr, and a way to switch the controlled instr
 i want a way to play/stop the instr
 
+
+/// higher level: tracks
+
+TrackDef(\yep, PdefListTrack(8.collect({ arg x; Pdef(\yep_+++x) })))
+TrackDef(\ff, FileTrack("ff.scd", { arg x; "ff.%.scd".format(x) }))

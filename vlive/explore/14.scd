@@ -340,7 +340,7 @@ SynthDef(\realkick, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.0, freqpan=
 	son = Pan2.ar(son, pan, amp);
 	
 	OffsetOut.ar(out, son);
-}).add;
+}).store;
 
 SynthDef(\mkick, { arg out=0, amp=0.1, pan=0, timeScale=1, gate=1;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
