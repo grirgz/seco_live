@@ -568,6 +568,38 @@ Pdef(\soni, Ppar(
 )).play;
 )
 
+//////////////////////////////////////////////////////////////////////////////// read from file
+
+(
+~file = File("/usr/share/X11/xorg.conf.d/50-synaptics.conf".standardizePath,"rb");
+~str = Prout({
+	//~file.readInt8
+	var num;
+	inf.do {
+		num = ~file.getInt32;
+		num.debug("NUM");
+
+		if(num.isNil) {
+			nil.yield;
+		} {
+			(num / 2 % 10).postln.yield;
+		}
+	}
+}).asStream;
+//~str = Pseq( ~decimals.as(Array).collect(_.asString.asInteger) ).asStream; // pi decimals
+Pdef(\soni, Ppar(
+	4.collect { arg i;
+		Pspawner({ arg sp;
+			inf.do { arg x;
+				sp.seq(~genpat.(~str), i);
+			}
+		})
+	}
+)).play;
+)
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ~plist = List.newFrom(0 ! 10);
 (
