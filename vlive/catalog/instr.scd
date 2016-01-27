@@ -1,0 +1,13 @@
+
+- perc
+	- kick
+	- snare
+	- hat
+	- tom
+	- cymbal
+	- clap
+- drone
+- bass
+	- big bass
+	- sub
+	- guitar bass

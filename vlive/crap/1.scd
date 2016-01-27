@@ -1915,3 +1915,14 @@ r.reset.play;
 
 
 
+
+
+Pbind(
+  \freq, Pseq([100, 200],inf),
+  \draw, Pfunc({ arg ev; // 'draw' is an arbitrary name, ev is the current event
+      {
+		ev[\freq].postln;
+        // put here some code interacting with GUI
+      }.defer; // defer is needed to interact with GUI in a tempoclock thread
+  })
+).play

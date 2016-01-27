@@ -1,4 +1,5 @@
 
+
 ///////////// channels playing
 
 // select mean mode with a two dimensional array (vertical or horizontal summing)
@@ -20,4 +21,16 @@ sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size, amp).flop;
 sig = SelectX.ar( SinOsc.kr(1/9).range(0,1), [sig, sig.flop] );
 sig = SelectX.ar( SinOsc.kr(1/13).range(0,1), sig );
 
+////////////////////////////// base
 
+// fm
+SinOsc.ar(freq * ( 1 + ( SinOsc.kr(200) * 1 ))) 
+
+// ring
+SinOsc.ar(freq) * LFSaw.ar(freq)
+
+/////////////////////////////// osc
+
+SinOsc.ar(freq) 
+SinOsc.ar(freq * [1,1.01]) 
+SinOsc.ar(freq * Array.series(8,1,0.1)) 
