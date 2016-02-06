@@ -13,7 +13,7 @@ Ndef(\bourdon, { arg freq=100, amp=0.1;
 ///////////////////////////////// Part I: basics
 
 ~win = Window.new;
-~win.front
+~win.front;
 ~win.alwaysOnTop = true;
 
 ~button = Button.new;
@@ -24,7 +24,7 @@ Ndef(\bourdon, { arg freq=100, amp=0.1;
 
 ~knob = Knob.new;
 ~knob.action = { arg x; x.value.postln; };
-~win.layout = VLayout(~button, ~knob)
+~win.layout = VLayout(~button, ~knob);
 
 ~freqspec = \freq.asSpec; // predefined spec for frequency
 ~freqspec = ControlSpec(20,18000,\exp); // custom spec
@@ -380,14 +380,10 @@ HLayout(*
 // Model is the data :
 [1,0,1,1, 1,1,0,0]
 
-// Controller is the object controlling the data
-~seq1 = List.newFrom([1,0,1,1, 1,1,0,0]);
-// with the controller, you can for exemple set values
-~seq1[1] = 1;
-// in this simple case, the controller is equal to the model
-
 // View is the GUI, it represent the data on screen :
 ~make_gui.(~seq1)
+
+// Controller is the SimpleController or SkipJack used to communicate between Model and View
 
 // you can have multiple view of the same data
 
