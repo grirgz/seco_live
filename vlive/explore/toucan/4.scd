@@ -107,7 +107,6 @@ SynthDef(\zkick, { |out=0, amp=0.1, pan=0, fratio=1.5, freqpan=0.01, spread=0.08
 	timeScale: ControlSpec(0.001,4,\lin, 0, 1),
 ))).store;
 
-(
 SynthDef(\zsnare, { arg out=0, amp=0.1, gate=1, pan=0, freq=20, fratio=1, timeScale=1;
 	var sig;
 	var env0, env1, env1m;
@@ -155,7 +154,6 @@ SynthDef(\zsnare, { arg out=0, amp=0.1, gate=1, pan=0, freq=20, fratio=1, timeSc
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
-);
 
 )
 
@@ -184,9 +182,7 @@ Pdef(\kick1, Pbind(
 	\dur, 1/4,
 	\amp, 0.152
 )).play;
-);
 
-(
 Pdef(\snare, 
 
 	Pbind(
@@ -204,7 +200,7 @@ Pdef(\snare,
 			0,0,0,0, 0,0,0,0,
 			1,0,0,0, 0,0,0,0,
 		],inf).coin.not,
-		\amp, 0.1/10
+		\amp, 0.1/10,
 	)
 	<>
 	Pbind(
@@ -219,9 +215,7 @@ Pdef(\snare,
 	).stutter(8)
 
 ).play;
-)
 
-(
 Pdef(\hat2, Pbind(
 	\instrument, \hat,
 	\degree, Pseq([0],inf),
@@ -349,6 +343,8 @@ Pdef(\rash, Pbind(
 	\lfo1, Pwhite(1,8),
 	\isRest, Pseq([
 		0,0,0,0, 0,0,0,0,
+		0,0,0,0, 0,0,0,0,
+		0,0,0,0, 0,0,0,0,
 		1,0,0,0, 0,0,0,0,
 	],inf).coin.not,
 	\dur, 1/4,
@@ -360,17 +356,82 @@ Pdef(\rash, Pbind(
 
 
 (
-Ndef(\saro, { arg freq=200, pan=0, amp=0.1;
+SynthDef(\caro, { arg out=0, freq=200, pan=0, amp=0.1, tsustain=1, gate=1;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freq = freq * XLine.kr(1,4,tsustain);
 	sig1 = LFSaw.ar(freq * ( 1 + ( SinOsc.kr((1..8)/8) * 1 )));
 	sig2 = LFSaw.ar(freq * ( 1 + ( SinOsc.kr((1..8)/8 + 0.08) * 1 )));
 	sig = sig1 + sig2;
 	//sig = BPF.ar(sig, SinOsc.kr((1..8)/20).range(140,9001));
-	sig = BPF.ar(sig, SinOsc.kr((1..8)/40).range(freq/1.2,freq*1.2), 0.01) + (sig/4 );
+	//sig = BPF.ar(sig, SinOsc.kr((1..8)/40).range(freq/1.2,freq*1.2), 0.01) + (sig/4 );
+	sig = sig / 8 / 2;
 	sig = Pan2.ar(sig, pan, amp).flop;
-}).play;
+	sig = sig * EnvGen.kr(\env.kr(Env([0,1,1,0],[0.1,0.8,0.1].normalizeSum)), gate, timeScale:tsustain, doneAction:2);
+	sig = Out.ar(out, sig);
+}).add;
+
+SynthDef(\carofm, { arg out=0, freq=200, pan=0, amp=0.1, tsustain=1, gate=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	//freq = freq * XLine.kr(1,4,tsustain);
+	freq = freq * ( 1 + ( SinOsc.kr(\fm.kr(4)*~t) * \fmamp.kr(1) ));
+	sig1 = LFSaw.ar(freq * ( 1 + ( SinOsc.kr((1..8)/8) * 1 )));
+	sig2 = LFSaw.ar(freq * ( 1 + ( SinOsc.kr((1..8)/8 + 0.08) * 1 )));
+	sig = sig1 + sig2;
+	//sig = BPF.ar(sig, SinOsc.kr((1..8)/20).range(140,9001));
+	//sig = BPF.ar(sig, SinOsc.kr((1..8)/40).range(freq/1.2,freq*1.2), 0.01) + (sig/4 );
+	sig = sig / 8 / 2;
+	sig = Pan2.ar(sig, pan, amp).flop;
+	sig = sig * EnvGen.kr(\env.kr(Env([0,1,1/2,0],[0.1,0.8,0.1].normalizeSum)), gate, timeScale:tsustain, doneAction:2);
+	sig = Out.ar(out, sig);
+}).add;
 );
+
+ParamProto.init
+TrackGroupDef(\hello, [Pdef(\caro)]).edit
+
+(
+Pdef(\caro, Pbind(
+	\instrument, \caro,
+	\degree, Pseq([0],inf),
+	\freq, Pseq([200,100,300],inf),
+	\isRest, Pseq([
+		0,0,0,1, 0,0,0,0,
+		0,1,0,0, 0,0,0,0,
+		0,0,0,0, 0,1,0,0,
+		0,0,0,0, 0,0,0,1,
+	],inf).coin.not,
+	\dur, 1/2,
+	\tsustain, Pkey(\dur) / ~t,
+	\amp, 0.1
+)).play;
+);
+
+(
+Pdef(\caro, Pbind(
+	\instrument, \carofm,
+	\degree, Pseq([0],inf),
+	\freq, Pseq([200,100,300],inf),
+	\legato, Pseq([
+		32,0,0,0, 0,0,0,0,
+		0,0,0,0, 0,0,0,0,
+		0,0,0,0, 0,0,0,0,
+		0,0,0,0, 0,0,0,0,
+	],inf),
+	\legato, Pseq([
+		0,0,0,1, 0,0,0,0,
+		0,3,0,0, 0,0,0,0,
+		0,0,0,0, 0,1,0,0,
+		0,0,0,0, 0,0,0,1,
+	],inf),
+	\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+	\dur, 1/2,
+	\tsustain, Pkey(\dur) / ~t * Pkey(\legato),
+	\amp, 0.1
+)).play;
+);
+
 Ndef(\saro).edit
 Ndef(\saro).stop
 
@@ -399,7 +460,7 @@ Ndef(\saro, { arg freq=200, pan=0, amp=0.1;
 	sig = BPF.ar(sig, SinOsc.kr((1..8)/40).range(freq/1.2,freq*1.2), 0.01) + (sig/4 );
 	sig = sig.tanh;
 	sig = LPF.ar(sig, 5000);
-	sig = sig / 2;
+	sig = sig / 8;
 	//sig = Limiter.ar(sig);
 	sig = Pan2.ar(sig, pan, amp).flop;
 }).play;
@@ -424,10 +485,119 @@ Ndef(\saro, { arg freq=200, pan=0, amp=0.1;
 	sig = sig.tanh;
 	sig = LPF.ar(sig, 5000 * SinOsc.kr(1/34).range(2,1/4));
 	sig = HPF.ar(sig, 70);
-	sig = sig / 2;
+	sig = sig / 8;
 	//sig = Limiter.ar(sig);
 	sig = Pan2.ar(sig, pan, amp).flop;
 }).play;
 
 );
 
+(
+	Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+		var sig;
+		var env1, env2, env3, env4, env5, env6, env7, env8;
+		var fof = 4 * ~t;
+		var xgate = DelayL.kr(Impulse.kr(1/8*~t), 2, 2 / ~t);
+		env1 = EnvGen.kr(Env([0,1,0],[0.0001,1.8]), xgate);
+		env2 = EnvGen.kr(Env([1,1,0.5],[0.01,1.8], -2), xgate);
+		//freq = 10.collect({ exprand(100,10000) * LFNoise1.ar(550).range(1,1.4) });
+		sig = LFSaw.ar(freq * env1 + fof) + LFCub.ar(freq * env1 + fof) ; 
+		sig = CuspN.ar((1..8) * freq * env1, 1.0 * (0.1+ ( env2*2 ) ),2, 0);
+		sig = CombL.ar(sig, 4/~t, 1/freq/~t,0.01/~t) + sig;
+		sig = sig * ( LFSaw.ar((1..8) * freq) * env1 + 1 );
+		sig = sig / 2;
+		
+		sig = Pan2.ar(sig, pan, amp).mean;
+	}).play;
+)
+
+(
+	Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+		var sig;
+		var env1, env2, env3, env4, env5, env6, env7, env8;
+		var fof = 4 * ~t;
+		var xgate = DelayL.kr(Impulse.kr(1/8*~t), 2, 2 / ~t);
+		env1 = EnvGen.kr(Env([0,1,0],[0.001,0.1]), xgate);
+		env2 = EnvGen.ar(Env([0,3599,35.2,70.1,64],[0.001,0.004,0.6,1.6], -2), xgate);
+		sig = SinOsc.ar(env2) * ( LFSaw.ar(env2) + 1 );
+		sig = CombL.ar(sig, 0.1, 10.collect({ rrand(0.1,0.01) }),1) + sig;
+		
+		sig = Pan2.ar(sig, SinOsc.ar(env2 * ( (1..8)/302 + 1 )) , amp).mean;
+	}).play;
+)
+
+(
+	Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+		var sig;
+		var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+		var env1, env2, env3, env4, env5, env6, env7, env8;
+		var fof = 4 * ~t;
+		var xgate = DelayL.kr(Impulse.kr(1/8*~t), 2, 2 / ~t);
+		env1 = EnvGen.kr(Env([0,1,0],[0.001,0.1]), xgate);
+		env2 = EnvGen.ar(Env([0,3599,35.2,70.1,64],[0.001,0.004,0.6,1.6], -2), xgate);
+		env3 = EnvGen.kr(Env([0,300,11],[0.001,4.1]), xgate);
+		env4 = EnvGen.kr(Env([0,0.3,0.0011],[0.001,0.1]), xgate);
+		env5 = EnvGen.ar(Env([0,17599,10235.2,10070.1,64],[0.1,0.09,0.1,1.6], -2), xgate);
+		sig1 = LFSaw.ar(env2 * [1,1.1,1.3,2,1/2]) + PinkNoise.ar;
+		sig1 = LFSaw.ar(env2 * [1,2] * ( 1 + ( LFSaw.ar(freq / (1..8)) * 1 )));
+		sig1 = Resonz.ar(sig1, env4 + 0.1 * freq, 0.3) * 5; 
+		sig1 = LPF.ar(sig1, 10000);
+		sig = SinOsc.ar(env2) * ( sig1 + 1 );
+		//sig = LFSaw.ar(env2 * [1,1.0001]);
+		sig = CombL.ar(sig, 0.1, 10.collect({ rrand(0.1,0.01) }),env4) + sig;
+		
+		//sig = sig/2;
+		sig = Pan2.ar(sig, SinOsc.ar(env2 * ( (1..8)/50 + 1 )) * 0.1 , amp).mean;
+	}).play;
+)
+
+(
+	Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+		var sig;
+		var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+		var env1, env2, env3, env4, env5, env6, env7, env8;
+		var fof = 4 * ~t;
+		var xgate = DelayL.kr(Impulse.kr(1/8*~t), 2, 2 / ~t);
+		env1 = EnvGen.kr(Env([0,1,0],[0.001,0.1]), xgate);
+		env2 = EnvGen.ar(Env([0,3599,35.2,70.1,64],[0.001,0.004,0.6,1.6], -2), xgate);
+		env3 = EnvGen.kr(Env([0,300,11],[0.001,4.1]), xgate);
+		env4 = EnvGen.kr(Env([0,0.3,0.0011],[0.001,0.1]), xgate);
+		env5 = EnvGen.ar(Env([0,17599,10235.2,10070.1,64],[0.1,0.09,0.1,1.6], -2), xgate);
+		sig1 = LFSaw.ar(env2 * [1,1.1,1.3,2,1/2]) + PinkNoise.ar;
+		sig1 = LFSaw.ar(env2 * [1,2]);
+		sig1 = LPF.ar(sig1, env5 + 10);
+		sig = SinOsc.ar(env2) * ( sig1 + 1 );
+		//sig = LFSaw.ar(env2 * [1,1.0001]);
+		sig = CombL.ar(sig, 0.1, 10.collect({ rrand(0.1,0.01) }),env4) + sig;
+		
+		//sig = sig/2;
+		sig = Pan2.ar(sig, SinOsc.ar(env2 * ( (1..8)/500 + 1 )) , amp).mean;
+	}).play;
+)
+
+(
+	Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+		var sig;
+		var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+		var env1, env2, env3, env4, env5, env6, env7, env8;
+		var fof = 4 * ~t;
+		var xgate = DelayL.kr(Impulse.kr(1/8*~t), 2, 2 / ~t);
+		env1 = EnvGen.kr(Env([0,1,0],[0.001,0.1]), xgate);
+		env2 = EnvGen.ar(Env([0,3599,35.2,70.1,64],[0.001,0.004,0.6,1.6], -2), xgate);
+		env3 = EnvGen.kr(Env([0,300,11],[0.001,4.1]), xgate);
+		env4 = EnvGen.kr(Env([0,0.3,0.0011],[0.001,0.1]), xgate);
+		env5 = EnvGen.ar(Env([0,19,10235.2,10070.1,64],[0,0.009,0.01,1.6], -2), xgate);
+		env6 = EnvGen.kr(Env([0,1,0],[0.001,1.1]), xgate);
+		sig1 = LFSaw.ar(env2 * [1,2]);
+		sig1 = LFSaw.ar(env2 * [1,1.1,1.3,2,1/2]) ;
+		sig1 = PinkNoise.ar;
+		sig1 = LPF.ar(sig1, env5 + 10);
+		sig = SinOsc.ar(env2) * ( sig1 + 1 );
+		//sig = LFSaw.ar(env2 * [1,1.0001]);
+		sig = CombL.ar(sig, 0.1, 10.collect({ rrand(0.1,0.01) }),1) + sig;
+		sig = sig * env6;
+		
+		//sig = sig/2;
+		sig = Pan2.ar(sig, SinOsc.ar(env2 * ( (1..8)/500 + 1 )) , amp).mean;
+	}).play;
+)
