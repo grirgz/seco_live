@@ -1,3 +1,4 @@
+(isPlaying:true).isPlaying return always false, should remove ^ in Event.sc
 
 ///////////////
 

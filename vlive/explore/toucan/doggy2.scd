@@ -6,21 +6,21 @@ Pdef.defaultQuant = 4;
 Ndef.defaultQuant = 4;
 ~t = TempoClock.default.tempo;
 
-Spec.add(\fb, ControlSpec(0.0001,0.9,\exp));
-Spec.add(\lpf, \freq.asSpec);
-Spec.add(\hpf, \freq.asSpec);
-Spec.add(\plpf, \freq.asSpec);
-Spec.add(\phpf, \freq.asSpec);
-Spec.add(\prelpf, \freq.asSpec);
-Spec.add(\prehpf, \freq.asSpec);
-Spec.add(\delay2, \delay.asSpec);
-Spec.add(\shift, ControlSpec(-5,5,\lin));
-Spec.add(\shift2, \shift.asSpec);
-Spec.add(\pitchmix, \unipolar.asSpec);
-Spec.add(\pitchlag, ControlSpec(0.001,1,\exp));
-
-Spec.add(\wet10, \unipolar.asSpec);
-Spec.add(\wet20, \unipolar.asSpec);
+//Spec.add(\fb, ControlSpec(0.0001,0.9,\exp));
+//Spec.add(\lpf, \freq.asSpec);
+//Spec.add(\hpf, \freq.asSpec);
+//Spec.add(\plpf, \freq.asSpec);
+//Spec.add(\phpf, \freq.asSpec);
+//Spec.add(\prelpf, \freq.asSpec);
+//Spec.add(\prehpf, \freq.asSpec);
+//Spec.add(\delay2, \delay.asSpec);
+//Spec.add(\shift, ControlSpec(-5,5,\lin));
+//Spec.add(\shift2, \shift.asSpec);
+//Spec.add(\pitchmix, \unipolar.asSpec);
+//Spec.add(\pitchlag, ControlSpec(0.001,1,\exp));
+//
+//Spec.add(\wet10, \unipolar.asSpec);
+//Spec.add(\wet20, \unipolar.asSpec);
 BusDef(\fx1, \audio, 2);
 
 SynthDef(\zkick, { |out=0, amp=0.1, pan=0, fratio=1.5, freqpan=0.01, spread=0.08, timeScale=1|
@@ -116,9 +116,7 @@ Ndef(\bypass, {
 	in;
 });
 
-);
 
-(
 Pdef(\basicsnare, Pbind(
 	\instrument, \basicsnare,
 	\degree, Pseq([0],inf),
@@ -431,7 +429,14 @@ RandDelayNetwork(\default).make(\myfx1, "5--", BusDef(\fx1));
 RandDelayNetwork(\default).code
 
 Ndef(\myfx1).asParamGroup.getPbindCompileString
+Ndef(\myfx1).controlKeysValues
 
+
+		"\nPbind(\n\t%\n)\n".format(
+			Ndef(\myfx1).controlKeysValues.clump(2).collect({ arg p; 
+				"%, %,".format(p[0].asCompileString, p[1].asCompileString)
+			}).join("\n\t")
+		)
 
 (
 Pdef(\fxp2,
@@ -536,6 +541,7 @@ Pdef(\fxp5,
 
 )
 
+RandDelayNetwork(\default).define_specs
 Pdef(\hat_p1).play
 Ndef(\myfx1).play;
 Ndef(\myfx1).put(100, \pset -> Pdef(\fxp1));
@@ -548,7 +554,7 @@ Pdef(\snare_p3).stop
 
 (
 	Ndef(\myfx1).play;
-	Ndef(\myfx1).put(100, \pset -> Pdef(\fxp1));
+	//Ndef(\myfx1).put(100, \pset -> Pdef(\fxp1));
 	RandDelayNetwork(\default).make(\myfx1, "5-aQP1-S013", BusDef(\fx1));
 	Pdef(\main, 
 		Ppar([
@@ -572,6 +578,7 @@ Pdef(\snare_p3).stop
 		])
 	).play;
 )
+	Ndef(\myfx1).edit;
 (
 	Ndef(\myfx1).play;
 	//Ndef(\myfx1).put(100, \pset -> Pdef(\fxp5));
@@ -613,7 +620,7 @@ Pdef(\snare_p3).stop
 
 (
 	Ndef(\myfx1).play;
-	Ndef(\myfx1).put(100, \pset -> Pdef(\fxp4));
+	//Ndef(\myfx1).put(100, \pset -> Pdef(\fxp4));
 	RandDelayNetwork(\default).make(\myfx1, "5-a1h9-2113", BusDef(\fx1));
 	Pdef(\main, 
 		Ppar([
@@ -637,7 +644,7 @@ Pdef(\snare_p3).stop
 (
 	Ndef(\myfx1).play;
 	RandDelayNetwork(\default).make(\myfx1, "6-bzir-ugkl", BusDef(\fx1));
-	Ndef(\myfx1).put(100, \pset -> Pdef(\fxp1));
+	//Ndef(\myfx1).put(100, \pset -> Pdef(\fxp1));
 	//Ndef(\myfx1).put(100, \pset -> Pbind( \wet10, 0 ));
 	Pdef(\main, Pdef(\perc_p2)).play;
 )
