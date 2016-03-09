@@ -1,3 +1,41 @@
+
+(
+// parametric filling algorithm,
+n = 100 ; // just use a square
+~matrix = Array.fill(n, {|i|
+Array.fill(n, {|j|
+if (j <= i){1}{-1};
+}).postln
+}).collect{|i, j| if (j%2==1){i.neg}{i}}
+)
+
+(
+// plot func
+p = 60 ; // plot step
+w = Window("alternando", Rect(100, 100, (p+1)*n.sqrt, (p+1)*n.sqrt)).front ;
+
+~uv = Array.fill(n, {|i|
+var col = i%n.sqrt *(p+1);
+var row = (i/n.sqrt).trunc *(p+1);
+UserView(w, Rect(col, row, p, p)).background_(Color.rand)
+.drawFunc_{
+~matrix[i].do{|k, j|
+var x = j%n.sqrt *(p/n.sqrt);
+var y = (j/n.sqrt).trunc *(p/n.sqrt);
+Pen.fillColor = if (k == -1){Color.black}{Color.white};
+Pen.strokeColor = Color.black ;
+Pen.addRect(Rect(x, y, p/n.sqrt, p/n.sqrt)) ;
+Pen.fillStroke
+}
+}
+
+})
+)
+// here you do operations on matrix, i.e. the placing algorithm
+~matrix = ~matrix.collect{|i| i.scramble} // simple scrambling
+w.refresh // and refresh
+
+
 Veco.
 
 Main.version

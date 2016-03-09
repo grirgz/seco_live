@@ -51,7 +51,7 @@ SynthDef(\skatex, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum=0;
 SynthDef(\skatexag, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum=0;
 	var sig;
 	var phase;
-	phase = Phasor.ar(1, 1,\phase.kr(0),BufFrames.kr(bufnum) * \end.kr(1));
+	//phase = Phasor.ar(1, 1,\phase.kr(0),BufFrames.kr(bufnum) * \end.kr(1));
 	phase = \phase.ar(0);
 	phase.poll;
 	sig = BufRd.ar(2, bufnum, phase);
@@ -87,11 +87,12 @@ Pdef(\skat2,
 	\start, Ndef(\skatlfo1, { SinOsc.kr(1/145).range(0,0.8100)  }),
 	\sustain, 4.27,
 	\dur, 4/1,
-	\amp, 0.1
+	\amp, 0.2
 )
 ).play;
 );
 
+Pdef(\skat2).stop
 (
 
 Pdef(\p1, Pseq([
@@ -314,7 +315,7 @@ Pdef(\snare,
 
 BufDef(\amen, "vipere/amenbreak.wav");
 Pdef(\p1, Pseq([
-	Pbind(\bufnum, BufDef(\amen)) <>
+	Pbind(\out, BusDef(\fx2), \bufnum, BufDef(\amen)) <>
 	Pseq([
 		Pbind(
 			\instrument, \skatsec,
@@ -422,7 +423,8 @@ Pseq([
 			\sustain, Pstep(Pseq([
 				Pseq([2],1) * 4 * Pkey(\dur),
 			],inf)/4, 1/2) / ~t,
-			\amp, 0.1,
+			\out, BusDef(\fx1),
+			\amp, 0.3,
 		)).play
 		)
 
@@ -464,6 +466,102 @@ Pseq([
 					2,1,1,2, 2,2,4,2,
 				],1) * 4 * Pkey(\dur),
 			],inf)/4, 1/2) / ~t,
-			\amp, 0.1,
+			\out, BusDef(\fx1),
+			\amp, 0.3,
+		)).play
+		)
+
+		(
+		Pdef(\kkk, Pbind(
+			\instrument, \skatsec,
+			\bufnum, BufDef(\amen),
+			\degree, Pseq([0],inf),
+			\start,  Pstep(Pseq([
+				3,0,3,0, 5,0,1,0,
+				2,2,0,0, 4,0,1,0,
+			].collect({ arg x;~amen_ar[x]}),inf),1/2),
+			\rate, Pstep(Pseq([
+				Pseq([
+					2,0.9,
+					1,1.9,
+					1,1.9,
+					1/2,1/1.9,
+					//1.1,1,
+				],1),
+			],inf),1/2),
+			\rate, Pstep(Pseq([
+				Pseq([
+					1.2, 1, 1, 0.9,
+					0.71, 1, 1, 0.9,
+					//1.1,1,
+				],1),
+			],inf),1/2),
+			\dur, PdurStutter(Pseq([
+				Pseq([8,1,8,1]),
+				Pseq([8,1,1,1]),
+				Pseq([1,1,1,1]),
+				Pseq([1,4,1,1]),
+			],inf)/2, Pseq([
+				Pser([1/2],4),
+			],inf)) * 2,
+			\sustain, Pstep(Pseq([
+				Pseq([
+					1,1,1,2, 2,2,4,2,
+					2,1,1,2, 2,2,4,2,
+				],1) * 4 * Pkey(\dur),
+			],inf)/4, 1/2) / ~t,
+			\out, BusDef(\fx1),
+			\amp, 0.3,
+		)).play
+		)
+
+		(
+		Pdef(\kkk, Pbind(
+			\instrument, \skatsec,
+			\bufnum, BufDef(\amen),
+			\degree, Pseq([0],inf),
+			\start,  Pstep(Pseq([
+				3,0,3,0, 5,0,1,0,
+				2,2,0,0, 4,0,1,0,
+			].collect({ arg x;~amen_ar[x]}),inf),1/2),
+			\rate, Pstep(Pseq([
+				Pseq([
+					2,0.9,
+					1,1.9,
+					1,1.9,
+					1/2,1/1.9,
+					//1.1,1,
+				],1),
+			],inf),1/2),
+			\rate, Pstep(Pseq([
+				Pseq([
+					1.2, 1, 1, 0.9,
+					0.71, 1, 1, 0.9,
+					//1.1,1,
+				],1),
+			],inf),1/2),
+			\isRest, Pseq([
+				1,1,0,0, 1,1,1,1,
+				0,0,0,0, 0,0,0,0,
+				1,1,0,0, 1,1,1,1,
+				1,0,1,0, 1,0,0,0,
+			],inf).coin.not,
+			//\stut, 
+			\dur, PdurStutter(Pseq([
+				Pseq([8,1,8,1]),
+				Pseq([8,1,1,1]),
+				Pseq([1,1,1,1]),
+				Pseq([1,4,1,1]),
+			],inf)/1, Pseq([
+				Pser([1/1],4),
+			],inf)) * 2,
+			\sustain, Pstep(Pseq([
+				Pseq([
+					1,1,1,2, 2,2,4,2,
+					2,1,1,2, 2,2,4,2,
+				],1) * 4 * Pkey(\dur),
+			],inf)/4, 1/2) / ~t,
+			\out, BusDef(\fx1),
+			\amp, 0.3,
 		)).play
 		)
