@@ -1,5 +1,72 @@
 
 (
+SynthDef("AM", { arg freq = 440, modfreq = 5, amp = 0.5, attack = 0.01, decay = 0.3, release = 0.1, pos = 0, gate = 1, phaserfreq = 0, phaserdepth = 0.3;
+       var phaser, carrier, modulator, env;
+       phaser = SinOsc.ar(freq: phaserfreq, mul: phaserdepth*modfreq, add: modfreq);
+       modulator = SinOsc.ar(phaser).range(0, 1);
+       carrier = SinOsc.ar(freq: freq, mul: modulator);
+       env = Env.adsr(
+       attackTime: attack,
+       decayTime: decay,
+       sustainLevel: 0.8,
+       releaseTime: release).kr(doneAction: 2, gate: gate);
+       carrier = carrier * env * amp;
+       Out.ar(0, Pan2.ar(carrier, pos))
+}).add;
+)
+
+(
+ Pdef(\am, Pbind(
+      \instrument, "AM",
+      \dur, 1/1 * Pseq([1,1/2,1/4,Pn(1/8,8)],inf).stutter(8),
+      \degree, Pseq([0,3,5,7,5,3], inf),
+      \ctranspose,Pseq([Pseq([0],24),Pseq([3],24),Pseq([5],24)],inf),
+      \modfreq,  Pwhite(100,7200.0), // try higher numbers here
+      \pmindex, Pwhite(2, 13),
+      \amp, 0.3,
+      \attack, 1,
+      \release, Pwhite(0.1, 0.3),
+      \pos,Pseq([Pseq([1],8),Pseq([1],8),Pseq([1],8),Pseq([1],8)],inf),
+)).play;
+)
+
+
+(
+SynthDef(\bass, { arg freq = 440, amp = 0.5, gate = 1;
+	var snd, env, oscfreq, output;
+	var lfo;
+	oscfreq = {freq * LFNoise2.kr(Rand(0.0001,0.5)).range(0.98, 1.02)}!13;
+	lfo = { SinOsc.kr({ 1/Rand(2,52) }!13) };
+	env = Env.adsr(0.07, 1, 0.9, 0.1).kr(doneAction:2, gate: gate);
+	output = LFSaw.ar(oscfreq, mul: lfo.value.range(0,1));
+	output = RLPF.ar(output, (env*freq) + 1*freq * lfo.value.range(1/4,2), lfo.value.range(0.1,1));
+	output = Splay.ar(output, lfo.value.range(0,1));
+	output = output * env * amp;
+	Out.ar(0, output);
+	}).add;
+)
+
+Pdef(\bass, Pbind(
+	\instrument, \bass,
+	\tempo, 113/60,
+	\ctranspose, -26,
+	\degree, Pseq([Pseq([3, 5, 1, 3, 5, 8, 1], 2), Pseq([3, 2, 5, -1], 1), Pseq([3, 2, 5, 0], 1), Pseq([1, 5, 0,1,2,5,4], 2), Pseq([1, 0,2],2), 3],inf),
+	\dur, Pseq([Pseq([8, 4, 4, 8, 4, 2, 2], 2), Pseq([8,4,2, 2], 2),Pseq([8, 4, 4, 8, 4, 2, 2], 2), Pseq([8, 4, 4], 2), 16], inf),
+	\legato, 1.0,
+	\amp, 0.6,
+)).play;
+
+Pdef(\bass, Pmono(\bass,
+	\tempo, 113/60,
+	\ctranspose, -26,
+	\degree, Pseq([Pseq([3, 5, 1, 3, 5, 8, 1], 2), Pseq([3, 2, 5, -1], 1), Pseq([3, 2, 5, 0], 1), Pseq([1, 5, 0,1,2,5,4], 2), Pseq([1, 0,2],2), 3],inf),
+	\dur, Pseq([Pseq([8, 4, 4, 8, 4, 2, 2], 2), Pseq([8,4,2, 2], 2),Pseq([8, 4, 4, 8, 4, 2, 2], 2), Pseq([8, 4, 4], 2), 16], inf),
+	\legato, 1.0,
+	\amp, 0.6,
+)).play;
+
+
+(
 // parametric filling algorithm,
 n = 100 ; // just use a square
 ~matrix = Array.fill(n, {|i|
