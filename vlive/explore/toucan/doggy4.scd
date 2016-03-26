@@ -412,3 +412,83 @@ Pdef(\gui, Pbind(
 	\amp, 0.1
 )).play;
 );
+
+////////////////////////////////////////////////////////////////////////////////// fm
+
+(
+	RandDelayNetwork(\fm, {
+		var block, algo;
+
+		block = [
+			\fm,
+		].flatten.choose;
+
+		algo = [
+			\par, \seq
+		].wchoose([0.5,0.5].normalizeSum);
+		if(algo == \par) {
+			\par -> [2,4].choose.collect({
+				\seq -> [ block, \end ]
+			})
+		} {
+			\seq -> ([block] ++ (\end ! [1,2].choose))
+		}
+	},
+	IdentityDictionary.newFrom([
+		\fm, { arg si;
+			var sig = SinOsc.ar(\freq.kr(100) * (1+ ( 1.0.rand * \shift.kr(1) )) * ( 1 + ( SinOsc.ar(si) * \distamp.kr(1 ))));
+			sig = sig + sig;
+			sig / 1.12;
+		},
+		\end, { arg si;
+			si;
+		}
+	]));
+	RandDelayNetwork(\fm).make(\fx2, "5--", BusDef(\fx2, \audio)).play;
+
+)
+Ndef(\fx2).edit
+Ndef(\fx2).fadeTime = 20
+
+////////////////////////////////////////////////////////////////////////////////// exemple
+
+(
+	RandDelayNetwork(\fm, {
+		var block, algo;
+
+		\seq -> [[\fm, \fm2].choose, \end] // regle de remplacement
+	},
+	IdentityDictionary.newFrom([
+		\fm, { arg si;
+			var sig = SinOsc.ar(\freq.kr(100) * (1+ ( 1.0.rand * \shift.kr(1) )) * ( 1 + ( SinOsc.ar(si) * \distamp.kr(1 ))));
+			sig = sig + sig;
+			sig / 1.12;
+		},
+		\end, { arg si;
+			si;
+		}
+	]));
+)
+
+	// 1ere iteration;
+	RandDelayNetwork(\fm).make(\fx2, "1--")
+	RandDelayNetwork(\fm).tree // regarde l'arbre
+
+	// 2ere iteration;
+	RandDelayNetwork(\fm).make(\fx2, "2--")
+	RandDelayNetwork(\fm).tree // regarde l'arbre
+
+	// 3ere iteration;
+	RandDelayNetwork(\fm).make(\fx2, "3--")
+	RandDelayNetwork(\fm).tree // regarde l'arbre
+
+Ndef(\fx2).edit
+
+RandDelayNetwork(\fm).gentree(6, 1000)
+RandDelayNetwork(\comp).gentree(6, 1000)
+RandDelayNetwork(\xx).gentree(4, 3)
+
+
+
+
+MCElectronique.newDef(80,8,0.8,0.6,0.3,0.2,true).postln.interpret

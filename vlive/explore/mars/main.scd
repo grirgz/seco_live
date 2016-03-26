@@ -33,7 +33,7 @@ Pdef(\part2_dry, Ppar([
 	Pdef(\snare_var2),
 	Pdef(\snarehat_var2),
 	Pdef(\hat_var2),
-].collect({ arg x; Pbind(\dur, Pkey(\dur) * 1, \out, 0) <> x }))).play;
+].collect({ arg x; Pbind(\dur, Pkey(\dur) * 1, \out, Pkeyd(\out,0)) <> x }))).play;
 );
 
 (
@@ -66,3 +66,13 @@ Ndef(\fx1).play;
 Ndef(\fx1).edit;
 RandDelayNetwork(\default).make(\fx1, "5-T1KJ-J6JA5", BusDef(\fx1, \audio)); // cool distobass
 
+
+/////////////:
+(
+Pdef(\part2_dry, Ppar([
+	Pdef(\kick_var2),
+	Pbind(\out, BusDef(\fx1)) <> Pdef(\snare_var2),
+	Pdef(\snarehat_var2),
+	Pdef(\hat_var2),
+].collect({ arg x; Pbind(\dur, Pkey(\dur) * 1, \out, Pkeyd(\out,0)) <> x }))).play;
+);

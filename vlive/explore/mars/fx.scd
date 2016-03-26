@@ -1,5 +1,7 @@
 
-RandDelayNetwork(\default).make(\fx1, "5--", BusDef(\fx1, \audio));
+RandDelayNetwork(\default).make(\fx1, "5--", BusDef(\fx2, \audio));
+RandDelayNetwork(\comp).make(\fx1, "4--", BusDef(\fx1, \audio));
+// 5-1OHQ-LH5N cool reverb
 Ndef(\fx1).play;
 Ndef(\fx1).edit;
 RandDelayNetwork(\default).make(\fx1, "5-T1KJ-J6JA5", BusDef(\fx1, \audio)); // cool distobass
@@ -79,126 +81,136 @@ MIDIdef.cc(\m1, { arg x; x.debug("hello") })
 MIDIdef.cc(\test3, {arg ...args; args.postln}, (1..100)); // match cc 1-10
 
 Pdef(\part1).stop
+Pdef(\part1).play
+Pdef(\part2_wet).play
 Pdef(\part1).stop
 
 
+
+Ndef(\greyhole).edit
+Ndef(\greyhole).clear
+Ndef(\fx1).stop
+(
+Ndef(\greyhole).put(0, { InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio, 2)), 2) });
+Ndef(\greyhole).put(50, \filter -> { arg in;
+	var sig = in;
+	
+	sig = SelectX.ar(\inmix.kr(1,0.1), [DC.ar(0), in]);
+	sig = Greyhole.ar(sig, 
+		\delay.kr(1/4) / ~t,\damp.kr(0.1),\size.kr(1), \diff.kr(0.707) , \feedback.kr(0.8), \modDepth.kr(0.1), \modFreq.kr(2)*~t
+	);
+	sig = SelectX.ar(\mix.kr(0.5,0.1), [in, sig]);
+
+	sig;
+}).play;
+Ndef(\greyhole).set(\wet50, 1);
+)
+
+(
+	Ndef(\greyhole).put(60, \pset -> Pbind(
+		\dur, 1/2,
+		\damp, 0.11,
+		\feedback, 0.8,
+		\diff, Pseq([0.1,0.9],inf),
+		\size, Pseq([0.01,3.4,3.4,0.01],inf).stutter(8),
+		\delay, 1/4,
+		\mix, 0.5,
+		\inmix, Pseq([
+			0,0,0,0,
+			0,0,0,0,
+			1,0,0,0,
+			0,0,0,0,
+		],inf),
+	))
+)
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0,0,0, -2b, -2b,-3,-2,-2],inf).stutter(1),
+	\isRest, Pseq([
+		Plazy({ arg ev;
+			var ss;
+			
+			ss = {
+				Pseq([
+					0,1,1,1, 1,1,1,1,
+				].scramble.debug("ekk"),1);
+			} ! 4;
+
+			Pseq([0,0,1,1, 0,1,0,2].collect({ arg x; ss[x] }),1);
+
+		},1),
+	],inf).coin.not,
+	//\scale, Scale.dorian,
+	\legato, 0.1,
+	\out, BusDef(\fx2),
+	\ctranspose, 1,
+	\octave, Prand([3,3,3,3,4,5],inf),
+	\dur, 1/2,
+	\amp, 0.1
+)).play;
+);
+
+100.do { arg x; Spec.add(\wet+++x, \unipolar.asSpec) }
+
 /////////////
 
-
-
 (
-x = SynthDef( "hoover", { |freq = 220, amp = 0.1, lgu = 0.1, lgd = 1,
-gate = 1|
-    var pwm, mix, env;
+RandDelayNetwork(\comp).make_graph = { arg in, code, rdnkey;
+	var sig;
+	var del, shi;
+	var del2, shi2;
+	var distamp;
+	var hasFreq, afreq;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var pitchlag;
+	var pitchmix;
+	var fb;
+	rdnkey = rdnkey ? \default;
+	code = code ? "4--";
+	sig = in;
+	fb = \fb.kr(0.01);
+	del = \delay.kr(1,0.1);
+	del2 = \delay2.kr(1,0.1);
+	shi = \shift.kr(1);
+	shi2 = \shift2.kr(1);
+	distamp = \distamp.kr(1);
+	pitchlag = \pitchlag.kr(1/8) / TempoClock.default.tempo;
+	pitchmix = \pitchmix.kr(0.5);
 
-    freq = freq.cpsmidi.lag(lgu,lgd).midicps;
-    freq = SinOsc.kr( { 2.9 rrand: 3.1 }!3, {2pi.rand}!3 ).exprange(
-0.995, 1.005 ) * freq;
-    pwm = SinOsc.kr( {2.0 rrand: 4.0}!3 ).range(0.125,0.875);
+	sig = LPF.ar(sig, \prelpf.kr(17000));
+	sig = HPF.ar(sig, \prehpf.kr(17));
 
-    // the saw/pulses
-    mix = (LFSaw.ar( freq * [0.25,0.5,1], 1 ).range(0,1)
-        * (1 - LFPulse.ar(freq * [0.5,1,2], 0, pwm))).sum * 0.1;
+	sig = sig + (LocalIn.ar(2) * fb);
 
-    // the bass
-    mix = mix + LFPar.ar( freq * 0.25, 0, 0.1 );
+	sig = LPF.ar(sig, \lpf.kr(17000));
+	sig = HPF.ar(sig, \hpf.kr(17));
+	sig = RandDelayNetwork(rdnkey).ar(sig, code);
 
-    // eq for extra sharpness
-    mix = BPeakEQ.ar( mix, 6000, 1, 3 );
-    mix = BPeakEQ.ar( mix, 3500, 1, 6 );
+	sig1 = sig.tanh * \fbdistamp.kr(1/2.1);
+	sig = SelectX.ar(\fbdistmix.kr(1), [sig, sig1]);
 
-    // kind of chorus
-    mix = mix + CombC.ar( mix.dup, 1/200,
-        SinOsc.kr( 3, [0.5pi, 1.5pi] ).range(1/300,1/200),
-        0.0 ) * 0.5;
+	sig = Compander.ar(sig, in, \cpt.kr(0.4), \cpbelow.kr(1.001), \cpabove.kr(0.9), \cpclamp.kr(0.01), \cprelax.kr(0.1));
 
-    env = EnvGen.kr( Env.asr, gate );
+	sig = Limiter.ar(sig);
 
-    Out.ar( 0, mix * env * amp );
-}).add;
+	sig1 = sig;
+	#afreq, hasFreq = Pitch.kr(sig1).flop;
+	sig1 = BRF.ar(sig1, afreq.lag(pitchlag));
+	#afreq, hasFreq = Pitch.kr(sig1).flop;
+	sig1 = BRF.ar(sig1, afreq.lag(pitchlag));
+	sig = SelectX.ar(pitchmix, [sig, sig1]);
+
+	LocalOut.ar(sig);
+	sig = LPF.ar(sig, \postlpf.kr(17000));
+	sig = HPF.ar(sig, \posthpf.kr(17));
+	sig = Compander.ar(sig, in, \cpt2.kr(0.4), \cpbelow2.kr(1.001), \cpabove2.kr(0.9), \cpclamp2.kr(0.01), \cprelax2.kr(0.1));
+	sig = Limiter.ar(sig);
+	sig = sig * \wetamp.kr(1);
+	//sig.debug("end sig");
+	sig;
+};
 )
 
-this is a hoover sound fetched from this list,
-which after a further discussion I had in here I managed to run and
-alter while running with the bellow approach
-(
-p = PbindProxy(\amp, 0.1, \lgu, 0.1, \lgd, 1, \dur, 0.2, \midinote, 80);
-q = Pchain(Pmono(\hoover, \dummy, 0), p).play;
-~dur = Pseq([0.2, 2, 0.2, 0.5] * 0.125, inf);
-~lgu = Pseq([0, 5, 1.15, 2], inf);
-~lgd = Pseq([ 1.1, 5.1, 0.5, 2.1], inf);
-~midinote = Pseq([25, 120, 92, 70] , inf);
-)
-(
-p.set(\amp, 0.1, \dur, ~dur, \lgu, ~lgu, \lgd, ~lgd, \midinote, ~midinote);
-)
-p.quant = 2
-
-up to here everything is understandable and works as expected.
-but when I run the bellow code multiple times (really fast or not) I get
-different sound results!
-Why? I get that it wouldn't be in sync, so each time I fire it'll I
-brake the previous cycle, but why the sound result is different? What I
-am missing?
-(
-~dur = Pseq([0.5, 1, 0.4, 0.1] * 0.125, inf);
-p.set(\dur, ~dur);
-)
-
-(
-x = SynthDef( "hoover", { |freq = 220, amp = 0.1, lgu = 0.1, lgd = 1,
-gate = 1|
-    var pwm, mix, env;
-
-    freq = freq.cpsmidi.lag(lgu,lgd).midicps;
-    freq = SinOsc.kr( { 2.9 rrand: 3.1 }!3, {2pi.rand}!3 ).exprange(
-0.995, 1.005 ) * freq;
-    pwm = SinOsc.kr( {2.0 rrand: 4.0}!3 ).range(0.125,0.875);
-
-    // the saw/pulses
-    mix = (LFSaw.ar( freq * [0.25,0.5,1], 1 ).range(0,1)
-        * (1 - LFPulse.ar(freq * [0.5,1,2], 0, pwm))).sum * 0.1;
-
-    // the bass
-    mix = mix + LFPar.ar( freq * 0.25, 0, 0.1 );
-
-    // eq for extra sharpness
-    mix = BPeakEQ.ar( mix, 6000, 1, 3 );
-    mix = BPeakEQ.ar( mix, 3500, 1, 6 );
-
-    // kind of chorus
-    mix = mix + CombC.ar( mix.dup, 1/200,
-        SinOsc.kr( 3, [0.5pi, 1.5pi] ).range(1/300,1/200),
-        0.0 ) * 0.5;
-
-    env = EnvGen.kr( Env.asr, gate );
-
-    Out.ar( 0, mix * env * amp );
-}).add;
-)
-
-this is a hoover sound fetched from this list,
-which after a further discussion I had in here I managed to run and
-alter while running with the bellow approach
-(
-p = PbindProxy(\amp, 0.1, \lgu, 0.1, \lgd, 1, \dur, 0.2, \midinote, 80);
-q = Pchain(Pmono(\hoover, \dummy, 0), p).play;
-~dur = Pseq([0.2, 2, 0.2, 0.5] * 0.125, inf);
-~lgu = Pseq([0, 5, 1.15, 2], inf);
-~lgd = Pseq([ 1.1, 5.1, 0.5, 2.1], inf);
-~midinote = Pseq([25, 120, 92, 70] , inf);
-)
-(
-p.set(\amp, 0.1, \dur, ~dur, \lgu, ~lgu, \lgd, ~lgd, \midinote, ~midinote);
-)
-
-up to here everything is understandable and works as expected.
-but when I run the bellow code multiple times (really fast or not) I get
-different sound results!
-Why? I get that it wouldn't be in sync, so each time I fire it'll I
-brake the previous cycle, but why the sound result is different? What I
-am missing?
-(
-~dur = Pseq([0.5, 1, 0.5, 0.8] * 0.125, inf);
-p.set(\dur, ~dur);
-)
+RandDelayNetwork(\comp).make(\fx1, "5--", BusDef(\fx1, \audio));

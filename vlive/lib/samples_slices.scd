@@ -12,5 +12,5 @@
 // END
 
 
-Veco.load_lib("soundfile.scd");
-~select_sample_position.(BufDef(\amen).path);
+//Veco.load_lib("soundfile.scd");
+//~select_sample_position.(BufDef(\amen).path);

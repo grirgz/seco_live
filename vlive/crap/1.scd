@@ -1,5 +1,306 @@
 
 (
+Ndef(\grai, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var clk, bufnum, pitch_stretch=1, pos=0, dur=0.1;
+	var xf;
+	xf = 500 * SinOsc.kr(1/13).range(1/34,1);
+	xf = 77;
+	clk = Impulse.ar(xf);
+	bufnum = BufDef.mono(\oeuf, "field/oeuf.flac");
+	bufnum = BufDef.mono(\crepe, "field/crepe.flac");
+	bufnum = BufDef.mono(\scream, "vipere/scream.flac");
+	bufnum = BufDef.mono(\rocksteady, "vipere/rocksteady.flac");
+	bufnum = BufDef.mono(\amen, "vipere/amenbreak.wav");
+	pos = SinOsc.kr(1/2).range(0,0.01) + SinOsc.kr(1/43).range(0,1);
+	pos = LFNoise1.kr(1).range(0,0.01) + SinOsc.kr(1/143).range(0,1);
+	pos = Latch.ar(SinOsc.kr(1/12).range(0,0.01), clk) + SinOsc.kr(1/43).range(0,1);
+	pos = Demand.ar(clk, 0, Dseq([
+		SinOsc.kr(1/4).range(0,0.01),
+		SinOsc.kr(1/15).range(0,0.1),
+		SinOsc.kr(1/7).range(0,0.01),
+	],inf))+ LFSaw.kr(1/43).range(0,1);
+	pos = Demand.ar(clk, 0, Dseq(
+		{ LFNoise1.kr(1/122).range(0.0,1.0) + rrand(0.31,0.01) } ! 4
+	,inf));
+	pos = SinOsc.kr(1/2).range(0,0.01) + SinOsc.kr(1/43).range(0,1);
+	pos = 0.3;
+	pos = MouseX.kr(0,1);
+	//pos.poll;
+	pitch_stretch = LFNoise1.ar(1)/10 + 1;
+	pitch_stretch = 1;
+	dur = SinOsc.kr(1/7).exprange(0.1,1);
+	dur = 0.1;
+	sig = TGrains3.ar(2, clk, bufnum, pitch_stretch, pos , dur, pan, 1);
+	sig = sig * 1;
+	sig= Limiter.ar(sig, 1);
+}).play;
+);
+
+
+s.sendMsg(\b_allocRead, 10, "sounds/a11wlk01.wav");
+
+(
+{
+    var b = 10, trate, dur, clk;
+    trate = MouseY.kr(2,200,1);
+    dur = 4 / trate;
+    clk = Dust.kr(trate);
+    TGrains2.ar(2, clk, 10, 1.0, LFNoise2.kr(0.5).range(0, BufDur.kr(b)), dur, 0, TRand.kr(0.1, 0.2, clk), MouseX.kr(0.003, 0.01), 0.007, 4);
+}.play;
+)
+
+
+
+{ LFPulse.ar(100) }.plot(4/100)
+{ LFPulse.ar(100, 0, MouseX.kr(0,1)) ! 2 * 0.1 }.play
+
+
+- lasagnes
+- spaget
+- pizza
+- viande comme hier raté + riz
+
+- oeuf + patate
+- omelette + patate
+
+
+
+(
+x = Pbind(
+	\instrument, \default,
+	\freq, 200,
+	\dur, inf,
+	\amp, 0.1
+);
+)
+
+~s = x.asStream;
+~e = ~s.next(Event.default).play;
+~e.release
+~e
+EventPlayer
+Event
+
+
+
+flopTogether(34, [1,2])
+
+Ndef
+
+12.midiratio
+{ ( 400 * ( LFNoise0.kr(1).poll * 12 ).midiratio ).poll }.play
+400 * ( 1 * 12 * 1).midiratio
+
+(
+//you must have run this code before any of the examples below
+f= BBCutBuffer(Platform.resourceDir +/+ "sounds/break.aiff",8);
+
+TempoClock.default.tempo_(2.4);
+)
+
+(   //default index function (free random choice)
+
+BBCut2(CutBuf2(f),MotifCutProc.new(
+[           //array of Motifs
+[[1/2],[1/8]], //first Motif
+]
+)).play;
+
+)
+
+
+
+TempoClock.default.tempo = 2
+(   //defaults
+var sf;
+
+Routine.run({
+sf= BBCutBuffer(Platform.resourceDir +/+ "sounds/break2.aiff",4);
+
+s.sync;
+
+//3.33bps= 200 bpm
+BBCut2(CutBuf2(sf),SQPusher2.new).play(TempoClock.default);
+
+});
+)
+
+Quarks.install("BBCut")
+Quarks.install("https://github.com/snappizz/BBCut")
+
+
+
+(
+var sf;
+
+Routine.run({
+
+sf= BBCutBuffer(Platform.resourceDir +/+ "sounds/break.aiff", 8);
+
+s.sync; //this forces a wait for the Buffer to load
+
+BBCut2(CutBuf2(sf, 0), ChooseBlockProc(16, 32), BBCutQuantise1(1/8)).play(1.6);
+});
+
+)
+
+f= BBCutBuffer(Platform.resourceDir +/+ "sounds/break.aiff", 8);
+
+(   //init settings
+~plength= 1;
+~subfunc= {[8, 16].choose};
+~permfunc= {|i| i%7%3};
+~stutfunc= {|i| i%8};
+)
+
+a= BBCut2(CutBuf2(f), BBCPPermute(~plength, {~subfunc.value}, {|i, n| ~permfunc.value(i, n)}, {|i| ~stutfunc.value(i)})).play(2.3)
+
+(
+~cnt= 0;
+~subfunc= {~cnt= ~cnt+1; [4, 8][(~cnt%8).div(7)]};
+~permfunc= {|i| i%7%5};
+~stutfunc= {|i| i%5};
+)
+
+(
+~plength= 4;
+~subfunc= {1.rrand(8)};
+~permfunc= {|i, n| (8%n/(i+1)).asInteger};
+~stutfunc= {|i| i|4};
+)
+
+(
+~plength= 1;
+~subfunc= 20;
+~permfunc= {|i, n| [n-i, n][i.div(6)%2]};
+~stutfunc= {|i| [i, 0].wchoose([0.97, 0.03])};
+)
+
+(
+//wait for it to grow
+~cnt= 0;
+~plength= 8;
+~subfunc= 4;
+~permfunc= {|i, n| i};
+~stutfunc= {|i| ~cnt= ~cnt+1; ~cnt+i%(~cnt.div(64)+2)};
+)
+
+a.end
+
+
+f= BBCutBuffer(Platform.resourceDir +/+ "sounds/break.aiff", 8);
+
+(   //init settings
+~blockfunc= 1;
+~cutfunc= 24;
+~bpsd= {|i| i%8/4};
+)
+
+a= BBCut2(CutBuf2(f), ChooseBlockProc({|left, len| ~blockfunc.value(left, len)}, {|len| ~cutfunc.value(len)}, {|i| ~bpsd.value(i)})).play(2.4);
+
+(
+~blockfunc= 4;
+)
+
+(
+~cutfunc= {2.rrand(12)};
+~bpsd= {|i| i%4/4};
+)
+
+(
+~blockfunc= {[2, 3].wchoose([0.9, 0.1])};
+~cutfunc= {|len| 1+len};
+~bpsd= {|i| [3, 1, 3, 1, 3, 1, 4].wrapAt(i)};
+)
+
+(   //practice the drums
+~cnt= 1;
+~blockfunc= 1;
+~cutfunc= {~cnt};
+~bpsd= {|i| ~cnt= i%8+1; ~cnt.div(2)+1}
+)
+
+(
+~blockfunc= {[2, 4, 8][~cnt%3]};
+~bpsd= {|i| ~cnt= ~cnt+i%8+1; 4.div(~cnt)+1}
+)
+
+a.end
+
+
+
+(
+var sf, clock;
+
+clock= ExternalClock(TempoClock(2.5));
+
+clock.play;
+
+Routine.run({
+
+sf= BBCutBuffer(Platform.resourceDir +/+ "sounds/break.aiff",8);
+
+s.sync; //this forces a wait for the Buffer to load
+
+BBCut2(CutBuf1(sf), BBCutProc11.new).play(clock);
+});
+
+)
+
+
+(
+~a_function = { arg item;
+	item.debug("value of item");
+	~a_var = 4;
+	item.debug("value after assign of item");
+};
+~a_var = 10;
+~a_var.debug("value before function");
+~a_function.value(~a_var);
+~a_var.debug("value after end of function");
+)
+
+
+(
+~a_function = { arg item;
+	item.debug("value of item");
+	item = 4;
+	item.debug("value after assign of item");
+};
+~a_var = 10;
+~a_var.debug("value before function");
+~a_function.value(~a_var);
+~a_var.debug("value after end of function");
+)
+
+
+O
+(
+c =[[]];
+10.do {
+    c.collect { |item i|
+        item.debug(\item_before_add_ ++ i);
+        c[i] = item.add([0,1].choose).debug("arr");
+        item.debug(\item_after_add_ ++ i);
+        item;
+    };
+}
+)
+
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = LFSaw.ar(100 * 100 * XLine.kr(0.001,40,10));
+	sig = sig + SinOsc.ar(200);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+100 * 100 
+
+(
 SynthDef("AM", { arg freq = 440, modfreq = 5, amp = 0.5, attack = 0.01, decay = 0.3, release = 0.1, pos = 0, gate = 1, phaserfreq = 0, phaserdepth = 0.3;
        var phaser, carrier, modulator, env;
        phaser = SinOsc.ar(freq: phaserfreq, mul: phaserdepth*modfreq, add: modfreq);

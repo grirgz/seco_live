@@ -1,5 +1,7 @@
 
 (
+BufDef(\amen, "vipere/amenbreak.wav");
+~t = TempoClock.default.tempo;
 SynthDef(\skat, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum=0;
 	var sig;
 	var phase;
@@ -92,6 +94,7 @@ Pdef(\skat2,
 ).play;
 );
 
+Pdef(\skat).stop
 Pdef(\skat2).stop
 (
 
@@ -385,6 +388,9 @@ Pseq([
 ])
 
 
+~t
+~amen_ar
+"~/code/sc/seco/vlive/lib/samples_slices.scd".standardizePath.load
 ~amen_ar = ~amen_slices.keys.asArray.sort.collect({ arg k; ~amen_slices[k][0] })
 		(
 		Pdef(\kkk, Pbind(
@@ -423,7 +429,7 @@ Pseq([
 			\sustain, Pstep(Pseq([
 				Pseq([2],1) * 4 * Pkey(\dur),
 			],inf)/4, 1/2) / ~t,
-			\out, BusDef(\fx1),
+			//\out, BusDef(\fx1),
 			\amp, 0.3,
 		)).play
 		)
@@ -562,6 +568,92 @@ Pseq([
 				],1) * 4 * Pkey(\dur),
 			],inf)/4, 1/2) / ~t,
 			\out, BusDef(\fx1),
+			\amp, 0.2,
+		)).play
+		)
+
+
+//////////////////////////////////////:
+
+
+
+		(
+		Pdef(\kkk, Pbind(
+			\instrument, \skatsec,
+			\bufnum, BufDef(\amen),
+			\degree, Pseq([0],inf),
+			\start,  Pseq([
+				2,0,4,1,
+			].collect({ arg x;~amen_ar[x]}),inf),
+			\sustain, 0.3,
 			\amp, 0.3,
 		)).play
 		)
+
+		(
+		Pdef(\kkk, Pbind(
+			\instrument, \skatsec,
+			\bufnum, BufDef(\amen),
+			\degree, Pseq([0],inf),
+			\start,  Pseq([
+				0,1,2,3,
+			].collect({ arg x;~amen_ar[x]}),inf),
+			\sustain, 0.3,
+			\dur, 1/4,
+			\amp, 0.3,
+		)).play
+		)
+
+
+
+		b = Buffer.alloc(s,1024,1); //for sampling rates 44100 and 48000
+
+(
+SynthDef(\help_beattrack2,{
+var trackb,trackh,trackq,tempo;
+var source;
+var bsound,hsound,qsound;
+var bufnum = BufDef(\amen);
+var pos = 0, trigger=1, speed=1;
+
+source= PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufFrames.kr(bufnum)), doneAction:2, loop: 0);
+
+#trackb,trackh,trackq,tempo=BeatTrack.kr(FFT(b, source));
+
+bsound= Pan2.ar(LPF.ar(WhiteNoise.ar*(Decay.kr(trackb,0.05)),1000),0.0);
+
+hsound= Pan2.ar(BPF.ar(WhiteNoise.ar*(Decay.kr(trackh,0.05)),3000,0.66),-0.5);
+
+qsound= Pan2.ar(HPF.ar(WhiteNoise.ar*(Decay.kr(trackq,0.05)),5000),0.5);
+
+Out.ar(0, bsound+hsound+qsound);
+}).play;
+)
+
+
+(
+a= SynthDef(\help_beattrack,{arg vol=1.0, beepvol=1.0, lock=0;
+var in, fft, resample;
+var trackb,trackh,trackq,tempo;
+var bsound,hsound,qsound, beep;
+var bufnum = BufDef(\amen);
+
+in= PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum),1,0,1)[0];
+//in = SoundIn.ar(0);
+
+fft = FFT(b, in);
+
+#trackb,trackh,trackq,tempo=BeatTrack.kr(fft, lock);
+tempo.poll;
+
+bsound= Pan2.ar(LPF.ar(WhiteNoise.ar*(Decay.kr(trackb,0.05)),1000),0.0) * 2;
+
+hsound= Pan2.ar(BPF.ar(WhiteNoise.ar*(Decay.kr(trackh,0.05)),3000,0.66),-0.5);
+
+qsound= Pan2.ar(HPF.ar(WhiteNoise.ar*(Decay.kr(trackq,0.05)),5000),0.5);
+
+//Out.ar(0, bsound+hsound+qsound + ( in * 1/2 ));
+Out.ar(0, bsound + ( in * 1/2 ));
+}).play
+)
+

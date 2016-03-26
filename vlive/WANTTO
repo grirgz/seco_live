@@ -1,3 +1,6 @@
+TGrains accept Demand.ar in pos but not TGrains2 (in fact, it seems Tgrains2 doesnt accept ugen as pos input)
+/////////////////
+
 (isPlaying:true).isPlaying return always false, should remove ^ in Event.sc
 
 ///////////////
