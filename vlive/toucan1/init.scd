@@ -1,6 +1,7 @@
 Veco.load_lib("main.scd");
 Veco.load_lib("synth.scd");
-Veco.load_file("drumkit.scd");
+Veco.exec_file("drumkit.scd");
+Veco.exec_file("control.scd");
 
 Veco.main.board_size = Point(32,64);
 ~set_default_quant.(8);
@@ -9,8 +10,13 @@ Veco.main.board_size = Point(32,64);
 
 // END
 
+Pdef(~name+++\mod).clear
+
 Veco.main.fadeout_time = 16;
 
 ~t
 Pdef.defaultQuant
 Ndef.defaultQuant
+
+Pdef(~name).quant
+Pdef(~name+++\mod).quant

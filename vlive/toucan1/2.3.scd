@@ -1,5 +1,5 @@
 
-Pdef(~name+++\mod, Pbind(
+Pdef(~name+++\pre, Pbind(
 	\instrument, \zhat,
 	\degree, Pseq([0],inf),
 	\dur, 1/2,

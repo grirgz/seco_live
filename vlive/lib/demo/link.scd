@@ -51,7 +51,7 @@ Pdef(~name+++\pre, Pbind(
 ///////////////////////////////////////////////////////////////////////////////////////////////////////// 
 
 
-// put this in a node to launch other clips
+// put this in a node to stop other clips when node is stopped
 
 ~name = \6;
 

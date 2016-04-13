@@ -1,5 +1,5 @@
 
-Pdef(~name+++\mod, 
+Pdef(~name+++\pre, 
 	Pbind(
 		\instrument, \zkick,
 		\env1, Pseq([

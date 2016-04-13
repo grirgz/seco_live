@@ -191,7 +191,7 @@
 		self.map_node_by_index(idx);
 	},
 
-	map_send_to_knobs: { arg self, index;
+	map_send_to_knobs: { arg self, index, prefix=\send;
 		var ofx = self.main.clip_offset.x;
 		ofx.debug("map_send_to_knobs");
 		8.do { arg x;
@@ -202,7 +202,7 @@
 			if(node.is_present) {
 				ndef = Ndef((uname++'mixer').asSymbol);
 				if(ndef.source.notNil) {
-					MIDIBoard.map(key, Ndef((uname++'mixer').asSymbol), (\send++index).asSymbol, self.level_spec);
+					MIDIBoard.map(key, Ndef((uname++'mixer').asSymbol), (prefix++index).asSymbol, self.level_spec);
 				} {
 					debug("no mixer so no send");
 					MIDIBoard.unmap(key);
@@ -210,6 +210,33 @@
 				}
 			}
 		};
+	},
+
+	// use ~veco_sendpad
+	map_sendpad_to_faders: { arg self, index, midiprefix=\s;
+		var ofx = self.main.clip_offset.x;
+		ofx.debug("map_send_to_knobs");
+		8.do { arg x;
+			var node = self.main.get_node_by_index(ofx+x);
+			var uname = node.uname;
+			var ndef;
+			var key = (midiprefix++(x+1)).asSymbol;
+			if(node.is_present) {
+				ndef = Ndef((uname++'mixer').asSymbol);
+				if(ndef.source.notNil) {
+					~veco_sendpad.install_sender(uname, index);
+					MIDIMap(key, ~veco_sendpad.get_send_param(uname, index));
+				} {
+					debug("no mixer so no send");
+					MIDIMap(key, nil);
+					//MIDIBoard.map((\s++(x+1)).asSymbol, Ndef((uname++'mixer').asSymbol), \amp, \unipolar.asSpec);
+				}
+			}
+		};
+	},
+
+	map_sendpad_to_knobs: { arg self, index;
+		self.map_sendpad_to_faders(index, \k)
 	},
 
 	map_fader_to_vol: { arg self, node, uname, x;

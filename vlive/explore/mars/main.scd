@@ -63,8 +63,17 @@ Pdef(\part2).stop;
 
 RandDelayNetwork(\default).make(\fx1, "5--", BusDef(\fx1, \audio));
 Ndef(\fx1).play;
+Ndef(\fx1).stop;
 Ndef(\fx1).edit;
-RandDelayNetwork(\default).make(\fx1, "5-T1KJ-J6JA5", BusDef(\fx1, \audio)); // cool distobass
+RandDelayNetwork(\default).make(\fx1, "5-T1KJ-J6JA", BusDef(\fx1, \audio)); // cool distobass
+RandDelayNetwork(\default).make(\fx1, "5-AGRI-GC5D", BusDef(\fx1, \audio)); // 
+RandDelayNetwork(\default).make(\fx1, "5-G3I0-4E9V", BusDef(\fx1, \audio)); // tak
+
+
+Ndef(\drap).play
+Pdef(\main, Pdef(\part2_wet)).play
+Pdef(\main, Pdef(\part1_wet)).play
+Pdef(\main, Pdef(\part1_wet)).stop
 
 
 /////////////:

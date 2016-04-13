@@ -13,7 +13,7 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	var size = Veco(~name).lib.dsize;
 
-	sig = DelayL.ar([in], \maxdelay.kr(1) / ~t, 2**(\delaytab.kr(1!size))/128 / ~t);
+	sig = DelayL.ar([in], \maxdelay.kr(1) / ~t, 2**(\delaytab.kr(1!size))/128 * \delay.kr(1) / ~t);
 	sig = sig * \amptab.kr(1!size);
 	//sig = sig + in;
 
@@ -33,6 +33,7 @@ Ndef(~name+++\fx).addSpec(\amptab, XArraySpec( ControlSpec(0.001,1,\exp) ! Veco(
 
 (
 ParamGroup([ 
+	Param( Ndef(~name+++\fx), \delay),
 	Param( Ndef(~name+++\fx), \delaytab),
 	Param( Ndef(~name+++\fx), \amptab),
 ]).edit

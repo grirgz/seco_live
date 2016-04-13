@@ -933,11 +933,20 @@ if(s.volume.volume == 0) {
 };
 
 ~set_macro = { arg key, obj, member, spec, register=true;
+	var param;
 	spec = spec.asSpec;
-	if(obj.class == Ndef) {
+	if(obj.class == Ndef and: { spec.notNil }) {
 		obj.addSpec(member, spec);
 	};
-	MIDIMap(key, Param(obj, member, spec));
+	if(obj.isKindOf(Param)) {
+		param = obj;
+		obj = param.target;
+		member = param.property;
+		spec = param.spec;
+	} {
+		param = Param(obj, member, spec);
+	};
+	MIDIMap(key, param);
 	if(register == true) {
 		if(Veco(~name).lib.macros.isNil) {
 			Veco(~name).lib.macros = List.newClear(20);

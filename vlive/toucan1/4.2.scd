@@ -1,5 +1,6 @@
 BufDef(\march, "vipere/march.flac");
 BufDef(\table, "field/table.flac");
+BufDef(\moeten, "voices/02_moeten.flac");
 (
 // xTAGS: multipdef, pdef, oscsampler, snare, perc
 

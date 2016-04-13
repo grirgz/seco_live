@@ -6,13 +6,13 @@ Veco.main.board_size = Point(8,64);
 ~set_project_tempo.(TempoClock.default.tempo);
 ~load_standard_quickpad.();
 
+
+// END
 {
 	var c1 = Veco('y').uname;
 	MIDIMap(\c1, { MIDIMap(\k9, PresetListMorpherDef(c1)) })
 }.value;
 
-
-// END
 
 TempoClock.default.tempo
 ~define_effects.(['56','57','58','59']);

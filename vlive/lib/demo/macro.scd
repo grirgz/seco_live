@@ -1,3 +1,31 @@
+
+// icon is controlled by ~midi_macro_manager instance of ~class_midi_macro_manager
+// the view is ~midi_macro_manager_view = ~class_midimap_icon_view.new(~midi_macro_manager);
+// all defined in lib/midi.scd
+
+~midi_macro_manager_view = ~class_midimap_icon_view.new(~midi_macro_manager);
+
+
+//~midi_macro_manager.map_node_macro_to_knobs(Veco('fxboard1-34')) // dont work :(
+Veco.project_slots[0][\veco].get_node_by_index(34).lib.macros // need a way quicker to access
+
+// map some node to fx
+~rdnfx1 = Veco.project_slots[0][\veco].get_node_by_index(34);
+~rdnfx2 = Veco.project_slots[0][\veco].get_node_by_index(35);
+~midi_macro_manager.map_node_macro_to_knobs(~rdnfx1);
+MIDIdef(\c1, { ~midi_macro_manager.map_node_macro_to_knobs(~rdnfx1); })
+
+
+
+//ProjectDef(\fxboard1)[34].lib.macros would be cool
+//ProjectDef(\fxboard1)[\drumrack] by file name ?
+Veco('fxboard1-34')
+~veco.split_puname('fxboard1-34')
+~veco.prefixed_uname_mode
+~veco.get_node_by_uname('fxboard1-34')
+
+
+
 /////////////////////////////////////////////////////////////////
 // Pdef Pattern macro
 

@@ -11,11 +11,11 @@ Ndef(~name+++\fx).put(0, { arg amp=0.1;
 	var size = Veco(~name).lib.dsize;
 	var bufnum = LocalBuf(s.sampleRate * 2/~t, 2);
 	var speed=1, pos=0, doneAction=0, loop=1;
-	var delay = 1/4/~t;
+	var delay = 1/2/~t;
 	var trigger = Trig.kr(Impulse.kr(1/delay), 0.01);
 
 	sig = in;
-	RecordBuf.ar(sig, bufnum, offset:0, recLevel:0.9, preLevel:0.1, run:1, loop:1, trigger:trigger);
+	RecordBuf.ar(sig, bufnum, offset:0, recLevel:0.9, preLevel:0.1, run:1, loop:1, trigger:1);
 	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed * -1, trigger, startPos: (pos*BufFrames.kr(bufnum)), doneAction:doneAction, loop: loop);
 
 	//sig = sig + in;

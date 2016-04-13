@@ -1,8 +1,8 @@
 
 (
 TempoClock.default.tempo = 160/60;
-Pdef.defaultQuant = 4;
-Ndef.defaultQuant = 4;
+Pdef.defaultQuant = 8;
+Ndef.defaultQuant = 8;
 ~t = TempoClock.default.tempo;
 );
 
