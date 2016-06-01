@@ -42,6 +42,7 @@ WindowLayout({
 
 (
 // NOT OK
+// seems to be solved in 3.7.2
 WindowLayout({
 	var size = 16;
 	var but = List.newFrom(0 ! size);
@@ -89,7 +90,7 @@ WindowLayout({
 )
 
 (
-// NOT OK
+// NOT OK (but no fixed width)
 WindowLayout({
 	var size = 8;
 	var but = List.newFrom(0 ! size);
@@ -113,6 +114,7 @@ WindowLayout({
 
 (
 // NOT OK
+// seems to be solved in 3.7.2
 WindowLayout({
 	var size = 8;
 	var but = List.newFrom(0 ! size);
@@ -242,6 +244,7 @@ WindowLayout({
 (
 // test with GridLayout widgets
 // NOT OK
+// seems to be solved in 3.7.2
 WindowLayout({
 	var size = 32;
 	var but = List.newFrom(0 ! size);

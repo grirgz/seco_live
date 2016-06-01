@@ -73,6 +73,7 @@ RandDelayNetwork(\default).make(\fx1, "5-G3I0-4E9V", BusDef(\fx1, \audio)); // t
 Ndef(\drap).play
 Pdef(\main, Pdef(\part2_wet)).play
 Pdef(\main, Pdef(\part1_wet)).play
+Pdef(\main, Pdef(\part1_dry)).play
 Pdef(\main, Pdef(\part1_wet)).stop
 
 

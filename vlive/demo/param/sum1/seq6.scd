@@ -247,7 +247,9 @@ Pdef(\plop, (bla:1) <> Pbind(
 	~pt = ~multiTimeline.new;
 	~pt.makeWindow;
 )
+
 				~stepTimeline.new(\bla).timeline
+				~stepTimeline.new(\bla).edit
 
 
 (

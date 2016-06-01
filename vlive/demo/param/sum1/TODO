@@ -1,4 +1,6 @@
 
+// copied in zim
+
 ////////// bugs
 
 - envTimeline: when last node is on end line, it's ignored

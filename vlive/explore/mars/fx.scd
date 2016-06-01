@@ -234,7 +234,7 @@ RandDelayNetwork(\comp).make(\fx1, "5--", BusDef(\fx1, \audio));
 	1987, 1993, 1997, 1999, 2003, 2011, 2017, 2027, 2029, 2039, 2053, 2063,
 	2069, 2081, 2083, 2087, 2089, 2099
 ]; 
-~t = 1;
+//~t = 1;
 
 Ndef(\plop, { arg freq=200, pan=0, amp=0.1, lpf=100, fb=0.2, decay=0.2, fspread=0.1, delay=0.1, dpa=1;
 	var sig;

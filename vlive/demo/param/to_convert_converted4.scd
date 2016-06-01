@@ -93,7 +93,7 @@
 		makeLayout: { arg self;
 			var param_popup = PopUpMenu.new.items_(self.paramGroup.collect({ arg p; p.label }));
 
-			param_popup.action({})
+			param_popup.action({}); // TODO
 
 			self.seq = View.new;
 			self.update_seq;
@@ -115,7 +115,7 @@
 						}
 
 					}),
-				)
+				),
 				self.seq,
 			);
 			

@@ -1,3 +1,131 @@
+{Splay.ar(Ringz.ar(Impulse.ar([2, 1, 4], [0.1, 0.11, 0.12]), 140, [0.1, 0.1, 0.5])) * EnvGen.kr(Env([1, 1, 0], [120, 10]), doneAction: 2)}.play
+
+8,7,7,7,6,6,6,5,5,5,4,4,4,3,3,3,2,2,2,1,1,
+(
+~spiral = {
+	var dir = [1,0];
+	var list = List.new;
+	var idx = [-1,0];
+	var size = 8;
+	size.do { arg x;
+		[x, size].debug("x,s");
+		if(x==0, 1, 2).do {
+			(size-x).debug("seg").do {
+				idx = idx + dir;
+				list.add(idx.debug("idx"));
+			};
+			debug("rotate");
+			dir = [ -1 * dir[1], dir[0] ]; // rotate
+		};
+		debug("endseq");
+	};
+	list;
+};
+~spiral.();
+)
+
+~launchpad_device_id
+(
+MIDIClient.init;
+MIDIIn.connectAll;
+~lpOut = MIDIOut(0);
+~lpNoteNums = Array.fill([8,8], {|i,j| j+(i*16) });
+)
+
+~lpNoteNums.at(0,1)
+~lpNoteNums[0,1]
+
+(
+var path = {
+	var dir = [1,0];
+	var list = List.new;
+	var idx = [-1,0];
+	var size = 8;
+	size.do { arg x;
+		if(x==0, 1, 2).do {
+			(size-x).do {
+				idx = idx + dir;
+				list.add(idx);
+			};
+			dir = [ -1 * dir[1], dir[0] ]; // rotate 
+		};
+	};
+	list;
+}.value.collect({ arg x; x[0]+(x[1]*16) });
+
+r = Routine({
+	inf.do{
+		var velocity = [127, 120, 107].choose;
+		path.do{|note, i|
+			~lpOut.noteOn(~lpChan, note, velocity);
+			0.015.wait;
+			~lpOut.noteOff(~lpChan, note, velocity);
+		}
+	}
+});
+TempoClock.default.sched(0, r);
+)
+
+
+(
+var path = {
+	var dir = [1,0];
+	var list = List.new;
+	var idx = [-1,0];
+	var size = 8;
+	size.do { arg x;
+		if(x==0, 1, 2).do {
+			(size-x).do {
+				idx = idx + dir;
+				list.add(idx);
+			};
+			dir = [ -1 * dir[1], dir[0] ]; // rotate 
+		};
+	};
+	list;
+}.value.collect({ arg x; x[0]+(x[1]*16) });
+r = Routine({
+	inf.do{
+		var velocity = 0;
+		path.do{|note, i|
+			~lpOut.noteOn(~lpChan, note, velocity);
+			velocity = ( velocity + 4 );
+			if(velocity > 16) {
+				velocity = velocity % 16 + 2;
+			};
+			0.015.wait;
+			//~lpOut.noteOff(~lpChan, note, velocity);
+		}
+	}
+});
+TempoClock.default.sched(0, r);
+)
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+[1,0]
+[0,1]
+[-1,0]
+[0,-1]
+
+cos(-pi/2)
+sin(-pi/2)
+
+~rot = { arg d; [ d[0]*0 - ( d[1]*1 ), d[0]*( -1 ) + ( d[1]*0 ) ] } // anti
+~rot = { arg d; [ d[1], -1 * d[0] ] }
+
+~rot = { arg d; [ d[0]*0 - ( d[1]*1 ), d[0]*( 1 ) + ( d[1]*0 ) ] }
+~rot = { arg d; [ -1 * d[1], d[0] ] }
+
+~rot = { arg d; [ d[0]*0 - ( d[1]*1 ), d[0]*( -1 ) - ( d[1]*( -1 ) ) ] }
+~rot.([1,0])
+~rot.([0,1])
+~rot.([-1,0])
+
+
 (
 ~primes = [ 1009, 1013, 1019, 1021, 1031, 1033, 1039, 1049, 1051, 1061, 1063,
 	1069, 1087, 1091, 1093, 1097, 1103, 1109, 1117, 1123, 1129, 1151, 1153,

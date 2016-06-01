@@ -108,6 +108,7 @@ w.onClose = {o.free; x.free};
 (
 w = Window.new.front;
 a = LevelIndicator(nil, nil).resize_(5);
+w.layout = VLayout(a);
 o = OSCFunc({arg msg;
     {
         a.value = msg[3].ampdb.linlin(-40, 0, 0, 1);

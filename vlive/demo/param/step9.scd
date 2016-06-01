@@ -1,3 +1,4 @@
+///////////////// in this file: mainly DrumRack code
 
 DrumRack(\plop).loadDrumrack(\newrack);
 (

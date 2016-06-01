@@ -1,13 +1,22 @@
+tips: easy creating array, no more List needed!
+self.pr_views = self.pr_views.add(view);
+
+/////////////
+
+
 TGrains accept Demand.ar in pos but not TGrains2 (in fact, it seems Tgrains2 doesnt accept ugen as pos input)
 /////////////////
 
 (isPlaying:true).isPlaying return always false, should remove ^ in Event.sc
+-> mail sent
 
 ///////////////
 
 
 http://doc.sccode.org/Overviews/Methods.html#foldExtend
 doc is wrong
+
+-> pull-request sent
 
 http://doc.sccode.org/Classes/SelectXFocus.html should precise range of focus argument
 ///////////////////////
@@ -33,7 +42,7 @@ why availableBounds don't match win.bounds when maximized ???
 why \on can't have latency set to Ref(nil)
 why release on a played \note event can't have latency set to Ref(nil)
 why Synth.basicNew can't release an already sent node
-why server crash if we send it an array like  s.sendMsg([15, ~notes[midinote][\id], \gate, 1.0]);
+why server crash if we send it an array like s.sendMsg([15, [1000,1001], \gate, 1.0])
 why \note want to release even if i set hasGate to false
 
 
@@ -174,12 +183,15 @@ don't increment exponentialy
 	l.calcDeltas return an error, seems to be named calcRelDur now
 	first example need this also
 
-//// can't archive Ndef
+///////////////////// can't archive Ndef
 Ndef(\lfo1, { SinOsc.kr(1).range(50,100)  });
 Archive.global.put(\testndef, Ndef(\lfo1))
 // reboot SC
 Archive.global.at(\testndef); // error because server is nil in Ndef:printOn
 
+-----> fixed in 3.7.1!!!
+
+/////////////////////////
 
 // EnvirGui : this seems to do nothing
 g.envir.putAll((b: -12, r: 1, s: 2, t: 3, u: 4, v: 5))
@@ -295,7 +307,8 @@ Ndef(~name+++\fx).set(\xfreq, 1);
 Ndef(~name+++\fx).lag(\xfreq, 8);
 
 
-// crash 
+//////////// crash 
+// issue sent!!!
 1.nextTimeOnGrid(1) 
 
 
@@ -337,116 +350,3 @@ une fonction pour definir un Ndef sans le lancer
 trouvé ! voir demo/ndef.scd
 
 
-/////////////////
-
-quelles sont les priorités ? les aspects de SC que j'aimerais mettre en lumiere, huiler, faciliter ?
-
-- la gestion des differents parametres des differents objets sonores (ndef, pdef)
-	- en faire des listes
-	- les mapper sur du midi
-	- les mapper sur des gui
-	- presets et morphing
-	----------> Param
-
-quelles sont les differentes facons de gerer le midi et la gui des parametres dans SC ?
-pareil pour les midi scores (notes et courbes de paam)
-il faut pouvoir les enregistrer, les afficher dans des belles timeline
-les 
-- ddwVoicer
-- ktlLoop
-- modality
-
-- systeme de mapping des numero midi vers des noms et des structures
-- systeme de mapping des noms midi vers des parametres
-- systeme de mapping des param vers des gui
-- enregistrement des events/notes
-- enregistrement des param
-
-
-//////////////////////////// ////////////////////////////
-model pour l'enregistrement et la lecture de
-	- parametres
-	- notes
-
-///////////////////////////// parametres
-/////////////// ndef
-
-
-Ndef(~name+++\fx).put(0, { arg amp=0.1;
-	var sig;
-	
-	sig = SinOsc.ar(\freq.kr(400)) ;
-	amp = amp * \gain.kr(1);
-	sig = Splay.ar(sig, \spread.kr(0.8), amp, \pan.kr(0));
-	sig;
-});
-
-ParamRecorder(~name).play;
-
-// END
-
-ParamRecorder(~name).paramsToRecord_([ Param(Ndef(~name+++\fx), \freq) ])
-ParamRecorder(~name).startRec // should be quantized
-ParamRecorder(~name).stopRec
-
-at the begining, ParamRecorder(~name).embedInStream (called automatically when used in Ndef \set -> construct) is an empty pattern so nothing is set and you can change freely the parameters
-recording is done by listening to \set signals (SimpleController)
-when recording ends, it change the content of ParamRecorder(~name).embedInStream to a list of event setting the parameters
-
-problem: if there is Param's from different Ndef, all is put into the wrong Ndef
-solution: this line is run by ParamRecorder : Ndef(~name+++\fx).put(10, \set -> ParamRecorder(~name));
-	just need a way to specify Ndef slot index
-	and ParamRecorder(~name).play; start it
-
-/////////////// pdef
-
-Pdef(~name +++ \pre, 
-	Pdef(~name+++\macro) <>
-	Pbind(
-		\freq, 100,
-	)
-);
-
-ParamRecorder(~name).play;
-
-// END
-
-
-ParamRecorder(~name).paramsToRecord_([ Param(Pdef(~name+++\macro), \freq) ])
-ParamRecorder(~name).startRec // should be quantized
-ParamRecorder(~name).stopRec
-
-at the begining, Pdef(~name+++\macro) contains an empty Pbind, ParamRecorder(~name).play; does nothing
-recording is done by listening to \set signals (SimpleController)
-when recording ends, there is a Pdef(~name+++\macro).setBusMode(\freq) and ParamRecorder(~name).play; play the contained event list which set the bus with (\type, \bus, \value, ..., \bus, Pdef(~name+++\macro).get(\freq))
-
-problem: if there is Param's from different Pdef, what happen ?
-solution: 
-	ParamRecorder(~name).play; run a Ppar running different stream setting the differents bus from all Pdefs
-
-
-problem: there is different Pdef and Ndef in paramsToRecord
-solution: 
-	ParamRecorder(~name).play; run a Ppar running different stream setting the differents bus from all Pdefs
-	and run also the differents Ndef \set
-
-
-///////////////////////////// notes
-/////////////// pdef
-
-
-Pdef(~name +++ \pre, 
-	Pdef(~name+++\score) <>
-	Pbind(
-		\freq, 100,
-	)
-);
-
-
-// END
-
-NoteRecorder(~name).
-
-
-///////////////// TODO on veco
-- 

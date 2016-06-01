@@ -16,6 +16,7 @@
 
 // workflow:
 // - create a sequencer, add some instr from preset lib
+~name = "plop"
 StepSeq(~name+++\main).edit
 // - compose a rytm with the stepseq gui
 // - add some Ndef.kr/Pseq on some keys of some drums lines

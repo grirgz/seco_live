@@ -3,6 +3,7 @@
 //////////////////////////// StepNoteEvent (isRest/isRest.coin.not, dur, legato/sustain)
 // SeqEventView ?
 
+ParamProto.init
 
 (
 Pdef.defaultQuant = 4;
@@ -27,6 +28,15 @@ WindowDef(\step, {
 	~stepEventCoinView.new(~kick2_step).asView
 }).front
 )
+
+(
+
+WindowDef(\step, {
+	StepListView.new(~kick2_step)
+}).front
+)
+
+
 
 (
 ~stepEventCoinView.new(~kick2_step).edit;

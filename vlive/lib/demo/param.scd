@@ -1,3 +1,4 @@
+// copied in zim
 // Done
 - Param.asView
 - rewrite MIDIBoard
