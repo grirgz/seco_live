@@ -1,3 +1,11 @@
+["cs", "xx"].replace("cs", "az")
+[1, "cs", "xx"].replace(1, "az")
+[1, [1,2],"cs", "xx"].replace([1,2], "az")
+[1, "cs", "xx"].replace(1, [3,3,[6,3],3])
+
+Array.replace
+
+
 {Splay.ar(Ringz.ar(Impulse.ar([2, 1, 4], [0.1, 0.11, 0.12]), 140, [0.1, 0.1, 0.5])) * EnvGen.kr(Env([1, 1, 0], [120, 10]), doneAction: 2)}.play
 
 8,7,7,7,6,6,6,5,5,5,4,4,4,3,3,3,2,2,2,1,1,

@@ -70,6 +70,14 @@
 		)
 	};
 
+	~make_knob_line = { arg param;
+		HLayout(*
+			param.collect({ arg subparam;
+				subparam.asKnob;
+			})
+		)
+	};
+
 	~make_gui = { arg pg, pglegato;
 		var win = Window.new;
 		var layout;
@@ -82,7 +90,8 @@
 				})
 				++
 				pglegato.collect({ arg param;
-					~make_slider_line.(param)
+					//~make_slider_line.(param)
+					~make_knob_line.(param)
 				})
 			)
 		);
@@ -178,6 +187,122 @@ Pdef(\plop).stop
 			pp.at(key).asSlider
 		}
 	};
+
+
+)
+
+/////////////////////////////////////////////////////// experiment on vlayout of diverse list sizes
+
+(
+~list = List[1,0,1,1,0,0,0,1];
+~listoflist = [
+	List[1,0,1,0,1,0,0,1, 1],
+	List[1,0,1,0,0,1,0,1],
+	List[1,0,1,1,0,0,0,0,1,1,1,1],
+];
+~legato = 3.collect({ List.newFrom(0.5 ! 8) });
+
+~p = Param(~list, \list, \unipolar);
+
+~pg = ParamGroup(
+	~listoflist.collect({ arg x;
+		Param(x, \list, \unipolar) 
+	})
+);
+~pglegato = ParamGroup(
+	~legato.collect({ arg x;
+		Param(x, \list, ControlSpec(0.1,2,\lin)) 
+	})
+);
+
+)
+(
+
+	~width = 40;
+	~make_cursor_line = { arg param;
+		HLayout(*
+			param.collect({ arg subparam, x;
+				Button.new
+				.enabled_(false)
+				.maxHeight_(10)
+				.onChange(param.target, \cursor, { arg view ...args;
+					[args[2], x].debug("bbb");
+					if(args[2] == x) {
+						Task{
+							s.latency.wait;
+							if(args[3] == 1) {
+								view.value = 1;
+							} {
+								view.value = 0;
+							};
+							nil
+						}.play(AppClock);
+					};
+					args.debug("cursor!!");
+				})
+				.states_([
+					["", Color.black, Color.white],
+					["", Color.black, Color.yellow],
+				]);
+			})
+			++ [nil]
+		)
+	};
+
+	~make_sequencer_line = { arg param;
+		HLayout(*
+			param.collect({ arg subparam;
+				subparam.asButton.minWidth_(~width);
+			})
+			++ [nil]
+		)
+	};
+
+	~make_slider_line = { arg param;
+		HLayout(*
+			param.collect({ arg subparam;
+				subparam.asSlider.minWidth_(~width);
+			})
+			++ [nil]
+		)
+	};
+
+	~make_knob_line = { arg param;
+		HLayout(*
+			param.collect({ arg subparam;
+				subparam.asKnob.minWidth_(~width);
+			})
+			++ [nil]
+		)
+	};
+
+	~make_gui = { arg pg, pglegato;
+		var win = Window.new;
+		var layout;
+		layout = VLayout(*
+			(
+				[ ~make_cursor_line.(pg[0]) ]
+				++
+				pg.collect({ arg param;
+					~make_sequencer_line.(param)
+				})
+				++
+				pglegato.collect({ arg param;
+					VLayout(
+
+						~make_slider_line.(param),
+						~make_knob_line.(param)
+					)
+				})
+			)
+		);
+		win.layout = layout;
+		win.alwaysOnTop = true;
+		win.front;
+	};
+
+
+	~make_gui.(~pg, ~pglegato);
 
 
 )

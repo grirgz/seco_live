@@ -1,3 +1,23 @@
+
+how to disable all modifiers to install curstom one in Knob and other ?
+- shift scale the mouse move // internal to knob, can be disabled
+- ctrl drag widget value // internal to supercollider, don't know
+- alt drag window // internal to window manager, to search
+
+
+///////////////////
+Doc fix: 
+
+file:///home/ggz/.local/share/SuperCollider/Help/Classes/Knob.html#-color
+wrong order, this is really :
+
+- the main Knob color
+- the deviation indicator
+- the background of the deviation indicator
+- the value indicator
+
+////////////
+
 tips: easy creating array, no more List needed!
 self.pr_views = self.pr_views.add(view);
 

@@ -1,4 +1,9 @@
-
+// note: now ParamCombinator is stored in the Param target, no need to store it elsewhere
+~pc2 = ParamCombinator(Param(Pdef(\param), \freq, \freq));
+~pc2.dump
+~pc.dump
+~pc.key
+~pc2.key
 (
 ~pc = ParamCombinator(Param(Pdef(\param), \freq, \freq));
 ~pc.setBusMode(true);
