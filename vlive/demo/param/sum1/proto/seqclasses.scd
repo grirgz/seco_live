@@ -560,7 +560,9 @@ WindowDef(\gui, {
 WindowDef(\gui, { XStaticText.new.value_("hello") }).front;
 
 
-// ======== timelines
+/////////////////////////////////////////////////// // ======== timelines
+
+/////// simple editor
 
 // ~noteTimelinePanelView
 ~noteTimeline.new(\line).edit
@@ -571,7 +573,18 @@ WindowDef(\gui, { XStaticText.new.value_("hello") }).front;
 // ~clipTimelinePanelView
 ~clipTimeline.new(\clips).edit
 
-// ============= utils
+///////////////////// views
+
+// TimelineView
+
+WindowDef(\gui, { ~tv = TimelineView.new; ~tv.mapEventList(~noteTimeline.new(\line).eventList); ~tv.view }).front
+
+// TimelinePreview
+
+WindowDef(\gui, { ~tv = TimelinePreview.new; ~tv.mapEventList(~noteTimeline.new(\note1).eventList); ~tv.view }).front
+
+
+//////////////////////////////////////////////////////// ============= utils
 
 Window.keyDownActionTest
 
