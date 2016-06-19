@@ -365,3 +365,5 @@ Pdef(\part1, Ppar([
 ])).play;
 
 );
+
+TempoClock.default.tempo = 140/60

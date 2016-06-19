@@ -1,3 +1,52 @@
+
+need to add \beatsustain in default event !!!
+~beatsustain = { ~legato * ~dur }
+~sustain = { ~beatsustain * thisThread.tempo }
+
+
+///////////////////////////////////////////// release bugfix
+////////////////////////////
+
+should fix event.release to take in account \latency because this fuck up everything
+Event
+
+s.latency = 0.2
+~ev = (amp:1,sustain:1, instrument:\bri, freq: 433).play;
+~ev = (amp:1,sustain:1, instrument:\bri, freq: 233, latency:\ ).play;
+
+
+(
+// test latency in release : works with my patch!!!!
+{
+	~ev = (amp:1,sustain:1, latency: \ , instrument:\bri, freq: 233).play;
+	~ev = (amp:1,sustain:inf, latency: \ , instrument:\bri, freq: 433).play;
+	1.wait;
+	~ev.release;
+}.fork
+)
+
+
+// modified code in /usr/local/share/SuperCollider/SCClassLibrary/Common/Collections/Event.sc
+				releaseServerNode: #{ |releaseTime|
+					var sendGate, msg;
+					if(~id.notNil) {
+						var latency = ~latency ? ~server.latency;
+
+						releaseTime = if(releaseTime.isNil) { 0.0 } { -1.0 - releaseTime };
+						sendGate = ~sendGate ? ~hasGate;
+
+						if(sendGate) {
+							~server.sendBundle(latency,
+								*["/n_set", ~id, "gate", releaseTime].flop);
+						} {
+							~server.sendBundle(latency, ["/n_free"] ++ ~id);
+						};
+						~isPlaying = false;
+					};
+				},
+
+/////////////////////////////////////////////:
+
 ev[\forward] can be used as a doesNotUnderstand for events!!!! is this documented ?
 
 /////////////////////////////////////////
@@ -63,7 +112,7 @@ why availableBounds don't match win.bounds when maximized ???
 ////////////////////
 
 why \on can't have latency set to Ref(nil)
-why release on a played \note event can't have latency set to Ref(nil)
+why release on a played \note event can't have latency set to Ref(nil) // patch written somewhere in WANTTO file
 why Synth.basicNew can't release an already sent node
 why server crash if we send it an array like s.sendMsg([15, [1000,1001], \gate, 1.0])
 why \note want to release even if i set hasGate to false

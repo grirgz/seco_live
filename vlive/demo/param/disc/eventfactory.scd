@@ -1,4 +1,20 @@
 (
+~class_event_recorder = ProtoClass((
+	new: { arg self, eventList, clock;
+		self = self.deepCopy;
+	
+		self.clock = clock ? TempoClock.default;
+		self.eventList = eventList ?? { XEventList.new };
+	
+		self;
+	},
+
+	
+	startRecording: { arg self;
+		self.recordStartBeat = self.clock.beats;
+	},
+
+));
 
 ~class_event_factory = ProtoClass((
 	new: { arg self, pat;
@@ -76,6 +92,24 @@
 		list
 	},
 
+	startRecording: { arg self;
+		if(self.eventLoop.notNil) {
+			self.eventLoop.startRec;
+		}
+	},
+
+	stopRecording: { arg self;
+		if(self.eventLoop.notNil) {
+			self.eventLoop.stopRec;
+		}
+	},
+
+	recordEvent: { arg self, ev;
+		if(self.eventLoop.notNil) {
+			self.eventLoop.recordEvent(ev);
+		}
+	},
+
 	play: { arg self, inEvent;
 		var mode;
 		var playmode;
@@ -147,6 +181,7 @@
 					ev[\latency] = \;
 					ev.putAll(inEvent ? self.in_event);
 					ev.debug("EV play");
+					self.recordEvent(ev);
 					self.player = ev.play;
 					ev;
 				};
@@ -389,4 +424,19 @@ WindowDef(\test, {
 	];
 	~map_button.(but, ~event_factory);
 }).front
+)
+
+
+
+/////////////////////////////
+
+
+(
+~pp = ProtoClass((
+	collect: { arg self, fun;
+		(1..8).collect(fun);
+	},
+));
+// apparently, collect is not possible currently with ProtoClass
+~pp.collect({ arg x, y; [x,y].debug("heihih") })
 )
