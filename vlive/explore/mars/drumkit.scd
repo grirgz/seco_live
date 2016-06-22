@@ -3,6 +3,7 @@
 
 SynthDef(\zkick, { |out=0, amp=0.1, pan=0, fratio=1.5, freqpan=0.01, spread=0.08, timeScale=1|
 	var env0, env1, env1m, son;
+	var son_d;
 
 	//freqpan = [-1,0,1] * freqpan;
 	env0 = \env0.kr(Env.new([0, 1, 0.5, 0], [0.105, 0.16, 00.2], [-4, -2, -4]));
@@ -18,8 +19,12 @@ SynthDef(\zkick, { |out=0, amp=0.1, pan=0, fratio=1.5, freqpan=0.01, spread=0.08
 	son = son + SinOsc.ar(env1m, 0.5);
 	son = LPF.ar(son, \lpf.kr(2000));
 	
-	//son = son * 1.2;
-	//son = son.clip2(1);
+
+	son_d = son * \dist.kr(1.2);
+	son_d = son_d.clip2(1);
+	son_d = HPF.ar(son_d, \hpf.kr(100));
+	son_d = son_d * \distamp.kr(0.4);
+	son = SelectX.ar(\distmix.kr(0), [son, son_d]);
 
 	son = son * amp;
 	son = son * env0 * 8;

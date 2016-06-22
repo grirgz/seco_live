@@ -202,3 +202,28 @@ WindowLayout({
 
 
 
+////////////////////////////////////// dynamic grid
+
+
+~timeline.editor.timeline.mygrid = { arg bounds, areasize, viewport;
+				~this = ~timeline.editor.timeline;
+				(
+					draw: {
+						var pixelRect = ~this.gridRectToPixelRect(Rect(0,0,1,1));
+
+						var minsize = 80;
+						var xlen = ~this.gridRectToPixelRect(Rect(0,0,1,1)).width;
+						var offset = pixelRect.left;
+						var factor = 1;
+						factor = 2**( xlen/minsize ).log2.asInteger;
+						xlen.debug("xlen");
+						(areasize.x * factor + 1).asInteger.do { arg idx;
+							x = idx * xlen / factor + offset;
+							[idx, x, xlen, bounds.height, bounds].debug("grid drawer: x");
+							Pen.color = Color.red;
+							Pen.line(Point(x,0), Point(x,bounds.height));
+							Pen.stroke;
+						}
+					}
+				)
+			};

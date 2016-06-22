@@ -264,6 +264,7 @@ WindowDef(\test, { arg win;
 		HLayout (
 			PopUpMenu.new.mapParam(Param(Message(~event_factory), \mode, ms)),
 			PopUpMenu.new.mapParam(Param(Message(~event_factory), \playmode, pms)),
+			NumberBox.new.mapParam(Param(Message(~event_factory.eventLoop), \currIndex, ControlSpec(0,32,\lin,1))),
 			BasicButton.new.label_("Start Rec").action_({ ~event_factory.startRecording }),
 			BasicButton.new.label_("Stop Rec").action_({ ~event_factory.stopRecording }),
 			BasicButton.new.label_("Play Rec").action_({ ~event_factory.eventLoop.play; }),
@@ -292,68 +293,666 @@ WindowDef(\test, { arg win;
 
 (
 
-	Pdef(\yep,
+	Pdef(\drums,
 		PdrumStep(
 			[
-				Pbind(
-					\instrument, \default,
-					\freq, 200,
-					\amp, 0.1
-				),
-				Pbind(
-					\instrument, \default,
-					\freq, 500,
-					\amp, 0.1
-				),
-				Pbind(
-					\instrument, \default,
-					\freq, 300,
-					\amp, 0.1
-				),
-				Pbind(
-					\instrument, \default,
-					\freq, 401,
-					\amp, 0.1
-				),
+				Pdef(\kick),
+				Pdef(\snare),
+				Pdef(\snarehat),
+				Pdef(\hat),
 			],
 			Pbind(
-				\midinote, Pseq([0,1,2],inf),
+				\midinote, Pseq([0,1,2,3],inf),
+				\isRest, false,
+				\dur, 1/4,
 			)
 		)
 	).play;
 )
 
-// with chain
 
 (
 
-	Pdef(\yep,
+	Pdef(\score, Pseq([(midinote: 0, isRest: false),inf]));
+	~dpat = 
 		PdrumStep(
 			[
-				Pbind(
-					\instrument, \default,
-					\freq, 200,
-					\amp, 0.1
-				),
-				Pbind(
-					\instrument, \default,
-					\freq, 500,
-					\amp, 0.1
-				),
-				Pbind(
-					\instrument, \default,
-					\freq, 300,
-					\amp, 0.1
-				),
-				Pbind(
-					\instrument, \default,
-					\freq, 401,
-					\amp, 0.1
-				),
-			]
-		) <>
+				Pdef(\kick),
+				Pdef(\snare),
+				Pdef(\snarehat),
+				Pdef(\hat),
+			],
+			Pdef(\score),
+		).asStream;
+)
+	~ev = ~dpat.next(Event.default);
+	Pswitch1(
+		[
+		Pdef(\kick),
+		Pdef(\snare),
+		],
+		Pbind(
+			
+		)
+	)
+
+(
+
+)
+
+(
+	Pdef(\drums, (
+		Pdef(\drumrack)
+		<>
+		Ppar( [
 			Pbind(
-				\midinote, Pseq([0,1,2],inf),
+				\midinote, Pseq([0,\r,1,2, 0,\r,2,\r],inf),
+				\isRest, false,
+				\dur, 1/2,
+			),
+			Pbind(
+				\midinote, Pseq([3],inf),
+				\isRest, false,
+				\dur, 1/4,
+			),
+			Pbind(
+				\midinote, Pseq([0,3,2,3],inf),
+				\isRest, false,
+				\amp, 0.1/2,
+				\lag, 0.04,
+				\dur, 1/2,
+			),
+		])
+	)).play;
+)
+(
+	Pdef(\drums, (
+		Pdef(\drumrack)
+		<>
+		~noteTimeline.new(\drums).asPattern.trace
+	)).play;
+)
+		~s = ~noteTimeline.new(\drums).asPattern.asStream
+		~noteTimeline.new(\drums).asPattern.play
+
+			~s = Pdef(\kick).asStream
+			~s.next((midinote:1))
+			~s.next(())
+
+(
+)
+~noteTimeline.new(\drums).composeParamPattern
+~noteTimeline.new(\drums).clear
+
+(
+Pdef(\metro, Ppar([
+	Pbind(\amp, 0.1/4, \sustain, 0.01)
+]));
+	///////////
+	~peventSwitch = { arg list, key=\midinote;
+		Prout({ arg ev;
+			var streamlist = list.collect({ arg x;  x.loop.asStream});
+			[streamlist, ev].debug("ev");
+			while({ev.notNil}) {
+				var nextev;
+				var stream;
+				var idx;
+				var copev;
+				var silence = Pbind(
+					\isRest, true,
+				).keep(1).asStream;
+				ev.debug("evstart");
+				idx = ev[key];
+				if(ev.type == \rest or: { idx.isNil or: { idx == \r }}) {
+					stream = silence;
+				} {
+					stream = streamlist[ev[key]];
+				};
+				if(stream.isNil) {
+					stream = silence;
+				};
+				stream.debug("stream");
+				nextev = stream.next(ev);
+				copev = ev.copy;
+				copev[\midinote] = nil;
+				nextev.putAll(copev);
+				nextev.debug("nextev");
+				ev = nextev.yield;
+				ev.debug("evend");
+			}
+		})
+	};
+	///////////
+
+Pdef(\drumrack, 
+		~peventSwitch.(
+			[
+				Pdef(\kick),
+				Pdef(\snare),
+				Pdef(\snarehat),
+				Pdef(\hat),
+			].collect({ arg pat; Pbind(\isRest, false, \sustain,1/8) <> pat })
+		)
+
+);
+~noteTimeline.new(\drums, Param(Pdef(\drumrack), \midinote));
+~timeline = ~noteTimeline.new(\drums);
+//~noteTimeline.new(\line1).edit;
+~event_factory = ~timeline.eventFactory;
+~event_factory.mode = \event;
+//~event_factory.playmode = \toggle;
+//~event_factory.playmode = \gate;
+MKtl(\lp).elAt(\pad).do ({ arg pad, idx;
+	idx = idx;
+	pad.elAt(\on).action = { arg me; me.value = 40.754; idx.debug("LPplay"); ~event_factory.childAt(idx).play };
+	pad.elAt(\off).action = { arg me; me.value = 0.754; idx.debug("LPstop"); ~event_factory.childAt(idx).stop };
+});
+WindowDef(\test, { arg win;
+	var ms = MenuSpec([\pattern, \trigger, \note, \event]);
+	var pms = MenuSpec([\toggle, \gate]);
+
+	win.view.keyDownAction_({ arg me, key, modifiers, unicode, keycode;
+		["down", me, key.asCompileString, modifiers, unicode, keycode].debug("keyDownAction");
+		"azertyuiop".as(Array).collect({ arg letter, x;
+			//var midinote = x+(5*12);
+			var midinote = x;
+			[letter,key == letter ].asCompileString.debug("letter");
+			if(key == letter) {
+				~map_key.(\down, ~event_factory.childAt(midinote))
+			}
+		})
+	});
+
+	win.view.keyUpAction_({ arg me, key, modifiers, unicode, keycode;
+		["up", me, key.asCompileString, modifiers, unicode, keycode].debug("keyUpAction");
+		"azertyuiop".as(Array).collect({ arg letter, x;
+			//var midinote = x+(5*12);
+			var midinote = x;
+			["up", letter,key == letter, midinote ].asCompileString.debug("letter");
+			if(key == letter) {
+				~map_key.(\up, ~event_factory.childAt(midinote))
+			}
+		})
+	});
+
+	VLayout (
+		HLayout (
+			PopUpMenu.new.mapParam(Param(Message(~event_factory), \mode, ms)),
+			PopUpMenu.new.mapParam(Param(Message(~event_factory), \playmode, pms)),
+			NumberBox.new.mapParam(Param(Message(~event_factory.eventLoop), \currIndex, ControlSpec(0,32,\lin,1))),
+			PlayerWrapper(Pdef(\metronome)).asView,
+			Button.new.mapParam(Param(Message(~event_factory), \isRecording, XBoolSpec())).states_([
+				["Rec", Color.black, Color.white],
+				["Rec", Color.black, Color.red],
+			]),
+		),
+		VLayout(
+			~timeline.asView,
+			HLayout (
+				* 10.collect{ arg x;
+					var but;
+					//var midinote = x+(5*12);
+					var midinote = x;
+					but = Button.new;
+					but.states = [
+						[midinote.asString],
+						[midinote.asString, Color.black, Color.yellow]
+					];
+					// TODO: what to use with MIDIMap and Mktl
+					~map_button.(but, ~event_factory.childAt(midinote));
+				};
 			)
-	).play;
+		)
+	)
+}).frontTop
+)
+
+
+	ParamProto.init(true);
+(
+	// debug timeline
+	ParamProto.init;
+~noteTimeline.new(\drums, Param(Pdef(\drumrack), \midinote));
+~timeline = ~noteTimeline.new(\drums);
+~timeline.edit;
+)
+(
+	// debug timeline
+	ParamProto.init;
+~noteTimeline.new(\notes4, Param(Pdef(\pat), \midinote)).edit;
+)
+(
+/////////// good!!!
+~gridy_collect = { arg view, fun;
+	var pixelRect = view.gridRectToPixelRect(Rect(0,0,1,1));
+	var gridRect = view.gridRectToPixelRect(Rect(0,0,1,1));
+
+	var minsize = 80;
+	var bounds = view.bounds;
+	var areasize = view.areasize;
+	var viewport = view.viewport;
+	var xlen = view.gridRectToPixelRect(Rect(0,0,1,1)).width;
+	var offset = pixelRect.left;
+	var factor = 1;
+	factor = 2**( xlen/minsize ).log2.asInteger;
+	xlen.debug("xlen");
+
+	[ (areasize.x * viewport.origin.x).asInteger, (areasize.x * factor * viewport.width + 1).asInteger ].debug("start, end XXXXXX");
+	(areasize.x * factor * viewport.width + 1).asInteger.do { arg idx;
+		var oidx, x;
+		var orx;
+		oidx = (idx + (areasize.x * viewport.origin.x * factor).asInteger + 1);
+		x = oidx * xlen / factor + offset;
+		orx = (idx) * xlen / factor + offset;
+		//x = (idx + (areasize.x * viewport.origin.x * factor).asInteger + 1) * xlen / factor + offset;
+		[idx, x, xlen, bounds.height, bounds, offset, factor].debug("grid drawer: x");
+		fun.(factor, x, oidx, idx);
+	}
+};
+~timeline.editor.timeline.mygrid = { arg bounds, areasize, viewport;
+	~this = ~timeline.editor.timeline;
+	(
+		draw: {
+			Pen.use {
+
+				~gridy_collect.(~this, { arg factor, x, oidx, idx;
+				
+					if( oidx % 4 == 0 ) { 
+						Pen.alpha = 0.9;
+					} { 
+						Pen.alpha = 0.5;
+					};
+					Pen.color = Color.black;
+					Pen.line(Point(x,0), Point(x,~this.virtualBounds.height));
+					Pen.stroke;
+				})
+			}
+		}
+	)
+};
+~timeline.editor.ruler_x.mygrid = { arg me;
+	~this = me;
+	~gridy_collect.(~this, { arg factor, x, oidx, idx;
+		var yoffset;
+		if( oidx % 4 == 0 ) { 
+			yoffset = 0;
+			Pen.color = Color.black;
+			Pen.alpha = 1;
+		} { 
+			yoffset = 4;
+			Pen.color = Color.black;
+			Pen.alpha = 0.5;
+		};
+		Pen.line(Point(x,yoffset), Point(x,~this.virtualBounds.height));
+		//Pen.stringAtPoint(x.asString, Point(x,10));
+		Pen.stringAtPoint(" " ++ ( oidx/factor ).asString, Point(x,0), Font.new.size_(8));
+		//Pen.stringAtPoint(" " ++ ( (idx+ ( areasize.x * viewport.origin.x * factor ).asInteger)/factor ).asString, Point(x,0), Font.new.size_(8));
+		Pen.stroke;
+	});
+};
+)
+
+
+(
+
+~timeline.editor.timeline.mygrid = { arg bounds, areasize, viewport;
+	~this = ~timeline.editor.timeline;
+	(
+		draw: {
+			Pen.use {
+
+				var pixelRect = ~this.gridRectToPixelRect(Rect(0,0,1,1));
+				var gridRect = ~this.gridRectToPixelRect(Rect(0,0,1,1));
+
+				var minsize = 80;
+				var xlen = ~this.gridRectToPixelRect(Rect(0,0,1,1)).width;
+				var offset = pixelRect.left;
+				var factor = 1;
+				factor = 2**( xlen/minsize ).log2.asInteger;
+				xlen.debug("xlen");
+
+				[ (areasize.x * viewport.origin.x).asInteger, (areasize.x * factor * viewport.width + 1).asInteger ].debug("start, end XXXXXX");
+				(areasize.x * factor * viewport.width + 1).asInteger.do { arg idx;
+					var oidx, x;
+					var orx;
+					oidx = (idx + (areasize.x * viewport.origin.x * factor).asInteger + 1);
+					x = oidx * xlen / factor + offset;
+					orx = (idx) * xlen / factor + offset;
+					//x = (idx + (areasize.x * viewport.origin.x * factor).asInteger + 1) * xlen / factor + offset;
+					[idx, x, xlen, bounds.height, bounds, offset, factor].debug("grid drawer: x");
+					if( oidx % 4 == 0 ) { 
+						Pen.alpha = 0.9;
+					} { 
+						Pen.alpha = 0.5;
+					};
+					//Pen.lineDash = FloatArray[4,1];
+					//Pen.lineDash.debug("DASH");
+					Pen.color = Color.black;
+					Pen.line(Point(x,0), Point(x,bounds.height));
+					Pen.stroke;
+					//Pen.lineDash = FloatArray[];
+				}
+			}
+		}
+	)
+};
+~timeline.editor.ruler_x.mygrid = { arg me;
+				//~this = ~timeline.editor.timeline;
+						var bounds = me.bounds;
+						var areasize = me.areasize;
+						var viewport = me.viewport;
+						var minsize = 80;
+						var offset;
+						var factor = 1;
+						var xlen;
+						var pixelRect;
+						"fuck!!!!!!!!!!!".debug;
+				~this = me;
+						pixelRect = ~this.gridRectToPixelRect(Rect(0,0,1,1));
+						offset = pixelRect.left;
+
+						xlen = ~this.gridRectToPixelRect(Rect(0,0,1,1)).width;
+						factor = 2**( xlen/minsize ).log2.asInteger;
+						xlen.debug("xlen");
+						(areasize.x * factor * viewport.width + 1).asInteger.do { arg idx;
+							var yoffset;
+							var orx, x;
+							var oidx;
+							oidx = (idx + (areasize.x * viewport.origin.x * factor).asInteger + 1);
+							x = oidx * xlen / factor + offset;
+							orx = (idx) * xlen / factor + offset;
+							if( oidx % 4 == 0 ) { 
+								yoffset = 0;
+								//Pen.color = Color.blue;
+								Pen.color = Color.black;
+								Pen.alpha = 1;
+							} { 
+								yoffset = 4;
+								Pen.color = Color.black;
+								Pen.alpha = 0.5;
+							};
+							[idx, x, xlen, bounds.height, bounds].debug("ruler drawer: x");
+							Pen.line(Point(x,yoffset), Point(x,bounds.height));
+							//Pen.stringAtPoint(x.asString, Point(x,10));
+							Pen.stringAtPoint(" " ++ ( oidx/factor ).asString, Point(x,0), Font.new.size_(8));
+							//Pen.stringAtPoint(" " ++ ( (idx+ ( areasize.x * viewport.origin.x * factor ).asInteger)/factor ).asString, Point(x,0), Font.new.size_(8));
+							Pen.stroke;
+					}
+			};
+)
+
+(
+~timeline.editor.timeline.view.mouseWheelAction = { arg view, x, y, modifiers, xDelta, yDelta;
+				var newport;
+				var oldport;
+				var top;
+				var maxtop;
+				~this = ~timeline.editor.timeline;
+
+				oldport = ~this.viewport;
+				maxtop = 1-oldport.height;
+				[oldport.top, maxtop, oldport.height].debug("top, maxtop, width");
+				top = ( oldport.top + ( yDelta/~this.virtualBounds.height ) ).clip(0,maxtop);
+				newport = Rect(oldport.left, top, oldport.width, oldport.height);
+				[oldport, newport, oldport.height, oldport.top, oldport.bottom].debug("HACKED!oldport, newport");
+				~this.viewport = newport;
+				~this.refresh;
+			};
+)
+
+~bla = (isRecording: 1);
+~bla = (isRecording: true);
+Param(Message(~bla), \isRecording, ControlSpec(0,1,\lin,1)).edit
+(
+WindowDef(\gui, {
+	VLayout (
+		Param(Message(~bla), \isRecording, XBoolSpec()).asButton.states_([
+			[ "hhhh", Color.red ],
+			[ "xxxhhhh" ],
+		]) ,
+		Param(Message(~bla), \isRecording, XBoolSpec()).asButton ,
+		Param(Message(~bla), \isRecording, XBoolSpec()).asButton ,
+	)
+}).front;
+)
+~s = XBoolSpec.new
+~s.map(0)
+\freq.asSpec.map(0)
+
+~bla
+
+	Pseq([ Event.silent(8), Pdef(\bkick) ]),
+
+(
+Pdef(\dec, Ppar([
+	Pbind(\lag, 0.rand) <> Pdef(\kick),
+	Pbind(\lag, 1.0.rand) <> Pdef(\snare),
+	Pbind(\lag, 1.0.rand) <> Pdef(\snarehat),
+	Pbind(\lag, 1.0.rand) <> Pdef(\hat),
+	
+])).play;
+)
+
+(
+Pdef(\main1, Pseq([
+	Pfindur(32, Pdef(\part1)),
+	Pfindur(32, Pdef(\dec)),
+	Ppar([
+		Pfindur(32, Pdef(\part1)),
+		Pfindur(32, Pdef(\dec2)),
+	]),
+	Ppar([
+		Pfindur(32, Pdef(\dec)),
+		Pfindur(32, Pdef(\dec2)),
+	]),
+])).play;
+)
+
+~clipTimeline.new(\clip1).edit
+
+(
+Pdef(\dec2, Ppar([
+	Pbind(\lag, 0.4.rand, \amp, Pkey(\amp)*1.0.rand) <> Pdef(\kick),
+	Pbind(\lag, 0.4.rand, \amp, Pkey(\amp)*1.0.rand) <> Pdef(\snare),
+	Pbind(\lag, 0.4.rand, \amp, Pkey(\amp)*1.0.rand) <> Pdef(\snarehat),
+	Pbind(\lag, 0.4.rand, \amp, Pkey(\amp)*1.0.rand) <> Pdef(\hat),
+	//Pseq([ Event.silent(4), Pdef(\bkick) ]),
+	
+])).play;
+)
+
+
+(
+Pdef(\bkick, Pbind(
+	\instrument, \zkick,
+	\env1, Pseq([
+		[ Env.new([80, 37, 35], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([80, 37, 35], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([80, 37, 35], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([80, 37, 35], [0.055, 0.49], [-4, -5]) ],
+
+		[ Env.new([80, 37, 35], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([80, 37, 35], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([80, 37, 35], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([40, 47, 35], [0.055, 0.49], [-4, -5]) ],
+
+		[ Env.new([80, 40, 35], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([80, 37, 35], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([80, 37, 35], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([80, 34, 30], [0.055, 0.49], [-4, -5]) ],
+
+		[ Env.new([80, 37, 35], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([80, 37, 30], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([80, 37, 35], [0.055, 0.49], [-4, -5]) ],
+		[ Env.new([40, 47, 35], [0.055, 0.49], [-4, -5]) ],
+	],inf),
+	\distmix, 0.61,
+
+	\dist, 1.6,
+	\distamp, 1/2,
+	\env0, Pseq([
+		[ Env.new([0, 1.2, 0.8,0], [0.015, 0.49,0.4], [-4, -5]) ],
+	],inf),
+	\degree, Pseq([0],inf),
+	\dur, 2,
+	\isRest, Pseq([
+		1,
+	],inf).coin.not,
+	\amp, 0.15
+));
+)
+
+
+(
+	ParamProto.init;
+~noteTimeline.new(\notes4, Param(Pdef(\pat), \midinote));
+~timeline = ~noteTimeline.new(\notes4);
+WindowDef(\gui, { 
+	var kb = MIDIKeyboardView.new;
+	var curnote = nil;
+	kb.keyDownAction = { arg note;
+		~timeline.eventFactory.childAt(note).play;
+		curnote = note;
+	};
+	kb.keyUpAction = { arg note;
+		~timeline.eventFactory.childAt(note).stop;
+	};
+	kb.keyTrackAction = { arg note;
+		note.debug("trackAction");
+		if(curnote != note) {
+			curnote !? {~timeline.eventFactory.childAt(curnote).stop };
+			curnote = note;
+			~timeline.eventFactory.childAt(note).play;
+		};
+	};
+	VLayout(
+		~timeline.asView,
+		kb.asView.minHeight_(40),
+	)
+}).frontTop;
+)
+
+WindowDef(\yep, { WindowDef(\gui).source.value }).front
+
+(
+Pdef(\metro, Ppar([
+	Pbind(\amp, 0.1/4, \sustain, 0.01)
+]));
+	///////////
+	~peventSwitch = { arg list, key=\midinote;
+		Prout({ arg ev;
+			var streamlist = list.collect({ arg x;  x.loop.asStream});
+			[streamlist, ev].debug("ev");
+			while({ev.notNil}) {
+				var nextev;
+				var stream;
+				var idx;
+				var copev;
+				var silence = Pbind(
+					\isRest, true,
+				).keep(1).asStream;
+				ev.debug("evstart");
+				idx = ev[key];
+				if(ev.type == \rest or: { idx.isNil or: { idx == \r }}) {
+					stream = silence;
+				} {
+					stream = streamlist[ev[key]];
+				};
+				if(stream.isNil) {
+					stream = silence;
+				};
+				stream.debug("stream");
+				nextev = stream.next(ev);
+				copev = ev.copy;
+				copev[\midinote] = nil;
+				nextev.putAll(copev);
+				nextev.debug("nextev");
+				ev = nextev.yield;
+				ev.debug("evend");
+			}
+		})
+	};
+	///////////
+
+Pdef(\drumrack, 
+		~peventSwitch.(
+			[
+				Pdef(\kick),
+				Pdef(\snare),
+				Pdef(\snarehat),
+				Pdef(\hat),
+			].collect({ arg pat; Pbind(\isRest, false, \sustain,1/8) <> pat })
+		)
+
+);
+~noteTimeline.new(\drums, Param(Pdef(\drumrack), \midinote));
+~timeline = ~noteTimeline.new(\drums);
+//~noteTimeline.new(\line1).edit;
+~event_factory = ~timeline.eventFactory;
+~event_factory.mode = \event;
+//~event_factory.playmode = \toggle;
+//~event_factory.playmode = \gate;
+MKtl(\lp).elAt(\pad).do ({ arg pad, idx;
+	idx = idx;
+	pad.elAt(\on).action = { arg me; me.value = 40.754; idx.debug("LPplay"); ~event_factory.childAt(idx).play };
+	pad.elAt(\off).action = { arg me; me.value = 0.754; idx.debug("LPstop"); ~event_factory.childAt(idx).stop };
+});
+WindowDef(\test, { arg win;
+	var ms = MenuSpec([\pattern, \trigger, \note, \event]);
+	var pms = MenuSpec([\toggle, \gate]);
+
+	win.view.keyDownAction_({ arg me, key, modifiers, unicode, keycode;
+		["down", me, key.asCompileString, modifiers, unicode, keycode].debug("keyDownAction");
+		"azertyuiop".as(Array).collect({ arg letter, x;
+			//var midinote = x+(5*12);
+			var midinote = x;
+			[letter,key == letter ].asCompileString.debug("letter");
+			if(key == letter) {
+				~map_key.(\down, ~event_factory.childAt(midinote))
+			}
+		})
+	});
+
+	win.view.keyUpAction_({ arg me, key, modifiers, unicode, keycode;
+		["up", me, key.asCompileString, modifiers, unicode, keycode].debug("keyUpAction");
+		"azertyuiop".as(Array).collect({ arg letter, x;
+			//var midinote = x+(5*12);
+			var midinote = x;
+			["up", letter,key == letter, midinote ].asCompileString.debug("letter");
+			if(key == letter) {
+				~map_key.(\up, ~event_factory.childAt(midinote))
+			}
+		})
+	});
+
+	VLayout (
+		HLayout (
+			PopUpMenu.new.mapParam(Param(Message(~event_factory), \mode, ms)),
+			PopUpMenu.new.mapParam(Param(Message(~event_factory), \playmode, pms)),
+			NumberBox.new.mapParam(Param(Message(~event_factory.eventLoop), \currIndex, ControlSpec(0,32,\lin,1))),
+			PlayerWrapper(Pdef(\metronome)).asView,
+			Button.new.mapParam(Param(Message(~event_factory), \isRecording, XBoolSpec())).states_([
+				["Rec", Color.black, Color.white],
+				["Rec", Color.black, Color.red],
+			]),
+		),
+		VLayout(
+			~timeline.asView,
+			HLayout (
+				* 10.collect{ arg x;
+					var but;
+					//var midinote = x+(5*12);
+					var midinote = x;
+					but = Button.new;
+					but.states = [
+						[midinote.asString],
+						[midinote.asString, Color.black, Color.yellow]
+					];
+					// TODO: what to use with MIDIMap and Mktl
+					~map_button.(but, ~event_factory.childAt(midinote));
+				};
+			)
+		)
+	)
+}).frontTop
 )
