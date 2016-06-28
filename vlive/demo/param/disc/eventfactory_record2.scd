@@ -956,3 +956,213 @@ WindowDef(\test, { arg win;
 	)
 }).frontTop
 )
+
+
+Class
+
+PathName("/home/ggz/.local/share/SuperCollider/Extensions/param/Classes/Proto.sc").pathOnly
+
+
+
+
+(
+SynthDef(\test, { | amp = 0.5 |
+        var freqs, sig;
+        freqs = \series.kr(Array.series(31, 100, 100)); // Default
+		freqs.poll;
+        sig = freqs.collect{|freq| SinOsc.ar(freq, 0, 1/freqs.size)};
+        sig = Splay.ar(sig);
+        sig = sig * EnvGen.ar(Env.perc(releaseTime: 2),doneAction: 2);
+        Out.ar(0, sig * amp);
+}).add
+)
+
+// Compute the array in the language and send it via Pbind:
+(
+var array1, array2, out;
+array1 = Array.geom(10, 100, 1.2);
+array2 = Array.geom(22, array1.maxItem, 1.3);
+array2.removeAt(0);
+out = array1++array2;
+Pbind(\instrument, \test,
+        \amp, 0.1,
+        \series, [ out ]
+).play;
+)
+
+
+
+(
+w = Window().front;
+~views = [
+	Knob.new,
+	Knob.new,
+];
+PaneView(w.view, \horizontal, 2).panes.do({ arg p, idx;
+	~views[idx]
+})
+)
+
+
+(
+w = Window().front;
+~views = [
+	Knob.new,
+	Knob.new,
+];
+PaneView(w.view, \horizontal, 2).panes.do({ arg p, idx;
+	Knob.new(p)
+})
+)
+
+(
+w = Window().front;
+~views = [
+	Knob.new,
+	Knob.new,
+];
+PaneView(w.view, \horizontal, 2).panes.do({ arg p, idx;
+	View.new.layout_(VLayout(~views[idx]))
+})
+)
+
+(
+w = Window().front;
+~views = [
+	Knob.new,
+	Knob.new,
+];
+w.layout = VLayout(
+	Knob.new,
+	Knob.new,
+	PaneView(nil, \horizontal, 2).panes.do({ arg p, idx;
+		~views[idx];
+		//View.new.layout_(~views[idx])
+		//Knob.new(p)
+	}),
+
+	
+)
+)
+
+
+( // example mix with (H|V)Layouts and FlowLayout 
+w = Window("pane view", { |wh|
+	Rect.aboutPoint(Window.availableBounds.center, wh.x/2, wh.y/2)
+}.(800@600)).front;
+p = PaneView(w.view, \horizontal, 3, [1,2,1]);
+Slider2D(p.panes[0], p.panes[0].bounds.extent).resize_(5);
+{|v|
+	p.panes[1].layout_(VLayout(Knob(), HLayout(Knob(), v)));
+	{|p|
+		{|p| Knob(p, p.bounds.extent).resize_(5) }.(p.panes[0]);
+		{|p| Slider2D(p, p.bounds.extent).resize_(5) }.(p.panes[1]);
+	}.(PaneView(v, \vertical, 2));
+}.(View());
+{|p|
+	var sp = PaneView(p, \vertical, 2);
+	{ |p|
+		var i = ScrollView(p, p.bounds.extent).hasBorder_(false).resize_(5);
+		i.addFlowLayout;
+		i.onResize_({|v| var d = v.decorator;
+			d.bounds = v.bounds.extent@(0@0); d.reset; v.children.do(d.place(_))});
+		{Knob(i)}!20 }.(sp.panes[0]);
+	{|p| p.layout_(HLayout(*({Slider()}!4))) }.(sp.panes[1])
+}.(p.panes[2]);
+)
+
+Let(View(), { arg x; x * 2 })
+Let(View()) { arg x; x * 2 }
+Let
+VLayout( View()) {}
+
+(
+w = Window("pane view").front;
+{|v|
+	w.layout_(VLayout(Knob(), HLayout(Knob(), v)));
+	{|p|
+		{|p| Knob(p, p.bounds.extent).resize_(5) }.(p.panes[0]);
+		{|p| Slider2D(p, p.bounds.extent).resize_(5) }.(p.panes[1]);
+	}.(PaneView(v, \vertical, 2));
+}.(View());
+	
+)
+
+(
+w = Window("pane view").front;
+w.layout_(VLayout(Knob(), HLayout(Knob(), SplitView([ Knob(), Slider2D() ])))
+)
+
+(0..15).do { |n| n.grayCode.asBinaryDigits(4).reverse.postln };
+4.grayCode.asBinaryDigits(8)
+
+SynthDef(\tic, { |out, amp=0.1, pan, freq=(60.midicps), dec=0.1|
+    var env = Line.kr(1, 0, dec, doneAction: 2).squared * amp;
+    Out.ar(0, Pan2.ar(SinOsc.ar(freq) * env, pan));
+}).add;
+
+(instrument: \tic, freq: 600).play;
+
+Pdef(\toc, Pbind(
+    \amp, 1,
+    \instrument, \tic,
+    \freq, Pseq([200, 300], inf),
+    \dur, 0.5)).play;
+
+Pdef(\tic, Pbind(
+    \instrument, \tic,
+    \dur, 1/8,
+    \freq, 600,
+    \amp, Pseq( (0..15).collect { |n|
+        Pseq(n.grayCode.asBinaryDigits(4).reverse / 8, 4)
+    })
+)).play;
+
+Pdef(\tic, Pbind(
+    \instrument, \tic,
+    \dur, 1/8,
+    \freq, 600,
+	\amp, 1/8,
+    \isRest, Pseq( (0..15).collect { |n|
+        Pseq(n.grayCode.asBinaryDigits(4).reverse, 4)
+    }).coin.not
+)).play;
+
+// much longer
+Pdef(\tic, Pbind(
+    \instrument, \tic,
+    \dur, 1/8,
+    \freq, 600,
+    \amp, Pseq( (0..127).collect { |n|
+        Pseq(n.grayCode.asBinaryDigits(8).reverse / 8, 4)
+    })
+)).play;
+
+
+Pdef(\tic, Pbind(
+    \instrument, \tic,
+    \dur, 1/8,
+    \freq, 600,
+	\isRest, Pseq( (0..15).collect { |n|
+        Pseq(n.grayCode.asBinaryDigits(4).reverse / 8, 4)
+    }).coin.not,
+    \amp, 1,
+)).play;
+
+Pseq([1,2]).coin
+
+thisProcess.platform.name == \osx
+thisProcess.platform.class == LinuxPlatform
+thisProcess.platform.isKindOf(LinuxPlatform)
+Platform.name.dump
+
+Pbindef(\pb, \instrument, \default)
+Pbindef(\wap)
+Pbindef(\wap, \bla, 4)
+Pbindef(\wap).get(\bla)
+Pbindef(\wap).set(\bli, 56)
+Pbindef(\wap).get(\bli)
+
+Pbindef(\pb, \instrument, \default).play
+~s = 42.asPattern.asStream
+~s.nexT

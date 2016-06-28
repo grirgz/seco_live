@@ -1,8 +1,16 @@
+NumberBox: should have a way to set inf, keyboard shortcut maybe, the best would be i !
+///////////////////////////////
 
 need to add \beatsustain in default event !!!
 ~beatsustain = { ~legato * ~dur }
-~sustain = { ~beatsustain * thisThread.tempo }
+~sustain = { ~beatsustain / thisThread.clock.tempo }
 
+in default event, sustain is computed from legato but doesnt take into account tempo! so is in beats in fact
+but rarely a SynthDef take sustain in beats
+or maybe add a ~secsustain which is in seconds
+~secsustain = { ~sustain / thisThread.clock.tempo }
+
+uglier but backward compatible
 
 ///////////////////////////////////////////// release bugfix
 ////////////////////////////
