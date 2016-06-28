@@ -1,5 +1,6 @@
 
 (
+ParamProto.init;
 	SynthDef(\bri, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 		var sig;
 		freq = freq * ( 1 + ( SinOsc.ar(\fmfreq.kr(0)) * \fmamp.kr(1) ));
@@ -11,10 +12,16 @@
 	}).add;
 Pdef(\pat1, Pbind(
 	\instrument, \bri,
-	\degree, Pseq([0],inf),
+	\degree, Pseq([0,1,2,3,4,5,6,7,8,9],inf),
 	\dur, 1/2,
 	\amp, 0.1
 )).play;
+Pdef(\pat2, Pbind(
+	\instrument, \bri,
+	\degree, Pseq([5],inf),
+	\dur, Pkeyd(\dur,1/4),
+	\amp, Pkeyd(\amp,0.1),
+));
 );
 
 ParamProto.init(true)
@@ -207,6 +214,8 @@ TrackDef(\main).bla
 
 ParamProto.init(true)
 ~clipTimeline.new(\clip1).edit
+~clipTimeline.new(\clip1).clear
+'ndef'.asString.capitalize
 
 (
 
@@ -337,5 +346,63 @@ Pfindur(1, Pbind(
 
 
 
-ParamProto.init
+ParamProto.init(true)
 ~noteTimeline.new(\note1, Param(Pdef(\pat1), \midinote)).edit
+~clipTimeline.new(\clip1).edit
+~pembed
+
+
+~s = Pn(~clipTimeline.new(\clip1).eventList,1).asStream;
+~s.next(())
+~clipTimeline.new(\clip1).eventList[1] = PatternEvent((timeline: {~noteTimeline.new(\note1)}))
+Pembed(PatternEvent((timeline: {~noteTimeline.new(\note1)}))).play
+Pembed(Pseq([PatternEvent((timeline: {~noteTimeline.new(\note1)})) ]) ).play
+Pembed(Pseq([PatternEvent((pattern: Pdef(\pat1))) ]) ).play
+Pembed(Pseq([PatternEvent((pattern: Pdef(\pat1))) ]) ).play
+~pembed
+PatternEvent((pattern: Pdef(\pat1), sustain:1)).embedPattern.play
+Pembed(Pseq([PatternEvent((pattern: Pdef(\pat1), sustain:1))])).play
+Pn(PatternEvent((pattern: Pdef(\pat1))).embedPattern).play
+PatternEvent((pattern: Pdef(\pat1))).play
+~e = PlayerEvent((receiver: Pdef(\pat1)))
+~e.parent
+~e.play
+~e
+~e = PatternEvent((pattern: Pdef(\pat1), sustain:2))
+~e = PatternEvent((pattern: Pdef(\pat1)))
+Pfindur(1,Pembed(~e.pattern, nil)).play
+~e.startOffset = 0.25
+~s = Pseq([~e]).asStream
+~s = Pseq([~e]).asStream
+Pseq([~e]).trace.play
+Pn(~e,1).trace.play
+~s.play
+~e.play
+~e1 = ~s.next(())
+~e2 = ~s.next(())
+~e1.parent
+~e2.parent
+~e.embedPattern.play
+~e.embedPattern
+~e.parent
+Prout({ arg in; ~e.embedInStream(in) }).play
+Prout({ arg in; Pdef(\pat1).embedInStream(in) }).play
+Pembed(~e.embedPattern).play
+Pembed(Pdef(\pat1)).play
+(
+Pdef(\pat2, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	\dur, 1/8,
+	\amp, 0.1
+)).play;
+);
+( Pseq([~e, ~e]) <> Pbind(\bla, 4) ).trace.play
+( Pbind(\receiver, Ref(Pdef(\pat2)), \legato, 1) <> Pseq([~e, ~e])  ).trace.play
+( Pseq([~e, ~e]) ).trace.play
+Pdef(\pat1).play
+Pembed(Pdef(\pat1), nil).play
+
+
+Event
+().embedInStream
