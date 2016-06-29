@@ -1,4 +1,6 @@
+///////////// curves, tracks
 
+ParamProto.init(true)
 (
 ParamProto.init;
 	SynthDef(\bri, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
@@ -22,7 +24,13 @@ Pdef(\pat2, Pbind(
 	\dur, Pkeyd(\dur,1/4),
 	\amp, Pkeyd(\amp,0.1),
 ));
+Ndef(\node1, { arg freq=200, pan=0, amp=0.4;
+	var sig;
+	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.kr((1..8)/8) * 1 )));
+	sig = Pan2.ar(sig, pan, amp).mean;
+}).play;
 );
+Ndef(\node1).clear
 
 ParamProto.init(true)
 ParamProto.init
@@ -138,6 +146,118 @@ Pdef(\pat2, Pbind(
 ~track1.play
 
 (
+//TrackDef(\main).editor.front
+)
+WindowDef(\test, {PlayerWrapperSelectorView(TrackDef(\track2)).selectAction_({ "hello".debug }).asView }).front
+WindowDef(\test, {PlayerWrapperSelectorView(Pdef(\pat1)).asView }).front
+TrackDef(\main).do({ arg x, y; [x, y].debug("xxx") })
+TrackDef(\main).as(Event).collect({ arg x, y; [x, y].debug("xxx") })
+TrackDef(\main).as(Event)[\bla] = 4
+TrackDef(\main).children
+TrackDef(\main).bla
+
+Track
+
+ParamProto.init(true)
+~clipTimeline.new(\clip1).edit
+~clipTimeline.new(\clip1).clear
+'ndef'.asString.capitalize
+
+~p  = PlayerWrapper(TrackDef(\bla, (label: "aaa", bla:"hell")))
+~p.wrapper
+~p.label
+
+Pseq([ PlayerEvent((receiver: Ref(TrackDef(\track1)), sustain:4)) ]).play
+Pseq([ PlayerEvent((receiver: Ref(PlayerWrapper(TrackDef(\track1))), sustain:4)) ]).play
+PlayerWrapper(TrackDef(\track1)).tryPerform(\quant)
+PlayerWrapper(TrackDef(\track1)).tryPerform(\play)
+PlayerWrapper(TrackDef(\track1)).tryPerform(\quant_, 4)
+(TrackDef(\track1)).tryPerform(\quant)
+(TrackDef(\track1)).tryPerform(\play)
+(TrackDef(\track1)).tryPerform(\quant_, 1)
+(TrackDef(\track1)).tryPerform(\quant_, 0)
+
+TrackDef(\track1).play
+TrackDef(\track1).stop
+TrackDef(\track1).editor.front
+TrackDef(\track1).players[1].play
+TrackDef(\track1).players[2].play
+
+TrackDef(\track3).play
+(
+
+TrackDef(\track1, (
+		label: { arg self; self.key },
+		players: [
+			Pdef(\pat1),
+			~envTimeline.new(\env2, Param(Pdef(\pat1), \freq)),
+			~envTimeline.new(\lpf,  Param(Pdef(\pat1), \lpf)),
+		],
+
+		play: { arg self;
+			self.players.do(_.play);
+			self.changed(\play, self.quant);
+		},
+
+		stop: { arg self;
+			self.players.do(_.stop);
+			self.changed(\stop);
+		},
+
+		isPlaying: { arg self;
+			self.players.any(_.isPlaying.not).not
+		},
+
+		quant: { arg self;
+			self.players[0].quant;
+		},
+
+		quant_: { arg self, val;
+			self.players.do({ arg x; x.quant = val })
+			
+		},
+
+		editor: { arg self;
+			WindowDef(self.key, {
+				VLayout (
+					Pdef(\pat1).asParamGroup.asView,
+					~envTimeline.new(\env2).asView,
+					~envTimeline.new(\lpf, Param(Pdef(\pat1), \lpf)).asView,
+				)
+			})
+		},
+
+));
+TrackDef(\track2, ( 
+	parent: TrackDef(\track1),
+	players: [Pdef(\pat2)],
+
+	editor: { arg self;
+		WindowDef(self.label, {
+			VLayout (
+				Pdef(\pat2).asParamGroup.asView,
+			)
+		})
+	},
+
+));
+TrackDef(\track3, ( 
+	parent: TrackDef(\track1),
+	players: [
+		Ndef(\node1)
+	],
+
+	editor: { arg self;
+		WindowDef(self.label, {
+			VLayout (
+				PlayerWrapper(Ndef(\node1)).asView,
+				Ndef(\node1).asParamGroup.asView,
+			)
+		})
+	},
+
+));
+
 TrackDef(\main, (
 	children: [
 		TrackDef(\track1),
@@ -202,75 +322,16 @@ TrackDef(\main, (
 		self.children.do(fun)
 	},
 ));
-TrackDef(\main).editor.front
-)
-WindowDef(\test, {PlayerWrapperSelectorView(TrackDef(\track2)).selectAction_({ "hello".debug }).asView }).front
-WindowDef(\test, {PlayerWrapperSelectorView(Pdef(\pat1)).asView }).front
-TrackDef(\main).do({ arg x, y; [x, y].debug("xxx") })
-TrackDef(\main).as(Event).collect({ arg x, y; [x, y].debug("xxx") })
-TrackDef(\main).as(Event)[\bla] = 4
-TrackDef(\main).children
-TrackDef(\main).bla
-
-ParamProto.init(true)
-~clipTimeline.new(\clip1).edit
-~clipTimeline.new(\clip1).clear
-'ndef'.asString.capitalize
-
-(
-
-TrackDef(\track1, (
-		label: { arg self; self.key },
-		players: [
-			Pdef(\pat1),
-			~envTimeline.new(\env2, Param(Pdef(\pat1), \freq)),
-			~envTimeline.new(\lpf,  Param(Pdef(\pat1), \lpf)),
-		],
-
-		play: { arg self;
-			self.players.do(_.play)
-		},
-
-		stop: { arg self;
-			self.players.do(_.stop)
-		},
-
-		isPlaying: { arg self;
-			self.players.any(_.isPlaying.not).not
-		},
-
-		editor: { arg self;
-			WindowDef(self.key, {
-				VLayout (
-					Pdef(\pat1).asParamGroup.asView,
-					~envTimeline.new(\env2).asView,
-					~envTimeline.new(\lpf, Param(Pdef(\pat1), \lpf)).asView,
-				)
-			})
-		},
-
-));
-TrackDef(\track2, ( 
-	parent: TrackDef(\track1),
-	players: [Pdef(\pat2)],
-
-	editor: { arg self;
-		WindowDef(self.label, {
-			VLayout (
-				Pdef(\pat2).asParamGroup.asView,
-			)
-		})
-	},
-
-))
 )
 
 TrackDef(\track1).source
 TrackDef(\track1).play
+TrackDef(\track1).quant = 0
 TrackDef(\track1).editor.front
 
 ~clipTimeline.new(\main).edit
-
+w = Window.new(border:false).front; // can't be manually closed
+w.close; // so close it in code
 
 ~envTimeline.new(\lpf).clear
 ~envTimeline.new(\lpf).clear

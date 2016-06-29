@@ -1,3 +1,9 @@
+
+JITLib patch: added changed(\play) and changed(\stop) to Pdef (and TaskProxy, his ancestor)
+
+///////////////////
+
+
 NumberBox: should have a way to set inf, keyboard shortcut maybe, the best would be i !
 ///////////////////////////////
 
