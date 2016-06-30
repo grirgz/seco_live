@@ -171,3 +171,112 @@ PlayerWrapper(Pdef(\pat1)).makeListener({ arg ...args; args.debug("aqrgf play");
 ~el = XEventLoop.newInstance
 ~el.startRec(true)
 ~el.recordEvent((bla:4))
+
+
+~se = StepEvent.new
+
+BusDef(\test, \control).asMap.dump
+~se[\freq] = 500
+~se[\freq] = BusDef(\test, \control)
+~se[\freq] = StepList[100,200,400]
+~se.play
+StepList[100,200,400]
+~se.repeats = 100;
+Pfunc({}).loop
+Param(~se[\freq], \freq).edit
+Param(~se, \freq).wrapper
+BusDef(\test, \control).asPattern.asStream.next
+BusDef(\test, \control).set(240)
+
+
+(
+~splitvlayout = { arg views;
+	var is_drag = false;
+	var layout;
+	var orig;
+	var stretchs = [0,1];
+	var view = View.new;
+	var handle = View.new
+		.mouseDownAction_({ arg v, x, y;
+			is_drag = true;
+			{ layout.setStretch(0, 1/10) }.defer;
+			orig = x;
+		})
+		.mouseUpAction_({
+			is_drag = false;
+		})
+		.mouseMoveAction_({ arg v, x, y;
+			//if(is_drag) {
+			//	var stretch = 1;
+			//	var ratio;
+			//	ratio = handle.bounds.top/view.bounds.top;
+			//	[ratio, handle.bounds.top,view.bounds.top].debug("ratio, htop, vtop");
+			//	[x, x-orig].debug("x");
+			//	ratio = ratio - ( ( x-orig )/10 );
+			//	layout.setStretch(0, ratio);
+			//	layout.setStretch(2, 1-ratio);
+			//}
+		})
+		.background_(Color.blue)
+		.fixedHeight_(10)
+	;
+	layout = VLayout(
+		views[0],
+		handle,
+		views[1],
+	);
+	view.layout = layout;
+	view;
+};
+WindowDef(\gg, { ~splitvlayout.([Knob.new, Knob.new]) }).frontTop;
+)
+
+~v= VLayout(Knob.new, Knob.new)
+{  ~v.setStretch(0,10) }.defer
+~v.setStretch(0,11.1);
+WindowDef(\gg, { ~v }).frontTop
+
+// layout : can't stretch with float, abandon
+
+
+(
+~vsplitview = {
+	var view1 = View.new.layout_(VLayout(UserView.new.background_(Color.red)).spacing_(0).margins_(0));
+	var view2 = View.new.layout_(VLayout(UserView.new.background_(Color.yellow)).spacing_(0).margins_(0));
+	var mview = View.new;
+	var handle = View.new.fixedHeight_(10).background_(Color.blue);
+	mview.layout = VLayout(view1, handle,view2).spacing_(0);
+	~v1 = view1;
+	~v2 = view2;
+	~m = mview;
+	~h = handle;
+
+	mview;
+
+};
+WindowDef(\gg, {~vsplitview.();}).frontTop;
+~m.onResize_({
+	~v1.fixedHeight_(~m.bounds.height * ~r)
+});
+)
+~r = 1/5;
+~m.bounds.height
+(
+~h.mouseDownAction_({ arg me, x, y;
+	~is_drag = true;
+	~orig = x;
+});
+~h.mouseDownAction_({ arg me, x, y;
+	~is_drag = false;
+});
+~h.mouseMoveAction_({ arg me, x, y;
+	y.debug("yyy");
+	if(~is_drag == true) {
+		(y - ~orig).debug("y-o")
+		
+	}
+});
+)
+
+~clipTimeline_clipboard = self.timeline.selNodes.as(Array).collect({ arg x; x.model });
+~noteTimeline.new(\notes4, Param(Pdef(\pat), \midinote)).edit;
