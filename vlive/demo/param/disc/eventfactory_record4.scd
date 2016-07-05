@@ -173,7 +173,6 @@ PlayerWrapper(Pdef(\pat1)).makeListener({ arg ...args; args.debug("aqrgf play");
 ~el.recordEvent((bla:4))
 
 
-~se = StepEvent.new
 
 BusDef(\test, \control).asMap.dump
 ~se[\freq] = 500
@@ -183,8 +182,41 @@ BusDef(\test, \control).asMap.dump
 StepList[100,200,400]
 ~se.repeats = 100;
 Pfunc({}).loop
-Param(~se[\freq], \freq).edit
+~se = StepEvent.new
 Param(~se, \freq).wrapper
+Param(~se, \freq).get
+Param(~se, \freq).spec
+Param(~se, \freq).type
+Param(~se, \freq).edit
+Param(~se, \freq).default
+Param(~se, \freq -> 0).set(100)
+Param(~se, \freq -> 10).get
+Param(~se, \freq -> 0).edit
+Param(~se, \freq).at(1)
+Param(~se, \env).at(\levels, 1).get
+Param(~se, \env).at(\timesx, 0).set(10)
+Param(~se, \env -> \times -> 0).set(4)
+Param(~se, \env -> \times).get
+Param(~se, \xfenv).get
+Param(~se, \xfenv).default
+Param(~se, \xfenv).spec
+Param(~se, \xfenv).wrapper
+Param(~se, \xxxxenv)
+Param(~se, \env).spec
+Param(~se, \abb).edit
+~se.getSpec(\env)
+XEnvSpec(\freq!2)
+Param(~se, \freq).collect(_.get)
+~se[\freq] = StepList[1,0,1,0]
+~se[\freq] = nil
+~se[\xxxxenv] = Env([1,2,3],[1,2])
+~se[\abb] = StepList[1,0,1,0]
+~se.addSpec(\freq, ControlSpec(0,10,\lin))
+~se.addSpec(\freq, nil)
+~se.addSpec(\freq, XArraySpec(ControlSpec(0,20)!8))
+~se.addSpec(\freq, StepListSpec(ControlSpec(0,20)!8))
+~se
+Param(~se[\freq], \freq).edit
 BusDef(\test, \control).asPattern.asStream.next
 BusDef(\test, \control).set(240)
 
@@ -280,3 +312,5 @@ WindowDef(\gg, {~vsplitview.();}).frontTop;
 
 ~clipTimeline_clipboard = self.timeline.selNodes.as(Array).collect({ arg x; x.model });
 ~noteTimeline.new(\notes4, Param(Pdef(\pat), \midinote)).edit;
+
+

@@ -467,3 +467,20 @@ Pembed(Pdef(\pat1), nil).play
 
 Event
 ().embedInStream
+
+
+
+(
+~e = (
+	get: { arg self;
+		'dkdkd'
+	},
+
+	set: { arg self, val;
+		self.bla = val;
+	
+	}
+)
+)
+~e.get
+~e.set(33)

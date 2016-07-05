@@ -1,4 +1,15 @@
 
+bus.getSynchronous throw this unrelated error when server is not booted
+
+^^ The preceding error dump is for ERROR: Server-getControlBusValue only supports local servers
+
+///////////////
+
+where is defined this Env method .size which return always 0 ?
+note: overwriten in Param.sc to return .levels.size
+
+//////////////////
+
 JITLib patch: added changed(\play) and changed(\stop) to Pdef (and TaskProxy, his ancestor)
 
 ///////////////////
