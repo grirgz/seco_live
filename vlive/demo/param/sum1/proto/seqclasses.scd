@@ -411,14 +411,22 @@ WindowDef(\gui, {
 
 // ~stepEventView
 (
+ParamProto.init;
 ~se = StepEvent.new;
 ~se.instrument = \dr_kick;
 ~se.freq = StepList.newFrom((1..8) * 100);
 ~se.amp = StepList.newFrom((1..8)/8);
 ~se.dur = 1/4;
 WindowDef(\gui, { 
-	~stepEventView.new(~se).makeLayout 
+	VLayout(
+		~stepEventView.new(~se).makeLayout,
+		HLayout(
+			PlayerWrapper(Pdef(\yep, ~se.asPattern)).asView,
+			Param(Message(~se), \repeats, ControlSpec(1,inf,\lin,1,1)).asTextField,
+		),
+	)
 }).front;
+~se.repeats = 8;
 )
 
 // ~envEventView
@@ -588,3 +596,26 @@ WindowDef(\gui, { ~tv = TimelinePreview.new; ~tv.mapEventList(~noteTimeline.new(
 
 Window.keyDownActionTest
 
+/////////////////////////////////////// Context menu
+(
+
+
+WindowDef(\popup, {
+		VLayout(
+			Knob.new.mouseDownAction_({ arg view, x, y, mod, mouseButton;
+				var menu = MenuSpec(
+					[
+						"Setmode" -> { "k".debug },
+						"remove" -> { "xxxk".debug },
+					]
+				);
+				ContextMenuWindow(menu.labelList.asArray).front(view, x, y, mouseButton).action_({ arg me, idx;
+					menu.valueList[idx].value
+
+				})
+			})
+		)
+
+}).front;
+
+)
