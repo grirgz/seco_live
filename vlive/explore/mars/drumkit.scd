@@ -33,6 +33,10 @@ SynthDef(\zkick, { |out=0, amp=0.1, pan=0, fratio=1.5, freqpan=0.01, spread=0.08
 	OffsetOut.ar(out, son);
 }, metadata:(specs:(
 	timeScale: ControlSpec(0.001,4,\lin, 0, 1),
+	env0: XEnvSpec(\amp!4),
+	env1: XEnvSpec(\midinote!3),
+	distmix: \unipolar,
+
 ))).store;
 
 SynthDef(\zkick2, { |out=0, amp=0.1, pan=0, fratio=1.5, freqpan=0.01, spread=0.08, timeScale=1|
@@ -62,6 +66,8 @@ SynthDef(\zkick2, { |out=0, amp=0.1, pan=0, fratio=1.5, freqpan=0.01, spread=0.0
 	OffsetOut.ar(out, son);
 }, metadata:(specs:(
 	timeScale: ControlSpec(0.001,4,\lin, 0, 1),
+	env0: XEnvSpec(\amp!4),
+	env1: XEnvSpec(\midinote!3),
 ))).store;
 
 ///////// hats
@@ -150,8 +156,14 @@ SynthDef(\zsnare, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.4)),gate,doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
-}).add;
-
+}, metadata:(specs:(
+	oscfreqenv: XEnvSpec(\freq!3),
+	oscampenv: XEnvSpec(\amp!3),
+	lpenv: XEnvSpec(\freq!3),
+	hpenv: XEnvSpec(\freq!3),
+	snareampenv: XEnvSpec(\amp!3),
+	adsr: XEnvSpec.adsr,
+))).add;
 
 
 ////////////////////////////////////////////////////

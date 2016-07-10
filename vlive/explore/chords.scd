@@ -141,18 +141,157 @@ WindowDef(\gui, {
 )
 
 (
+)
+
+~trackMixerDef.new(\bla).clear
+~trackMixerDef.all.clear
+~trackMixerDef.new(\bla).asParam(\inbus)
+~trackMixerDef.new(\bla).asParam(\postfader).edit
+~trackMixerDef.new(\bla).play;
+Ndef(\trackMixerDef_bla).edit
+Ndef(\trackMixerDef_bla).get(\inbus)
+
+~trackMixerDef.new(\bla).numchannels;
+~trackMixerDef.new(\bla).outbus
+~trackMixerDef.new(\bla).inbus
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\degree, Pwhite(-20,10,inf),
+	\dur, 1/5,
+	\amp, 0.4,
+	\out, ~trackMixerDef.new(\bla).inbus,
+)).play;
+);
+
+"jjj".beginsWith("hh")
+
+(
 ParamProto.init;
+	~trackMixerDef = ProtoClass((
+		all: {PresetDictionary(\trackMixerDef)},
+		new: { arg self, key, numchannels=2, outbus=0;
+		
+			if(self.all[key].isNil) {
+				self = self.deepCopy;
+				self.key = key;
+				self.init(key, numchannels, outbus);
+				self.all[key] = self;
+			} {
+				self = self.all[key];
+				//self.val = val;
+			};
+		
+			self;
+		},
+
+		clear: { arg self;
+			self.all[self.key] = nil;
+		},
+
+		init: { arg self, key, numchannels, outbus;
+			self.outbus = outbus;
+			self.numchannels = numchannels;
+			self.define_mixer;
+			self.asParam(\inbus).set(self.inbus)
+		},
+
+		inbus: { arg self;
+			BusDef(\trackMixerDef_+++self.key, \audio, self.numchannels)
+		},
+
+		numchannels: 2,
+
+		define_mixer: { arg self;
+			//self.proxy = NodeProxy.new;
+			self.proxy = Ndef(\trackMixerDef_+++self.key);
+			self.proxy[0] = {
+				In.ar(\inbus.kr(self.zerobus), self.numchannels);
+			};
+			self.proxy[1000] = \filter -> { arg in;
+				in * \prefader.kr(1).dbamp;
+			};
+			self.proxy[2000] = \filter -> { arg in;
+				in * \postfader.kr(1).dbamp;
+			};
+			self.proxy.addSpec(\inbus, XBusSpec());
+			self.proxy.addSpec(\prefader, \db);
+			self.proxy.addSpec(\postfader, \db);
+		},
+
+		play: { arg self;
+			var outbus = self.outbus;
+			if(outbus.isKindOf(Bus)) {
+				outbus = outbus.index;
+			};
+			self.proxy.play(outbus, self.numchannels)
+		},
+
+		setOut: { arg self, outbus;
+			self.outbus = outbus;
+			self.play;
+		},
+
+		asParam: { arg self, key;
+			if(key.asString.beginsWith("send")) {
+				var idx = key.asString.drop(4).asInteger;
+				self.build_sender(idx);
+				Param(self.proxy, key);
+			} {
+				Param(self.proxy, key);
+			}
+		},
+
+		asParamGroup: { arg self;
+			self.proxy.asParamGroup
+		},
+
+		nullbus: { arg self;
+			BusDef(\null+++self.numchannels, \audio, self.numchannels)
+		},
+
+		zerobus: { arg self;
+			BusDef(\zero+++self.numchannels, \audio, self.numchannels)
+		},
+
+		build_sender: { arg self, idx;
+			var sendkey = \send+++idx;
+			self.proxy.addSpec(sendkey, \unipolar);
+			self.proxy[idx+1100] = \filter -> { arg in;
+				Out.ar(\sendbus.kr(self.zerobus), in * sendkey.kr(1));
+				in;
+			}
+		},
+
+		stop: { arg self;
+			self.proxy.stop;
+		},
+
+		isPlaying: { arg self;
+			self.proxy.isPlaying;
+		},
+
+	));
 TrackDef(\proxy_player, (
 	play: { arg self;
 		self.proxy.play;
+		if(self.mixer.notNil) {
+			self.mixer.play;
+		};
 	},
 
 	stop: { arg self;
 		self.proxy.stop;
+		if(self.mixer.notNil) {
+			self.mixer.stop;
+		};
 	},
 
 	isPlaying: { arg self;
-		self.proxy.isPlaying;
+		self.proxy.isPlaying and: {
+			self.mixer.isNil or: { self.mixer.isPlaying }
+		};
 	},
 ));
 TrackDef(\drum, (
@@ -172,6 +311,9 @@ TrackDef(\drum, (
 		"hello!".debug;
 		StepEventDef(self.key)[\isRest].addSpec(\list, \unipolar);
 		"hello!".debug;
+		self.mixer = ~trackMixerDef.new(self.key);
+		self.mixer.define_mixer;
+		self.proxy.set(\out, self.mixer.inbus);
 	},
 
 	source_: { arg self, val;
@@ -182,7 +324,9 @@ TrackDef(\drum, (
 	},
 
 	asParamGroup: { arg self;
-		self.source.asParamGroup
+		ParamGroup(self.source.asParamGroup.collect{ arg par;
+			Param(self.stepevent, par.property, par.spec).default_(par.get)
+		})
 	},
 
 	edit: { arg self;
@@ -220,8 +364,9 @@ TrackDef(\main, (
 									)
 								) 
 							}).asView.fixedWidth_(100),
+							child.target.mixer.asParam(\postfader).asKnob,
 							~stepEventCoinView.new(child.target.stepevent).hasCursor_(true).asView
-						).margins_(0).spacing_(0)
+						).margins_(0).spacing_(5)
 					})
 					++ [nil]
 				).margins_(0).spacing_(0),
@@ -241,7 +386,44 @@ TrackDef(\hat).source = Pdef(\hat);
 TrackDef(\main).edit;
 )
 
+TrackDef(\kick).stepevent
+
+(
+WindowDef(\mixer, { arg me, trackgroup;
+	HLayout(
+		HLayout(*
+			trackgroup.collect { arg track;
+				var mixer;
+				if(track.isKindOf(PlayerWrapper)) {
+					track = track.target;
+				};
+				mixer = track.mixer;
+				VLayout(
+					//StaticText.new.string_(track.label).background_(track.color ? ParamView.color_ligth),
+					PlayerWrapperSelectorView(PlayerWrapper(track)).asView,
+					mixer.asParam(\postfader).asStaticTextLabel,
+					mixer.asParam(\postfader).asSlider.orientation_(\vertical),
+					mixer.asParam(\postfader).asTextField,
+				);
+			}
+		),
+		VLayout (
+			PlayerWrapperSelectorView(trackgroup).asView,
+			Param(Server.default.volume, \volume).asStaticTextLabel,
+			Param(Server.default.volume, \volume).asSlider.orientation_(\vertical),
+			Param(Server.default.volume, \volume).asTextField,
+		)
+	)
+}).front(TrackDef(\main).children)
+)
+
 { SinOsc.ar(200) ! 2 * 0.1}.play;
+
+
+			Param(Server.default.volume, \volume).spec
+			\fader.asSpec
+			\db.asSpec
+
 
 TrackDef(\drum).init;
 TrackDef(\drum).init
