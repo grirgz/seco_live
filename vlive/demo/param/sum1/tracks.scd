@@ -3,110 +3,6 @@
 (
 TempoClock.default.tempo = 1;
 ParamProto.init;
-	~trackMixerDef = ProtoClass((
-		all: {PresetDictionary(\trackMixerDef)},
-		new: { arg self, key, numchannels=2, outbus=0;
-		
-			if(self.all[key].isNil) {
-				self = self.deepCopy;
-				self.key = key;
-				self.init(key, numchannels, outbus);
-				self.all[key] = self;
-			} {
-				self = self.all[key];
-				//self.val = val;
-			};
-		
-			self;
-		},
-
-		clear: { arg self;
-			self.all[self.key] = nil;
-		},
-
-		init: { arg self, key, numchannels, outbus;
-			self.outbus = outbus;
-			self.numchannels = numchannels;
-			self.define_mixer;
-			self.asParam(\inbus).set(self.inbus)
-		},
-
-		inbus: { arg self;
-			BusDef(\trackMixerDef_+++self.key, \audio, self.numchannels)
-		},
-
-		numchannels: 2,
-
-		define_mixer: { arg self;
-			//self.proxy = NodeProxy.new;
-			self.proxy = Ndef(\trackMixerDef_+++self.key);
-			self.proxy[0] = {
-				In.ar(\inbus.kr(self.zerobus), self.numchannels);
-			};
-			self.proxy[1000] = \filter -> { arg in;
-				in * \prefader.kr(1).dbamp;
-			};
-			self.proxy[2000] = \filter -> { arg in;
-				in * \postfader.kr(1).dbamp;
-			};
-			self.proxy.addSpec(\inbus, XBusSpec());
-			self.proxy.addSpec(\prefader, \db);
-			self.proxy.addSpec(\postfader, \db);
-		},
-
-		play: { arg self;
-			var outbus = self.outbus;
-			if(outbus.isKindOf(Bus)) {
-				outbus = outbus.index;
-			};
-			self.proxy.play(outbus, self.numchannels)
-		},
-
-		setOut: { arg self, outbus;
-			self.outbus = outbus;
-			self.play;
-		},
-
-		asParam: { arg self, key;
-			if(key.asString.beginsWith("send")) {
-				var idx = key.asString.drop(4).asInteger;
-				self.build_sender(idx);
-				Param(self.proxy, key);
-			} {
-				Param(self.proxy, key);
-			}
-		},
-
-		asParamGroup: { arg self;
-			self.proxy.asParamGroup
-		},
-
-		nullbus: { arg self;
-			BusDef(\null+++self.numchannels, \audio, self.numchannels)
-		},
-
-		zerobus: { arg self;
-			BusDef(\zero+++self.numchannels, \audio, self.numchannels)
-		},
-
-		build_sender: { arg self, idx;
-			var sendkey = \send+++idx;
-			self.proxy.addSpec(sendkey, \unipolar);
-			self.proxy[idx+1100] = \filter -> { arg in;
-				Out.ar(\sendbus.kr(self.zerobus), in * sendkey.kr(1));
-				in;
-			}
-		},
-
-		stop: { arg self;
-			self.proxy.stop;
-		},
-
-		isPlaying: { arg self;
-			self.proxy.isPlaying;
-		},
-
-	));
 TrackDef(\proxy_player, (
 	play: { arg self;
 		self.proxy.play;
@@ -119,9 +15,17 @@ TrackDef(\proxy_player, (
 	stop: { arg self;
 		self.proxy.stop;
 		if(self.mixer.notNil) {
-			self.mixer.stop;
+			//self.mixer.stop; // never stop mixers!
 		};
 		self.changed(\stop, self.proxy.quant);
+	},
+
+	quant: { arg self;
+		self.proxy.quant;
+	},
+
+	quant_: { arg self, val;
+		self.proxy.quant = val;
 	},
 
 	isPlaying: { arg self;
@@ -134,6 +38,7 @@ TrackDef(\drum, TrackDef(\proxy_player).copy.putAll((
 
 	label: { arg self; self.key },
 	stepevent: { arg self; StepEventDef(self.key) },
+	tracktype: \drum,
 
 	init: { arg self;
 		"hello!".debug;
@@ -149,9 +54,16 @@ TrackDef(\drum, TrackDef(\proxy_player).copy.putAll((
 		"hello!".debug;
 		self.mixer = ~trackMixerDef.new(self.key);
 		self.mixer.define_mixer;
+		self.init_mixer_busses;
 		self.proxy.set(\out, self.mixer.inbus);
 		self.children = SparseArray.new;
 		self.childProxy = EventPatternProxy.new.source_(Pbind());
+	},
+
+	init_mixer_busses: { arg self;
+		8.do { arg x;
+			self.mixer.proxy.set(\sendbus+++x, BusDef(\sendbus+++x, \audio, self.mixer.numchannels))
+		}
 	},
 
 	source_: { arg self, val;
@@ -190,7 +102,8 @@ TrackDef(\drum, TrackDef(\proxy_player).copy.putAll((
 	},
 
 	selectChild: { arg self, idx;
-		self.selectedChild = idx;
+		self.selectedChild = idx; // to be deprecated, should be an object instead an index
+		self.selectedIndex = idx;
 		self.childProxy.source = self.childAt(idx).asPattern;
 	},
 
@@ -203,8 +116,9 @@ TrackDef(\drum, TrackDef(\proxy_player).copy.putAll((
 	edit: { arg self;
 		WindowDef(self.key, { 
 			VLayout(
+				PlayerWrapper(self).asView,
 				~stepEventCoinView.new(self.stepevent).hasCursor_(true).asView,
-				PlayerWrapper(self.proxy).asView,
+				ParamGroupLayout.inline_groups(self.asParamGroup),
 			)
 		}).front;
 	},
@@ -212,6 +126,7 @@ TrackDef(\drum, TrackDef(\proxy_player).copy.putAll((
 
 TrackDef(\subdrum, TrackDef(\drum).copy.putAll((
 	label: { arg self; self.parentTrack.label ++ " " ++ self.index.asString },
+	tracktype: { arg self; self.parentTrack.tracktype },
 	new: { arg self, parent, idx;
 		self = self.deepCopy;
 
@@ -264,12 +179,16 @@ TrackDef(\subdrum, TrackDef(\drum).copy.putAll((
 
 )));
 
-TrackDef(\main, (
+TrackDef(\main, TrackDef(\proxy_player).copy.putAll((
+	label: { arg self; self.key },
 	children: PlayerWrapperGroup([
 		TrackDef(\kick),
 		TrackDef(\snare),
 		TrackDef(\hat),
+		TrackDef(\fx1),
 	]),
+
+	grouptype: \par,
 
 	proxy: { arg self; self.children },
 
@@ -306,7 +225,8 @@ TrackDef(\main, (
 	},
 
 	mixer: { arg self;
-		(
+		ProtoClass((
+			isPlaying: true,
 			edit: {
 				WindowDef(\mixer_+++self.key, { arg me, trackgroup;
 					HLayout(
@@ -335,18 +255,105 @@ TrackDef(\main, (
 					)
 				}).front(self.children)
 			}
-		)
+		))
 		
 	},
 
-)).putAll(TrackDef(\proxy_player));
+)));
+TrackDef(\ndef, TrackDef(\proxy_player).copy.putAll((
+	label: { arg self;
+		self.key
+	},
+	source_: { arg self, val;
+		self.proxy = val
+	},
+
+	play: { arg self;
+		self.proxy.play(self.outbus.index, self.outbus.numChannels);
+		self.mixer.play;
+	},
+
+	outbus: { arg self;
+		self.mixer.inbus;
+	},
+
+	source: { arg self;
+		self.proxy
+	},
+
+	init_mixer_busses: { arg self;
+		8.do { arg x;
+			self.mixer.proxy.set(\sendbus+++x, BusDef(\sendbus+++x, \audio, self.mixer.numchannels))
+		}
+	},
+
+	asParamGroup: { arg self;
+		self.proxy.asParamGroup
+	},
+
+	editor: { arg self;
+		ParamGroupLayout.inline_groups(self.asParamGroup);
+	},
+
+	isPlaying: { arg self;
+		PlayerWrapper(self.proxy).isPlaying and: {
+			self.mixer.isNil or: { self.mixer.isPlaying }
+		};
+	},
+
+	mixer: { arg self;
+		if(self.mixer_obj.isNil) {
+			self.mixer_obj = ~trackMixerDef.new(self.key);
+			self.mixer_obj.define_mixer;
+			self.init_mixer_busses;
+		};
+		self.mixer_obj;
+	},
+
+)));
 TrackDef(\kick, TrackDef(\drum)).init;
 TrackDef(\kick).source = Pdef(\kick);
 TrackDef(\snare, TrackDef(\drum)).init;
 TrackDef(\snare).source = Pdef(\snare);
 TrackDef(\hat, TrackDef(\drum)).init;
 TrackDef(\hat).source = Pdef(\hat);
+TrackDef(\fx1, TrackDef(\ndef)).source = Ndef(\fx1, {
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio, 2)), 2);
+	var sig;
+	sig = in;
+	sig = CombL.ar(sig, 1, \delay.kr(0.1), \decay.kr(1));
+	sig;
+});
+TrackDef(\fx1).proxy.set(\inbus, BusDef(\sendbus0, \audio, 2));
+TrackDef(\fx1).proxy.addSpec(\inbus, XBusSpec());
 )
+
+TrackDef(\kick).mixer.proxy.edit
+TrackDef(\kick).init_mixer_busses
+Ndef(\fx1).clear
+Ndef(\fx1).edit
+Ndef(\fx1).play(0)
+Ndef(\fx1).play(58,2)
+Ndef(\fx1).play(58,2)
+(
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	\out, TrackDef(\fx1).mixer.inbus,
+	\dur, 1,
+	\amp, 0.1
+)).stop;
+);
+Ndef(\fx1).play(TrackDef(\fx1).mixer.inbus)
+TrackDef(\fx1).mixer.proxy.edit
+
+TrackDef(\fx1).proxy.get(\inbus)
+TrackDef(\fx1).proxy.edit
+TrackDef(\fx1).play
+TrackDef(\fx1).outbus.numChannels
+TrackDef(\fx1).outbus
+TrackDef(\fx1).outbus
+1+1
 
 (
 	TrackDef(\kick).childAt(0).stepevent[\isRest][0] = 1;
@@ -361,49 +368,33 @@ TrackDef(\hat).source = Pdef(\hat);
 	TrackDef(\hat).selectChild(0);
 )
 
+TrackDef(\main).play
+TrackDef(\kick).play
+TrackDef(\main).stop
 TrackDef(\main).edit;
 TrackDef(\main).mixer.edit;
+TrackDef(\main)[\isPlaying].asCompileString
+TrackDef(\main)[\isPlaying].asCompileString
+TrackDef(\main).mixer.isPlaying
+WindowLayout({ TrackDef(\fx1).editor });
+~clipTimeline.new(\yep).edit
+~clipTimeline.new(\yep).eventList.print
+~clipTimeline.new(\yep).eventList[1].receiver.value.target
+Ndef(\fx1).edit
+TrackDef(\fx1).mixer.proxy.edit
+Ndef(\fx1).clear
 
+cleaR
 (
-	~selectorGroup_set = { arg view, group;
-		var idx;
-		idx = group.addChild(view);
-		view.selectAction = {
-			group.selectChild(idx)
-		};
-		view;
-	};
-	~selectorGroup = ProtoClass((
-		new: { arg self;
-			self = self.deepCopy;
-		
-			self.selectedIndex = 0;
-			self.viewList = List.new;
-		
-			self;
-		},
-
-		selectChild: { arg self, idx;
-			if(self.selectedIndex.notNil) {
-				self.viewList[self.selectedIndex].selected = false;
-			};
-			self.selectedIndex = idx;
-			self.viewList[idx].selected = true;
-			self.selectAction(self.viewList[idx], idx);
-		},
-
-		addChild: { arg self, view;
-			var idx;
-			self.viewList.add(view);
-			idx = self.viewList.size - 1;
-			idx;
-		},
-	));
 	WindowDef(\playergrid, { arg me, maintrack;
+		var mixerview;
+		var gridsize = 8@8;
 		var selectorGroup = ~selectorGroup.new;
-		var editview = View.new.fixedHeight_(350);
+		var editview = View.new.fixedHeight_(315);
 		var mixerviews = List.new;
-		var mixer_visible = { arg val=true;
+		var mixer_visible;
+
+		mixer_visible = { arg val=true;
 			if(val) {
 				editview.visible = val.not;
 			};
@@ -414,51 +405,143 @@ TrackDef(\main).mixer.edit;
 				editview.visible = val.not;
 			};
 		};
+
+		mixerview = { arg mixer;
+			VLayout(
+				mixer.asParam(\postfader).asSlider.orientation_(\vertical).maxWidth_(100).minHeight_(200),
+				mixer.asParam(\postfader).asTextField.maxWidth_(100),
+				VLayout(*
+					2.collect({ arg idx;
+						HLayout(
+							mixer.asParam(\send+++( idx*2 )).asKnob,
+							mixer.asParam(\send+++( idx*2+1 )).asKnob,
+						)
+					})
+				)
+			).spacing_(0).margins_(0)
+		};
+
 		mixer_visible.(true);
+
 		selectorGroup.selectAction = { arg self, view;
+			var target = view.model.target;
 			editview.removeAll;
 			editview.layout_(
-				VLayout(
-					~stepEventCoinView.new(view.model.target.stepevent).hasCursor_(true).asView,
-					ParamGroupLayout.inline_groups(view.model.target.asParamGroup),
-				)
+				case
+					{ target === maintrack } {
+						VLayout(
+							*
+							target.children.asArray.collect { arg track;
+								track = track.target;
+								if(track.notNil and: {track.tracktype == \drum}) {
+									~stepEventCoinView.new(track.childAt(track.selectedChild).stepevent).hasCursor_(true).asView;
+								}
+							}
+							++ [nil]
+						).spacing_(0).margins_(0)
+
+					}
+					{ target.isLinePlayer == true } {
+						VLayout(
+							*
+							target.children.asArray.collect { arg track;
+								if(track.notNil and: {track.tracktype == \drum}) {
+									~stepEventCoinView.new(track.stepevent).hasCursor_(true).asView;
+								}
+							}
+							++ [nil]
+						).spacing_(0).margins_(0)
+					}
+					{ target.tracktype == \drum } {
+						VLayout(
+							~stepEventCoinView.new(target.stepevent).hasCursor_(true).asView,
+							ParamGroupLayout.inline_groups(target.asParamGroup),
+						)
+					}
+					{
+						target.editor
+					}
+				;
 			)
 		};
+
 		VLayout(
 			HLayout(
-				BasicButton.new.action_({
-					maintrack.mixer.edit;
-				}).label_("Mixer Window");
+				//BasicButton.new.action_({
+				//	maintrack.mixer.edit;
+				//}).label_("Mixer Window");
 				BasicButton.new.action_({
 					if(mixerviews.first.visible) {
 						mixer_visible.(false);
 					} {
 						mixer_visible.(true);
 					}
-				}).label_("show Mixer");
+				}).label_("show Mixer"),
+				PlayerWrapper(maintrack).asView,
+
 			),
 			GridLayout.columns(
 				*maintrack.children.collect({ arg track;
 					if(track.isKindOf(PlayerWrapper)) {
 						track = track.target;
 					};
+					[track.keys, track.label].debug("Track");
 					mixerviews.add(
 						View.new.layout_(
-							VLayout(
-								track.mixer.asParam(\postfader).asSlider.orientation_(\vertical).maxWidth_(100).minHeight_(200),
-								track.mixer.asParam(\postfader).asTextField.maxWidth_(100),
-							).spacing_(0).margins_(0)
+							mixerview.(track.mixer),
 						)
 					);
 					[ ~selectorGroup_set.(PlayerWrapperSelectorView(track), selectorGroup).asView ] ++
-					8.collect({ arg idx;
+					gridsize.y.collect({ arg idx;
 						~selectorGroup_set.(PlayerWrapperSelectorView(track.childAt(idx)), selectorGroup).asView;
 					})
 					++ [
 						mixerviews.last,
 						nil
 					]
-				}) ++ [ nil!maintrack.children.size]
+				}) 
+				++ [{
+					var lineplayer;
+					var mixerparam = Param(Server.default.volume, \volume);
+					mixerviews.add(
+						View.new.layout_(
+							VLayout(
+								mixerparam.asSlider.orientation_(\vertical).maxWidth_(100).minHeight_(200),
+								mixerparam.asTextField.maxWidth_(100),
+							).spacing_(0).margins_(0)
+						)
+					);
+					[ ~selectorGroup_set.(PlayerWrapperSelectorView(maintrack), selectorGroup).asView ] ++
+					8.collect({ arg idx;
+						var lineplayer = ProtoClass((
+							isLinePlayer: true,
+							play: {
+								maintrack.children.do({ arg x; x.target.selectChild(idx) });
+								maintrack.play;
+							}
+
+							stop: { arg self;
+								maintrack.stop
+							},
+
+							isPlaying: { arg self;
+								maintrack.isPlaying and: {
+									maintrack.children.asArray.every({ arg x; x.target.selectedChild == idx });
+								};
+							},
+
+							children: { arg self;
+								maintrack.children.asArray.collect({ arg x; x.target.childAt(idx) });
+							},
+						));
+						~selectorGroup_set.(PlayerWrapperSelectorView(lineplayer), selectorGroup).asView;
+					})
+					++ [
+						mixerviews.last,
+						nil
+					]
+				}.value]
+				++ [ nil!maintrack.children.size]
 			).setColumnStretch(maintrack.children.size, 100),
 			//ScrollView.new.canvas_(editview),
 
@@ -481,6 +564,7 @@ TrackDef(\subdrum)[\play].asCompileString
 TrackDef(\kick).isPlaying
 TrackDef(\kick).children
 TrackDef(\kick).quant
+TrackDef(\kick).childAt(1).play
 TrackDef(\main).children.array.do({ arg x;x.quant.debug("qq")})
 TrackDef(\kick).childAt(0).quant
 TrackDef(\subdrum)[\play].asCompileString
@@ -515,6 +599,7 @@ ParamProto.init(true)
 ~trackTimelinePanelView.new(~clipTimeline.new(\line))
 ~trackTimelinePanelView
 
+~clipTimeline.new(\yep).edit
 
 (
 //~ef = ~class_player_event_factory.new([

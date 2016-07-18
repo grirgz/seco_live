@@ -1,6 +1,5 @@
-(
-///////// kicks
 
+(
 SynthDef(\zkick, { |out=0, amp=0.1, pan=0, fratio=1.5, freqpan=0.01, spread=0.08, timeScale=1|
 	var env0, env1, env1m, son;
 	var son_d;
@@ -72,14 +71,14 @@ SynthDef(\zkick2, { |out=0, amp=0.1, pan=0, fratio=1.5, freqpan=0.01, spread=0.0
 
 ///////// hats
 
-SynthDef(\zhat, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+SynthDef(\zhat, { arg out=0, amp=0.1, trig=1, pan=0, freq=200, ampm=1;
 	var sig;
 	sig = WhiteNoise.ar;
 	sig = RLPF.ar(sig, \lpf.kr(15100), \rq.kr(0.5));
 	sig = RHPF.ar(sig, \hpf.kr(6100), \rq.kr(0.5));
 	//sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.2,1,-4),gate,doneAction:2);
-	sig = sig * EnvGen.ar(Env.perc(0.01,\rel.kr(0.1),-4),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
+	sig = sig * EnvGen.ar(Env.perc(0.01,\rel.kr(0.1),-4),trig,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp) * ampm;
 	Out.ar(out, sig);
 }).add;
 
@@ -177,210 +176,209 @@ Pdef(\kick, Pbind(
 		[ Env.new([0, 1, 0.8,0], [0.015, 0.09,0.1], [-4, -5]) ],
 	],inf),
 	\degree, Pseq([0],inf),
-	\dur, 1/2,
+	\dur, 1/8,
 	\isRest, Pseq([
-		1,0,1,0, 0,0,1,0,
 		1,0,0,0, 0,0,0,0,
-		1,0,1,0, 0,0,0,0,
-		1,0,0,1, 0,0,0,0,
-		1,1,0,0, 0,0,0,1,
+		0,0,0,0, 1,0,1,0,
+		1,0,0,0, 0,0,0,0,
+		0,0,0,0, 1,0,0,0,
+
+		1,0,0,0, 0,0,0,0,
+		0,0,1,0, 0,0,0,1,
+		1,0,0,0, 0,0,0,0,
+		0,0,0,0, 0,0,1,0,
+
+		1,0,0,0, 0,0,0,0,
+		0,0,0,0, 1,0,1,0,
+		1,0,0,0, 0,0,0,0,
+		0,0,0,0, 1,0,0,0,
+
+		1,0,0,0, 0,0,0,0,
+		0,0,1,0, 0,0,0,1,
+		1,0,0,0, 0,0,1,0,
+		0,0,1,0, 1,0,1,0,
 	],inf).coin.not,
-	\amp, 0.15
+	\amp, 0.15,
+	\amp, Pkey(\amp) * Pseq([
+		1,0.5,0.61,0.5,
+		0.7,0.5,0.6,0.5,
+	],inf),
 ));
 
 Pdef(\hat, Pbind(
 	\instrument, \zhat,
 	\degree, Pseq([0],inf),
-	\dur, 1/2,
-	\sustain, 0.1,
+	\dur, 1/8,
 	\isRest, Pseq([
-		1,0,1,0, 1,0,1,0,
-		1,0,1,0, 1,0,1,0,
-		1,0,1,0, 1,0,1,0,
-		1,0,0,1, 0,0,1,0,
+		Pser([
+			0,0,1,0, 1,0,1,0,
+			0,1,1,0, 1,0.5,1,0,
+			0,0,1,1, 1,1,1,0,
+		],16 * 3),
+		Pser([
+			1,0,
+		],16),
+		Pser([
+			0,0,1,0, 1,0,1,0,
+		],16 * 3),
+		Pser([
+			1,0,
+		],16),
 	],inf).coin.not,
-
+	\ampm, Ndef(\hat_lfo_ampm, { SinOsc.kr(2.1*~t).range(0.6,1) }),
+	\hpf, Ndef(\hat_lfo_lpf, { SinOsc.kr(2.05*~t).range(1500,7000) }),
+	\rel, Pseq([0.01,0.1,0.1,0.2],inf).stutter(Prand([1,1,1,2,3,4,1,1,1,1,1,1,1,1],inf)),
+	\rel, Pseq([
+		Pser([0.1],16),
+		Pser([0.07],16),
+		Pser([0.04],16),
+		Pser([
+			Pseq([
+				0.04,
+			],4),
+			0.2,
+			Pseq([
+				0.01,
+			],3),
+		],16),
+	],inf),
 	\amp, 0.1/8,
+	\amp, Pkey(\amp) * Pseq([
+		0.3,0.5,1,0.5,
+		0.3,0.15,1,0.5,
+		0.1,0.55,0.41,0.8,
+	],inf),
 ));
 
 Pdef(\snare, Pbind(
 	\instrument, \zsnare,
 	\degree, Pseq([0],inf),
-	\dur, 1/2,
+	\dur, 1/8,
 	\isRest, Pseq([
 		Pseq([
-			0,0,0,0, 1,0,0,0,
-		],3),
-		Prand([
-			Pseq([
-				0,0,0,0, 1,0,1,0,
-			],1),
-			Pseq([
-				0,1,0,0, 1,0,0,0,
-			],1),
-			Pseq([
-				0,0,0,1, 1,0,0,0,
-			],1),
-			Pseq([
-				0,0,0,0, 1,0,0,0,
-			],1),
+			0,0,0,0, 0,0,0,0,
+			1,0,0,0, 0,0,0,0,
 		],1),
 	],inf).coin.not,
 	\amp, 0.2
 ));
 
-Pdef(\snarehat, Pbind(
-	\instrument, \zsnarehat,
-	\degree, Pseq([0],inf),
-	\dur, 1/2,
-	\isRest, Pseq([
-		Pseq([
-			0,0,0,0, 0,0,0,0,
-			0,0,0,0, 1,0,0,0,
-		],3),
-		Prand([
-			Pseq([
-				0,0,0,0, 1,0,1,0,
-			],1),
-			Pseq([
-				0,1,0,0, 1,0,0,0,
-			],1),
-			Pseq([
-				0,0,0,1, 1,0,0,0,
-			],1),
-			Pseq([
-				0,0,0,0, 1,0,0,0,
-			],1),
-		],2),
-	],inf).coin.not,
-	\amp, 0.20
-));
 
-Pdef(\kick_var2, Pbind(
-	\instrument, \zkick,
-	\env1, Pseq([
-			[ Env.new([80, 31, 35], [0.025, 0.19], [-4, -5]) ],
-		Pseq([
-		[ Env.new([80, 31, 35], [0.035, 0.39], [-4, -5]) ],
-		],3),
+SynthDef(\lide, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig + LFPulse.ar(freq * [1,2,4,2.01]);
+	sig = RLPF.ar(sig, \lpfr.kr(1) * freq, \rq.kr(0.05)) + (sig/2);
+	sig = LPF.ar(sig, \lpf.kr(4000), \rq2.kr(1)) + (sig/4);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+
+Pdef(\lide, Pbind(
+	\instrument, \lide,
+	\degree, Pseq([0,2],inf),
+	\legato, Pseq([
+		Pser([
+			0.1, 0.2,
+		],16 * 2),
+		Pser([
+			0.1, 0.2, 0.5,
+		],16 * 2),
+		Pser([
+			0.2, 0.01, 0.7, 0.2
+		],16 * 2),
 	],inf),
-	\env0, Pseq([
-		[ Env.new([0, 1, 0.8,0], [0.015, 0.09,0.1], [-4, -5]) ],
+	\octave, 3,
+	\dur, 1/4,
+	\amp, 0.1
+));
+
+SynthDef(\hydro, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig + LFPulse.ar(freq * [1,2,4,2.01]);
+	sig = RLPF.ar(sig, \lpfr.kr(1) * freq, \rq.kr(0.05)) + (sig/2);
+	sig = LPF.ar(sig, \lpf.kr(4000), \rq2.kr(1)) + (sig/4);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig / 8;
+	Out.ar(out, sig);
+}).add;
+
+Pdef(\hydro, Pbind(
+	\instrument, \hydro,
+	\degree, Pseq([0,2],inf),
+	\lpf, Ndef(\hydro_lfo_lpf, { SinOsc.kr(1/2 * ~t).range(1000,6991) }),
+	\lpfr, Ndef(\hydro_lfo_lpfr, { SinOsc.kr(1/2 * ~t).range(0.01,2) }),
+	\legato, Pseq([
+		Pser([
+			0.1, 0.2,
+		],16 * 2),
+		Pser([
+			0.1, 0.2, 0.5,
+		],16 * 2),
+		Pser([
+			0.2, 0.05, 0.7, 0.2
+		],16 * 2),
 	],inf),
-	\degree, Pseq([0],inf),
-	\dur, 1/2,
-	\isRest, Pseq([
-		//1,0,0,0, 0,0,1,0,
-		//0,1,0,1, 0,0,0,0,
-		1,0,0,0, 0,1,0,1,
-		0,1,1,0, 0,0,0,1,
-		1,0,1,0, 0,1,0,1,
-		0,1,1,0, 0,0,0,0,
-	],inf).coin.not,
-	\amp, 0.25 * Pseq([
-		1.2,1,1,1,
-	],inf)/1.2,
+	\octave, 5,
+	\dur, 1/4,
+	\amp, 0.1
 ));
 
-Pdef(\hat_var2, Pbind(
-	\instrument, \zhatadsr,
-	\degree, Pseq([0],inf),
-	\dur, 1/2,
-	//\dur, Pkey(\dur) * (1 + (0.11 * Pseq([1,0,-1,0],inf))).stutter(2),
-	\lag, 0.01,
-	\sustain, Pseq([
-		1,Pn(0.1,7),
-		Pn(0.1,2), Pn(1,2),Pn(0.1,4),
-		1,0.5,Pn(0.1,6),
-		Pn(0.1,2), Pn(1,2),Pn(0.1,4),
-		//Pn(0.1,8),
-		//Pn(0.1,8),
-		
-	],inf)+Pwhite(-0.05,0.051,inf),
-	//\rel, Pkey(\sustain),
-	\amp, Pkey(\amp) * Pseq([
-		1,0.5,0.7,0.3,
-	],inf)+Pwhite(0,0.1,inf),
-	\isRest, Pseq([
-		0,0,1,0, 1,0,1,0,
-		1,0,1,0, 1,0,1,0,
-		0,1,1,0, 1,0,1,0,
-		1,0,1,0, 1,0,1,1,
-	],inf).coin.not,
-
-	\amp, 0.1/8,
-));
-
-Pdef(\cym, Pbind(
-	\instrument, \zcymbal,
-	\degree, Pseq([0],inf),
-	\dur, 1/2,
-	\sustain, Pseq([
-		1,Pn(0.1,7),
-		Pn(0.1,2), Pn(1,2),Pn(0.1,4),
-		1,0.5,Pn(0.1,6),
-		Pn(0.1,2), Pn(1,2),Pn(0.1,4),
-		//Pn(0.1,8),
-		//Pn(0.1,8),
-		
+Pdef('hydro.1', Pbind(
+	\instrument, \hydro,
+	\degree, Pseq([0,2,7,4,4,0],inf),
+	\lpf, Ndef(\hydro_lfo_lpf, { SinOsc.kr(1/2 * ~t).range(1000,6991) }),
+	\lpfr, Ndef(\hydro_lfo_lpfr, { SinOsc.kr(1/2 * ~t).range(0.01,2) }),
+	\legato, Pseq([
+		Pser([
+			0.1, 0.2,
+		],16 * 2),
+		Pser([
+			0.1, 0.2, 0.5,
+		],16 * 2),
+		Pser([
+			0.2, 0.01, 0.7, 0.2
+		],16 * 2),
 	],inf),
-	\isRest, Pseq([
-		1,0,0,0, 0,0,0,0,
-	],inf).coin.not,
-
-	\amp, 0.1/8,
+	\octave, 5,
+	\dur, 1/4,
+	\amp, 0.1
 ));
 
-Pdef(\snare_var2, Pbind(
-	\instrument, \zsnare,
-	\degree, Pseq([0],inf),
-	\dur, 1/2,
-	\isRest, Pseq([
-		Pseq([
-			0,0,0,0, 1,0,0,0,
-		],3),
-	],inf).coin.not,
-	\amp, 0.2
+Pdef('hydro.2', Pbind(
+	\instrument, \hydro,
+	\degree, Pseq([0,2,0,7,0,4,0,4,0],inf),
+	\lpf, Ndef(\hydro_lfo_lpf, { SinOsc.kr(1/2 * ~t).range(1000,6991) }),
+	\lpfr, Ndef(\hydro_lfo_lpfr, { SinOsc.kr(1/2 * ~t).range(0.01,2) }),
+	\legato, Pseq([
+		Pser([
+			0.1, 0.2,
+		],16 * 2),
+		Pser([
+			0.1, 0.2, 0.5,
+		],16 * 2),
+		Pser([
+			0.2, 0.05, 0.7, 0.2
+		],16 * 2),
+	],inf),
+	\octave, 5,
+	\dur, 1/8,
+	\amp, 0.1
 ));
 
-Pdef(\snarehat_var2, Pbind(
-	\instrument, \zsnarehat,
-	\degree, Pseq([0],inf),
-	\dur, 1/2,
-	\isRest, Pseq([
-		Pseq([
-			0,0,0,0, 0,0,0,0,
-			0,0,0,0, 1,0,0,0,
-		],3),
-		Prand([
-			Pseq([
-				0,0,0,0, 1,0,1,0,
-			],1),
-			Pseq([
-				0,1,0,0, 1,0,0,0,
-			],1),
-			Pseq([
-				0,0,0,1, 1,0,0,0,
-			],1),
-			Pseq([
-				0,0,0,0, 1,0,0,0,
-			],1),
-		],2),
-	],inf).coin.not,
-	\isRest, Pseq([
-		0,0,0,0, 0,0,0,0,
-	],inf).coin.not,
-	\amp, 0.20
-));
 
 Pdef(\part1, Ppar([
 	Pdef(\kick),
 	Pdef(\snare),
-	Pdef(\snarehat),
 	Pdef(\hat),
 	
-])).stop;
-
+]));
 );
 
-TempoClock.default.tempo = 140/60
+
+// END
+
+Pdef(\part1).play;
