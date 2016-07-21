@@ -34,5 +34,18 @@ m.sysex(Int8Array[ 0xb0,0,0x7f ]); // full test
 m.sysex(Int8Array[ 0xb0,0,0x28 ]); // turn on flashing mode
 m.sysex(Int8Array[ 0xb0,0,0x20 ]); // manual flash on
 m.sysex(Int8Array[ 0xb0,0,0x21 ]); // manual flash off
+MKtl(\lp).desc.rebuild
+MKtl(\lp).sendSpecialMessage(\enableFlashMode)
+MKtl(\lp).sendSpecialMessage(\clearAll)
+MKtl(\lp).specialMessages
+
+
+MKtl(\lp).sendSpecialMessage(\enableFlashModex)
+MKtl(\lp).sendSpecialMessage(\existnot)
+
+//=== refresh description file:
+MKtlDesc.loadDescs; // first do this!
+MKtl(\lp).rebuild("novation-launchpad-s"); 
+//MKtl(\lp).rebuild;  // doesnt work
 
 k.elAt(\pad).elAt(2).elAt(0).value = 0x0f/127 - 0x0c // substract 0x0c to make it flash

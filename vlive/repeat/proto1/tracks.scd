@@ -16,7 +16,7 @@ TrackDef(\playerwrapper, (
 
 	source_: { arg self, val;
 		self.proxy = PlayerWrapper(val);
-		Param(self.proxy.target, \out).set(self.mixer.inbus);
+		self.proxy.outBus = self.mixer.inbus;
 		self.isEmpty = false;
 	},
 
@@ -29,6 +29,20 @@ TrackDef(\playerwrapper, (
 			self[\obj_proxy] = PlayerWrapper(nil);
 		};
 		self[\obj_proxy];
+	},
+
+	asParamGroup: { arg self;
+		self.source.asParamGroup;
+	},
+
+	edit: { arg self;
+		WindowDef(\playerwrapper, {
+			var track = self;
+			VLayout(
+				PlayerWrapper(track).asView,
+				ParamGroupLayout.two_panes(track.asParamGroup)
+			)
+		}).front;
 	},
 
 	play: { arg self;
@@ -148,13 +162,20 @@ TrackDef(\playertrack, (
 		ret;
 	},
 
+	gridPosToAbsPos: { arg self, pos;
+		pos + self.parentTrack.gridOffset.y;
+	},
+
+	childAtOffset: { arg self, idx;
+		self.childAt(self.gridPosToAbsPos(idx));
+	},
+
 	selectChild: { arg self, idx;
 		self.selectedChild = idx; // to be deprecated, should be an object instead an index
 		self.selectedIndex = idx;
 		self.activeIndex = idx; // this one is the good one
 		self.childProxy.source = self.childAt(idx).asPattern;
 	},
-
 
 	mixer: { arg self;
 		if(self.mixer_obj.isNil) {
@@ -169,12 +190,27 @@ TrackDef(\playertrack, (
 TrackDef(\playergrid, (
 	label: { arg self; "%".format(self.key) },
 
-	source_: { arg self, val;
-		self.children = val;
+	source_: { arg self, array;
+		array.collect({ arg val, idx;
+			self.childAt(idx).source = val;
+		})
+	},
+
+	gridOffset: { arg self;
+		if(self.obj_gridOffset.isNil) {
+			self.obj_gridOffset = Point(0,0);
+		};
+		self.obj_gridOffset
+	},
+
+	gridOffset_: { arg self, pos;
+		[pos, Point(pos.x.clip(0,inf), pos.y.clip(0,inf))].debug("expliquez moi comment c'est possible!");
+		self.obj_gridOffset = Point(pos.x.clip(0,inf), pos.y.clip(0,inf));
+		self.changed(\gridOffset);
 	},
 
 	source: { arg self;
-		self.children;
+		self.children.collect({ arg x; x.source });
 	},
 
 	proxy: { arg self;
@@ -206,6 +242,18 @@ TrackDef(\playergrid, (
 			} {
 				ret;
 			}
+		}
+	},
+
+	gridPosToAbsPos: { arg self, pos;
+		pos + self.gridOffset;
+	},
+
+	childAtOffset: { arg self, pos;
+		if(pos.isKindOf(Point)) {
+			self.childAt(self.gridPosToAbsPos(pos));
+		} {
+			self.childAt(self.gridPosToAbsPos(Point(pos,0)).x);
 		}
 	},
 
@@ -294,7 +342,7 @@ WindowDef(\mixerView_large, { arg me, track;
 		)
 	)
 });
-WindowDef(\mixerView, { arg me, track;
+WindowDef(\mixerView_static, { arg me, track;
 	var param;
 	var sends = [];
 	if(track.isKindOf(Volume)) {
@@ -319,29 +367,129 @@ WindowDef(\mixerView, { arg me, track;
 		)
 	)
 });
+WindowDef(\mixerView, { arg me, track;
+	var param;
+	var sends = [];
+	var layout;
+	var slider, knobs = List.new, textfield;
+	layout = VLayout(
+		HLayout(
+			VLayout (
+				slider = Slider.new.orientation_(\vertical),
+				textfield = TextField.new,
+			),
+			VLayout(*
+				knobs = 4.collect({ 
+					Knob.new;
+				})
+			)
+		)
+	);
+	layout.addUniqueMethod(\model_, { arg me, track;
+		if(track.isKindOf(Volume)) {
+			"volume".debug;
+			param = Param(track, \volume);
+			sends = 4.collect({ arg x; nil });
+		} {
+			"track".debug;
+			param = track.mixer.asParam(\postfader);
+			sends = 4.collect({ arg x; track.mixer.asParam(\send+++x) });
+		};
+		[slider, param].debug("slider, param: what ?");
+		slider.mapParam(param);
+		textfield.mapParam(param);
+		knobs.do({ arg x, idx; x.mapParam(sends[idx]) })
+	});
+	if(track.notNil) {
+		layout.model = track;
+	};
+	layout;
+});
 WindowDef(\playergrid, { arg me, maintrack;
+	var viewgrid;
+	var mainview;
+	var make_view;
+	var playerviews;
+	var map_players;
+	var mixerviews;
 	maintrack = maintrack ?? { TrackDef(\main) };
 
-	VLayout(
-		GridLayout.columns(*
-			8.collect ({ arg x;
-				var track = maintrack.childAt(x);
-				8.collect({ arg y;
-					var clip = track.childAt(y);
-					PlayerWrapperSelectorView(PlayerWrapper(clip)).asView;
+	mainview = View.new;
+	mainview.onChange(maintrack, \gridOffset, { {map_players.()}.defer });
+
+	playerviews = { { PlayerWrapperSelectorView.new } ! 8 } ! 9;
+	mixerviews = { WindowDef(\mixerView).asView } ! 9;
+
+	map_players = {
+		playerviews.do({ arg track, x;
+			track.do { arg child, y;
+				if(x == 8) {
+					child.model = maintrack.linePlayerAt(y+maintrack.gridOffset.y);
+				} {
+					child.model = maintrack.childAtOffset(Point(x,y));
+				}
+			};
+		});
+		mixerviews.do({ arg child, x;
+			if(x == 8) {
+				child.model = Server.default.volume;
+			} {
+				child.model = maintrack.childAtOffset(x);
+			}
+		})
+
+	};
+
+	make_view = {
+		mainview.removeAll;
+		mainview.layout = VLayout(
+			GridLayout.columns(*
+				playerviews.collect({ arg track, idx;
+					track.collect({ arg child;
+						child.asView;
+					})
+					++ [ mixerviews[idx] ]
 				})
-				++ WindowDef(\mixerView).asView(track);
-			}) 
-			++ [
-				8.collect({ arg y;
-					var clip = maintrack.linePlayerAt(y);
-					PlayerWrapperSelectorView(PlayerWrapper(clip)).asView;
-				})
-				++ WindowDef(\mixerView).asView(Server.default.volume);
-			]
-		),
-		nil
-	)
+			),
+			nil
+		)
+	};
+	make_view.()
+});
+WindowDef(\playergrid_OLD, { arg me, maintrack;
+	var viewgrid;
+	var mainview;
+	var make_view;
+	maintrack = maintrack ?? { TrackDef(\main) };
+
+	mainview = View.new;
+	mainview.onChange(maintrack, \gridOffset, { {make_view.()}.defer });
+
+	make_view = {
+		mainview.removeAll;
+		mainview.layout = VLayout(
+			GridLayout.columns(*
+				viewgrid = 
+				8.collect ({ arg x;
+					var track = maintrack.childAtOffset(x);
+					8.collect({ arg y;
+						var clip = track.childAtOffset(y);
+						PlayerWrapperSelectorView(PlayerWrapper(clip)).asView;
+					})
+					++ WindowDef(\mixerView).asView(track);
+				}) 
+				++ [
+					8.collect({ arg y;
+						var clip = maintrack.linePlayerAt(y);
+						PlayerWrapperSelectorView(PlayerWrapper(clip)).asView;
+					})
+					++ WindowDef(\mixerView).asView(Server.default.volume);
+				]
+			),
+			nil
+		)
+	};
+	make_view.()
 });
 
 ~lauchpad_playergrid = ProtoClass((
@@ -354,6 +502,11 @@ WindowDef(\playergrid, { arg me, maintrack;
 		self;
 	},
 
+	clearAll: { arg self;
+		self.ktl.sendSpecialMessage(\clearAll);
+		self.ktl.sendSpecialMessage(\enableFlashMode);
+	},
+
 	colors: (
 			red: 0x0f,
 			red2: 0x0e,
@@ -364,10 +517,19 @@ WindowDef(\playergrid, { arg me, maintrack;
 			yellow: 0x3e,
 			orange: 0x2f,
 			amber: 0x3f,
-			off: 0,
+			off: 4, // set both buffers to black
 	),
 
 	gridsize: Point(8,8),
+
+	gridOffset_: { arg self, val;
+		self.grid.gridOffset = val;
+		self.render_grid;
+	},
+
+	gridOffset: { arg self;
+		self.grid.gridOffset;
+	},
 
 	ktl: { 
 		MKtl(\lp, "novation-launchpad-s");
@@ -389,7 +551,7 @@ WindowDef(\playergrid, { arg me, maintrack;
 	render_cell: { arg self, pos, isPlaying, mode;
 		// playerWrapper to pad
 		var color;
-		var child = self.grid.childAt(pos);
+		var child = self.grid.childAtOffset(pos);
 		if(child.isEmpty == true) {
 			color = \off
 		} {
@@ -428,7 +590,8 @@ WindowDef(\playergrid, { arg me, maintrack;
 		};
 		self.gridsize.y.do { arg x;
 			self.render_linebutton(x)
-		}
+		};
+		self.makeListeners;
 	},
 
 	controllers: { arg self;
@@ -440,8 +603,17 @@ WindowDef(\playergrid, { arg me, maintrack;
 		k
 	},
 
+	controllers_dict: { arg self;
+		var k = self.ktl.getHalo(\controllers_dict);
+		if(k.isNil) {
+			k = IdentityDictionary.new;
+			self.ktl.addHalo(\controllers_dict, k)
+		};
+		k
+	},
+
 	listenAt: { arg self, pos;
-		var player = PlayerWrapper(self.grid.childAt(pos));
+		var player = PlayerWrapper(self.grid.childAtOffset(pos));
 		if(self.controllers[pos.x][pos.y].notNil) {
 			self.controllers[pos.x][pos.y].remove;
 		};
@@ -456,10 +628,31 @@ WindowDef(\playergrid, { arg me, maintrack;
 		});
 	},
 
+	makeListeners: { arg self;
+		if(self.controllers_dict[\gridOffset].notNil) {
+			self.controllers_dict[\gridOffset].remove;
+		};
+		self.controllers_dict[\gridOffset] = SimpleController(self.grid).put(\gridOffset, {
+			self.render_grid;
+		});
+	},
+
 	activate: { arg self;
+		var move_in_grid;
+		self.ktl.elAt(\bt, \bt_user2).action = { arg el;
+			self.edit_mode = ( el.value != 0 );
+			self.edit_mode.debug("edit mode!");
+		};
 		self.ktl.elAt(\pad).do { arg pad, idx;
 			pad.elAt(\on).action = {
-				PlayerWrapper(self.grid.childAt(idx % self.gridsize.x, ( idx/self.gridsize.x ).asInteger)).togglePlay;
+				var point = Point(idx % self.gridsize.x, ( idx/self.gridsize.x ).asInteger);
+				if(self.edit_mode == true) {
+					{
+						self.grid.childAtOffset(point).edit;
+					}.defer;
+				} {
+					PlayerWrapper(self.grid.childAtOffset(point)).togglePlay;
+				}
 			};
 			pad.elAt(\off).action = {
 				//self.grid.childAt(idx % self.gridsize.x, ( idx/self.gridsize.x ).asInteger).stop;
@@ -467,16 +660,36 @@ WindowDef(\playergrid, { arg me, maintrack;
 		};
 		self.ktl.elAt(\arr).do { arg pad, idx;
 			pad.action = {
-				PlayerWrapper(self.grid.linePlayerAt(idx)).togglePlay;
+				PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)).togglePlay;
 			};
 			//pad.action = {
 			//	//self.grid.childAt(idx % self.gridsize.x, ( idx/self.gridsize.x ).asInteger).stop;
 			//};
 		};
+
+		// debug
+		//self.ktl.elAt(\bt, 0).action = { self.render_grid; "refresh!!!!".debug };
+		move_in_grid = { arg el, offset;
+			el.value.debug("drole!!");
+			if(el.value == 0) {
+
+			} {
+				self.gridOffset = self.gridOffset + offset;
+			}
+		};
+		self.ktl.elAt(\bt, 0).action = { arg el; move_in_grid.(el, Point(0,-1)) };
+		self.ktl.elAt(\bt, 1).action = { arg el; move_in_grid.(el, Point(0,1)) };
+		self.ktl.elAt(\bt, 2).action = { arg el; move_in_grid.(el, Point(-1,0)) };
+		self.ktl.elAt(\bt, 3).action = { arg el; move_in_grid.(el, Point(1,0)) };
+
+		self.clearAll;
 		self.render_grid;
 	},
 ));
 );
+
+
+
 
 // END
 

@@ -1,4 +1,17 @@
 
+modality doc:
+file:///home/ggz/.local/share/SuperCollider/Help/Tutorials/How_to_create_a_description_file_for_MIDI.html#MIDI%20Initialisation%20messages
+how to call this procedure then ????
+documented here, but should be pointed elsewhere: 
+file:///home/ggz/.local/share/SuperCollider/Help/Classes/MKtl.html#-specialMessages
+
+also if you send wrong message:
+MKtl(\lp).sendSpecialMessage(\existnot)
+it doesnt tell which:
+MKtl('lp'): could not send specialMessage midi_2_launchpad_s.
+
+////////////////////O
+
 bus.getSynchronous throw this unrelated error when server is not booted
 
 ^^ The preceding error dump is for ERROR: Server-getControlBusValue only supports local servers
