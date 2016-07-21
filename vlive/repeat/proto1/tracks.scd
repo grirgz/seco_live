@@ -177,6 +177,12 @@ TrackDef(\playertrack, (
 		self.childProxy.source = self.childAt(idx).asPattern;
 	},
 
+	init_mixer_busses: { arg self;
+		8.do { arg x;
+			self.mixer.proxy.set(\sendbus+++x, BusDef(\sendbus+++x, \audio, self.mixer.numchannels))
+		}
+	},
+
 	mixer: { arg self;
 		if(self.mixer_obj.isNil) {
 			self.mixer_obj = ~trackMixerDef.new(self.parentTrack.key+++"."+++self.index);
@@ -454,7 +460,8 @@ WindowDef(\playergrid, { arg me, maintrack;
 			nil
 		)
 	};
-	make_view.()
+	map_players.();
+	make_view.();
 });
 WindowDef(\playergrid_OLD, { arg me, maintrack;
 	var viewgrid;
@@ -492,12 +499,26 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 	make_view.()
 });
 
+~lazy_property = { arg me, name, initfun;
+	me[name] = { arg self;
+		self['property_'+++name] ?? {
+			self['property_'+++name] = initfun.(self);
+			self['property_'+++name]
+		}
+	};
+	me[name+++'_'] = { arg self, val;
+		self['property_'+++name] = val
+	};
+};
 ~lauchpad_playergrid = ProtoClass((
 	new: { arg self, grid;
 		self = self.deepCopy;
 	
 		self.grid = grid;
 		self.flash_colors = self.colors.collect({ arg x; x - 0x0c });
+		//~lazy_property.(self, \quickpad, { { nil ! ( self.gridsize.y+1 ) } ! ( self.gridsize.x+1 ) });
+		//self.clearAll;
+		self.ktl.sendSpecialMessage(\enableFlashMode);
 	
 		self;
 	},
@@ -505,6 +526,19 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 	clearAll: { arg self;
 		self.ktl.sendSpecialMessage(\clearAll);
 		self.ktl.sendSpecialMessage(\enableFlashMode);
+	},
+
+	quickpad: { arg self;
+		var name = \quickpad;
+		self['property_'+++name] ?? {
+			self['property_'+++name] = { { nil ! ( self.gridsize.y+1 ) } ! ( self.gridsize.x+1 ) };
+			self['property_'+++name]
+		}
+	},
+
+	quickpad_: { arg self, val;
+		var name = \quickpad;
+		self['property_'+++name] = val
 	},
 
 	colors: (
@@ -639,9 +673,14 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 
 	activate: { arg self;
 		var move_in_grid;
+		FileSystemProject.current.current_trackgrid = { self.grid };
 		self.ktl.elAt(\bt, \bt_user2).action = { arg el;
 			self.edit_mode = ( el.value != 0 );
 			self.edit_mode.debug("edit mode!");
+		};
+		self.ktl.elAt(\bt, \bt_mixer).action = { arg el;
+			self.modifier_mixer = ( el.value != 0 );
+			self.modifier_mixer.debug("mixer mode!");
 		};
 		self.ktl.elAt(\pad).do { arg pad, idx;
 			pad.elAt(\on).action = {
@@ -651,7 +690,14 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 						self.grid.childAtOffset(point).edit;
 					}.defer;
 				} {
-					PlayerWrapper(self.grid.childAtOffset(point)).togglePlay;
+					if(self.modifier_mixer == true) {
+						point.debug("what ?");
+						self.quickpad[point.x][point.y].debug("2what ?");
+						self.quickpad[point.x][point.y].value(self, point);
+						self.quickpad[point.x][point.y].debug("end what ?");
+					} {
+						PlayerWrapper(self.grid.childAtOffset(point)).togglePlay;
+					};
 				}
 			};
 			pad.elAt(\off).action = {
@@ -682,7 +728,7 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 		self.ktl.elAt(\bt, 2).action = { arg el; move_in_grid.(el, Point(-1,0)) };
 		self.ktl.elAt(\bt, 3).action = { arg el; move_in_grid.(el, Point(1,0)) };
 
-		self.clearAll;
+		//self.clearAll;
 		self.render_grid;
 	},
 ));

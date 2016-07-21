@@ -120,7 +120,7 @@ Pdef(\soufle, Pbind(
 	\tone, Pseq([
 		0.91,0.5,
 	],inf).stutter(8),
-	\tone, Pseg(Pseq([0.1,1],inf),8),
+	\tone, Pseg(Pseq([0.1,0.91],inf),8),
 	\isRest, Pseq([
 		1,1,1,1, 1,1,1,1,
 		1,0,0,0, 0,0,0,0,
@@ -129,4 +129,49 @@ Pdef(\soufle, Pbind(
 	//\out, BusDef(\bus1),
 	\amp, 0.3
 )).play;
+);
+Pdef(\soufle).stop
+
+////////////////////////////
+(
+Ndef(\snow).put(0, { arg freq=200, pan=0, amp=0.1, speed=1;
+	var sig;
+	var size = 20;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\sendbus2, \audio)), 2); 
+	var trig = Impulse.kr({ rrand(1/100,100.0) } ! size * \density.kr(1));
+	sig = WhiteNoise.ar ! size;
+	sig = sig.collect({ arg sig, x;
+		sig = BPF.ar(sig, exprand(40,4300), 0.1);
+		sig = sig.fold2( SinOsc.kr(1/23 * ( x+1 ) * speed).range(0.01,8) ) * 4;
+		sig = sig * SinOsc.kr(1/26 * ( x+1 ) * speed).range(0.01,1);
+	});
+	sig = Compander.ar(sig, in, \cpt.kr(0.04), \cpbelow.kr(1), \cpabove.kr(0.1), \cpclamp.kr(0.01), \cprelax.kr(0.01));
+	sig = sig / 1;
+	sig = Pan2.ar(sig, ( { rrand(-1.0,1) } ! size ), amp).mean;
+}).play;
+Ndef(\snow).put(1, \set -> Pbind(
+	\tone, Pseq([1,1,0.3,2]/1,inf),
+	\dur, 1/4,
+);)
+);
+
+(
+Ndef(\snow).put(0, { arg freq=50, pan=0, amp=0.1, speed=1;
+	var sig;
+	var size = 20;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\sendbus2, \audio)), 2); 
+	sig = SinOsc.ar(freq * [1,1.01,2.021] * ( 1 + ( SinOsc.ar(110 * ( LagUD.ar(Amplitude.ar(in), 0,2)*8+1 )) * 0.1 ))); 
+	sig = Compander.ar(sig, in, \cpt.kr(0.34), \cpbelow.kr(0.1), \cpabove.kr(1.0), \cpclamp.kr(0.06), \cprelax.kr(0.1));
+	sig = sig / 70;
+	sig = sig.tanh / 1;
+	sig = LPF.ar(sig, 12000) + ( sig/4 );
+	sig = LPF.ar(sig, 200, mul:2) + ( sig/4 );
+	sig = Pan2.ar(sig, 0, amp).mean;
+	sig = sig * 2;
+}).play;
+Ndef(\snow).put(1, \set -> Pbind(
+	\degree, Pseq([0,0,1,1, 7,0,5,1],inf),
+	\octave, 3,
+	\dur, 1/4,
+);)
 );

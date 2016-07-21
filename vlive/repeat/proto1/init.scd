@@ -1,8 +1,27 @@
 
 (
 "htisworks!!".debug;
-FileSystemProject.addPath("~/code/sc/seco/vlive/repeat/");
 FileSystemProject(\proto1).open;
+);
+
+(
+~init_quickpad = {
+	~lauchpad_playergrid.quickpad = { nil ! 9 } ! 9;
+	~lauchpad_playergrid.quickpad[7][0] = {
+		TrackDef(\ot).activate;
+	};
+	~lauchpad_playergrid.quickpad[7][1] = {
+		TrackDef(\main).activate;
+	};
+
+	~lauchpad_playergrid.quickpad[6][0] = {
+		{
+			FileSystemProject.current.current_trackgrid.edit;
+		}.defer
+	};
+
+};
+
 );
 
 (
@@ -17,7 +36,9 @@ FileSystemProject(\proto1).load("tracks.scd");
 FileSystemProject(\proto1).load("ot1.scd");
 FileSystemProject(\proto1).edit = { TrackDef(\main).edit };
 FileSystemProject(\proto1).activate = { TrackDef(\main).activate };
+~init_quickpad.();
 );
+
 
 (
 TrackDef(\main, TrackDef(\playergrid));
@@ -86,25 +107,79 @@ TrackDef(\ot).activate;
 
 // END
 
+Pdef(\hat).isPlaying
+Pdef(\hat).get(\out)
+Pdef(\hat).set(\out, 82)
+Pdef(\hat).set(\out, 0)
+TrackDef(\main).childAt(2,0).mixer.inbus
+TrackDef(\main).childAt(2,0).mixer.proxy.monitor.isPlaying
+TrackDef(\main).childAt(2,0).mixer.proxy.edit
+TrackDef(\main).childAt(2,0).mixer.proxy.parentGroup = GroupDef(\mixer, nil, \addAfter)
+TrackDef(\ot).childAt(0,0).play
+TrackDef(\ot).childAt(0,0).stop
+TrackDef(\ot).childAt(0,1).s
+TrackDef(\ot).childAt(0,0).source.fadeTime =4
+
 (
-	{
-		var lp;
-		lp = ~lauchpad_playergrid;
-		lp.modules = lp.modules ? ();
-		lp.modules[\project_switcher] = (
-			lp.ktl.elAt(\bt, \bt_session).action = { arg el;
-				lp.project_switcher_mode = (el.value != 0);
-			};
-		)
-	}
+Ndef('fairydrone.rise', { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	env1 = XLine.kr(21,100,20*1);
+	env1 = EnvGen.kr(Env([1,21,102,1000,70],[4,4,7.9,0.1]).circle, 1);
+	env2 = EnvGen.kr(Env([1,1,2,1],[4,4,4]).circle, 1);
+
+	freq = 8.collect({ arg x;
+		freq + ( env1 * x ) + [0,SinOsc.kr(x+1, mul:env2).range(0,10*x)];
+	});
+	sig = SinOsc.ar(freq / [1,2,4]);
+	sig.debug("sig");
+	sig = sig / 1.0;
+	sig = Pan2.ar(sig.flop, SinOsc.kr(sig.flop.size.collect({ arg x; SinOsc.kr(x/10+1.1).range(0,1) })).range(-1,1), amp).flop.mean.sum;
+});
 )
+
+~lp = ~lauchpad_playergrid.new(TrackDef(\ot))
+~lp.activate
+~lp.quickpad
+~lp[\quickpad].asCompileString
+
+(
+
+)
+Ndef('kickfx.1').get(\inbus)
+BusDef(\sendbus0)
 
 (
 FileSystemProject(\proto1).load("tracks.scd");
+~init_quickpad.();
 TrackDef(\ot).activate;
 )
+
+
+FileSystemDictionary('/home/')[\bucket]
+TrackTimeline('/home/bucket')
+
+FileSystemDictionary('/usr/')[\bucket]
+TrackTimeline('/usr/bucket')
+TrackTimeline('/usr/project1/data/TrackTimeline/bucket')
+
+FileSystemDictionary('/usr/project/data/TrackTimeline')[\bucket]
+TrackTimeline('/usr/project1')
+
+a
+new: { arg self;
+	self = self.deepCopy;
+
+	
+
+	self;
+},
+
+TrackDef(\ot).activate;
 TrackDef(\main).activate;
 TrackDef(\ot).edit;
+TrackDef(\main).edit;
 Ndef('kickfx.0').edit
 Ndef('fairydrone.rise').edit
 Ndef('kickfx.0').asParamGroup
@@ -204,3 +279,6 @@ PathName("~").isFolder
 FileSystemProject
 
 '/home'.addHalo(\isLoading, true)
+
+FileSystemProject(\proto1).load("perc.scd");
+"/home/ggz/code/sc/seco/vlive/repeat/proto1/perc.scd".load;

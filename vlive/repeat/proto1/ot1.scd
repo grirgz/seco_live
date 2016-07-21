@@ -51,7 +51,8 @@ Ndef('fairydrone.digital', { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var in = Ndef.ar(\crudebass);
+	//var in = Ndef.ar(\crudebass);
+	var in = InFeedback.ar(\inbus.kr(BusDef(\sendbus1, \audio)), 2); 
 	env1 = XLine.kr(71,100,20*1);
 	env1 = EnvGen.kr(Env([0,0,70,1],[1,0.01,0.01]/18), Impulse.kr(4));
 	env2 = EnvGen.kr(Env([0,0,2,1],[4,4,4]).circle, 1);
@@ -61,7 +62,7 @@ Ndef('fairydrone.digital', { arg freq=200, pan=0, amp=0.1;
 	freq = 18.collect({ arg x;
 		freq + ( env1 * x ) + [0,SinOsc.kr(x+1, mul:env2).range(0,10*x)];
 	});
-	sig = SinOsc.ar(freq / [1,2,4] * ( 1+  ( in * env3 ) )) + Ndef.ar(\bigo);
+	sig = SinOsc.ar(freq / [1,2,4] * ( 1+  ( in * env3 ) )) + in;
 	sig = BRF.ar(sig, Amplitude.ar(in) * 1000 + 100) + in;
 	sig.debug("sig");
 	sig = sig / 1.0;
@@ -281,7 +282,7 @@ Pdef(\fakick, Pbind(
 	\dist, 80,
 	\distamp, 1/4,
 	\dur, 1,
-	\out, BusDef(\bus1, \audio, 2),
+	//\out, BusDef(\sendbus0, \audio, 2),
 	\amp, 0.1
 ));
 
@@ -297,7 +298,7 @@ Pdef(\fasnare, Pbind(
 			1,0,0,0, 0,0,0,0,
 		],1),
 	],inf).coin.not,
-	\out, BusDef(\bus1, \audio, 2),
+	//\out, BusDef(\sendbus0, \audio, 2),
 	\amp, 0.1
 ));
 
@@ -307,7 +308,7 @@ Pdef(\fasnare, Pbind(
 
 Ndef('kickfx.0', { arg freq=200, pan=0, amp=0.1;
 	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\bus1, \audio)), 2); 
+	var in = InFeedback.ar(\inbus.kr(BusDef(\sendbus0, \audio)), 2); 
 	var in2;
 	in2 = 0;
 	sig = in + in2;
@@ -338,7 +339,7 @@ Spec.add(\inbus, XBusSpec());
 
 Ndef('kickfx.1', { arg freq=200, pan=0, amp=0.1;
 	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\bus1, \audio)), 2); 
+	var in = InFeedback.ar(\inbus.kr(BusDef(\sendbus0, \audio, 2)), 2); 
 	var in2;
 	in2 = 0;
 	sig = in + in2.debug("in2");
@@ -356,7 +357,7 @@ Ndef('kickfx.1', { arg freq=200, pan=0, amp=0.1;
 
 Ndef('kickfx.2', { arg freq=200, pan=0, amp=0.1;
 	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\bus1, \audio)), 2); 
+	var in = InFeedback.ar(\inbus.kr(BusDef(\sendbus0, \audio)), 2); 
 	var in2;
 	//in2 = Ndef.ar(\frite);
 	in2 = 0;

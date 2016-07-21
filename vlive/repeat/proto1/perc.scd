@@ -382,3 +382,10 @@ Pdef(\part1, Ppar([
 // END
 
 Pdef(\part1).play;
+
+(
+	~myev = (
+		bla: "123230"
+	);
+	~myev;
+);
