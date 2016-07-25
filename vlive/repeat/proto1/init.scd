@@ -26,14 +26,15 @@ FileSystemProject(\proto1).open;
 
 (
 ParamProto.init;
-//ParamProto.init(true);
+ParamProto.init(true);
 FileSystemProject(\proto1).tempo = 60/60;
 FileSystemProject(\proto1).defaultQuant = 4;
-MKtl(\lp, "novation-launchpad-s");
+MKtl(\lp, "novation-launchpad-s").device;
 
 FileSystemProject(\proto1).load("perc.scd");
 FileSystemProject(\proto1).load("tracks.scd");
 FileSystemProject(\proto1).load("ot1.scd");
+FileSystemProject(\proto1).load("ot3.scd");
 FileSystemProject(\proto1).edit = { TrackDef(\main).edit };
 FileSystemProject(\proto1).activate = { TrackDef(\main).activate };
 ~init_quickpad.();
@@ -53,9 +54,13 @@ TrackDef(\main).childAt(4,2).source = Pdef('hydro.2');
 TrackDef(\main).activate;
 );
 
+//TrackDef(\ot).clear
 (
 	TrackDef(\ot, TrackDef(\playergrid));
 	TrackDef(\ot).source = [
+		[
+			Pdef('otkick'),
+		],
 		[
 			Ndef('fairydrone.rise'),
 			Ndef('fairydrone.night'),
@@ -107,6 +112,9 @@ TrackDef(\ot).activate;
 
 // END
 
+GroupDef(\mixer, nil, \addAfter)
+
+
 Pdef(\hat).isPlaying
 Pdef(\hat).get(\out)
 Pdef(\hat).set(\out, 82)
@@ -115,10 +123,13 @@ TrackDef(\main).childAt(2,0).mixer.inbus
 TrackDef(\main).childAt(2,0).mixer.proxy.monitor.isPlaying
 TrackDef(\main).childAt(2,0).mixer.proxy.edit
 TrackDef(\main).childAt(2,0).mixer.proxy.parentGroup = GroupDef(\mixer, nil, \addAfter)
+TrackDef(\main).edit
+TrackDef(\main).edit
 TrackDef(\ot).childAt(0,0).play
 TrackDef(\ot).childAt(0,0).stop
 TrackDef(\ot).childAt(0,1).s
 TrackDef(\ot).childAt(0,0).source.fadeTime =4
+TrackDef(\ot).childAt(0,0).mixer.play
 
 (
 Ndef('fairydrone.rise', { arg freq=200, pan=0, amp=0.1;

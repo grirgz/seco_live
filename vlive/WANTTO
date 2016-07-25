@@ -3,6 +3,12 @@ exception with PathName("").isAbsolutePath, should return false
 
 /////////////////////////
 
+modality:
+sendSpecialMessage with a not connected device throw a confusing error
+
+^^ The preceding error dump is for ERROR: Message 'sendSpecialMessage' not understood.
+RECEIVER: nil
+
 modality doc:
 file:///home/ggz/.local/share/SuperCollider/Help/Tutorials/How_to_create_a_description_file_for_MIDI.html#MIDI%20Initialisation%20messages
 how to call this procedure then ????

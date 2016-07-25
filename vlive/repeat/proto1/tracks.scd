@@ -215,6 +215,23 @@ TrackDef(\playergrid, (
 		self.changed(\gridOffset);
 	},
 
+	saveArchiveData: { arg self;
+		FileSystemProjectDictionary(\TrackDef, self)[self.key] = self.asArchiveData;
+	},
+
+	fromArchiveData: { arg self, data;
+		data.children.do({ arg child, idx; 
+			self.children[idx] = child
+		})
+	},
+
+	asArchiveData: { arg self;
+		var data = ();
+		data.children = self.children.collect { arg child;
+			child.asArchiveData
+		};
+	},
+
 	source: { arg self;
 		self.children.collect({ arg x; x.source });
 	},
@@ -518,7 +535,9 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 		self.flash_colors = self.colors.collect({ arg x; x - 0x0c });
 		//~lazy_property.(self, \quickpad, { { nil ! ( self.gridsize.y+1 ) } ! ( self.gridsize.x+1 ) });
 		//self.clearAll;
-		self.ktl.sendSpecialMessage(\enableFlashMode);
+		if(self.ktl.device.notNil) {
+			self.ktl.sendSpecialMessage(\enableFlashMode);
+		};
 	
 		self;
 	},
