@@ -14,7 +14,10 @@ Pdef(~name+++\base, Pbind(
 			\dur, (1/4),
 			//\lag, 0.01,
 			\isRest, Pseq([
-				0,0,1,0,
+				0,1,0,0,
+				0,0,0,1,
+				0,0,0,0,
+				0,0,0,1,
 			],inf).coin.not,
 
 ));

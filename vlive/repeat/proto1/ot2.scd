@@ -284,3 +284,7 @@ Ndef(\bass, { arg freq=70, pan=0, amp=0.1;
 );
 NdefMixer.new(s)
 Ndef.defaultQuant = 2
+
+
+~buf = Buffer.new(s, 44100 * 8.0, 2);
+~buf.play

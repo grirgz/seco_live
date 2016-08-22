@@ -4,25 +4,6 @@
 FileSystemProject(\proto1).open;
 );
 
-(
-~init_quickpad = {
-	~lauchpad_playergrid.quickpad = { nil ! 9 } ! 9;
-	~lauchpad_playergrid.quickpad[7][0] = {
-		TrackDef(\ot).activate;
-	};
-	~lauchpad_playergrid.quickpad[7][1] = {
-		TrackDef(\main).activate;
-	};
-
-	~lauchpad_playergrid.quickpad[6][0] = {
-		{
-			FileSystemProject.current.current_trackgrid.edit;
-		}.defer
-	};
-
-};
-
-);
 
 (
 ParamProto.init;
@@ -37,9 +18,31 @@ FileSystemProject(\proto1).load("ot1.scd");
 FileSystemProject(\proto1).load("ot3.scd");
 FileSystemProject(\proto1).edit = { TrackDef(\main).edit };
 FileSystemProject(\proto1).activate = { TrackDef(\main).activate };
-~init_quickpad.();
 );
 
+(
+~init_quickpad = {
+	~lauchpad_playergrid.quickpad = { nil ! 9 } ! 9;
+	~lauchpad_playergrid.quickpad[7][0] = {
+		TrackDef(\ot).activate;
+	};
+	~lauchpad_playergrid.quickpad[7][1] = {
+		TrackDef(\main).activate;
+	};
+	~lauchpad_playergrid.quickpad[7][2] = {
+		TrackDef(\ot4).activate;
+	};
+
+	~lauchpad_playergrid.quickpad[6][0] = {
+		{
+			FileSystemProject.current.current_trackgrid.edit;
+		}.defer
+	};
+
+};
+~init_quickpad.();
+
+);
 
 (
 TrackDef(\main, TrackDef(\playergrid));
@@ -81,6 +84,7 @@ TrackDef(\main).activate;
 		[
 			Ndef('hatty.0'),
 			Ndef('hatty.1'),
+			Ndef('hatty.2'),
 		],
 		[
 			Ndef('fasthatty.0'),

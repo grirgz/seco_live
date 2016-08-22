@@ -11,15 +11,32 @@ sig1 = SelectX.ar( SinOsc.kr(1/18).range(0,1), [sig2, sig3]);
 
 // rotate the channels contents
 
-sig1 = PanAz.ar(freq.size, sig1, {LFNoise1.kr(( 1/2 ).rand).range(0,2.0)} ! sig1.size).flop.mean;
+sig1 = PanAz.ar(freq.size, sig1, {LFNoise1.kr(( 1/2 ).rand).range(-1,1)} ! sig1.size).flop.mean;
 
 // rotate the channels contents in stereo field
 
 sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size, amp).flop;
 
-// select "select" mode in 2d array
-sig = SelectX.ar( SinOsc.kr(1/9).range(0,1), [sig, sig.flop] );
-sig = SelectX.ar( SinOsc.kr(1/13).range(0,1), sig );
+// select direction mode (column or row) in 2d array
+sig = SelectX.ar( SinOsc.kr(1/9).range(0,1), [sig, sig.flop] ); // crossfade between direction mode
+sig = SelectX.ar( SinOsc.kr(1/13).range(0,1), sig ); // then select a row or column depending the direction
+
+// in 2d array TODO
+sig1 = PanAz.ar(freq.size, sig1, {LFNoise1.kr(( 1/2 ).rand).range(-1,1)} ! sig1.size).flop.mean;
+// difference between: separating a channel in 4 identic copies then passing each copy in a different filter then selecting a channel
+// and: panning a channel in 4 channel and pass each channel in a different filter then summing ?
+
+////////////// multichannel expansion with matrix
+
+[1,2,3] * [1,2] == [1*1, 2*2, 3*1]
+[[1,2], [3,4]] * [5,6] == [[1*5, 2*5], [3*6,4*6]]
+[[1,2], [3,4]] * [[5,6]] == [[1*5, 2*6], [3*5,4*6]]
+
+[[1,2], [3,4]] * [5,6,7] == [[1*5, 2*5], [3*6,4*6], [1*7,2*7]]
+[[1,2], [3,4]] * [[5,6,7]] == [[1*5, 2*6, 1*7], [3*5, 4*6, 3*7]]
+
+[1,2,3] *.t [4,5] == ( [1,2,3] * [[4,5]] ) 
+[4,5] *.t [1,2,3] == ( [[1,2,3]] * [4,5] ) 
 
 ////////////////////////////// base
 

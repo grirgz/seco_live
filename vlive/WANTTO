@@ -1,4 +1,16 @@
 
+a implementer dans ProtoClass ?
+
+a = Proto {
+        ~update = { |obj, what ... args|
+                ...
+        };
+};
+
+something.addDependant(a);
+
+//////////////////////////
+
 exception with PathName("").isAbsolutePath, should return false
 
 /////////////////////////

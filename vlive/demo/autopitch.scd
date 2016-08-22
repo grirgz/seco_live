@@ -1,3 +1,4 @@
+~t= 1
 (
 Ndef(\eyes, { arg freq=70, pan=0, amp=0.1;
 	var sig;
@@ -69,6 +70,9 @@ Ndef(\eyes, { arg freq=80, pan=0, amp=0.1;
 }).play
 );
 
+// bit like jazzy bass (or just gamme)
+{ arg freq = 74; SinOsc.ar(freq * [1,1.000001] * ( 1 + ( SinOsc.ar(freq  * LFPulse.kr(2,0, 1/8).range(0,1) * 1.50 )))) * 0.2; }.play
+
 { arg freq = 100; SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq*2 * 1.0 * LFPulse.kr(2 * LFPulse.kr(1/2,0,0.8).range(0,1),0, SinOsc.kr(1/8).range(0,1))) * 1.91 ))) ! 2 * 0.1; }.play
 { arg freq = 200; SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq * 1.0 * LFPulse.kr(8,0).range(0,1).clip2(1) * 1.91 )))) ! 2 * 0.1; }.play
 
@@ -77,6 +81,9 @@ Ndef(\eyes, { arg freq=80, pan=0, amp=0.1;
 { arg freq = 74; SinOsc.ar(freq * [1,1.000001] * ( 1 + ( SinOsc.ar(freq  * LFPulse.kr(2,0, 1/8).range(0,1) * 1.50 )))) * 0.2; }.play
 { arg freq = 77; SinOsc.ar(freq * [1,1.000001] * ( 1 + ( SinOsc.ar(freq  * LFPulse.kr(4,0, 1/3).range(0,1) * 1.60 )))) * 0.2; }.play
 
+{ arg freq = 77; SinOsc.ar(freq * [1,1.000001] * ( 1 + ( SinOsc.ar(freq  * LFPulse.kr(4,0, 1/3).range(0,2) * 1.3225 )))) * 0.2; }.play
+
+{ arg freq = 77; SinOsc.ar(freq * [1,1.000001] * ( 1 + ( Latch.ar(SinOsc.ar(freq), LFPulse.kr(4,0, 1/3)) * 1.60 ))) * 0.2; }.play
 (
 Ndef(\agro,{ arg freq = 200; 
 	SinOsc.ar(freq * ( 1 + ( LFSaw.ar(freq * 1.0 * LFPulse.kr(2,0,0.8).range(2,0).clip2(1) * 1.91 )))) ! 2 * 0.1; 

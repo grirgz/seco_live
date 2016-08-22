@@ -164,10 +164,11 @@ Pdef(\flute, Pbind(
 	\amp, 0.1
 )).play;
 );
-Ndef(\verb).play
 
-Scale.names
 // END
+
+Ndef(\verb).play
+Scale.names
 
 	(
 	Ndef(\verb, { 
@@ -350,3 +351,6 @@ TrackDef(\ot).childAt(0).mixer.proxy.play
 TrackDef(\ot).childAt(0).mixer.define_mixer
 Pdef(\kick).play
 Pdef(\otkick).clear
+Document.current.name.postln;
+
+ //SCVim.updateHelpCache;

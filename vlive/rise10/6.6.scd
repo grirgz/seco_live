@@ -30,9 +30,11 @@ Ndef(~name+++\fx, { arg amp=0.8, pan=0, freq=200, mbufnum,
 	ou = ou.sum;
 	ou = [ou, ou.tanh];
 	ou = ou / 6;
-	//ou = Compander.ar(ou, side, 0.1,1,0.01, relaxTime:0.1);
+	ou = Compander.ar(ou, side, 0.1,1,0.01, relaxTime:0.1);
+	ou = Compander.ar(ou, side, 0.1,3,1, relaxTime:1.1 * SinOsc.kr(1/4).range(0.1,1));
+	ou = ou / 2;
 	ou = ou.collect({ arg sig,x;
-		Pan2.ar(sig, SinOsc.kr((x+1*200)), amp);
+		Pan2.ar(sig, SinOsc.kr((x+1+freq)), amp);
 	}).sum;
 });
 );
