@@ -1,8 +1,5 @@
 
 (
-~t = 1;
-Ndef.defaultQuant = 4;
-Pdef.defaultQuant = 4;
 
 ///////////////////////////////////
 
@@ -955,148 +952,6 @@ Ndef('rdn2').put(100, \pset -> Pbind(
 )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-(
-Pdef(\main, Pseq([
-	Pfindur(8,
-		Ppar([
-			Pdef(\bkick),
-			Pdef(\bsnare),
-		]),
-	),
-	Pfindur(8,
-		Ppar([
-			Pdef(\bkick),
-			Pdef(\bsnare),
-			Pbind(
-				\isRest, Pseq([
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,1,0,
-				],inf).coin.not,
-			) <> Pdef(\kick),
-			//Pdef(\hat),
-			Pdef(\snare),
-			//Pdef(\snarehat),
-		]),
-	),
-	Pfindur(8,
-		Ppar([
-			Pdef(\bkick),
-			Pdef(\bsnare),
-			Pbind(
-				\isRest, Pseq([
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,1,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,1, 0,0,1,0,
-				],inf).coin.not,
-			) <> Pdef(\kick),
-			Pbind(
-				\isRest, Pseq([
-					0,0,0,0, 0,0,0,0,
-					1,1,1,1, 1,1,1,1,
-				],inf).coin.not,
-			) <> Pdef(\hat),
-			Pdef(\snare),
-			//Pdef(\snarehat),
-		]),
-	),
-	Pfindur(8,
-		Ppar([
-			Pdef(\bkick),
-			Pdef(\bsnare),
-			Pbind(
-				\isRest, Pseq([
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,1,0,
-					1,0,1,0, 1,0,0,0,
-					1,0,0,1, 0,0,1,0,
-				],inf).coin.not,
-			) <> Pdef(\kick),
-			Pbind(
-				\isRest, Pseq([
-					0,0,0,0, 0,0,0,0,
-					1,0,1,0, 1,0,1,0,
-					1,0,1,0, 1,0,1,0,
-					1,0,1,0, 1,0,1,0,
-
-					1,0,1,0, 1,0,1,0,
-					1,1,1,1, 1,1,1,1,
-					1,0,1,0, 1,0,1,0,
-					1,1,1,1, 1,1,1,1,
-				],inf).coin.not,
-			) <> Pdef(\hat),
-			Pdef(\snare),
-			Pdef(\snarehat),
-		]),
-	),
-	Pfindur(64,
-		Ppar([
-			Pdef(\kick),
-			Pdef(\hat),
-			Pdef(\snare),
-			Pdef(\snarehat),
-		
-			Pdef(\bkick),
-			Pdef(\bsnare),
-		]),
-	),
-	Pfindur(16+8,
-		Ppar([
-			Pbind(
-				\isRest, Pseq([
-					1,0,1,0, 0,0,0,0,
-				],inf).coin.not,
-			) <> Pdef(\kick),
-			Pbind(
-				\isRest, Pseq([
-					1,0,1,0, 1,0,1,0,
-				],inf).coin.not,
-			) <> Pdef(\hat),
-			Pbind(
-				\isRest, Pseq([
-					0,0,0,0, 0,0,0,0,	
-					1,0,0,0, 0,0,0,0,	
-				],inf).coin.not,
-			) <> Pdef(\snare),
-			//Pdef(\snare),
-			//Pdef(\snarehat),
-		
-			//Pdef(\bkick),
-			//Pdef(\bsnare),
-		]),
-	),
-	Pfindur(8,
-		Ppar([
-			Pdef(\bkick),
-			Pdef(\bsnare),
-		]),
-	),
-	Pfindur(64,
-		Ppar([
-			Pdef(\kick),
-			Pdef(\hat),
-			Pdef(\snare),
-			Pdef(\snarehat),
-		
-			Pdef(\bkick),
-			Pdef(\bsnare),
-		]),
-	),
-
-])).play;
-Ndef(\rdn1).play;
-Ndef(\rdn2).play;
-)
 
 (
 /////// PART INTRO
@@ -1218,6 +1073,231 @@ RandDelayNetwork('default').make('rdn1', "5-QJTR-6638");
 Ndef('rdn1').put(100, \pset -> Pbind(
 	'wet10', 0.52222222222222,
 	'fb', 0.0049151533654037,
+	'delay', 0.0001,
+	'delay2', 0.0001,
+	'shift', 0.0,
+	'shift2', 0.0,
+	'distamp', 0.27303626552375,
+	'pitchlag', 0.125,
+	'pitchmix', 0.5,
+	'prelpf', 17000,
+	'prehpf', 17,
+	'lpf', 17000,
+	'hpf', 17,
+	'fbdistamp', 0.12078257281154,
+	'fbdistmix', 0.12777777777778,
+	'postlpf', 17000,
+	'posthpf', 17,
+	'wetamp', 2.376036510883,
+	'wet20', 1.0,
+	'mamp', 0.25545155902396,
+	'wet200', 2.0117484049213,
+).keep(1));
+
+RandDelayNetwork('default').make('rdn2', "5-OQD1-LRS2");
+Ndef('rdn2').put(100, \pset -> Pbind(
+	'wet10', 1.0,
+	'fb', 0.0034495383368566,
+	'delay', 0.12271252398512,
+	'delay2', 0.095011850731814,
+	'shift', 0.0,
+	'shift2', 0.0,
+	'distamp', 1.2623832454686,
+	'pitchlag', 2.0,
+	'pitchmix', 0.98333333333333,
+	'prelpf', 17000,
+	'prehpf', 17,
+	'lpf', 17000,
+	'hpf', 17,
+	'fbdistamp', 12.04928645605,
+	'fbdistmix', 0.96111111111111,
+	'postlpf', 19247.012527962,
+	'posthpf', 20.0,
+	'wetamp', 1,
+	'wet20', 1.0,
+	'mamp', 0.54928027165304,
+	'wet200', 1.0,
+).keep(1));
+
+)
+
+
+(
+////////////////////////////// PART 1 IMP
+Pdef(\kick, Pbind(
+	\instrument, \zkick,
+	\env1, Pseq([
+		[ Env.new([80, 35, 35], [0.055, 0.29], [-4, -5]) ],
+	],inf),
+	\env0, Pseq([
+		[ Env.new([0, 1, 0.8,0], [0.015, 0.09,0.1], [-4, -5]) ],
+	],inf),
+	\degree, Pseq([0],inf),
+	\dur, 1/8,
+	\isRest, Pseq([
+		Pseq([
+			0,0,1,0, 1,0,0,0,
+			1,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,1,0,
+		],3),
+
+		Prand([
+			Pseq([
+				0,0,0,1, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,1,1,0,
+				0,0,0,0, 0,0,1,0,
+			],1),
+			
+			Pseq([
+				0,0,1,0, 1,0,1,0,
+				1,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,1,0,
+			],1),
+			
+			Pseq([
+				0,0,1,0, 0,1,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				1,0,0,1, 0,0,1,0,
+			],1),
+		],1),
+	],inf).coin.not,
+	\amp, 0.15
+));
+
+Pdef(\hat, Pbind(
+	\instrument, \zhat,
+	\degree, Pseq([0],inf),
+	\dur, 1/8,
+	\sustain, 0.1,
+	\isRest, Pseq([
+		0,0,0,0, 0,0,1,0,
+		1,1,1,0, 0,0,0,0,
+		1,0,0,1, 1,1,1,1,
+		0,0,0,0, 1,1,1,0,
+
+		0,0,0,0, 0,0,0,0,
+		0,0,0,0, 0,0,0,0,
+		1,1,1,1, 1,1,1,1,
+		0,0,0,0, 0,0,0,0,
+
+		0,0,0,0, 1,0,1,0,
+		0,0,0,0, 0,0,0,0,
+		1,1,1,1, 1,0,1,0,
+		0,0,0,0, 0,0,0,0,
+	],inf).coin.not,
+
+	\amp, 0.1/8,
+));
+
+~snareseq = ~snareseq ?? {StepEvent.new};
+//~snareseq = nil;
+//~snareseq.addSpec(\list, \unipolar);
+//~snareseq.[\isRest].collect(_.asInteger).asCompileString.pbcopy.vimpbpaste
+
+Pdef(\snare, 
+	//Pn(~snareseq) <> 
+	Pbind(
+	\instrument, \zsnare,
+	\degree, Pseq([0],inf),
+	\dur, 1/8,
+	\isRest, Pseq([
+		Pseq([
+			0, 0, 0, 0,  0, 0, 0, 0, 
+			0, 0, 0, 0,  0, 0, 1, 0, 
+			0, 0, 0, 0,  0, 0, 0, 0, 
+			0, 0, 0, 0,  0, 0, 0, 0,
+
+			0, 0, 0, 0,  0, 0, 0, 0, 
+			0, 0, 0, 1,  0, 0, 0, 0, 
+			0, 0, 0, 0,  0, 0, 0, 0, 
+			0, 0, 0, 0,  0, 0, 0, 0,
+
+			0, 0, 1, 0,  0, 0, 0, 0, 
+			1, 0, 0, 1,  0, 0, 1, 0, 
+			0, 0, 0, 0,  0, 0, 0, 0, 
+			1, 0, 0, 1,  0, 0, 1, 0,
+
+			0, 0, 0, 0,  0, 0, 0, 0, 
+			1, 0, 1, 0,  0, 0, 1, 0, 
+			0, 0, 0, 0,  0, 0, 0, 0, 
+			0, 0, 1, 0,  0, 1, 0, 0,
+		],3),
+		//Pseq([
+		//	0,0,0,0, 0,1,0,0,
+		//	0,0,0,0, 0,0,1,0,
+		//	0,0,0,0, 0,0,0,0,
+		//	0,0,0,0, 0,0,0,0,
+		//],3),
+	],inf).coin.not,
+	\amp, 0.2
+));
+
+Pdef(\snarehat, Pbind(
+	\instrument, \zsnarehat,
+	\degree, Pseq([0],inf),
+	\dur, 1/8,
+	\isRest, Pseq([
+		Pseq([
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,1,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,1,0,0,
+			0,0,0,0, 0,0,0,0,
+
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,1,0,0, 0,0,0,0,
+		],3),
+	],inf).coin.not,
+	\amp, 0.1
+));
+
+Pdef(\bkick, Pbind(
+	\instrument, \zkick,
+	\env1, Pseq([
+		[ Env.new([80, 35, 35], [0.055, 0.29], [-4, -5]) ],
+	],inf),
+	\env0, Pseq([
+		[ Env.new([0, 1, 0.8,0], [0.015, 0.09,0.1], [-4, -5]) ],
+	],inf),
+	\degree, Pseq([0],inf),
+	\dur, 1/2,
+	\isRest, Pseq([
+		1,0,0,0, 0,0,0,0,
+	],inf).coin.not,
+	\amp, 0.15
+));
+
+Pdef(\bsnare, Pbind(
+	\instrument, \zsnare,
+	\degree, Pseq([0],inf),
+	\dur, 1/2,
+	\isRest, Pseq([
+		Pseq([
+			0,0,0,0, 1,0,0,0,
+		],3),
+	],inf).coin.not,
+	\amp, 0.2
+));
+
+RandDelayNetwork('default').make('rdn1', "5-QJTR-6638");
+Ndef('rdn1').put(100, \pset -> Pbind(
+	'wet10', 0.52222222222222,
+	'fb', 0.0009151533654037,
 	'delay', 0.0001,
 	'delay2', 0.0001,
 	'shift', 0.0,
