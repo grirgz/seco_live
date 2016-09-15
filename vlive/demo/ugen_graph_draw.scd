@@ -25,3 +25,8 @@ ProxySynthDef(\hello, { arg out=0, freq=200;
 }).draw;
 )
 ProxySynthDef(\hello)
+
+
+
+// draw a Ndef graph with \filter
+{ Ndef(\fx1).sources[1].value.value(In.ar(2)) }.draw
