@@ -359,3 +359,7 @@ Pdef(\dxkick1).play
 	);
 	//Pdef(\drumseq3).set(\out, BusDef(\fx3));
 )
+
+{ rrand(1,45) } ! 6
+
+
