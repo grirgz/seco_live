@@ -7,6 +7,8 @@ TempoClock.default.tempo = ~t;
 Ndef.defaultQuant = 4;
 Pdef.defaultQuant = 4;
 FileSystemProject.load("radient1/lib.scd");
+FileSystemProject.load("ex1/lib.scd");
+FileSystemProject.load("ex1/multifbdel.scd");
 
 Ndef(\fx1).addSpec(\deltran1, ControlSpec(-1,5,\lin, 0,1));
 Ndef(\fx1).addSpec(\deltran2, ControlSpec(-1,5,\lin,0,0));
