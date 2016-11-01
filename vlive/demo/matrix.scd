@@ -1,107 +1,153 @@
 
+
 (
-// init busses (change ?? to !? to init again)
-~busses = ~busses ?? {
-	~matrix_in_count = 8;
-	~matrix_out_count = 4;
-	~matrix_ins = ~matrix_in_count.collect({ arg idx;
-		var bus = Bus.audio(s,2);
-		Ndef(\matrix).set(( \in++idx ).asSymbol, bus);
-		bus;
-	});
-	~matrix_outs = ~matrix_out_count.collect({ arg idx;
-		var bus = Bus.audio(s,2);
-		Ndef(\matrix).set(( \out++idx ).asSymbol, bus);
-		bus;
-	});
-};
+~t = ~t ? 1;
+Ndef(\fx).put(0, { arg amp=0.1;
+	var sig;
+	var freq;
+	var freq2;
+	var pan;
+	var spread;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var route;
+	var outs, ins, realouts, fxs;
+	var inlevels, fblevels;
+	var in;
 
-// the matrix synth!
-Ndef(\matrix, {
-	var ins;
+	freq = \freq.kr(120) * Duty.kr(1/~t, 0, Dseq([
+		[0,3,7,12,-12],
+	],inf)).midiratio *.x [1/2,1,2]
+	* Duty.kr(4/~t, 0, Dseq([
+		0,2,
+	],inf)).midiratio
+	;
 
-	// Collects inputs in a list
-	// Inside a Synthdef, instead of "arg freq=440", you can use \freq.kr(440)
-	// here we use this system to generate argument names in a loop
-	ins = ~matrix_in_count.collect { arg in_idx;
-		InFeedback.ar(( \in++in_idx ).asSymbol.kr(100), 2);
-	};
+	//sig = SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq) * ( SinOsc.kr(1/7/5 * (1..8)/8).range(0,4) ) )));
+	sig = SinOsc.ar(freq);
+	sig.debug("sig");
 
-	// for each output, sum the inputs with a different gain for each
-	~matrix_out_count.do { arg out_idx;
-		Out.ar(( \out++out_idx ).asSymbol.kr(0), 
-			ins.collect({ arg in, in_idx;
-				in * (\gain++in_idx++"_"++out_idx).asSymbol.kr(0)
-			}).sum
-		);
-	};
-	
+	route = [
+		[1,1,1], // in
+		[1,1,1], // fb
+
+		// routing
+		[0,0,0],
+		[0,0,0],
+		[0,0,0],
+
+		[0,0,1], // real out
+	];
+	route.flatten.clump(3).debug("route equi");
+
+	route = \route.kr(route.flatten).clump(3);
+	route.debug("route clumped");
+	//route.poll;
+
+	inlevels = route.removeAt(0);
+	fblevels = route.removeAt(0);
+
+	fxs = [
+		{ arg in; in.fold2(SinOsc.kr(1).range(0.5,1)) },
+		{ arg in; in * LFSaw.ar(100) },
+		//{ arg in; in + FreqShift.ar(in, 100) },
+		{ arg in; in  },
+	];
+
+	outs = [0,0,0];
+	realouts = [0,0,0];
+	sig.debug("begin sig");
+	sig = sig.sum;
+	sig.debug("summed sig");
+	in = sig;
+
+	sig = Fb ({ arg fb;
+		var isig;
+		ins = ( fb.debug("fb") * \fb.kr(1) * fblevels ) + ( sig * inlevels ) ;
+
+		ins.debug("ins");
+
+		fxs.do { arg fx, fxidx;
+			var sigfx = fxs[fxidx].(ins[fxidx]);
+			sigfx.debug("sigfx");
+			outs.do { arg ou, outidx;
+				[fxidx, outidx].debug("fxidx, outidx");
+				outs[outidx] = outs[outidx] + ( sigfx * route[outidx][fxidx].debug("route") );
+			};
+			sigfx.debug("sigfx2");
+			realouts[fxidx] = sigfx * route.last[fxidx].debug("master");
+			sigfx.debug("sigfx3");
+		};
+
+		outs = Limiter.ar(outs);
+		outs.debug("outs");
+	}, numChannels:3);
+	sig = SelectX.ar(\mix.kr(0), [realouts, in!2]);
+
+	sig.debug("sig");
+
+	//sig = sig * EnvGen.kr(\iadsr2.kr(Env.adsr(0.001,0.1,0.8,0.1)), Trig.kr(\itrig2.tr(1),\isustain2.kr(1)), doneAction:0);
+
+	spread = \spread.kr(1);
+	pan = \pan.kr(0);
+	//sig = Splay.ar(sig, \spread.kr(0.8), amp, \pan.kr(0));
+	amp = amp * \gain.kr(1);
+	sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size * spread + pan, amp).mean;
+	sig;
 }).play;
+
+
 )
 
-// test
+// END
 
 (
-// source
-Pdef(\pp, Pbind(
-	\instrument, \default,
-	\degree, Prand([0,1,4,3],inf),
-	\dur, 1/Prand([2,4,8],inf),
-	\out, ~matrix_ins[0],
-	\amp, 0.1
-)).play;
+	~p  = Param( Ndef(\fx), \route, XArraySpec(\unipolar ! ( 3*(3+3) )) );
+	~gui = { arg route_param, additional_params;
 
-// fxs
-Ndef(\fx1, { arg freq=200, pan=0, amp=0.1;
-	var sig;
-	sig = InFeedback.ar(~matrix_outs[0], 2);
-	sig = SinOsc.ar(freq) * sig;
-}).play;
-
-Ndef(\fx2, { arg freq=200, pan=0, amp=0.1;
-	var sig;
-	sig = InFeedback.ar(~matrix_outs[1], 2);
-	sig = LFSaw.ar(freq) * sig;
-}).play;
-);
-
-
-// gui
-
-(
-	~matrix_gui = {
 		var win;
 		var layout;
+		var rowlayout;
+		var labels = ["In", "Feedback", "fx0", "fx1", "fx2", "Out"];
+		var grid;
+		var grid2;
 		win = Window.new;
+		layout = HLayout.new;
 
-		// generate an array of array representing the knob grid
-		layout = GridLayout.rows(*
-
-
-			// top label header
-			[
-				[ StaticText.new.string_("") ] ++
-				~matrix_out_count.collect { arg out_idx;
-					StaticText.new.string_("Out " ++ out_idx)
-				}
-			] ++
-
-			// knobs
-			~matrix_in_count.collect { arg in_idx;
-				[ StaticText.new.string_("In " ++ in_idx) ] ++ // left label header
-				~matrix_out_count.collect { arg out_idx;
-					var knob;
-					var key = ( \gain++in_idx++"_"++out_idx ).asSymbol;
-					knob = Knob.new.action_({ arg my;
-						Ndef(\matrix).set(key, my.value)
-					});
-					knob.value = Ndef(\matrix).get(key);
-					knob;
-				}
-			}
+		grid = GridLayout.rows(*
+			[["", "fx0", "fx1", "fx2"].collect({ arg lab;
+				StaticText.new.string_(lab).align_(\center)
+			})] ++
+			route_param.collect({ arg x; x.asKnob; }).clump(3).collect({ arg row, x;
+				[StaticText.new.string_(labels[x])] ++ row;
+			});
 		);
+
+		grid2 = GridLayout.rows(*
+			additional_params.collect({ arg param;
+				VLayout(
+					param.asStaticTextLabel.align_(\center),
+					param.asKnob.fixedWidth_(50),
+					param.asStaticText.align_(\center)
+				)
+			}).clump(4);
+		);
+		grid = View.new.layout_(grid);
+		//grid.minWidth = 300;
+		win.view.minWidth = 600;
+		grid2 = View.new.layout_(VLayout(grid2, nil));
+		grid.background = Color.new(0.8,0.9,0.9);
+		grid2.background = Color.new(0.8,0.9,0.8);
+		layout.spacing = 15;
+		//layout.background = Color.red;
+		layout.add(grid);
+		layout.add(grid2);
 		win.layout = layout;
 		win.front;
 	};
-	~matrix_gui.value; // show the gui!
+	~gui.(~p, [
+		Param( Ndef(\fx), \fb, ControlSpec(0,2,\lin) ),
+		Param( Ndef(\fx), \freq, \freq),
+		Param( Ndef(\fx), \pan, \bipolar),
+		Param( Ndef(\fx), \spread, \bipolar),
+	]);
 )

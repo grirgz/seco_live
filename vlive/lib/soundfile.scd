@@ -134,3 +134,34 @@
 
 ~select_sample_position.(BufDef(\amen).path);
 
+
+with:
+sfview.scrollPos
+sfview.viewFrames
+you can get the current viewport and adjust the scrollbar
+
+the weird color keeping from viewing the selection is the grid ! resolution is too high or there is a bug
+
+// To zoom in/out: Shift + right-click + mouse-up/down
+// To scroll: right-click + mouse-left/right
+(
+w = Window.new("soundfile test", Rect(200, 300, 740, 100));
+a = SoundFileView.new(w, Rect(20,20, 700, 60));
+
+f = SoundFile.new;
+f.openRead(Platform.resourceDir +/+ "sounds/a11wlk01.wav");
+f.inspect;
+
+a.soundfile = f;
+a.read(0, f.numFrames);
+a.elasticMode = true;
+
+a.timeCursorOn = true;
+a.timeCursorColor = Color.red;
+a.timeCursorPosition = 2050;
+a.drawsWaveForm = true;
+a.gridOn = true;
+a.gridResolution = 0.2;
+
+w.front;
+)

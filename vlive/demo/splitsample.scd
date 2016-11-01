@@ -62,7 +62,7 @@
 )
 
 
-
+BufDef(\amen, "vipere/amenbreak.wav");
 
 ~get_sample_slices.(BufDef(\amen), { arg x; ~list = x; });
  

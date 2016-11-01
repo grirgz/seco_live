@@ -1,5 +1,43 @@
 
 (
+SynthDef(\recorder, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum;
+	var sig;
+	var sig1;
+	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig.poll;
+	sig1 = EnvGen.ar(Env.adsr(0.01,0,1,0.01),gate,doneAction:0);
+	RecordBuf.ar(sig, bufnum, offset:0, recLevel:1, preLevel:\prelevel.kr(0), run:1, loop:0, trigger:1, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\player, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, trigger=1;
+	var sig;
+	var sig1;
+	// pos from 0 to 1
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufFrames.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.01),gate,doneAction:doneAction);
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig * \gain.kr(1));
+}).add;
+SynthDef(\playerbeat, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, trigger=1;
+	// pos in seconds
+	var sig;
+	var sig1;
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.001)),gate,doneAction:doneAction);
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig * \gain.kr(1));
+}).add;
+SynthDef(\playersec, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, trigger=1;
+	// pos in seconds
+	var sig;
+	var sig1;
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.001)),gate,doneAction:doneAction);
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig * \gain.kr(1));
+}).add;
+
 SynthDef(\snapkick, { |out = 0, pan = 0, amp = 0.3|
     var body, bodyFreq, bodyAmp;
     var pop, popFreq, popAmp;
@@ -7,23 +45,27 @@ SynthDef(\snapkick, { |out = 0, pan = 0, amp = 0.3|
     var snd;
 
     // body starts midrange, quickly drops down to low freqs, and trails off
-    bodyFreq = EnvGen.ar(Env([261, 100, 51], [0.035, 0.08], curve: \exp));
-    bodyAmp = EnvGen.ar(Env.linen(0.005, 0.1, 0.3), doneAction: 2);
+    bodyFreq = EnvGen.ar(\bodyfreqenv.kr(Env([261, 100, 51], [0.035, 0.08], curve: \exp)));
+    bodyAmp = EnvGen.ar(\bodyampenv.kr(Env.linen(0.005, 0.1, 0.3)), doneAction: 2);
     body = SinOsc.ar(bodyFreq) * bodyAmp;
     // pop sweeps over the midrange
-    popFreq = XLine.kr(750, 261, 0.02);
-    popAmp = EnvGen.ar(Env.linen(0.001, 0.02, 0.001)) * 0.15;
+    popFreq = XLine.kr(\popfreqstart.kr(750), \popfreqend.kr(261), \popfreqtime.kr(0.02));
+    popAmp = EnvGen.ar(\popampenv.kr(Env.linen(0.001, 0.02, 0.001))) * 0.15;
     pop = SinOsc.ar(popFreq) * popAmp;
     // click is spectrally rich, covering the high-freq range
     // you can use Formant, FM, noise, whatever
     clickAmp = EnvGen.ar(Env.perc(0.001, 0.01)) * 0.15;
-    click = LPF.ar(Formant.ar(910, 4760, 2110), 3140) * clickAmp;
+    click = LPF.ar(Formant.ar(\formfund.kr(910), \formfreq.kr(4760), \bwfreq.kr(2110)), \clicklpf.kr(3140)) * clickAmp;
 
     snd = body + pop + click;
     snd = snd.tanh;
 
     Out.ar(out, Pan2.ar(snd, pan, amp));
-}).add;
+}, metadata:(specs:(
+	bodyfreqenv: XEnvSpec(\freq),
+	bodyampenv: XEnvSpec(\amp),
+	popampenv: XEnvSpec(\amp),
+))).add;
 
 SynthDef(\snapsnare, { |out = 0, pan = 0, amp = 0.3|
     var pop, popAmp, popFreq;
