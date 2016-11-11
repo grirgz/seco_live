@@ -51,3 +51,17 @@ SinOsc.ar(freq) * LFSaw.ar(freq)
 SinOsc.ar(freq) 
 SinOsc.ar(freq * [1,1.01]) 
 SinOsc.ar(freq * Array.series(8,1,0.1)) 
+
+
+/////////////////////////////// branch a multichannel signal
+// we have 5 voices and want to apply a detune for each voice and add to itself
+
+
+	freq = freq*[1/4,1/2,1,2,4] ; // 5 voices
+
+	sig = LFSaw.ar(freq + [0, (\diff.kr(1)/1)].flop).flop.sum; // detune and add
+	sig.debug("sig1");
+	sig = SinOsc.ar(freq) + sig; 
+	sig = sig * ( 1+[osclo, osclo+oscmid/2, oscmid, oscmid+oschi/2, oschi]); // 5 channel signal
+	sig = sig.fold2( SinOsc.kr(1/15 * [1,1.2].flop).range(0.4,1) ).flop.sum; // apply 2 different fold to each voice
+	sig.debug("sig2"); // 5 channel signal

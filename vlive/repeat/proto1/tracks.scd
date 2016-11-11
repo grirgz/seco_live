@@ -1,6 +1,7 @@
 
 (
 TrackDef(\playerwrapper, (
+	isEmpty: true,
 	label: { arg self; 
 		"%: %".format(self.index, if(self.proxy.notNil, { self.proxy.label }, { "-" }))
 	},
@@ -111,6 +112,10 @@ TrackDef(\playertrack, (
 
 	activeChild: { arg self;
 		self.childAt(self.activeIndex);
+	},
+
+	isEmpty: { arg self;
+		self.children.every({ arg x; x.isEmpty });
 	},
 
 	source_: { arg self, array;
@@ -289,7 +294,7 @@ TrackDef(\playergrid, (
 	},
 
 	isPlaying: { arg self;
-		self.children.every(_.isPlaying);
+		self.children.every({ arg x; x.isEmpty or: {x.isPlaying}});
 	},
 
 	quant: { arg self;
@@ -317,19 +322,32 @@ TrackDef(\playergrid, (
 			},
 			isLinePlayer: true,
 			play: { arg self;
-				self.children.do({ arg x; 
+					["play"].postln;
+				self.children.do({ arg x, ii; 
+					["play", ii, x].postln;
 					x.play;
 				});
 				//self.play;
-			}
+			},
 
 			stop: { arg self;
-				parent.stop
+					["stop"].postln;
+				self.children.do({ arg x, ii; 
+					["stop", ii, x].postln;
+					x.stop
+				});
+				//parent.stop;
 			},
 
 			isPlaying: { arg self;
+				//["lineplayer: isPlaying",parent.isPlaying, self.children.every({ arg x; x.activeIndex == idx })].postln;
 				parent.isPlaying and: {
-					self.children.every({ arg x; x.activeIndex == idx });
+					self.children.every({ arg x, ii; 
+						//["child:", x,ii, x.activeIndex, idx].postln;
+						x.parentTrack.isEmpty or: {
+							x.parentTrack.activeIndex == idx
+						}
+					});
 				};
 			},
 

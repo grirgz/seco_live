@@ -1,55 +1,58 @@
 
+//~apro_device_id = 1572865;
 //MIDIdef.noteOn(\test, { arg ... args; args.debug("piano.scd: test"); });
 
 (
-MIDIBoard.permanent = true;
-MIDIBoard.define(0, [
-	\home, 34,
-	\left, 35,
-	\right, 36,
-	\end, 37,
-	\stop, 38,
-	\play, 39,
-	\pause, 40,
-	\record, 41,
-	\hold, 42,
+MIDIMap.permanent = true;
+MIDIMap.define([nil, ~apro_device_id], [
+	\aphome, 34,
+	\apleft, 35,
+	\apright, 36,
+	\apend, 37,
+	\apstop, 38,
+	\applay, 39,
+	\appause, 40,
+	\aprecord, 41,
+	\aphold, 42,
 
-	\b1, 43,
-	\b2, 44,
-	\b3, 45,
-	\b4, 46,
+	\apb1, 43,
+	\apb2, 44,
+	\apb3, 45,
+	\apb4, 46,
 
-	\k1, 16,
-	\k2, 17,
-	\k3, 18,
-	\k4, 19,
-	\k5, 20,
-	\k6, 21,
-	\k7, 22,
-	\k8, 23,
-	\k9, 24,
+	\apk1, 16,
+	\apk2, 17,
+	\apk3, 18,
+	\apk4, 19,
+	\apk5, 20,
+	\apk6, 21,
+	\apk7, 22,
+	\apk8, 23,
+	\apk9, 24,
 
-	\s1, 25,
-	\s2, 26,
-	\s3, 27,
-	\s4, 28,
-	\s5, 29,
-	\s6, 30,
-	\s7, 31,
-	\s8, 32,
-	\s9, 33,
+	\aps1, 25,
+	\aps2, 26,
+	\aps3, 27,
+	\aps4, 28,
+	\aps5, 29,
+	\aps6, 30,
+	\aps7, 31,
+	\aps8, 32,
+	\aps9, 33,
 
-	\a1, \note -> [43, 9],
-	\a2, \note -> [47, 9],
-	\a3, \note -> [50, 9],
-	\a4, \note -> [49, 9],
-	\a5, \note -> [36, 9],
-	\a6, \note -> [38, 9],
-	\a7, \note -> [42, 9],
-	\a8, \note -> [46, 9],
+	\apa1, \note -> [43, 9],
+	\apa2, \note -> [47, 9],
+	\apa3, \note -> [50, 9],
+	\apa4, \note -> [49, 9],
+	\apa5, \note -> [36, 9],
+	\apa6, \note -> [38, 9],
+	\apa7, \note -> [42, 9],
+	\apa8, \note -> [46, 9],
 
 ]);
 );
+
+// END
 
 (
 MIDIBoard.map(\record, { 

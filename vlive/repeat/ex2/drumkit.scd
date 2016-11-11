@@ -1,235 +1,7 @@
 
 (
-WindowDef(\soundfileview, { arg def, file, startParam, sustainParam, endParam, speedParam, startType, sustainType, endType;
-		var player;
-		var win, sf, sfview;
-		var post_position;
-		var vlayout;
-		var zoom_slider;
-		var task;
-		var playerkey = \smpslicerplayer;
-		var path;
-		var positions;
-		var compute_params;
-		var controller;
-		var asPresetCompileString;
-		var update_selection;
-		var sampleRate = s.sampleRate;
-		var clock = TempoClock.default;
-		vlayout = VLayout.new;
-		sfview = SoundFileView.new;
-		if(file.isKindOf(Buffer)) {
 
-			path = file.path ?? { BufDef(\moeten, "voices/02_moeten.flac") };
-
-		} {
-			path = file;
-		};
-		if(path.notNil) {
-
-			sf = SoundFile.new;
-			zoom_slider = RangeSlider.new;
-			zoom_slider.orientation = \horizontal;
-			zoom_slider.action  = { arg sli;
-				[\sliderLOW, sli.lo, \sliderHI, sli.hi].postln;
-				sfview.zoomToFrac(sli.hi - sli.lo);
-				sfview.scrollTo(sli.lo);
-
-			};
-			vlayout.add(sfview);
-			vlayout.add(zoom_slider);
-			//win.layout = vlayout;
-			sf.openRead(path);
-			sfview.soundfile = sf;
-			sfview.read(0, sf.numFrames);
-
-			sfview.elasticMode = true;
-			sfview.timeCursorOn = true;
-			sfview.timeCursorColor = Color.red;
-			sfview.timeCursorPosition = 0;
-			sfview.drawsWaveForm = true;
-			sfview.gridOn = false;
-			sfview.gridResolution = 1;
-			~sfview = sfview;
-
-			sfview.action = {
-				"yeahhh".debug;
-				sfview.scrollPos.debug("scrollPos");
-			};
-
-			sfview.currentSelection = 1;
-			sfview.setSelectionColor(1, ParamView.color_ligth);
-
-			post_position = { 
-				var cur;
-				cur = sfview.selections[sfview.currentSelection];
-				// cur = [start, size] in frames
-				positions = [
-					cur++(cur[0]+cur[1]),
-					cur++(cur[0]+cur[1]) / s.sampleRate,
-					cur++(cur[0]+cur[1]) / sf.numFrames,
-				];
-				"Current selection is now [start, size, end]:\nframes: %\nseconds: %\nnormalized: %".format(
-					*positions
-				).postln;
-			};
-			post_position.();
-
-			// init selection
-			update_selection = {
-				var sustain = if(sustainParam.notNil) {
-					sustainParam.get / clock.tempo * sampleRate;
-				} {
-					endParam.get - startParam.get * sampleRate;
-				};
-				var start = startParam.get * sampleRate;
-				(
-					[startParam.get, sustainParam.get, startParam.get + sustainParam.get] 
-					++ ( [startParam.get, sustainParam.get, startParam.get + sustainParam.get] * sampleRate)
-					++ ( [
-						( startParam.get + sustainParam.get * sampleRate ) - ( startParam.get * sampleRate ), 
-						( startParam.get + sustainParam.get * sampleRate ) - ( startParam.get * sampleRate ) / sampleRate, 
-					])
-				).debug("start, sus, end, srstart, srsus, srend");
-				sfview.setSelection(sfview.currentSelection, [start, sustain]);
-			};
-			update_selection.();
-
-			asPresetCompileString = {
-				//"Pbind(\n%%%);".format(
-				//	"\t'instrument', \\playersec,\n",
-				//	"\t'bufnum', BufDef(%),\n".format(bufdef.key.asCompileString),
-				//	[\pos, \speed, \sustain, \dur, \gain].collect({ arg key;
-				//		"\t%, %,\n".format(key.asCompileString, ( Pdef(playerkey).get(key) ? 1 ).asCompileString )
-				//	}).join;
-				//).pbcopy;
-			};
-
-			compute_params = {
-				var speed;
-				var sustain;
-				var dur;
-				speed = if(speedParam.notNil) {
-					speedParam.get;
-				} {
-					1
-				};
-				if(startParam.notNil) {
-					startParam.set( if(speed < 0) {
-						positions[1][2]
-					} {
-						positions[1][0];
-					});
-				};
-				sustain = positions[1][1] / speed.abs * clock.tempo ;
-				if(sustain == 0) {
-					sustain = 1;
-				};
-				if(sustainParam.notNil) {
-					sustainParam.set(sustain);
-				};
-				//Pdef(playerkey).set(\dur, Pdef(playerkey).get(\sustain) * TempoClock.default.tempo);
-			};
-
-			if(speedParam.notNil) {
-				speedParam.onChange({
-					compute_params.();
-					update_selection.();
-				}, sfview);
-			};
-
-			if(startParam.notNil) {
-				startParam.onChange({
-					update_selection.();
-				}, sfview);
-			};
-
-			if(endParam.notNil) {
-				endParam.onChange({
-					update_selection.();
-				}, sfview);
-			};
-
-			if(sustainParam.notNil) {
-				sustainParam.onChange({
-					update_selection.();
-				}, sfview);
-			};
-
-			sfview.mouseUpAction = { arg a;
-				post_position.();
-				compute_params.();
-				asPresetCompileString.().postln;
-			};
-
-			sfview.keyDownAction = { arg view, char, modifiers, u, k; 
-				var cur;
-				var lastFrame;
-				cur = view.selections[view.currentSelection];
-				lastFrame = if(cur[1] == 0) { sf.numFrames } {cur[0]+cur[1]};
-				//[char, modifiers, u, k].debug("KEYBOARD INPUT");
-				if( u == 32 ) { // space
-					if(player.notNil) {
-						player.stop;
-						player = nil;
-					};
-					player = sf.play(
-						(
-							firstFrame: cur[0],
-							lastFrame: lastFrame
-						)
-
-					);
-					if(task.notNil) {
-						task.stop;
-					};
-					task = Task({
-						var start;
-						var x = 0;
-						//[ sfview.timeCursorPosition, lastFrame, x, thisThread.beats , start, (thisThread.beats - start) ].debug("tc, lf, xbe, st, -");
-						s.latency.wait;
-						start = thisThread.beats;
-						sfview.timeCursorPosition = cur[0];
-						while({sfview.timeCursorPosition < lastFrame and: { x < 1000000 }}) {
-
-							//[ thisThread.beats , start, (thisThread.beats - start) ].debug("be, st, -");
-							sfview.timeCursorPosition = cur[0] + ( (thisThread.beats - start) * sf.sampleRate );
-							x = x + 1;
-							0.02.wait;
-						};
-						sfview.timeCursorPosition = cur[0];
-					}).play(AppClock);
-					post_position.();
-				};
-				if( u == 13 or: { char == $f }) { // Enter
-					if(player.notNil) {
-						task.stop;
-						sfview.timeCursorPosition = cur[0];
-						task = nil;
-						player.stop;
-						player = nil;
-					};
-					post_position.();
-				}
-			};
-
-			if(def.window.notNil) {
-				def.window.view.keyDownAction = { arg view, char, modifiers, u, k; 
-					//[char, modifiers, u, k].debug("KEYBOARD INPUT");
-					if( u == 27 ) { // Esc
-						if(player.notNil) {
-							player.stop;
-							player = nil;
-						};
-						view.close();
-					};
-				};
-			};
-		};
-		sfview
-});
-
-WindowDef(\sampler, { arg def, target;
+WindowDef(\sampler, { arg def, target, show_buttons=true;
 	var pkey = \sampler;
 	var anchor;
 	var sndfileview = View.new;
@@ -238,19 +10,45 @@ WindowDef(\sampler, { arg def, target;
 	var buffer = Param(target, \bufnum, MenuSpec(
 		BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
 	));
+	var buffer_popup = PopUpMenu.new;
 	var oldbuf;
-	layout = VLayout (
-		HLayout (
-			PlayerWrapper(target).asView,
-			anchor = Param(target, \out, MenuSpec(
-				[ \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
-			)).asPopUpMenu,
-		),
-		sndfileview,
-		buffer.asPopUpMenu,
-		target.asParamGroup
-			.add(Param(target, \sustain))
-			.asView
+	anchor = buffer_popup;
+	buffer_popup.mapParam(buffer);
+	layout = VLayout (*
+		if(show_buttons == true) {
+			[
+				HLayout (
+					PlayerWrapper(target).asView,
+					Param(target, \out, MenuSpec(
+						[ \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
+					)).asPopUpMenu,
+				),
+			]
+		} {
+			[]
+		}
+		++
+		[
+			sndfileview,
+			HLayout (
+				buffer_popup,
+				BasicButton.new.string_("load").action_({ arg view;
+					Dialog.openPanel({ arg file;
+						BufDef(file.asSymbol, file);
+						buffer.spec = MenuSpec(
+							BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
+						);
+						buffer.spec.labelList.debug("labellist");
+						buffer_popup.items.debug("poplabellist");
+						buffer.set(BufDef(file.asSymbol));
+						//buffer_popup.refreshChange;
+					});
+				})
+			),
+			target.asParamGroup
+				.add(Param(target, \sustain))
+				.asView
+		]
 	);
 	anchor.debug("anchor");
 	updatebuffer = {
@@ -276,84 +74,88 @@ WindowDef(\sampler, { arg def, target;
 	
 });
 
-	WindowDef(\samplekit, { arg def, group;
-		var size = Point(4,4);
-		var edit;
-		var layout;
-		var editlayout, kitlayout;
-		var selector = List.new;
-		var select, deselect;
-		var selected = 0;
-		var default_stepevent = { StepEvent.newFrom((instrument: \playersec)) };
+WindowDef(\samplekit, { arg def, group;
+	var size = Point(4,4);
+	var edit;
+	var layout;
+	var editlayout, kitlayout;
+	var selector = List.new;
+	var select, deselect;
+	var selected = 0;
+	var default_stepevent = { StepEvent.newFrom((instrument: \playersec)) };
 
-		select = { arg x;
-			deselect.(selected);
-			selected = x;
-			selector[x].background_(ParamView.color_dark)
-		};
-		deselect = { arg x;
-			var tar = group.elAt(x).target;
-			selector[x].background = if(tar.isNil or: { tar == default_stepevent.() }) {
-				Color.white
-			} {
-				ParamView.color_ligth;
-			}
-		};
+	select = { arg x;
+		deselect.(selected);
+		selected = x;
+		selector[x].background_(ParamView.color_dark);
+		group.reboot;
+	};
+	deselect = { arg x;
+		var tar = group.elAt(x).target;
+		selector[x].background = if(tar.isNil or: { tar == default_stepevent.() }) {
+			Color.white
+		} {
+			ParamView.color_ligth;
+		}
+	};
 
-		kitlayout = VLayout (*
-			size.y.collect({ arg y;
-				HLayout(*
-					size.x.collect({ arg x;
-						var idx = y*size.y+x;
-						var button;
-						button = BasicButton.new.string_(idx).fixedSize_(50@50)
-						.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
-							[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
-							if(buttonNumber == 0) {
-								group.elAt(idx).play;
-							};
-							if(buttonNumber == 1) {
-								edit.(idx);
-							};
-						})
-						.action_({
-							group.elAt(idx).stop;
-						});
-						selector.add(button);
-						deselect.(idx);
-						button;
+	kitlayout = VLayout (*
+		size.y.collect({ arg y;
+			HLayout(*
+				size.x.collect({ arg x;
+					var idx = y*size.y+x;
+					var button;
+					button = BasicButton.new.string_(idx).fixedSize_(50@50)
+					.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+						[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+						if(buttonNumber == 0) {
+							group.elAt(idx).play;
+						};
+						if(buttonNumber == 1) {
+							edit.(idx);
+						};
 					})
-					++ [ nil ]
-				)
-			})
-			++ [ nil ]
-		);
+					.action_({
+						group.elAt(idx).stop;
+					});
+					selector.add(button);
+					deselect.(idx);
+					button;
+				})
+				++ [ nil ]
+			)
+		})
+		++ [ nil ]
+	);
 
-		edit = { arg idx;
-			var drum = group.elAt(idx);
-			if(drum.target.isNil) {
-				drum.target = default_stepevent.();
-			};
-			select.(idx);
-			editlayout.removeAll;
-			editlayout.layout = VLayout(
-				//WindowDef(\vertical_paramgroup).asView(drum.target.asParamGroup)
-				WindowDef(\sampler).asView(drum.target)
-			);
-		
+	edit = { arg idx;
+		var drum = group.elAt(idx);
+		if(drum.target.isNil) {
+			drum.target = default_stepevent.();
 		};
-
-		editlayout = View.new;
-		edit.(0);
-
-		layout = HLayout (
-			kitlayout,
-			editlayout,
-			nil,
+		select.(idx);
+		editlayout.removeAll;
+		editlayout.layout = VLayout(
+			//WindowDef(\vertical_paramgroup).asView(drum.target.asParamGroup)
+			WindowDef(\sampler).asView(drum.target)
 		);
+	
+	};
 
-		layout;
-	});
+	editlayout = View.new;
+	edit.(0);
+
+	layout = HLayout (
+		VLayout (
+			BasicButton.new.string_("Recorder").action_({ ProtoDef(\recorder).edit }),
+			kitlayout,
+		),
+		editlayout,
+		nil,
+	);
+
+	layout;
+});
 
 ParamProto.init;
 	
@@ -367,10 +169,6 @@ ParamProto.init;
 			var bufnum_compilestring;
 			var res;
 			res = "\t%,\n".format(target.asCompileString);
-			if(target.notNil) {
-				bufnum_compilestring = "BufDef(%)".format(target[\bufnum].key.asCompileString);
-				res = res.replace(template_key, bufnum_compilestring);
-			};
 			res;
 		}).join
 	)

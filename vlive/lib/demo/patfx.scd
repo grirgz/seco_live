@@ -174,7 +174,7 @@ a.value
 
 ~pat = Pbind(\freq, Pseq([100,200,400,300],inf));
 Pdef(\plop,
-	~wrapper.(~pat, ~preset.vals[\mamp].valpattern.asStream) 
+	~wrapper.(~pat, 1) 
 	<> Pbind(
 		\bla, Pseq([10,20,30],inf),
 		\dur, 1/4,
@@ -199,7 +199,7 @@ Pdef(\plop,
             var evc = ev.copy;
 			evc[\dur] = ev[\dur]/2;
 			in = evc.yield;
-			evc[\amp] = amp.value * ev[\amp];
+			evc[\amp] = amp.value * ( ev[\amp] ? 1 );
 			in = evc.yield;
             ev = str.next(in);
 			count = count + 1;
@@ -286,7 +286,7 @@ g.setColors(Color.grey,Color.white)
 			if(count.odd) {
 				in = evc.yield;
 			} {
-				evc[\amp] = amp.value * ev[\amp];
+				evc[\amp] = amp.value * ( ev[\amp] ? 1 );
 				in = evc.yield;
 			};
             ev = str.next(in);
@@ -296,13 +296,14 @@ g.setColors(Color.grey,Color.white)
     };
 };
 
-~amp = Ref(0);
+~amp = Ref(0.2);
 ~pat = Pbind(\freq, Pseq([100,200,400,300],inf));
 Pdef(\plop,
 	~wrapper.(~pat, ~amp) 
 	<> Pbind(
 		\bla, Pseq([10,20,30],inf),
-		\dur, 1/8,
+		\legato, 0.1,
+		\dur, 1/4,
 	)
 ).play;
 //(~wrapper.(~pat)).trace.play;

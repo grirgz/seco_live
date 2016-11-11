@@ -2,6 +2,40 @@
 (
 	~recmodel = ~recmodel ?? { () };
 	~recmodel.genfx = { arg self; RandDelayNetwork(self.fxdef).make(self.fxkey, self.fxcode, BusDef(self.fxbus, \audio)) };
+
+	ProtoDef(\recorder, (
+		init:{ arg self;
+			self.fxdef = self.fxdef ? \default;
+			self.fxkey = self.fxkey ? \fx1;
+			self.fxcode = self.fxcode ? "5--";
+			self.fxbus = self.fxbus ? \fx1;
+			self.sourcekey = self.sourcekey ? \src;
+			self.enablefx = self.enablefx ? false;
+			self.instrs = self.instrs ?? { List.new };
+		},
+
+		genfx: { arg self; 
+			RandDelayNetwork(self.fxdef).make(self.fxkey, self.fxcode, BusDef(self.fxbus, \audio)) 
+		},
+
+		enablefx_: { arg self, val;
+			self[\enablefx] = val;
+			if(val == true) {
+				Pdef(self.sourcekey).set(\out, BusDef(self.fxbus));
+				Ndef(self.fxkey).play;
+				self.recbus = Ndef(self.fxkey).bus;
+			} {
+				Ndef(self.fxkey).stop;
+				//Pdef(sourcekey).set(\out, BusDef(\recbus, \audio));
+				Pdef(self.sourcekey).set(\out, 0);
+				self.recbus = BusDef(\recbus, \audio);
+			}
+		},
+
+		edit: { arg self;
+			WindowDef(\recorder).front(self.instrs, self);
+		},
+	)).init;
 	Spec.add(\inbus, XBusSpec.new);
 	Spec.add(\gate, XGateSpec.new);
 	Spec.add(\indelay, ControlSpec(0,0.2,\lin));
@@ -62,15 +96,13 @@
 		var fxp = Param(Message(model), \fxkey);
 		var popup = instrp.asPopUpMenu;
 		var srcview = View.new;
-		var sourcekey = \src;
+		var sourcekey = model.sourcekey ? \src;
 		var fxview = View.new;
 		var curinstr;
 		var controller;
+		var recordbutton;
+		var soundfileview;
 
-		model.fxdef = model.fxdef ? \default;
-		model.fxkey = model.fxkey ? \fx1;
-		model.fxcode = model.fxcode ? "5--";
-		model.fxbus = model.fxbus ? \fx1;
 		//model.recbufkey = model.fxbus ? \kick;
 
 		controller = instrp.makeListener({ arg ...args;
@@ -82,13 +114,18 @@
 				if(curinstr != model.instr) {
 					args.debug("listener: refresh");
 					curinstr = model.instr;
-					params = SynthDesc(model.instr).asParamGroup(Pdef(sourcekey));
-					params = params.add(Param(Pdef(sourcekey), \sustain));
-					params = params.add(Param(Pdef(sourcekey), \dur));
 					Pdef(sourcekey, Pbind(\instrument, model.instr));
-					params = params.reject({ arg x; x.property == \out });
-					srcview.removeAll;
-					srcview.layout = WindowDef(\vertical_paramgroup).asView(params);
+					if(curinstr == \playersec) {
+						srcview.removeAll;
+						srcview.layout = WindowDef(\sampler).asView(Pdef(sourcekey), false);
+					} {
+						params = SynthDesc(model.instr).asParamGroup(Pdef(sourcekey));
+						params = params.add(Param(Pdef(sourcekey), \sustain));
+						params = params.add(Param(Pdef(sourcekey), \dur));
+						params = params.reject({ arg x; x.property == \out });
+						srcview.removeAll;
+						srcview.layout = WindowDef(\vertical_paramgroup).asView(params);
+					};
 				}
 			}
 		}, popup);
@@ -99,47 +136,49 @@
 			fxview.layout = WindowDef(\vertical_paramgroup).asView(Ndef(model.fxkey).asParamGroup);
 		};
 
+		recordbutton = BasicButton.new.string_("Record").action_({ arg view;
+			model.recbuf = BufDef(model.recbufkey);
+			model.recbuf.debug("recbuf");
+			if(model.recbuf.notNil and: { view.value == 0 }) {
+				Pdef(\recorder,
+					Pseq([
+						Ptask({
+							"start record!!!!!!!!!!!!!".debug;
+							{ 
+								s.latency.wait;
+								{
+									view.background = Color.red;
+									view.value = 1;
+								}.defer;
+							}.fork;
+						},0),
+						Pbind(
+							\instrument, \recorder,
+							\sustain, model.recbuf.numFrames / model.recbuf.sampleRate,
+							\dur, Pkey(\sustain) * TempoClock.default.tempo,
+							\inbus, model.recbus,
+							\bufnum, Pn(model.recbuf,1),
+						).trace,
+						Ptask({
+							"end record!!!!!!!!!!!!!".debug;
+							{ 
+								s.latency.wait;
+								{
+									view.background = Color.white;
+									view.value = 0;
+								}.defer;
+							}.fork;
+						},0)
+					]),
+				).play;
+			}
+		}).value_(0);
+
 		VLayout(
-			HLayout (
+			HLayout(
 				popup,
 				PlayerWrapper(Pdef(sourcekey)).asView,
-				BasicButton.new.string_("Record").action_({ arg view;
-					model.recbuf = BufDef(model.recbufkey);
-					model.recbuf.debug("recbuf");
-					if(model.recbuf.notNil and: { view.value == 0 }) {
-						Pdef(\recorder,
-							Pseq([
-								Ptask({
-									"start record!!!!!!!!!!!!!".debug;
-									{ 
-										s.latency.wait;
-										{
-											view.background = Color.red;
-											view.value = 1;
-										}.defer;
-									}.fork;
-								},0),
-								Pbind(
-									\instrument, \recorder,
-									\sustain, model.recbuf.numFrames / model.recbuf.sampleRate,
-									\dur, Pkey(\sustain) * TempoClock.default.tempo,
-									\inbus, model.recbus,
-									\bufnum, Pn(model.recbuf,1),
-								).trace,
-								Ptask({
-									"end record!!!!!!!!!!!!!".debug;
-									{ 
-										s.latency.wait;
-										{
-											view.background = Color.white;
-											view.value = 0;
-										}.defer;
-									}.fork;
-								},0)
-							]),
-						).play;
-					}
-				}).value_(0),
+				recordbutton,
 				BasicButton.new.string_("PlayBuf").action_({
 					Pbind(
 						\instrument, \player,
@@ -148,47 +187,50 @@
 						\dur, Pn(1,1),
 					).play;
 				}),
-				Param(Message(model), \recbufkey, 
-				MenuSpec(BufDef.all.keys.as(Array).sort.select({ arg x; BufDef.all[x].isKindOf(Buffer) }))
-			).asPopUpMenu,
-			TextField.new.action_({ arg view;
-				model.fxdef = view.value.asSymbol;
-			}).value_(model.fxdef),
-			TextField.new.action_({ arg view;
-				model.fxkey = view.value.asSymbol;
-			}).value_(model.fxkey),
-			TextField.new.action_({ arg view;
-				model.fxcode = view.value.asString;
-			}).value_(model.fxcode),
-			TextField.new.action_({ arg view;
-				model.fxbus = view.value.asSymbol;
-			}).value_(model.fxbus),
-			BasicButton.new.string_("Enable fx").action_({ arg view;
-				view.value.debug("en");
-				if(view.value == 0) {
-					Pdef(sourcekey).set(\out, BusDef(model.fxbus));
-					Ndef(model.fxkey).play;
-					model.recbus = Ndef(model.fxkey).bus;
-					view.background = ParamView.color_ligth;
-					view.value = 1;
-				} {
-					Ndef(model.fxkey).stop;
-					//Pdef(sourcekey).set(\out, BusDef(\recbus, \audio));
-					Pdef(sourcekey).set(\out, 0);
-					model.recbus = BusDef(\recbus, \audio);
-					view.background = Color.white;
-					view.value = 0;
-				};
-			}).value_(Ndef(model.fxkey).isPlaying.asInteger),
-			BasicButton.new.string_("Gen Fx!").action_({
-				"gen1".debug;
-				model.genfx;
-				"gen2".debug;
-				fxview.removeAll;
-				fxview.layout = WindowDef(\vertical_paramgroup).asView(Ndef(model.fxkey).asParamGroup);
-				"gen3".debug;
-			}),
-		),
+				Param(
+					Message(model), \recbufkey, 
+					MenuSpec(BufDef.all.keys.as(Array).sort.select({ arg x; BufDef.all[x].isKindOf(Buffer) }))
+				).asPopUpMenu,
+				BasicButton.new.string_("Save as").action_({
+					model.recbuf.saveDialog(-1, 0, { arg file;
+						BufDef(file.asSymbol, file)
+					})
+				}),
+				TextField.new.action_({ arg view;
+					model.fxdef = view.value.asSymbol;
+				}).value_(model.fxdef),
+				TextField.new.action_({ arg view;
+					model.fxkey = view.value.asSymbol;
+				}).value_(model.fxkey),
+				TextField.new.action_({ arg view;
+					model.fxcode = view.value.asString;
+				}).value_(model.fxcode),
+				TextField.new.action_({ arg view;
+					model.fxbus = view.value.asSymbol;
+				}).value_(model.fxbus),
+				BasicButton.new.string_("Enable fx").action_({ arg view;
+					view.value.debug("en");
+					model.enablefx.debug("enablefx");
+					model.enablefx = (model.enablefx ? false).not;
+					view.refreshChange;
+				}).refreshChangeAction_({ arg view;
+					if(model.enablefx == true) {
+						view.background = ParamView.color_ligth;
+						view.value = 1;
+					} {
+						view.background = Color.white;
+						view.value = 0;
+					};
+				}).refreshChange,
+				BasicButton.new.string_("Gen Fx!").action_({
+					"gen1".debug;
+					model.genfx;
+					"gen2".debug;
+					fxview.removeAll;
+					fxview.layout = WindowDef(\vertical_paramgroup).asView(Ndef(model.fxkey).asParamGroup);
+					"gen3".debug;
+				}),
+			),
 		HLayout(
 			srcview,
 			fxview,
@@ -197,10 +239,9 @@
 	)
 
 });
-~recmodel.instrs = List[\snapkick, \snapsnare, \snaphihat, \playerbeat];
-~recmodel.edit = { arg self;
-	WindowDef(\recorder).front(self.instrs, self);
-};
+
+ProtoDef(\recorder).instrs = List[\snapkick, \snapsnare, \snaphihat, \playersec];
+
 ~savebufs = { arg keys, path;
 	var rootpath = ( "~/Musique/sc/reckit/" +/+ path ).standardizePath;
 	if(File.exists(rootpath).not) {
@@ -213,6 +254,7 @@
 			filepath = rootpath +/+ key ++ ".flac";
 			//if(File.exists(filepath)) { }; // no protection for the moment
 			buf.write(filepath, "FLAC");
+			buf.path = filepath;
 		} {
 			key.debug("not buffer found at");
 		}
@@ -237,5 +279,9 @@
 	};
 
 };
-//~recmodel.edit;
+//ProtoDef(\recorder).edit;
 )
+
+// END
+
+Param.freeAllSimpleControllers
