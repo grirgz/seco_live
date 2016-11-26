@@ -1,5 +1,6 @@
 
 (
+ProtoDef(\recorder).init;
 ProtoDef(\recorder).fxkey = \fx2;
 ProtoDef(\recorder).fxdef = \deltrans;
 ProtoDef(\recorder).genfx;

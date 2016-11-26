@@ -13,12 +13,13 @@ FileSystemProject.load("ex1/multifbdel.scd");
 FileSystemProject.load("ex2/soundfileview.scd");
 FileSystemProject.load("ex2/drumkit.scd");
 FileSystemProject.load("ex2/recordgui.scd");
+FileSystemProject.load("ex2/basicrecorder.scd");
 FileSystemProject.load("ex2/metronome.scd");
 FileSystemProject.load("lib/piano.scd");
 ParamProto.init;
 
-ParamView.color_dark = Color.new255(16, 78, 9);
-ParamView.color_ligth = Color.new255(32, 156, 17);
+ParamViewToolBox.color_dark = Color.new255(16, 78, 9);
+ParamViewToolBox.color_ligth = Color.new255(32, 156, 17);
 
 Ndef(\fx1).addSpec(\deltran1, ControlSpec(-1,5,\lin, 0,1));
 Ndef(\fx1).addSpec(\deltran2, ControlSpec(-1,5,\lin,0,0));

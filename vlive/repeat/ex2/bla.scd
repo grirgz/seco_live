@@ -180,7 +180,7 @@ WindowDef(\recorder, { arg def, sdlist, model;
 					Pdef(sourcekey).set(\out, BusDef(model.fxbus));
 					Ndef(model.fxkey).play;
 					model.recbus = Ndef(model.fxkey).bus;
-					view.background = ParamView.color_ligth;
+					view.background = ParamViewToolBox.color_ligth;
 					view.value = 1;
 				} {
 					Ndef(model.fxkey).stop;

@@ -1,7 +1,7 @@
 
 (
-ProtoDef(\recorder).fxbus = BusDef(\sendbus0);
-Ndef(\fx2).set(\inbus, BusDef(\sendbus0));
+ProtoDef(\recorder).fxbus = \sendbus0;
+Ndef(\fx2).set(\inbus, BusDef(\sendbus0, \audio));
 SynthDef(\note1, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, osclo=1, oscmid=1, oschi=1, gain=1;
 	var sig;
 	//sig = LFSaw.ar(freq * [1, 1+(\diff.kr(1)/100)]);
@@ -134,6 +134,7 @@ MIDIMap(\apend, { Pdef(\mod1).set(\stutgain, 1) });
 Pdef(\note1).set(\out, BusDef(\fx1))
 
 
+~kit1.reboot
 Pdef(\noteseq).play
 Pdef(\noteseq).set(\out, 0)
 
@@ -158,11 +159,15 @@ Ndef(\fx2).play
 Ndef(\fx2).stop
 ProtoDef(\recorder).genfx
 ProtoDef(\recorder).edit
+Pdef(\src).clear
+Ndef(\fx2).clear
 
 MKtl.find
 NoteTimeline(\note1)
 NoteTimeline(\note2).edit
 		KitTimeline(\smp2).play
+		KitTimeline(\smp).edit;
+		KitTimeline(\smp).outBus = BusDef(\fx1, \audio)
 
 (
 Pdef(\main, Pseq([
@@ -433,6 +438,7 @@ KitTimeline('smp2').eventList = XEventList.newFrom([
 
 
 
+TrackDef(\grid1).clear
 TrackDef(\grid1, TrackDef(\playergrid))
 (
 TrackDef(\grid1).source = [
@@ -479,3 +485,108 @@ KitTimeline(\smp3, ~kit4).edit;
 ];
 );
 
+
+
+
+///////////////////////////////////////////
+
+
+
+(
+Ndef(\ota, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var fac = 1/SelectX.kr( SinOsc.kr(1/113).range(0,6), [1/2,1,2,4,8,64,128] )/8;
+
+	freq = XLine.kr(1,1/2,2) * freq;
+
+	env1 = EnvGen.ar(Env([42,21,42,30,84],[4,4,7.5,0.5]/fac).circle, 1);
+	env2 = EnvGen.kr(Env([0,0,2,1],[4,4,4]/4).circle, 1);
+	env3 = XLine.kr(1,0.1,2*1);
+
+	freq = 8.collect({ arg x;
+		freq + ( env1 * x ) + [0,SinOsc.kr(x+1, mul:env2).range(0,10*x)];
+	});
+	//freq.debug.shape.debug("freq");
+	sig = SinOsc.ar( freq / [1,2,4]);
+	//sig.shape.debug("sig1");
+	sig = sig.collect({ arg isig, x;
+		isig = SelectX.ar( SinOsc.kr(x+1/34).range(0,1), [isig, isig.fold2(env3)]);
+		isig = SelectX.ar( SinOsc.kr(1/223, 3pi/2).range(0,1), [isig, ( isig * SinOsc.kr(1/48 * ( x + 1 )).range(1,100) ).tanh]);
+	});
+	//sig.shape.debug("sig2");
+	sig1 = sig.flop[1];
+	sig = sig.flop[0];
+	//sig.debug("sig");
+	sig1 = Pan2.ar(sig1, SinOsc.ar(sig1.size.collect({ arg x; SinOsc.kr(x/10+1.2).range(0,8) })) * SinOsc.kr(1/48).range(0,1), amp).mean;
+	sig = Pan2.ar(sig, SinOsc.ar(sig.size.collect({ arg x; SinOsc.kr(x/10+1.1).range(0,8) })) * SinOsc.kr(1/58).range(0,1), amp).mean;
+	sig = sig + sig1;
+	sig = sig / 1.0;
+	sig = LPF.ar(sig, 1999);
+	sig;
+}).play(BusDef(\recbus).index, 2);
+);
+ProtoDef(\recorder).recbus = BusDef(\recbus)
+ProtoDef(\recorder).recbus.key
+
+ProtoDef(\recorder).edit
+KitTimeline(\smp).edit
+KitTimeline(\smp2).edit
+KitTimeline(\smp2).asPattern.asStream.nextN(4,())
+KitTimeline(\smp2).proxy.get(\out)
+KitTimeline(\smp2).postChain
+KitTimeline(\smp2, ~kit2)
+KitTimeline(\smp2).postChain = Pbind(\out, Pfunc({ KitTimeline(\smp2).outBus }))
+~kit2.postChain = nil
+
+~kit2.edit
+~kit1.edit
+~kit1.postChain = nil
+
+TrackDef(\grid1).childAt(1).mixer.proxy.edit
+TrackDef(\grid1).edit
+
+ProtoDef(\recorder).edit
+
+Ndef(\fx2).edit
+
+~kit4 = ~kit4 ?? {~parPlayerGroup.new({ nil } ! 16)};
+~kit4.edit
+BusDef.all[BusDef.all.keys.asArray[10]] = nil
+KitTimeline(\kit4, ~kit4).edit
+
+
+///////////////////////////////////////////////
+
+
+
+(
+~drawme = { arg me, areasize;
+	areasize.debug("drawme: drawFunc: areasize");
+	areasize.y.do { arg py;
+		//[this.gridPointToPixelPoint(Point(0,py)),this.gridPointToPixelPoint(Point(areasize.x, py))].debug("line");
+		if(py%32 >= 16) {
+
+			Pen.width = 1;
+			Pen.color = Color.gray(alpha:0.7);
+			Pen.fillRect(
+				Rect.fromPoints(
+					me.gridPointToPixelPoint(Point(0,py)),
+					me.gridPointToPixelPoint(Point(areasize.x, py+1))
+				)
+			);
+		};
+		if(py % 4 == 0) {
+			Pen.width = 1;
+			Pen.color = Color.black;
+		} {
+			Pen.width = 1;
+			Pen.color = Color.gray;
+		};
+		Pen.line(me.gridPointToPixelPoint(Point(0,py)),me.gridPointToPixelPoint(Point(areasize.x, py)));
+		Pen.stroke;
+	};
+};
+KitTimeline(\bla).edit
+)

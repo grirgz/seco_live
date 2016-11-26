@@ -461,6 +461,10 @@ WindowDef(\playergrid, { arg me, maintrack;
 	playerviews = { { PlayerWrapperSelectorView.new } ! 8 } ! 9;
 	mixerviews = { WindowDef(\mixerView).asView } ! 9;
 
+	if(me.window.notNil) {
+		me.window.name = "playergrid: " ++ maintrack.key;
+	};
+
 	map_players = {
 		playerviews.do({ arg track, x;
 			track.do { arg child, y;
@@ -487,7 +491,14 @@ WindowDef(\playergrid, { arg me, maintrack;
 			GridLayout.columns(*
 				playerviews.collect({ arg track, idx;
 					track.collect({ arg child;
-						child.asView;
+						var view = child.asView;
+						view.button.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+							[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+							if(buttonNumber == 1) {
+								child.model.target.source.edit;
+							}
+						});
+						view;
 					})
 					++ [ mixerviews[idx] ]
 				})

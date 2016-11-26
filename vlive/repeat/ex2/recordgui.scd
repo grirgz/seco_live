@@ -21,12 +21,13 @@
 		enablefx_: { arg self, val;
 			self[\enablefx] = val;
 			if(val == true) {
-				Pdef(self.sourcekey).set(\out, BusDef(self.fxbus));
+				Pdef(self.sourcekey).set(\out, BusDef(self.fxbus, \audio));
 				Ndef(self.fxkey).play;
-				self.recbus = Ndef(self.fxkey).bus;
+				self.recbus = Ndef(self.fxkey).bus ? BusDef(\recbus, \audio);
 			} {
 				Ndef(self.fxkey).stop;
 				//Pdef(sourcekey).set(\out, BusDef(\recbus, \audio));
+				// FIXME: why disable recording dry input ?
 				Pdef(self.sourcekey).set(\out, 0);
 				self.recbus = BusDef(\recbus, \audio);
 			}
@@ -156,7 +157,9 @@
 							\instrument, \recorder,
 							\sustain, model.recbuf.numFrames / model.recbuf.sampleRate,
 							\dur, Pkey(\sustain) * TempoClock.default.tempo,
-							\inbus, model.recbus,
+							\inbus, Pfunc({ arg ev;
+								model.recbus
+							}),
 							\bufnum, Pn(model.recbuf,1),
 						).trace,
 						Ptask({
@@ -215,7 +218,7 @@
 					view.refreshChange;
 				}).refreshChangeAction_({ arg view;
 					if(model.enablefx == true) {
-						view.background = ParamView.color_ligth;
+						view.background = ParamViewToolBox.color_ligth;
 						view.value = 1;
 					} {
 						view.background = Color.white;

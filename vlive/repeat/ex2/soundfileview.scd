@@ -64,7 +64,7 @@ WindowDef(\soundfileview, { arg def, file, startParam, sustainParam, endParam, s
 			};
 
 			sfview.currentSelection = 1;
-			sfview.setSelectionColor(1, ParamView.color_ligth);
+			sfview.setSelectionColor(1, ParamViewToolBox.color_ligth);
 
 			post_position = { 
 				var cur;

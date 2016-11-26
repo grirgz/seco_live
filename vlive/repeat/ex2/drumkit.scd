@@ -20,6 +20,7 @@ WindowDef(\sampler, { arg def, target, show_buttons=true;
 				HLayout (
 					PlayerWrapper(target).asView,
 					Param(target, \out, MenuSpec(
+						//[ \default -> nil, \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
 						[ \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
 					)).asPopUpMenu,
 				),
@@ -84,20 +85,27 @@ WindowDef(\samplekit, { arg def, group;
 	var selected = 0;
 	var default_stepevent = { StepEvent.newFrom((instrument: \playersec)) };
 
+	"1".debug;
+
 	select = { arg x;
 		deselect.(selected);
 		selected = x;
-		selector[x].background_(ParamView.color_dark);
+		selector[x].background_(ParamViewToolBox.color_dark);
 		group.reboot;
 	};
 	deselect = { arg x;
-		var tar = group.elAt(x).target;
+		var tar;
+		"x1".debug;
+		tar = group.elAt(x).target;
+		"x2".debug;
 		selector[x].background = if(tar.isNil or: { tar == default_stepevent.() }) {
 			Color.white
 		} {
-			ParamView.color_ligth;
-		}
+			ParamViewToolBox.color_ligth;
+		};
+		"x3".debug;
 	};
+	"2".debug;
 
 	kitlayout = VLayout (*
 		size.y.collect({ arg y;
@@ -105,9 +113,11 @@ WindowDef(\samplekit, { arg def, group;
 				size.x.collect({ arg x;
 					var idx = y*size.y+x;
 					var button;
+						"2.3".debug;
 					button = BasicButton.new.string_(idx).fixedSize_(50@50)
 					.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 						[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+						"3".debug;
 						if(buttonNumber == 0) {
 							group.elAt(idx).play;
 						};
@@ -118,8 +128,10 @@ WindowDef(\samplekit, { arg def, group;
 					.action_({
 						group.elAt(idx).stop;
 					});
+					"2.5".debug;
 					selector.add(button);
 					deselect.(idx);
+					"2.6".debug;
 					button;
 				})
 				++ [ nil ]
@@ -127,6 +139,7 @@ WindowDef(\samplekit, { arg def, group;
 		})
 		++ [ nil ]
 	);
+	"4".debug;
 
 	edit = { arg idx;
 		var drum = group.elAt(idx);
@@ -142,9 +155,11 @@ WindowDef(\samplekit, { arg def, group;
 	
 	};
 
+						"5".debug;
 	editlayout = View.new;
 	edit.(0);
 
+						"6".debug;
 	layout = HLayout (
 		VLayout (
 			BasicButton.new.string_("Recorder").action_({ ProtoDef(\recorder).edit }),
