@@ -1,16 +1,17 @@
 
 ~buffer = Buffer.alloc(s, 1024);
 ~buffer.sine1([1], asWavetable:false); // put a sine wave in the buffer
-~t = 1;
+~t = TempoClock.default.tempo;
 (
 SynthDef(\phasedist, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum;
 	var sig;
 	var phase;
 	var midpoint;
 	freq = Duty.kr(1/~t, 0, Dseq([
-		0,2,0,4,
+		0,0,2,1,
 	],inf)).midiratio * freq;
 	midpoint = MouseX.kr(0,1);
+	//midpoint = LFTri.ar(freq/3).range(0.3,0.61).lag(0.1);
 	//phase = EnvGen.ar(Env([0,0,0.5,MouseX.kr(0,1)], [0,0.5,0.5]), Impulse.ar(freq), timeScale:1/freq);
 	phase = EnvGen.ar(Env([0,0,0.5,1], [0,midpoint,1-midpoint]), Impulse.ar(freq), timeScale:1/freq);
 	phase = phase * BufFrames.kr(bufnum);

@@ -6,6 +6,7 @@
 TempoClock.default.tempo = ~t;
 Ndef.defaultQuant = 4;
 Pdef.defaultQuant = 4;
+ParamProto.init;
 FileSystemProject.load("radient1/lib.scd");
 FileSystemProject.load("proto1/tracks.scd");
 FileSystemProject.load("ex1/lib.scd");
@@ -13,10 +14,10 @@ FileSystemProject.load("ex1/multifbdel.scd");
 FileSystemProject.load("ex2/soundfileview.scd");
 FileSystemProject.load("ex2/drumkit.scd");
 FileSystemProject.load("ex2/recordgui.scd");
+FileSystemProject.load("ex2/rdngui.scd");
 FileSystemProject.load("ex2/basicrecorder.scd");
 FileSystemProject.load("ex2/metronome.scd");
 FileSystemProject.load("lib/piano.scd");
-ParamProto.init;
 
 ParamViewToolBox.color_dark = Color.new255(16, 78, 9);
 ParamViewToolBox.color_ligth = Color.new255(32, 156, 17);
@@ -46,3 +47,5 @@ TempoClock.default.tempo = ~t;
 ~t = 173/60;
 TempoClock.default.tempo = ~t;
 )
+
+ParamProto.init(true)

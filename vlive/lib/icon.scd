@@ -111,7 +111,6 @@ MIDIMap.define([nil, ~icon_device_id], [
 MIDIMap.defaultBlockmode = true;
 );
 
-Param.defaultUpdateMode = \skipjack;
 
 //MIDIdef.noteOn(\test, { arg ... args; args.debug("plop note"); });
 //MIDIdef.cc(\testcc, { arg ... args; args.debug("plop cc"); });

@@ -39,7 +39,7 @@ WindowDef(\sampler, { arg def, target, show_buttons=true;
 				buffer_popup,
 				BasicButton.new.string_("load").action_({ arg view;
 					Dialog.openPanel({ arg file;
-						BufDef(file.asSymbol, file);
+						BufDef(file.asSymbol); // autoload it
 						buffer.spec = MenuSpec(
 							BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
 						);

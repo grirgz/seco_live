@@ -131,6 +131,9 @@ MIDIMap(\apend, { Pdef(\mod1).set(\stutgain, 1) });
 };
 )
 
+// END
+///////////////////////////////////////////////////
+
 Pdef(\note1).set(\out, BusDef(\fx1))
 
 

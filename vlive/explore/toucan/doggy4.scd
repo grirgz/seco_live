@@ -491,4 +491,34 @@ RandDelayNetwork(\xx).gentree(4, 3)
 
 
 
-MCElectronique.newDef(80,8,0.8,0.6,0.3,0.2,true).postln.interpret
+MCElectronique.newDef(210,8,0.8,0.6,0.3,0.2,true).postln.interpret
+
+
+(
+Ndef(\mce, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var oscs;
+	var oscsgen = [
+		LFSaw,
+		SinOsc,
+		LFPulse,
+	];
+	var size = 10;
+	var prev;
+	prev = 0!size;
+	oscs = size.collect({ arg idx;
+		oscsgen.choose.ar(exprand(1,10000) * ( 1 + ( prev[idx] * 1 )))
+	});
+	prev = oscs;
+	oscs = size.collect({ arg idx;
+		oscsgen.choose.ar(exprand(1,10000) * ( 1 + ( prev[idx] * 1 )))
+	});
+	prev = oscs;
+	oscs = size.collect({ arg idx;
+		oscsgen.choose.ar(exprand(100,10000) * ( 1 + ( prev[idx] * 1 )))
+	});
+	sig = oscs.mean;
+
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);

@@ -65,3 +65,47 @@ SinOsc.ar(freq * Array.series(8,1,0.1))
 	sig = sig * ( 1+[osclo, osclo+oscmid/2, oscmid, oscmid+oschi/2, oschi]); // 5 channel signal
 	sig = sig.fold2( SinOsc.kr(1/15 * [1,1.2].flop).range(0.4,1) ).flop.sum; // apply 2 different fold to each voice
 	sig.debug("sig2"); // 5 channel signal
+
+
+//////////////////////////////// have a real env in a Ndef
+// just double the level and add a zero second time segment
+
+(
+Ndef(\bass, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var metro = Impulse.kr(1*~t);
+	freq = Duty.kr(1/~t, 0, Dseq([
+		0,0,2,1,
+	],inf)).midiratio * freq;
+	//env1 = EnvGen.kr(Env([4,2,1]/2,[0.1,0.8]), metro); // looped env
+	env1 = EnvGen.kr(Env([4,4,2,1]/2,[0,0.1,0.8]), metro); // real env
+	sig = LFSaw.ar(freq * [1,1.01,1/2]);
+	sig = sig + SinOsc.ar(freq/2).fold(0.82);
+	sig = RLPF.ar(sig, freq * env1, \rq.kr(0.5));
+	sig = Pan2.ar(sig, pan, amp).flop;
+}).play;
+);
+
+//////////////////////////////////////////// multichannel and stereo
+/// when having SinOsc.ar([100,233,333]) Ndef will make a 3-channel synth
+/// just add .flop and then Ndef will sum the channels to a stereo
+/// or add .mean which will flop and sum
+
+
+(
+Ndef(\bass, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var metro = Impulse.kr(1*~t);
+	freq = Duty.kr(1/~t, 0, Dseq([
+		0,0,2,1,
+	],inf)).midiratio * freq;
+	//env1 = EnvGen.kr(Env([4,2,1]/2,[0.1,0.8]), metro); // looped env
+	env1 = EnvGen.kr(Env([4,4,2,1]/2,[0,0.1,0.8]), metro); // real env
+	sig = LFSaw.ar(freq * [1,1.01,1/2]);
+	sig = sig + SinOsc.ar(freq/2).fold(0.82);
+	sig = RLPF.ar(sig, freq * env1, \rq.kr(0.5));
+	sig = Pan2.ar(sig, pan, amp).flop;
+}).play;
+);

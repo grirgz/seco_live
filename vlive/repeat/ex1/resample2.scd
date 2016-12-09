@@ -16,6 +16,7 @@ Pdef.defaultQuant = 4;
 	RandDelayNetwork(\multifb).make(\fx1, "5--", BusDef(\fx1, \audio));
 	RandDelayNetwork(\multifbdel).make(\fx1, "5--", BusDef(\fx1, \audio));
 	RandDelayNetwork(\default).make(\fx1, "5--", BusDef(\fx1, \audio));
+	RandDelayNetwork(\deldefault).make(\fx1, "5--", BusDef(\fx1, \audio));
 	Ndef(\fx1).play;
 	Ndef(\fx1).edit;
 
@@ -60,8 +61,8 @@ Ndef(\fx1).set(\delay, Ndef(\lfo1, { Duty.kr(1/2/~t, 0, Dseq([
 ],inf)).lag2(1/2/~t); }))
 )
 
-Ndef(\fx1).play;
 (
+Ndef(\fx1).play;
 Pdef(\recorder_s, Ppar([
 	Pbind(
 		\instrument, \snapsnare,
@@ -284,7 +285,7 @@ Pdef(\recorder, Ppar([
 				],inf).coin.not,
 				\legato, 2,
 				\dur, 1/8,
-				\amp, 0.2
+				\gain, 1.4
 			),
 			Pbind(
 				\instrument, \player,
@@ -350,7 +351,7 @@ Pdef(\recorder, Ppar([
 			Pbind(
 				\instrument, \playerbeat,
 				\bufnum, BufDef(\hat),
-				\speed, 0.6,
+				\speed, 0.8,
 				\degree, Pseq([0],inf),
 				\isRest, Pseq([
 					1,0, 1,0, 1,0, 1,0,
@@ -362,7 +363,7 @@ Pdef(\recorder, Ppar([
 					0.61,1, 1,0, 0,1, 1,0,
 					0,0, 0,0, 1,0, 1,0,
 				],inf).coin.not,
-				\pos, 0.01/~t + Pseq([1.1,0.1,0.2,0],inf).stutter(2),
+				\pos, 0.42 + Pseq([1.1,0.1,0.2,0],inf).stutter(2),
 				\dur, 1/8,
 				\legato, Pseq([
 					1/2,1/4,1/4,1/4,
@@ -375,7 +376,7 @@ Pdef(\recorder, Ppar([
 					1/2,1/4,1/4,1/4,
 					1/2,1/4,1/4,1/4,
 				],inf),
-				\amp, 0.1
+				\gain, 0.7
 			),
 
 	]));

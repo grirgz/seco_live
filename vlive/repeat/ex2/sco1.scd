@@ -3,6 +3,12 @@
 //////////// init
 
 (
+FileSystemProject.load("ex2/bla7.scd");
+FileSystemProject.load("ex2/bla8.scd");
+
+
+ProtoDef(\rdn).fxdef = \deldefault;
+ProtoDef(\rdn).fxkey = \fx2;
 TrackDef(\grid1, TrackDef(\playergrid));
 
 PatKitDef(\kit1, [
@@ -23,6 +29,24 @@ PatKitDef(\kit1, [
 	nil,
 	nil,
 ]);
+
+PatKitDef(\kitloop1).source = 8.collect({ arg idx;
+	var pos = idx/2/~t;
+	StepEvent.newFrom((
+		//adsr: Env([ 0, 1, 1, 0 ], [ 0.001, 0, 0.01 ], [ -4, -4, -4 ], 2),
+		instrument: 'playersec', bufnum: BufDef('/home/ggz/Musique/sc/reckit/fix2/loop1.flac'), pos:pos)) 
+});
+
+PatKitDef(\kitloop2).source = 8.collect({ arg idx;
+	var pos = idx/2/~t;
+	StepEvent.newFrom((
+		//adsr: Env([ 0, 1, 1, 0 ], [ 0.001, 0, 0.01 ], [ -4, -4, -4 ], 2),
+		instrument: 'playersec', bufnum: BufDef('/home/ggz/Musique/sc/reckit/fix2/loop2.flac'), pos:pos)) 
+});
+
+KitTimeline(\smploop1, PatKitDef(\kitloop1));
+KitTimeline(\smploop2, PatKitDef(\kitloop2));
+
 KitTimeline('smp2', PatKitDef(\kit1)).eventList = XEventList.newFrom([
 	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
 	(\absTime: 0.0, \dur: 0.0, \kitIndex: 0.0, \midinote: 0, \playDur: 0.0, \relDur: 0.0, \sustain: 0.25, ),
@@ -230,6 +254,8 @@ Ndef('fx2').put(100, \pset -> Pbind(
 ).keep(1));
 );
 
+// END
+
 /////////// build preset
 
 
@@ -408,10 +434,11 @@ PatKitDef(\kit1).all.clear
 TrackDef(\grid1).edit;
 TrackDef(\grid1).childAt(Point(0,0)).source.edit
 ProtoDef(\recorder).edit;
-PatKitDef(\kit).edit;
+PatKitDef(\kit1).edit;
 KitTimeline(\smp).edit;
 KitTimeline(\smp2).edit;
 KitTimeline(\smp3, PatKitDef(\kit1)).edit;
+ProtoDef(\rdn)
 
 
 PatKitDef(\rep, nil ! 16)
@@ -428,17 +455,21 @@ TrackDef(\grid1).source = [
 		KitTimeline(\rep),
 	],
 	[
-		KitTimeline(\smp3),
+		KitTimeline(\smploop1),
 	],
 	[
-		nil,
+		KitTimeline(\smploop2),
 	],
 	[
-		Ndef(\fx2)
+		//Ndef(\fx2)
+		ProtoDef(\rdn),
 	],
 	[
 		ProtoDef(\basicrecorder)
 		//Ndef(\fx1)
+	],
+	[
+		Ndef(\pitchshift)
 	]
 	//[
 	//	NoteTimeline(\note1),
@@ -463,5 +494,42 @@ ProtoDef(\basicrecorder).play
 ProtoDef(\basicrecorder).label
 ProtoDef(\basicrecorder).isPlaying
 PlayerWrapper(ProtoDef(\basicrecorder)).play
+PlayerWrapper(ProtoDef(\rdn)).label
 
+ProtoDef(\rdn).label = \rdn
 RandDelayNetwork(\default).
+ProtoDef
+TrackDef(\grid1).edit
+ProtoDef(\rdn)[\isPlaying].asCompileString
+ProtoDef(\rdn).fxdef
+RandDelayNetwork.all.keys
+PatKitDef(\kit3).edit
+PatKitDef(\kit3).source = SparseArray.new
+PatKitDef(\kit3).asPresetCompileString
+PatKitDef(\kit3).source
+PatKitDef(\kit3).edit
+
+
+KitTimeline(\smp4, PatKitDef(\kit4)).edit
+
+(
+Ndef(\pitchshift, { arg shift=0;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zerox, \audio)), 2); 
+	FreqShift.ar(in, shift);
+})
+)
+Ndef(\pitchshift).set(\inbus, BusDef(\sendbus2))
+Ndef(\pitchshift).isPlaying
+Ndef(\pitchshift).play
+PlayerWrapper(Ndef(\pitchshift)).isPlaying
+PlayerWrapper(KitTimeline(\smploop1)).isPlaying
+PlayerWrapper(KitTimeline(\smploop2)).isPlaying
+PlayerWrapper(ProtoDef(\rdn)).isPlaying
+ProtoDef(\rdn)
+
+PatKitDef(\kitloop1).parent.presetCompileString(PatKitDef(\kitloop1),"hhh")
+PatKitDef(\kitloop1).parent.presetCompileString
+PatKitDef(\kitloop1).parent[\presetCompileString].(PatKitDef(\kitloop1))
+~kit1.presetCompileString
+PatKitDef(\kitloop1).edit
+s

@@ -944,7 +944,7 @@ Ndef(\myfx1).edit
 (
 	Ndef(\myfx1).play;
 	RandDelayNetwork(\default).make(\myfx1, "5-01h9-2113", BusDef(\fx1));
-	Ndef(\myfx1).put(100, \pset -> Pbind( \wet10, 0 ));
+	Ndef(\myfx1).put(100, \pset -> Pbind( \wet10, 1 ));
 	Pdef(\main, Pdef(\perc_p8)).play;
 )
 
@@ -1016,6 +1016,7 @@ Ndef(\myfx1).put(100, \pset -> Pbind());
 Ndef(\myfx1).put(100, nil);
 Ndef(\myfx1).edit
 Ndef(\myfx1).asParamGroup.getPbindCompileString
+Ndef(\myfx1).clear
 
 (
 	Ndef(\myfx1).play;
@@ -1025,6 +1026,7 @@ Ndef(\myfx1).asParamGroup.getPbindCompileString
 	Pdef(\main, Pdef(\perc_p2)).play;
 )
 
+Pdef(\fxzoo3).asStream.nextN(4,()).do(_.postln)
 (
 	Ndef(\myfx1).play;
 	RandDelayNetwork(\default).make(\myfx1, "5-51E0-M5RH", BusDef(\fx1)); // good reverb
@@ -1097,8 +1099,7 @@ Pbind(
 			0.001238656 ,
 			0.000008656 ,
 		], Pseq([1,1,0,1, 1,1,2,1],inf)),
-		\delay, 
-			0.00012386 ,
+		//\delay, 0.00012386 ,
         'delay2', 0.0101,
         'shift', 0.0,
         'shift2', 0.0,
@@ -1110,8 +1111,8 @@ Pbind(
         'lpf', 14158.915687683,
         'hpf', 17,
         'pitchmix', 0.5,
-        'plpf', 17000,
-        'phpf', Pseq([500,17],inf).stutter(2),
+        'postlpf', 17000,
+        'posthpf', Pseq([500,17],inf).stutter(2),
         'poamp', 0.11880182554415,
         'wet20', 1.0,
         'mamp', 1.8205642030261,

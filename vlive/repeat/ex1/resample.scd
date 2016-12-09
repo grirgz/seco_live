@@ -1,7 +1,8 @@
 
+RandDelayNetwork(\multifbdel).clear
 
 	RandDelayNetwork(\multifb).make(\fx1, "4--", BusDef(\fx1, \audio));
-	RandDelayNetwork(\multifb).make(\fx1, "5--", BusDef(\fx1, \audio));
+	RandDelayNetwork(\multifbdel).make(\fx1, "5--", BusDef(\fx1, \audio));
 	Ndef(\fx1).play;
 	Ndef(\fx1).edit;
 
@@ -11,6 +12,8 @@
 
 	Ndef(\fx1).put(100, nil)
 	Ndef(\fx2).put(100, nil)
+
+	RandDelayNetwork(\multifbdel).presetCompileString(\fx1).editorInsert
 
 	
 	RandDelayNetwork(\multifb).getPresetCompileString(\fx1).pbcopy.vimpbpaste
@@ -1157,7 +1160,7 @@ Ndef('fx1').put(100, \pset -> Pbind(
 					1/2,1/4,1/4,1/4,
 					1/2,1/4,1/4,1/4,
 				],inf)*2,
-				\gain, 1/8,
+				\gain, 1/2,
 				\amp, 0.1
 			),
 
