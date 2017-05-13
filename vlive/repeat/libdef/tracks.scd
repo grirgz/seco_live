@@ -906,6 +906,9 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 
 	activate: { arg self;
 		var move_in_grid;
+		if(FileSystemProject.current.isNil) {
+			FileSystemProject.current = ();
+		};
 		FileSystemProject.current.current_trackgrid = { self.grid };
 		self.ktl.elAt(\bt, \bt_user2).action = { arg el;
 			self.edit_mode = ( el.value != 0 );
