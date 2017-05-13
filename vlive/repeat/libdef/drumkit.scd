@@ -1,6 +1,7 @@
 
 (
 // ~sampler_synthdef_list = [\playersec, \playerbeat] // define custom sampler synthdefs
+Spec.add(\adsr, XEnvSpec.adsr);
 
 WindowDef(\sampler, { arg def, target, show_buttons=true;
 	var pkey = \sampler;
@@ -33,9 +34,10 @@ WindowDef(\sampler, { arg def, target, show_buttons=true;
 		[
 			sndfileview,
 			HLayout (
-				Param(target, \instrument, MenuSpec(
-					~sampler_synthdef_list ? [\playersec]
-				)).asPopUpMenu,
+				//Param(target, \instrument, MenuSpec(
+				//	~sampler_synthdef_list ? [\playersec]
+				//)).asPopUpMenu,
+				Param(target, \instrument, MenuSpecFuncDef(\patkitdef_synthdefs)).asPopUpMenu,
 				buffer_popup,
 				BasicButton.new.string_("load").action_({ arg view;
 					Dialog.openPanel({ arg file;
@@ -89,8 +91,79 @@ WindowDef(\samplekit, { arg def, group;
 	var select, deselect;
 	var selected = 0;
 	var default_stepevent = { StepEvent.newFrom((instrument: \playersec)) };
+	var make_saveas_button;
+	var keyDownAction;
+
+	keyDownAction = { arg me, key, modifiers, unicode, keycode;
+		[me, key.asCompileString, modifiers, unicode, keycode].debug("samplekit keyDownAction");
+		case
+			{ modifiers.isCtrl and: { key == $c } } {
+				"copy!".debug;
+				~windowdef_samplekit_clipboard = group.elAt(selected).target.copy;
+			}
+			{ modifiers.isCtrl and: { key == $v } } {
+				"copy!".debug;
+				if(~windowdef_samplekit_clipboard.notNil) {
+					group.elAt(selected).target = ~windowdef_samplekit_clipboard;
+					group.reboot;
+					edit.(selected);
+				};
+			}
+		;
+	};
+
+	if(def.window.notNil) {
+		def.window.view.keyDownAction = keyDownAction;
+	};
 
 	"1".debug;
+	make_saveas_button = { 
+		var model = group;
+		BasicButton.new
+			.action_({ arg me;
+				if(model.presetCompileStringSavePath.notNil) {
+					var dialog;
+					dialog = Window.new("Save").layout_(
+						VLayout(
+							StaticText.new.string_("Save this object to the file % ?".format(model.presetCompileStringSavePath.asCompileString)),
+							HLayout(
+								nil,
+								BasicButton.new.string_("OK").action_({ 
+									model.savePresetCompileString;
+									me.refreshChange;
+									dialog.close;
+								}),
+								BasicButton.new.string_("Cancel").action_({
+									dialog.close;
+								}),
+							)
+						)
+					).setInnerExtent(600,140).front;
+				} {
+					model.savePresetCompileString(nil, {
+						me.refreshChange;
+					}, false);
+				};
+			})
+			.mouseUpAction_({ arg me, x, y, mod, but;
+				//[a,b,c,but].debug("but");
+				if(but == 1) { // right click
+					model.savePresetCompileString(nil, {
+						me.refreshChange;
+					}, true)
+				}
+			})
+			.refreshChangeAction_({ arg me;
+				if(model.presetCompileStringSavePath.notNil) {
+					me.string = "Save"
+				} {
+					me.string = "Save as"
+				};
+			})
+			.refreshChange
+		;
+	};
+
 
 	select = { arg x;
 		deselect.(selected);
@@ -130,6 +203,7 @@ WindowDef(\samplekit, { arg def, group;
 							edit.(idx);
 						};
 					})
+					//.keyDownAction_(keyDownAction)
 					.action_({
 						group.elAt(idx).stop;
 					});
@@ -167,7 +241,10 @@ WindowDef(\samplekit, { arg def, group;
 						"6".debug;
 	layout = HLayout (
 		VLayout (
-			BasicButton.new.string_("Recorder").action_({ ProtoDef(\recorder).edit }),
+			HLayout(
+				BasicButton.new.string_("Recorder").action_({ ProtoDef(\recorder).edit }),
+				make_saveas_button.(),
+			),
 			kitlayout,
 		),
 		editlayout,
@@ -180,7 +257,7 @@ WindowDef(\samplekit, { arg def, group;
 ParamProto.init;
 	
 // to be insered in lib
-~parPlayerGroup[\asPresetCompileString] = { arg self, varname="~ppg";
+~parPlayerGroup[\presetCompileString] = { arg self, varname="~ppg";
 	"%.targets = [\n%];".format(
 		varname,
 		self.targets.collect({ arg target, idx;
@@ -193,6 +270,7 @@ ParamProto.init;
 		}).join
 	)
 };
+~parPlayerGroup[\asPresetCompileString] = ~parPlayerGroup[\presetCompileString]; // backward compat
 ~parPlayerGroup[\edit] = { arg self;
 	WindowDef(\samplekit).front(self);
 };
@@ -207,10 +285,10 @@ ParamProto.init;
 		if(i%8 < 4) {
 
 			el.elAt(0).action = {
-				~ppg.elAt(idx).play;
+				self.elAt(idx).play;
 			};
 			el.elAt(1).action = {
-				~ppg.elAt(idx).stop;
+				self.elAt(idx).stop;
 			};
 			count = count + 1;
 		}

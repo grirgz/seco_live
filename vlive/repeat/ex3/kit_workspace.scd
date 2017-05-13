@@ -1,0 +1,71 @@
+
+
+(
+KitTimeline(\kit_workspace, PatKitDef(\kit_workspace));
+KitTimeline(\kit_workspace2, PatKitDef(\kit_workspace));
+TrackDef(\kit_workspace, TrackDef(\playergrid));
+TrackDef(\kit_workspace).source = [
+	[
+		Pdef(\kick, Pbind(
+			\instrument, \zkick,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1
+		)),
+		Pdef(\snare, Pbind(
+			\instrument, \zsnare,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1
+		)),
+		Pdef(\hat, Pbind(
+			\instrument, \snaphihat,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1
+		)),
+	],
+	[
+		KitTimeline(\kit_workspace),
+	],
+	[
+		KitTimeline(\kit_workspace2),
+	],
+	[
+		ProtoDef(\kit_workspace_rdn, ProtoTemplateDef(\rdn))
+	],
+	[
+		ProtoDef(\basicrecorder)
+	],
+
+];
+
+ProtoDef(\basicrecorder).inbus = BusDef(\sendbus3);
+ProtoDef(\kit_workspace_rdn).inbus = BusDef(\sendbus0);
+);
+
+TrackDef(\kit_workspace).edit;
+
+// END
+
+PatKitDef(\kit_workspace).clear;
+TrackDef(\kit_workspace).clear;
+PlayerWrapper(Pdef(\kick)).edit
+~w = WindowDef(\playergrid).front(TrackDef(\kit_workspace)).window
+~w.bounds = Rect(Window.screenBounds.origin.x, Window.screenBounds.origin.y, 100,110)
+~w.bounds
+WindowDef(\playergrid).window.bounds =  Rect(144, 217, 1090, 438);
+
+BufDef('/home/ggz/Musique/sc/reckit/fix4/kick1.flac').free
+BufDef('/home/ggz/Musique/sc/reckit/fix4/kick1.flac').play
+
+(
+)
+Pdef(\kick).asParamGroup.edit
+PlayerWrapper(NoteTimeline(\test3)).edit
+NoteTimeline(\test3, Param(Pdef(\default), \midinote)).edit
+Pdef(\default, Pbind(
+	\instrument, \default,
+	\dur, 1,
+	\amp, 0.1
+));

@@ -1,0 +1,26 @@
+KitTimeline('part1_perc_b2').presetCompileStringSavePath = "ex3/part1_KitTimeline_b2.scd";
+
+KitTimeline('part1_perc_b2').eventList = XEventList.newFrom([
+	(\absTime: 0, \dur: 0.5, \label: 'start', \playDur: 0.5, \relDur: 0.5, \sustain: 0, \type: 'start', ),
+	(\absTime: 0.5, \dur: 0.5, \kitIndex: 2.0, \midinote: 0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.125, ),
+	(\absTime: 1.0, \dur: 0.5, \kitIndex: 2.0, \midinote: 0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.25, ),
+	(\absTime: 1.5, \dur: 1.0, \kitIndex: 0.0, \midinote: 0, \playDur: 1.0, \relDur: 1.0, \sustain: 0.5, ),
+	(\absTime: 2.5, \dur: 0.625, \kitIndex: 5.0, \midinote: 0, \playDur: 0.625, \relDur: 0.625, \sustain: 0.5, ),
+	(\absTime: 3.125, \dur: 1.375, \kitIndex: 4.0, \midinote: 0, \playDur: 1.375, \relDur: 1.375, \sustain: 0.75, ),
+	(\absTime: 4.5, \dur: 0.5, \kitIndex: 2.0, \midinote: 0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.125, ),
+	(\absTime: 5.0, \dur: 0.5, \kitIndex: 2.0, \midinote: 0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.25, ),
+	(\absTime: 5.5, \dur: 1.75, \kitIndex: 1.0, \midinote: 0, \playDur: 1.75, \relDur: 1.75, \sustain: 0.5, ),
+	(\absTime: 7.25, \dur: 1.25, \kitIndex: 4.0, \midinote: 0, \playDur: 1.25, \relDur: 1.25, \sustain: 0.75, ),
+	(\absTime: 8.5, \dur: 0.5, \kitIndex: 2.0, \midinote: 0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.125, ),
+	(\absTime: 9.0, \dur: 0.5, \kitIndex: 2.0, \midinote: 0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.25, ),
+	(\absTime: 9.5, \dur: 1.0, \kitIndex: 0.0, \midinote: 0, \playDur: 1.0, \relDur: 1.0, \sustain: 0.5, ),
+	(\absTime: 10.5, \dur: 0.25, \kitIndex: 5.0, \midinote: 0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.25, ),
+	(\absTime: 10.75, \dur: 0.375, \kitIndex: 5.0, \midinote: 0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.25, ),
+	(\absTime: 11.125, \dur: 1.375, \kitIndex: 4.0, \midinote: 0, \playDur: 1.375, \relDur: 1.375, \sustain: 0.75, ),
+	(\absTime: 12.5, \dur: 0.5, \kitIndex: 2.0, \midinote: 0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.125, ),
+	(\absTime: 13.0, \dur: 0.5, \kitIndex: 2.0, \midinote: 0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.25, ),
+	(\absTime: 13.5, \dur: 1.25, \kitIndex: 1.0, \midinote: 0, \playDur: 1.25, \relDur: 1.25, \sustain: 0.5, ),
+	(\absTime: 14.75, \dur: 0.5, \kitIndex: 4.0, \midinote: 0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.25, ),
+	(\absTime: 15.25, \dur: 0.75, \kitIndex: 4.0, \midinote: 0, \playDur: 0.75, \relDur: 0.75, \sustain: 0.75, ),
+	(\absTime: 16.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);

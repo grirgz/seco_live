@@ -10,6 +10,7 @@
 
 )
 
+Main.version
 (
 	Pdef(\main).stop;
 	Ndef(\myfx1).play;

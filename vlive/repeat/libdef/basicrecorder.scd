@@ -1,4 +1,8 @@
 
+BufDef(\basicrecorder_buffer2, s.sampleRate*2);
+BufDef(\basicrecorder_buffer4, s.sampleRate*4);
+BufDef(\basicrecorder_buffer8, s.sampleRate*8);
+BufDef(\basicrecorder_buffer16, s.sampleRate*16);
 (
 	ProtoDef(\basicrecorder, (
 		init:{ arg self;

@@ -274,6 +274,29 @@ Ndef(\minitek3, { SinOsc.ar((1..100) * 1).tanh.mean ! 2  }).play
 Ndef(\minitek4, { SinOsc.ar((1..100) * Duty.kr(1,0,Dseq([16,2,8,2],inf))).mean ! 2 * 0.5  }).play
 Ndef(\minitek3, { LPF.ar(SinOsc.ar((1..140) * 4, mul:[ LFPulse.kr(1/8).range(0,1),0.4,1, SinOsc.kr(1/2).range(0,1)]).mean, 700) ! 2  }).play
 
+
+Ndef(\minitek, { SinOsc.ar((1..100) * 1).mean ! 2  }).play
+Ndef(\minitek2, { SinOsc.ar((1..100) * 2).mean ! 2  }).play
+Ndef(\minitek3, { SinOsc.ar((1..100) * 3).mean ! 2  }).play
+Ndef(\minitek3, { SinOsc.ar((1..100) * 2).mean ! 2  }).play
+
+Ndef(\minitek, { SinOsc.ar((1..128) * ~t ).mean ! 2  }).play
+Ndef(\minitek2, { SinOsc.ar((1..128) * ~t * 2).mean ! 2  }).play
+Ndef(\minitek2, { SinOsc.ar((1..128) * ~t * 2).mean ! 2  }).play
+
+~t
+(
+Pdef(\plop, Pbind(
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	\dur, 1,
+	\sustain, 0.1,
+	\amp, 0.1
+)).play;
+);
+
+
+
 (
 Ndef(\bass, { arg freq=70, pan=0, amp=0.1;
 	var sig;

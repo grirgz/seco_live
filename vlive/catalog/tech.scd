@@ -109,3 +109,30 @@ Ndef(\bass, { arg freq=200, pan=0, amp=0.1;
 	sig = Pan2.ar(sig, pan, amp).flop;
 }).play;
 );
+
+///////////////////////////////////////////// playing with sinosc phases
+
+
+Ndef(\minitek, { SinOsc.ar((1..100) * 2).mean ! 2  }).play
+Ndef(\minitek, { SinOsc.ar((1..100) * Duty.kr(1,0,Dseq([1,2,4,8],inf))).mean ! 2  }).play
+Ndef(\minitek, { SinOsc.ar((1..100) * Duty.kr(1,0,Dseq([1,2,4,8],inf))).tanh.mean ! 2  }).play
+Ndef(\minitek, { SinOsc.ar((1..100) * Duty.kr(1,0,Dseq([1,2,4,8],inf))).fold2(0.51).mean ! 2  }).play
+Ndef(\minitek, { SinOsc.ar((1..100) * 2).tanh.mean ! 2  }).play
+Ndef(\minitek2, { SinOsc.ar((1..100) * 4).mean ! 2  }).play
+Ndef(\minitek3, { SinOsc.ar((1..100) * 1).tanh.mean ! 2  }).play
+Ndef(\minitek4, { SinOsc.ar((1..100) * Duty.kr(1,0,Dseq([16,2,8,2],inf))).mean ! 2 * 0.5  }).play
+Ndef(\minitek3, { LPF.ar(SinOsc.ar((1..140) * 4, mul:[ LFPulse.kr(1/8).range(0,1),0.4,1, SinOsc.kr(1/2).range(0,1)]).mean, 700) ! 2  }).play
+
+
+Ndef(\minitek, { SinOsc.ar((1..100).collect({ arg x, idx; x*( idx/100 ) }) * Duty.kr(1,0,Dseq([1,2,4,8],inf))).mean ! 2  }).play
+Ndef(\minitek, { SinOsc.ar((1..100).collect({ arg x, idx; x*( log(idx)/4 ) }) * Duty.kr(1,0,Dseq([1,2,4,8],inf))).mean ! 2  }).play
+
+Ndef(\minitek, { LFPulse.ar((1..100).collect({ arg x, idx; 5 + (idx.odd.if({0+idx* SinOsc.kr(1/10).range(1/10,1/700)},{1+idx/200}))  }) * Duty.kr(1,0,Dseq([1,2,4,8],inf))).mean * 0.3 ! 2  }).play
+Ndef(\minitek, { SinOsc.ar((1..100).collect({ arg x, idx; 2+( SinOsc.ar(1+( idx/100 ))*idx/1 )  }) * Line.kr(0,28,32)).mean * 0.3 ! 2  }).play
+Ndef(\minitek, { SinOsc.ar((1..100).collect({ arg x, idx; 2+( SinOsc.ar(1+( idx/100 ))*idx/1 * Line.kr(0,idx,32+idx))  }) ).mean * 0.3 ! 2  }).play
+Ndef(\minitek, { SinOsc.ar((1..100).collect({ arg x, idx; 2+( SinOsc.ar(1/1000+( idx/1000 ))*idx/1 * LFPulse.kr(idx/1000,0,mul:32+idx))  }) ).mean * 0.3 ! 2  }).play
+
+Ndef(\minitek, { LFPulse.ar((1..100).collect({ arg x, idx; 1 + (idx/1000)  }) * Duty.kr(1,0,Dseq([1,2,4,8],inf))).mean ! 2  }).play // cool comb
+
+
+

@@ -1,12 +1,21 @@
 (
+FileSystemProject.load("libdef/paramgroup_gui.scd");
 
-ProtoDef(\rdn, (
+Spec.add(\inbus, XBusSpec.new);
+Spec.add(\gate, XGateSpec.new);
+Spec.add(\indelay, ControlSpec(0,0.2,\lin));
+
+ProtoTemplateDef(\rdn, (
 
 	init: { arg self;
 		self.fxdef = self.fxdef ? \default;
 		self.fxcode = self.fxcode ? "4--";
-		self.fxkey = self.fxkey ? \fx1;
+		//self.fxkey = self.fxkey ? \fx1;
 		self.inbus = self.inbus ? BusDef(\zero, \audio);
+	},
+
+	fxkey: { arg self;
+		self.key;
 	},
 
 	label: { arg self;
@@ -49,6 +58,10 @@ ProtoDef(\rdn, (
 	edit: { arg self;
 		WindowDef(\rdngui).front(self)
 	},
+
+	presetCompileString: { arg self;
+		RandDelayNetwork(self.fxdef).presetCompileString(self.fxkey);
+	},
 )).init;
 
 WindowDef(\rdngui, { arg def, model;
@@ -89,5 +102,7 @@ WindowDef(\rdngui, { arg def, model;
 		fxview,
 	)
 });
+
+ProtoDef(\rdn, ProtoTemplateDef(\rdn)); // backward compat and default instance
 
 )

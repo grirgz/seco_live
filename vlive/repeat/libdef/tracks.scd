@@ -1,7 +1,38 @@
 
 (
-TrackDef(\playerwrapper, (
-	isEmpty: true,
+WindowDef(\PdefEditor, { arg me, key=\default;
+	var target;
+	if(key.isKindOf(Pdef) or: key.isKindOf(Ndef)) {
+		target = key;
+	} {
+		target = Pdef(key);
+	};
+	VLayout(
+		PlayerWrapper(target).asView,
+		ParamGroupLayout.two_panes(target.asParamGroup),
+	);
+});
+WindowDef(\NdefEditor, { arg me, key=\default;
+	var target;
+	var pg;
+	if(key.isKindOf(Pdef) or: key.isKindOf(Ndef)) {
+		target = key;
+	} {
+		target = Ndef(key);
+	};
+	pg = ParamGroupDef.update(\NdefParamGroup_ +++ target.key, target.asParamGroup);
+	VLayout(
+		HLayout(
+			PlayerWrapper(target).asView,
+			EventClass.presetSelectorView.(pg),
+		),
+		ParamGroupLayout.two_panes(target.asParamGroup)
+	);
+});
+);
+
+(
+TrackTemplateDef(\playerwrapper, (
 	label: { arg self; 
 		"%: %".format(self.index, if(self.proxy.notNil, { self.proxy.label }, { "-" }))
 	},
@@ -11,14 +42,16 @@ TrackDef(\playerwrapper, (
 
 		self.parentTrack = {parent};
 		self.index = index;
-		self.isEmpty = true;
 		self;
+	},
+
+	isEmpty: { arg self;
+		self.proxy.isNil or: { self.proxy.target == nil };
 	},
 
 	source_: { arg self, val;
 		self.proxy = PlayerWrapper(val);
 		self.proxy.outBus = self.mixer.inbus;
-		self.isEmpty = false;
 	},
 
 	source: { arg self;
@@ -91,8 +124,47 @@ TrackDef(\playerwrapper, (
 		self.parentTrack.mixer;
 	},
 
+	savePresetCompileString: { arg self;
+		if(self.isEmpty.not and: { self.proxy.presetCompileStringSavePath.notNil }) {
+			self.proxy.savePresetCompileString;
+		}
+	},
+
+	loadPresetCompileString: { arg self;
+		if(self.isEmpty.not and: { self.proxy.presetCompileStringSavePath.notNil }) {
+			self.proxy.loadPresetCompileString;
+		}
+	},
+
+	presetCompileStringSavePath: { arg self;
+		if(self.proxy.notNil) {
+			self.proxy.presetCompileStringSavePath;
+		}
+	},
+
+	presetCompileStringSavePath_: { arg track, val;
+		var playerwrapper;
+		var player_prefix;
+		var savepath;
+		var player;
+		"--------- try setting save path of %".format(track).debug;
+		try {
+			playerwrapper = track.proxy;
+			player = playerwrapper.target;
+			player_prefix = playerwrapper.targetClass;
+			savepath = "%%_%.scd".format(val, player_prefix, player.key);
+			savepath.debug("savepath");
+
+			playerwrapper.presetCompileStringSavePath = savepath;
+		} { arg ex;
+			ex.reportError;
+			"Above error means track % can't infer saving path of player from name: %".format(track.key, player).postln;
+		}
+	
+	},
+
 ));
-TrackDef(\playertrack, (
+TrackTemplateDef(\playertrack, (
 	label: { arg self; 
 		"%: %".format(self.key, if(self.proxy.notNil, { self.proxy.notNil }, { "-" }))
 	},
@@ -198,8 +270,9 @@ TrackDef(\playertrack, (
 	},
 
 ));
-TrackDef(\playergrid, (
+TrackTemplateDef(\playergrid, (
 	label: { arg self; "%".format(self.key) },
+	protoClass: \playergrid,
 
 	source_: { arg self, array;
 		array.collect({ arg val, idx;
@@ -220,6 +293,8 @@ TrackDef(\playergrid, (
 		self.changed(\gridOffset);
 	},
 
+	///////// archive saving system
+
 	saveArchiveData: { arg self;
 		FileSystemProjectDictionary(\TrackDef, self)[self.key] = self.asArchiveData;
 	},
@@ -236,6 +311,46 @@ TrackDef(\playergrid, (
 			child.asArchiveData
 		};
 	},
+
+	///////// presetCompileString saving system
+
+	savePresetCompileString: { arg self;
+		self.children.do({ arg column;
+			column.children.do({ arg track;
+				track.savePresetCompileString;
+			})
+		});
+		self.resources.do { arg res;
+			PlayerWrapper(res).savePresetCompileString;
+		}; 
+	},
+
+	loadPresetCompileString: { arg self;
+		self.resources.do { arg res;
+			PlayerWrapper(res).loadPresetCompileString;
+		}; 
+		self.children.do({ arg column;
+			column.children.do({ arg track;
+				track.loadPresetCompileString;
+			})
+		});
+	},
+
+	presetCompileStringSavePath_: { arg self, val;
+		self[\presetCompileStringSavePath] = val;
+		self.children.do({ arg column;
+			column.children.do({ arg track;
+				track.presetCompileStringSavePath = val;
+			})
+		});
+		"===== saving resources".debug;
+		self.resources.do { arg track;
+			PlayerWrapper(track).presetCompileStringSavePath = "%%_%.scd".format(val, PlayerWrapper(track).targetClass, track.key);
+		};
+	},
+
+
+	/////////
 
 	source: { arg self;
 		self.children.collect({ arg x; x.source });
@@ -309,6 +424,9 @@ TrackDef(\playergrid, (
 
 	edit: { arg self;
 		WindowDef(\playergrid).front(self);
+		{
+			WindowDef(\playergrid).window.bounds =  Rect(144, 217, 1090, 438);
+		}.defer(1)
 	},
 
 	activate: { arg self;
@@ -358,9 +476,23 @@ TrackDef(\playergrid, (
 		lineplayer;
 	},
 
+	initFromPresetDir: { arg self, path, force=false;
+		if(self.presetCompileStringSavePath.isNil or: { force == true }) {
+			self.presetCompileStringSavePath = path;
+			self.loadPresetCompileString;
+		} {
+			"Load Aborted! %.presetCompileStringSavePath is already defined, might override current presets".format(self).postln;
+		}
+	},
+
 	mixer:nil,
 
 ));
+
+// backward compat 
+TrackDef(\playerwrapper, TrackTemplateDef(\playerwrapper));
+TrackDef(\playertrack, TrackTemplateDef(\playertrack));
+TrackDef(\playergrid, TrackTemplateDef(\playergrid));
 
 WindowDef(\mixerView_large, { arg me, track;
 	var param;
@@ -449,6 +581,7 @@ WindowDef(\mixerView, { arg me, track;
 	layout.addUniqueMethod(\knobs, { knobs });
 	layout;
 });
+
 WindowDef(\playergrid, { arg me, maintrack;
 	var viewgrid;
 	var mainview;
@@ -457,6 +590,11 @@ WindowDef(\playergrid, { arg me, maintrack;
 	var map_players;
 	var mixerviews;
 	maintrack = maintrack ?? { TrackDef(\main) };
+	
+	// commented because at caller level
+	//if(me.window.notNil) {
+	//	me.window.bounds = Rect(144, 217, 1090, 438);
+	//};
 
 	mainview = View.new;
 	mainview.onChange(maintrack, \gridOffset, { {map_players.()}.defer });
@@ -519,13 +657,22 @@ WindowDef(\playergrid, { arg me, maintrack;
 						view.button.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 							[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
 							if(buttonNumber == 1) {
-								child.model.target.source.edit;
+								var target = child.model.target.source;
+								if(target.isKindOf(Pdef)) {
+									WindowDef(\PdefEditor).front(target)
+								} {
+									if(target.isKindOf(Ndef)) {
+										WindowDef(\NdefEditor).front(target)
+									} {
+										target.edit
+									}
+								};
 							} 
 						});
 						view.layout.margins_(1);
 						view.button.fixedWidth_(20);
 						//view.labelView.fixedWidth_(49);
-						view.fixedSize_(Point(300,20));
+						//view.fixedSize_(Point(300,20));
 						view.labelView.font_(Font.default.size_(10));
 						child.model.target.debug("childmodeltarget");
 						if(child.model.target.isEmpty == true) {
