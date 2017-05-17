@@ -1,4 +1,4 @@
-PatKitDef('algokit').presetCompileStringSavePath = "ex4/PatKitDef_algokit.scd";
+PatKitDef('algokit').presetCompileStringSavePath = "algokit/PatKitDef_algokit.scd";
 
 PatKitDef('algokit').targets = [
 	StepEvent.newFrom((lag: 0, speed: 0.63914285714286, bufnum: BufDef('fix1/kick.flac'), instrument: 'playersec', gain: 1.4157532574816, sustain: 1, pos: 0.04)),

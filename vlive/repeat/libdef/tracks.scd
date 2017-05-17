@@ -803,12 +803,12 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 	},
 
 	padAt: { arg self, pos;
-		pos.debug("padAt");
+		//pos.debug("padAt");
 		self.ktl.elAt(\pad, pos.x+( pos.y*self.gridsize.x ));
 	},
 
 	setColorAt: { arg self, pos, color, mode;
-		[pos, color].debug("setColorAt");
+		//[pos, color].debug("setColorAt");
 		if(mode == \flash) {
 			color = color - 0x0c;
 		};
@@ -822,7 +822,7 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 		if(child.isEmpty == true) {
 			color = \off
 		} {
-			[isPlaying, child.isPlaying].debug("render_cell: is, chiisp");
+			//[isPlaying, child.isPlaying].debug("render_cell: is, chiisp");
 			isPlaying = isPlaying ?? { child.isPlaying };
 			if(isPlaying) {
 				color = \green;
@@ -886,7 +886,7 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 		};
 		self.controllers[pos.x][pos.y] = player.makeListener({ arg me, msg, args;
 			//{
-			[msg, args].debug("listenat!!");
+			//[msg, args].debug("listenat!!");
 				self.render_cell(pos, msg == \play, \flash);
 				player.doWithQuant {
 					self.render_cell(pos);
@@ -968,13 +968,103 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 		self.render_grid;
 	},
 ));
-TrackDef(\sco4).edit;
+ProtoDef(\lauchpad_offsetgrid, (
+	parent: ~lauchpad_playergrid,
+	render_cell: { arg self, pos, isPlaying, mode;
+		// playerWrapper to pad
+		var color;
+		var offsetpos = pos*8;
+		var child = self.grid.childAtOffset(offsetpos);
+		if(child.isEmpty == true) {
+			color = \off
+		} {
+			//[isPlaying, child.isPlaying].debug("render_cell: is, chiisp");
+			isPlaying = isPlaying ?? { child.isPlaying };
+			if(isPlaying) {
+				color = \green;
+			} {
+				if(child.isActive) {
+					color = \red;
+				} {
+					color = \yellow;
+				}
+			};
+		};
+		color = self.colors[color];
+		self.setColorAt(pos, color, mode);
+	},
+	activate: { arg self;
+		var move_in_grid;
+		if(FileSystemProject.current.isNil) {
+			FileSystemProject.current = ();
+		};
+		FileSystemProject.current.current_trackgrid = { self.grid };
+		self.ktl.elAt(\bt, \bt_user2).action = { arg el;
+			self.edit_mode = ( el.value != 0 );
+			self.edit_mode.debug("edit mode!");
+		};
+		self.ktl.elAt(\bt, \bt_mixer).action = { arg el;
+			self.modifier_mixer = ( el.value != 0 );
+			self.modifier_mixer.debug("mixer mode!");
+		};
+		self.ktl.elAt(\pad).do { arg pad, idx;
+			pad.elAt(\on).action = {
+				var point = Point(idx % self.gridsize.x, ( idx/self.gridsize.x ).asInteger);
+				if(self.edit_mode == true) {
+					{
+						self.grid.childAtOffset(point).edit;
+					}.defer;
+				} {
+					if(self.modifier_mixer == true) {
+						point.debug("what ?");
+						self.quickpad[point.x][point.y].debug("2what ?");
+						self.quickpad[point.x][point.y].value(self, point);
+						self.quickpad[point.x][point.y].debug("end what ?");
+					} {
+						self.gridOffset = Point(idx % 8, ( idx / 8 ).trunc);
+					};
+				}
+			};
+			pad.elAt(\off).action = {
+				//self.grid.childAt(idx % self.gridsize.x, ( idx/self.gridsize.x ).asInteger).stop;
+			};
+		};
+		self.ktl.elAt(\arr).do { arg pad, idx;
+			pad.action = {
+				PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)).togglePlay;
+			};
+			//pad.action = {
+			//	//self.grid.childAt(idx % self.gridsize.x, ( idx/self.gridsize.x ).asInteger).stop;
+			//};
+		};
+
+		// debug
+		//self.ktl.elAt(\bt, 0).action = { self.render_grid; "refresh!!!!".debug };
+		move_in_grid = { arg el, offset;
+			el.value.debug("drole!!");
+			if(el.value == 0) {
+
+			} {
+				self.gridOffset = self.gridOffset + offset;
+			}
+		};
+		self.ktl.elAt(\bt, 0).action = { arg el; move_in_grid.(el, Point(0,-1)) };
+		self.ktl.elAt(\bt, 1).action = { arg el; move_in_grid.(el, Point(0,1)) };
+		self.ktl.elAt(\bt, 2).action = { arg el; move_in_grid.(el, Point(-1,0)) };
+		self.ktl.elAt(\bt, 3).action = { arg el; move_in_grid.(el, Point(1,0)) };
+
+		//self.clearAll;
+		self.render_grid;
+	},
+
+));
 );
 
 
 
 
 // END
+TrackDef(\sco4).edit;
 
 MKtl(\lp).elAt(\bt)
 
