@@ -3,6 +3,85 @@
 // ~sampler_synthdef_list = [\playersec, \playerbeat] // define custom sampler synthdefs
 Spec.add(\adsr, XEnvSpec.adsr);
 
+WindowDef(\sampler_new, { arg def, target, show_buttons=true;
+	var pkey = \sampler;
+	var anchor;
+	var sndfileview = View.new;
+	var layout;
+	var updatebuffer;
+	var buffer = Param(target, \bufnum, MenuSpec(
+		BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
+	));
+	var buffer_popup = PopUpMenu.new;
+	var oldbuf;
+	anchor = buffer_popup;
+	buffer_popup.mapParam(buffer);
+	layout = VLayout (*
+		if(show_buttons == true) {
+			[
+				HLayout (
+					PlayerWrapper(target).asView,
+					Param(target, \out, MenuSpec(
+						//[ \default -> nil, \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
+						[ \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
+					)).asPopUpMenu,
+				),
+			]
+		} {
+			[]
+		}
+		++
+		[
+			sndfileview,
+			HLayout (
+				//Param(target, \instrument, MenuSpec(
+				//	~sampler_synthdef_list ? [\playersec]
+				//)).asPopUpMenu,
+				Param(target, \instrument, MenuSpecFuncDef(\patkitdef_synthdefs)).asPopUpMenu,
+				buffer_popup,
+				BasicButton.new.string_("load").action_({ arg view;
+					Dialog.openPanel({ arg file;
+						BufDef(file.asSymbol); // autoload it
+						buffer.spec = MenuSpec(
+							BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
+						);
+						buffer.spec.labelList.debug("labellist");
+						buffer_popup.items.debug("poplabellist");
+						buffer.set(BufDef(file.asSymbol));
+						//buffer_popup.refreshChange;
+					});
+				})
+			),
+			target.asParamGroup
+				.add(Param(target, \sustain))
+				.add(Param(target, \lag))
+				.asView
+		]
+	);
+	anchor.debug("anchor");
+	updatebuffer = {
+		var buf = buffer.get;
+		if(buf != 0 and: buf.notNil and: {oldbuf != buf}) {
+			sndfileview.removeAll;
+			sndfileview.layout = VLayout(WindowDef(\soundfileview).asView(
+				buf,
+				Param(target, \pos),
+				Param(target, \sustain),
+				nil,
+				nil,
+				\seconds,
+				\seconds,
+				\seconds,
+			));
+			oldbuf = buf;
+		}
+	};
+	updatebuffer.();
+	buffer.onChange(updatebuffer, anchor);
+	layout;
+	
+});
+
 WindowDef(\sampler, { arg def, target, show_buttons=true;
 	var pkey = \sampler;
 	var anchor;
@@ -83,7 +162,7 @@ WindowDef(\sampler, { arg def, target, show_buttons=true;
 });
 
 WindowDef(\samplekit, { arg def, group;
-	var size = Point(4,4);
+	var size = Point(4,8);
 	var edit;
 	var layout;
 	var editlayout, kitlayout;
@@ -104,7 +183,7 @@ WindowDef(\samplekit, { arg def, group;
 			{ modifiers.isCtrl and: { key == $v } } {
 				"copy!".debug;
 				if(~windowdef_samplekit_clipboard.notNil) {
-					group.elAt(selected).target = ~windowdef_samplekit_clipboard;
+					group.elAt(selected).target = ~windowdef_samplekit_clipboard.copy;
 					group.reboot;
 					edit.(selected);
 				};
@@ -189,7 +268,7 @@ WindowDef(\samplekit, { arg def, group;
 		size.y.collect({ arg y;
 			HLayout(*
 				size.x.collect({ arg x;
-					var idx = y*size.y+x;
+					var idx = y*size.x+x;
 					var button;
 						"2.3".debug;
 					button = BasicButton.new.string_(idx).fixedSize_(50@50)

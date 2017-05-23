@@ -13,6 +13,8 @@ FileSystemProject.load("ex3/lib.scd");
 //FileSystemProject.load("ex3/barlokkit.scd");
 FileSystemProject.load("algokit/PatKitDef_algokit.scd");
 FileSystemProject.load("algokit/gen.scd");
+FileSystemProject.load("algokit/patlist.scd");
+FileSystemProject.load("algokit/kitlib.scd");
 FileSystemProject.load("algokit/patterns.scd");
 FileSystemProject.load("algokit/grid.scd");
 	};
@@ -21,6 +23,10 @@ FileSystemProject.load("algokit/grid.scd");
 Pdef(\algo2, PdrumStep(PatKitDef(\algokit).targets, Pdef(\algo2_p3), 1, key:\kitIndex)).play
 KitTimeline(\algo2,PatKitDef(\algokit)).eventList = XEventList.newFrom(Pdef(\algo2_p3));
 KitTimeline(\algo2).edit;
+PatKitDef(\algokit).edit
+
+Pdef(\algo2, PdrumStep(PatKitDef(\algokit).targets, Pdef(\algo2_p4), 1, key:\kitIndex)).play
+Pdef(\algo2, PdrumStep(PatKitDef(\algokit).targets, Pdef(\algo2_p5), 1, key:\kitIndex)).play
 
 (
 ~set = ~generate_set.(Pdef(\algo2_p3), 8);
