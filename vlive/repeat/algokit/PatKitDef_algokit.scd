@@ -1,6 +1,6 @@
 PatKitDef('algokit').presetCompileStringSavePath = "algokit/PatKitDef_algokit.scd";
 
-PatKitDef('algokit').targets = SparseArray[
+PatKitDef('algokit').targets = [
 	StepEvent.newFrom((lag: 0, speed: 0.63914285714286, bufnum: BufDef('fix1/kick.flac'), instrument: 'playersec', gain: 1.4157532574816, sustain: 1, pos: 0.04)),
 	StepEvent.newFrom((instrument: 'playersec', lag: 0, bufnum: BufDef('fix3/kick1.flac'), pos: 0.04)),
 	StepEvent.newFrom((instrument: 'playersec', lag: 0, bufnum: BufDef('fix4/kick1.flac'), pos: 0.04)),
@@ -17,4 +17,10 @@ PatKitDef('algokit').targets = SparseArray[
 	StepEvent.newFrom((instrument: 'playersec', lag: 0, bufnum: BufDef('fix1_extra/largesnare.flac'), pos: 0.04)),
 	StepEvent.newFrom((instrument: 'playersec', lag: 0, bufnum: BufDef('fix1_extra/hat3.flac'), pos: 0.04)),
 	StepEvent.newFrom((instrument: 'playersec', lag: 0, bufnum: BufDef('fix1_extra/bell1.flac'), pos: 0.04)),
+	StepEvent.newFrom((gain: 0.5787830814312, pos: 0.99696145124717, lag: 0, instrument: 'playersec', bufnum: BufDef('voices/02_moeten.flac'), sustain: 1)),
+	StepEvent.newFrom((instrument: 'playersec', lag: 0, bufnum: BufDef('voices/03_camion.flac'), gain: 1.9274406177905)),
+	StepEvent.newFrom((gain: 0.30028581741454, pos: 0.24757369614512, lag: 0, instrument: 'playersec', bufnum: BufDef('voices/01_fear.flac'), sustain: 1)),
+	StepEvent.newFrom((instrument: 'playersec', lag: 0, bufnum: BufDef('vipere/canabis.wav'), gain: 1.9274406177905)),
+	StepEvent.newFrom((gain: 0.5787830814312, pos: 0.41204081632653, lag: 0, instrument: 'playersec', bufnum: BufDef('vipere/a11wlk01.wav'), sustain: 1)),
+	StepEvent.newFrom((pos: 1.7716780045351, instrument: 'playersec', lag: 0, bufnum: BufDef('vipere/beast.wav'), sustain: 1)),
 ];

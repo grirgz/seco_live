@@ -48,3 +48,4 @@ SynthDef(\playersec, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, spee
 
 MenuSpecDef(\patkitdef_synthdefs).addUnique(\playersec);
 MenuSpecDef(\patkitdef_synthdefs).addUnique(\playerpansec);
+Spec.add(\lag, ControlSpec(0, 1, 'linear', 0, 0, ""));

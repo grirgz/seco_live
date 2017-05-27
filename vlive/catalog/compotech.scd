@@ -29,10 +29,15 @@
 
 ///////////////// notation techniques
 - \isRest, .coin.not
+- \isRest, {[1,0].clump(8).choose}.dup(4).coin.not
 - \isRest, Pkey(\legato)
+- compute legato by reversing isRest pattern
 - Pdict
+- PmonoArtic
 
 
 ////////////////// fx
 - delay network + feedback + dist
 - echo
+- sidechain
+- compressor

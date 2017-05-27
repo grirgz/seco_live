@@ -9,7 +9,7 @@ TrackDef(\kit_workspace).source = [
 		Pdef(\kick, Pbind(
 			\instrument, \zkick,
 			\freq, 200,
-			\dur, 1,
+			//\dur, 1,
 			\amp, 0.1
 		)),
 		Pdef(\snare, Pbind(
@@ -24,6 +24,24 @@ TrackDef(\kit_workspace).source = [
 			\dur, 1,
 			\amp, 0.1
 		)),
+		Pdef(\snapkick, Pbind(
+			\instrument, \snapkick,
+			\freq, 200,
+			//\dur, 1,
+			\amp, 0.1
+		)),
+		Pdef(\snapsnare, Pbind(
+			\instrument, \snapsnare,
+			\freq, 200,
+			//\dur, 1,
+			\amp, 0.1
+		)),
+		Pdef(\kitwork_sampler, Pbind(
+			\instrument, \playergrid,
+		)).addHalo(\edit, {
+			WindowDef(\sampler).front(Pdef(\kitwork_sampler))
+		}),
+		Pdef(\kit_workspace),
 	],
 	[
 		KitTimeline(\kit_workspace),
@@ -33,6 +51,9 @@ TrackDef(\kit_workspace).source = [
 	],
 	[
 		ProtoDef(\kit_workspace_rdn, ProtoTemplateDef(\rdn))
+	],
+	[
+		ProtoDef(\kit_workspace_rdn2, ProtoTemplateDef(\rdn))
 	],
 	[
 		ProtoDef(\basicrecorder)
@@ -69,3 +90,20 @@ Pdef(\default, Pbind(
 	\dur, 1,
 	\amp, 0.1
 ));
+
+
+(
+Pdef(\kit_workspace, Pbind(
+	\instrument, \default,
+	\degree, Pseq((1..8)*4,inf),
+	\octave, 3,
+	\dur, 1/8,
+	\amp, 0.1
+)).play;
+);
+
+Ndef(\nd)
+ProtoDef(\rdn).keys
+Ndef(\kit_workspace_rdn).stop
+Ndef(\kit_workspace_rdn).end
+s.latency = 0.2

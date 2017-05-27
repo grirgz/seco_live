@@ -54,10 +54,12 @@
 						[ 0,0,0,0, 1,0,0,0, ],
 						[ 0,0,0,0, 1,0,0,0, ],
 						[ 0,0.5,0,0, 1,0,0,0, ],
+						[ 0.5,0,0,0, 1,0,0,0, ],
+						[ 0,0,0.5,0, 1,0,0,0, ],
 						[ 0,0,0,0, 1,0,0,0.51, ],
 					].choose }.dup(4).flatten)
 				}).loop.coin.not,
-				\sustain, rrand(0.051,0.4),
+				\sustain, exprand(0.091,0.4),
 				\speed, rrand(1/2,2),
 				\dur, 1/8,
 				\amp, 0.1
@@ -286,10 +288,10 @@
 						};
 						val;
 					}).reverse.debug("leg");
-					Ptuple([Pseq(ar).coin.not, Pseq(leg)-rrand(0.01,0.4)]);
+					Ptuple([Pseq(ar,inf).coin.not, Pseq(leg,inf)-rrand(0.01,0.4)]);
 				}).loop,
 				//\sustain, exprand(0.251,1.1),
-				\speed, rrand(1/2,1),
+				\speed, rrand(1/2,2),
 				\dur, 1/8,
 				\amp, 0.1
 			))

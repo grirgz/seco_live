@@ -46,12 +46,17 @@ SinOsc.ar(freq * ( 1 + ( SinOsc.kr(200) * 1 )))
 // ring
 SinOsc.ar(freq) * LFSaw.ar(freq)
 
+
+/////////////////////////////// multichannel
+SinOsc.ar(freq * (1..8)/8)  // create a range from 1/8 to 1 (8 channels)
+SinOsc.ar(freq * (0..7)/7)  // create a range from 0 to 1 (8 channels)
+
 /////////////////////////////// osc
 
 SinOsc.ar(freq) 
 SinOsc.ar(freq * [1,1.01]) 
 SinOsc.ar(freq * Array.series(8,1,0.1)) 
-
+SinOsc.ar(freq * (0..7)/7) 
 
 /////////////////////////////// branch a multichannel signal
 // we have 5 voices and want to apply a detune for each voice and add to itself
@@ -136,3 +141,75 @@ Ndef(\minitek, { LFPulse.ar((1..100).collect({ arg x, idx; 1 + (idx/1000)  }) * 
 
 
 
+//////////////////////////////////////////////////////////
+//////////////////////////////// architecture
+
+soundscape
+	- pdef with random dur and short synthdef as grain
+	- big multichannel synthdef
+	- dust
+
+////////////// models
+
+- oscs + filters // additive
+	- chord based
+	- mono synth
+	- rising pitch/wobble/falling pitch
+- noise + filters // substractive
+- dust // soundscape
+- array of random frequency (metallic)
+
+//////////////////// synths
+- kick
+	falling osc freq or filter freq
+	add pop and click
+- snare
+	short osc + noise with env modulated filter 
+- hat
+	noise with env modulated filter 
+	array of random frequency (metallic)
+- bass: 
+	multiple osc with light fm and light dist
+	detune lfsaw + freq octave + filter
+- nappe
+- soundscape
+- lead
+- subbass: simple sinosc
+
+//////////// noise
+- LFNoise1.kr(freq)
+- WhiteNoise / PinkNoise
+- Gendy1.ar(freq)
+- fm
+	Ndef(\test,{ LFSaw.ar(100 * ( 1 + ( LFSaw.ar(10 * ( 1 + ( SinOsc.ar(10) * 441 ))) * 444 ))) !2*0.1  }).play // high
+	Ndef(\test,{ SinOsc.ar(50 * ( 1 + ( LFSaw.ar(50 * ( 1 + ( SinOsc.ar(10) * 4 ))) * 4 ))) !2*0.1  }).play // bass
+
+
+/////////// pitch types
+- multitonnal Array.series 
+
+////////////// processing
+- freqshift the freq to double tune
+- dist tanh
+- fold
+- CombC with inverse frequency as delay time
+
+///////////// how to elabore a more complex synthdef
+
+- multichannelize an argument
+	- with serie (1..7)
+		- add scale parameter
+	- with random { rrand(0,1) }!8
+	- with osc or lfnoise
+- osc an argument (with different freq for each for phasing pseudo random effect or tempo frequence for rhytm)
+- lfnoise an argument
+- fm an argument ( 1 + ( SinOsc.kr(fm) * 1 ))
+
+////////// simple fx
+- a delay to add more presence
+- multichannel lfnoise or osc the panning
+- feedback
+- chorus/flanger
+
+///////////// advanced
+- sample a synthdef, apply rdn multiple time

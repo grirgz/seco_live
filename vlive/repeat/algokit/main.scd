@@ -15,6 +15,7 @@ FileSystemProject.load("algokit/PatKitDef_algokit.scd");
 FileSystemProject.load("algokit/gen.scd");
 FileSystemProject.load("algokit/patlist.scd");
 FileSystemProject.load("algokit/kitlib.scd");
+FileSystemProject.load("algokit/scorelib.scd");
 FileSystemProject.load("algokit/patterns.scd");
 FileSystemProject.load("algokit/grid.scd");
 	};

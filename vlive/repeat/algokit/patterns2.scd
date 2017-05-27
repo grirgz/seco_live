@@ -565,11 +565,22 @@
 
 // END
 
-Pdef(\algomain, Pdef(\algopat8)).play;
+Pdef(\algomain, Pdef(\algopat5)).play;
 Pdef(\algomain, Pdef(\algopat_test)).play;
 Pdef(\algomain).clear
 
 ////////////
+
+(
+Pdef(\main, 
+	Pseq([
+		Ptpar([
+			0, Pdef(\algopat5),
+			8, Pdef(\blikmain),
+		])
+	])
+).play;
+)
 
 						Ptpar([
 							0, ~kitlib.hiphop.kick,

@@ -658,14 +658,18 @@ WindowDef(\playergrid, { arg me, maintrack;
 							[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
 							if(buttonNumber == 1) {
 								var target = child.model.target.source;
-								if(target.isKindOf(Pdef)) {
-									WindowDef(\PdefEditor).front(target)
+								if(target.getHalo(\edit).notNil) {
+									target.getHalo(\edit).value(target);
 								} {
-									if(target.isKindOf(Ndef)) {
-										WindowDef(\NdefEditor).front(target)
+									if(target.isKindOf(Pdef)) {
+										WindowDef(\PdefEditor).front(target)
 									} {
-										target.edit
-									}
+										if(target.isKindOf(Ndef)) {
+											WindowDef(\NdefEditor).front(target)
+										} {
+											target.edit
+										}
+									};
 								};
 							} 
 						});
