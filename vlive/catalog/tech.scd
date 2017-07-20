@@ -139,8 +139,192 @@ Ndef(\minitek, { SinOsc.ar((1..100).collect({ arg x, idx; 2+( SinOsc.ar(1/1000+(
 
 Ndef(\minitek, { LFPulse.ar((1..100).collect({ arg x, idx; 1 + (idx/1000)  }) * Duty.kr(1,0,Dseq([1,2,4,8],inf))).mean ! 2  }).play // cool comb
 
+////////////////////// custom pulse wave
+
+(
+Ndef(\custom_pulse, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = Duty.ar(1/freq, 0, Dseq([
+		-1,1,0,-0.2,
+		Dwhite(-1,1,1)
+	],inf));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+//////////////////////// stereo
+// ne pas confondre plusieurs sources reparties dans le champ stereo, et le fait d'etaler un son dans le champ stereo
+(
+// multiple sources moving in stereo
+Ndef(\stereo, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * [0,4,7, 0+12,4+12,7+12].midiratio );
+	pan = pan + LFNoise1.kr(sig.collect({ arg x, idx; idx/10  }));
+	sig = Pan2.ar(sig, pan, amp).mean;
+}).play;
+);
+
+// ex1
+(
+// multiple source centered
+Ndef(\stereo, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * [0,4,7, 0+12,4+12,7+12].midiratio, [[0,1]]  ).mean;
+	sig = sig.debug("sig");
+	sig = Pan2.ar(sig, pan, amp).sum;
+}).play;
+);
+
+(
+// multiple sources widened (no pan to set them to center)
+Ndef(\stereo, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * [0,4,7, 0+12,4+12,7+12].midiratio, [ [0,1] ] ).mean;
+	sig = sig.debug;
+	sig = sig * amp;
+}).play;
+);
+
+// ex2
+(
+// multiple sources centered
+Ndef(\stereo, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * [0,4,7, 0+12,4+12,7+12].midiratio *.t [1,1.01] ).mean;
+	sig = sig.debug;
+	sig = Pan2.ar(sig, pan, amp).mean;
+}).play;
+);
+(
+// multiple sources widened
+Ndef(\stereo, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * [0,4,7, 0+12,4+12,7+12].midiratio *.t [1,1.01] ).mean;
+	sig = sig.debug;
+	sig = sig * amp;
+	//sig = Pan2.ar(sig, pan, amp).mean;
+}).play;
+);
+
+///////////////////////////// how to get a rich sound
+// simply consider every basic property of a rich sound
+// - harmonics
+// - timbre variation
+// - pitch variation
+// - panning variation
+// - amplitude variation
+// - multichannelize
+
+(
+	// start with a sinosc
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+	// add harmonics (other waveform, substract, add, phasing, fm, am, ring, waveshaping)
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq/2) * 0.3 )));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+	// add timbre variation ( add lfo to harmonics technics )
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq/2 * SinOsc.kr(1/14,mul:0.1,add:1)) * 0.3 )));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+	// add pitch variation (melody, chords, rising pitch, continuous or segment)
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	freq = freq * Duty.kr(1/~t, 0, Dseq([
+		2,1,0,0,
+	],inf)).midiratio;
+	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq/2 * SinOsc.kr(1/14,mul:0.1,add:1)) * 0.3 )));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+	// add panning variation (channels moving, stereo channel moving, stereo widening, channels spreading)
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	freq = freq * Duty.kr(1/~t, 0, Dseq([
+		2,1,0,0,
+	],inf)).midiratio;
+	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq/2 * SinOsc.kr(1/14 * [1,1.01],mul:0.1,add:1)) * 0.3 ))); // stereo widening the fm
+	sig = sig * amp; 
+	// no more Pan2 needed
+}).play;
+);
+
+(
+	// amplitude variation (env, lofreq am, waveshaping?)
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1, time=1;
+	var sig;
+	freq = freq * Duty.kr(time/~t, 0, Dseq([
+		2,1,0,0,
+	],inf)).midiratio;
+	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq/2 * SinOsc.kr(1/14 * [1,1.01],mul:0.1,add:1)) * 0.3 ))); // stereo widening the fm
+	sig = sig * EnvGen.kr( Env([0.1,1,0.1],[0.1,0.8]), Impulse.kr(1/time*~t));
+	sig = sig * amp; 
+	// no more Pan2 needed
+}).play;
+);
+
+(
+	// multichannlize: make multiple copies of some block and add a variation (harmonics, timbre, pitch, amplitude, panning )
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1, time=1;
+	var sig;
+	freq = freq * Duty.kr(time/~t, 0, Dseq([
+		2,1,0,0,
+	],inf)).midiratio;
+	sig = 8.collect({ arg idx;
+		var lfo;
+		lfo = SinOsc.ar(14 * [1,1.01],mul:0.1 * (idx+1 /114),add:1);
+		sig = SinOsc.ar(freq * ( idx/10000 * 0 +1)* ( 1 + ( SinOsc.ar(freq/2  * lfo) * ( idx+1 )/7 ))); // stereo widening the fm
+	}).mean;
+	sig = sig * EnvGen.kr( Env([0.1,1,0.1],[0.1,0.8]), Impulse.kr(1/time*~t));
+	sig.debug("sig");
+	sig = sig * amp; 
+	// no more Pan2 needed
+}).play;
+);
+
+(
+	// multichannel panning
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1, time=1;
+	var sig;
+	freq = freq * Duty.kr(time/~t, 0, Dseq([
+		2,1,0,0,
+	],inf)).midiratio;
+	sig = 8.collect({ arg idx;
+		var lfo;
+		var ipan;
+		lfo = SinOsc.ar(14 * [1,1.01],mul:0.1 * (idx+1 /114),add:1);
+		sig = SinOsc.ar(freq * ( idx/10000 * 0 +1)* ( 1 + ( SinOsc.ar(freq/2  * lfo) * ( idx+1 )/7 ))); // stereo widening the fm
+		ipan = pan + LFNoise1.kr(idx/20,mul:0.8);
+		sig = Splay.ar(sig, 1, 1, ipan);
+		sig;
+	}).mean;
+	sig = sig * EnvGen.kr( Env([0.1,1,0.1],[0.1,0.8]), Impulse.kr(1/time*~t));
+	sig.debug("sig");
+	
+	sig = sig * amp; 
+}).play;
+);
 
 
+//////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 //////////////////////////////// architecture
 
@@ -204,6 +388,7 @@ soundscape
 - osc an argument (with different freq for each for phasing pseudo random effect or tempo frequence for rhytm)
 - lfnoise an argument
 - fm an argument ( 1 + ( SinOsc.kr(fm) * 1 ))
+
 
 ////////// simple fx
 - a delay to add more presence

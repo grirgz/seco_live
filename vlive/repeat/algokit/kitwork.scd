@@ -24,18 +24,6 @@ Ndef(\saro, { arg freq=400, pan=0, amp=0.1;
 PatKitDef(\rdnfx).edit
 
 (
-SynthDef(\playersec_hlpf, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, trigger=1, velamp=1;
-	// pos in seconds
-	var sig;
-	var sig1;
-	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
-	sig = LPF.ar(sig, \lpf.kr(19000));
-	sig = HPF.ar(sig, \hpf.kr(40));
-	//sig = Pan2.ar(sig, pan, 1).sum;
-	Out.ar(out, sig * \gain.kr(1) * velamp);
-}).add;
-MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\playersec_hlpf);
 )
 
 
@@ -180,10 +168,17 @@ Pdef(\drums,
 					\gain,  Pseq([
 						0.7, 0.7, 0.7, 1
 					],inf)/1.2,
-					\lag, 0.01,
+					\lag, Prand([
+						Pseq([0,0.01],inf).stutter(4),
+						Pseq([0,0.01],inf).stutter(2),
+						Pseq([0,0.01],inf).stutter(1),
+						Pseq([0.01],inf).stutter(1),
+						Pseq([0],inf).stutter(1),
+					],inf),
 					\sustain, 0.2,
-					\speed, 1.1,
-					\dur, 1/8,
+					\speed, Pfin(64,Pseq({rrand(3/4!8,5/4).choose.asArray.stutter([4,8,16,32].choose)}.dup(4).flat,inf)).loop,
+					\sustain, Pfin(64,Pseq({rrand(0.1!8,0.3).choose.asArray.stutter([4,8,16,32].choose)}.dup(4).flat,inf)).loop,
+					\dur, [1/8,1/16].choose,
 					\amp, 0.1
 				),
 				Pbind(
@@ -254,3 +249,9 @@ Pdef(\drums,
 Pdef(\drums).set(\out, BusDef(\sendbus0, \audio))
 ProtoDef(\rdn).edit
 ProtoDef(\rdn).play
+
+
+PatKitDef(\heavy).edit
+KitTimeline(\heavy, PatKitDef(\heavy)).edit
+KitTimeline(\heavy).outBus= BusDef(\sendbus0, \audio)
+

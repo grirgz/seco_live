@@ -1,4 +1,5 @@
 
+// synthdefs listed in MenuSpecFuncDef(\patkitdef_synthdefs)
 (
 // ~sampler_synthdef_list = [\playersec, \playerbeat] // define custom sampler synthdefs
 Spec.add(\adsr, XEnvSpec.adsr);
@@ -82,7 +83,7 @@ WindowDef(\sampler_new, { arg def, target, show_buttons=true;
 	
 });
 
-WindowDef(\sampler, { arg def, target, show_buttons=true;
+WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 	var pkey = \sampler;
 	var anchor;
 	var sndfileview = View.new;
@@ -93,13 +94,25 @@ WindowDef(\sampler, { arg def, target, show_buttons=true;
 	));
 	var buffer_popup = PopUpMenu.new;
 	var oldbuf;
+	var paramgroup;
+	var proxy;
+	paramgroup  = target.asParamGroup
+		.add(Param(target, \sustain))
+		.add(Param(target, \lag))
+		.asView
+	;
+	proxy = player ?? { if(target.isKindOf(StepEvent)) {
+		EventPatternProxy.new.source(target) // FIXME: not sure if working
+	} {
+		target
+	}};
 	anchor = buffer_popup;
 	buffer_popup.mapParam(buffer);
 	layout = VLayout (*
 		if(show_buttons == true) {
 			[
 				HLayout (
-					PlayerWrapper(target).asView,
+					PlayerWrapper(proxy).asView,
 					Param(target, \out, MenuSpec(
 						//[ \default -> nil, \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
 						[ \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
@@ -124,20 +137,17 @@ WindowDef(\sampler, { arg def, target, show_buttons=true;
 						buffer.spec = MenuSpec(
 							BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
 						);
-						buffer.spec.labelList.debug("labellist");
-						buffer_popup.items.debug("poplabellist");
+						//buffer.spec.labelList.debug("labellist");
+						//buffer_popup.items.debug("poplabellist");
 						buffer.set(BufDef(file.asSymbol));
 						//buffer_popup.refreshChange;
 					});
 				})
 			),
-			target.asParamGroup
-				.add(Param(target, \sustain))
-				.add(Param(target, \lag))
-				.asView
+			paramgroup,
 		]
 	);
-	anchor.debug("anchor");
+	//anchor.debug("anchor");
 	updatebuffer = {
 		var buf = buffer.get;
 		if(buf != 0 and: buf.notNil and: {oldbuf != buf}) {

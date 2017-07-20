@@ -3,6 +3,14 @@
 (
 KitTimeline(\kit_workspace, PatKitDef(\kit_workspace));
 KitTimeline(\kit_workspace2, PatKitDef(\kit_workspace));
+
+Pdef(\kitwork_sampler, StepEventDef(\kitwork_sampler).putAll((
+	instrument: \playersec,
+	dur: 4,
+)).asPattern).addHalo(\edit, {
+	WindowDef(\sampler).front(StepEventDef(\kitwork_sampler), true, Pdef(\kitwork_sampler))
+});
+
 TrackDef(\kit_workspace, TrackDef(\playergrid));
 TrackDef(\kit_workspace).source = [
 	[
@@ -19,7 +27,7 @@ TrackDef(\kit_workspace).source = [
 			\amp, 0.1
 		)),
 		Pdef(\hat, Pbind(
-			\instrument, \snaphihat,
+			\instrument, \zhat,
 			\freq, 200,
 			\dur, 1,
 			\amp, 0.1
@@ -36,11 +44,13 @@ TrackDef(\kit_workspace).source = [
 			//\dur, 1,
 			\amp, 0.1
 		)),
-		Pdef(\kitwork_sampler, Pbind(
-			\instrument, \playergrid,
-		)).addHalo(\edit, {
-			WindowDef(\sampler).front(Pdef(\kitwork_sampler))
-		}),
+		Pdef(\snaphat, Pbind(
+			\instrument, \snaphihat,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1
+		)),
+		Pdef(\kitwork_sampler),
 		Pdef(\kit_workspace),
 	],
 	[
@@ -67,7 +77,24 @@ ProtoDef(\kit_workspace_rdn).inbus = BusDef(\sendbus0);
 
 TrackDef(\kit_workspace).edit;
 
+WindowDef(\multigrid).front;
+
 // END
+
+Pdef(\kitwork_sampler).source.play
+Pdef(\kitwork_sampler).source
+Pdef(\kitwork_sampler).source = StepEventDef(\kitwork_sampler).asPattern
+Pdef(\kitwork_sampler).asStream.next(())
+StepEvent.newFrom((instrument: \plaxyersec)).asParamGroup
+StepEvent.newFrom((instrument: \default)).play
+EventPatternProxy.new.source_(StepEvent.newFrom((instrument: \default))).play
+PlayerWrapper(EventPatternProxy.new.source_(StepEvent.newFrom((instrument: \default)))).play
+SynthDesc(\bla).asParamGroup(Pdef(\bla))
+SynthDesc(\bla).params
+SynthDesc(\bliia)
+
+
+Log(\Param).level = \debug
 
 PatKitDef(\kit_workspace).clear;
 TrackDef(\kit_workspace).clear;
@@ -107,3 +134,11 @@ ProtoDef(\rdn).keys
 Ndef(\kit_workspace_rdn).stop
 Ndef(\kit_workspace_rdn).end
 s.latency = 0.2
+
+
+// transform everything in soundscape : 6-233A-DN2C (\default ?)
+// spece reverb \defdefault 6-TA6O-5EMF
+// perfect bad reverb  \defdefault 6-IPBV-363F
+
+StepEventDef(\bla).putAll(( bli:12 ))
+StepEventDef(\bla)

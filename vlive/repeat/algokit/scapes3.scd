@@ -4,7 +4,7 @@ SynthDef(\tigrain, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.ar(\fmf.kr(24) * ( 1 + ( SinOsc.ar([4,8,16]*~t, 0.2) * 1.41 )) * XLine.kr(1,0.001,4)) * 1 )));
 	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = sig * 3;
+	sig = sig * 1;
 	pan = pan + LFNoise1.ar((1..4)/48,mul:0.5);
 	sig = Pan2.ar(sig, pan, amp).mean;
 	Out.ar(out, sig);
@@ -14,7 +14,7 @@ SynthDef(\tigrain2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	sig = SinOsc.ar(freq * [1,1.01]);
 	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = sig * 3;
+	sig = sig * 1;
 	pan = pan + LFNoise1.ar((1..4)/48,mul:0.5);
 	sig = Pan2.ar(sig, pan, amp).mean;
 	Out.ar(out, sig);
@@ -62,7 +62,7 @@ SynthDef(\trump, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig.tanh;
 	sig = RLPF.ar(sig, ( \lpfratio.kr * freq* [2,1.1] * env2 * env3 ).clip(20,19000), 0.5);
 	sig = sig * EnvGen.ar(Env.adsr(0.001,0.1,0.6,0.1),gate,doneAction:2);
-	sig = sig * 3;
+	sig = sig * 1;
 	sig = sig + DelayC.ar(sig,0.01,0.001 * [0.1,2,1]);
 	pan = pan + LFNoise1.ar((1..4)/48,mul:0.5);
 	sig = Pan2.ar(sig, pan, amp).mean;
@@ -432,20 +432,20 @@ Pdef(\blikmain).clear
 	Pdef(\kit_workspace,
 		Pdef(\blik, Pbind(
 			\instrument, \blik2,
-			\octave, [4,5,6],
-			\degree, 0,
+			\octave, 5,
+			\degree, Pseq([0,-2,-1,-3,0].scramble,inf).stutter(8),
 			\isRest, Pseq([
 				1,0,0,0, 0,0,0,0,
 			],inf).coin.not,
 			\fmampmax, 5,
-			\fmampfmf, Pseq([4,2],inf).stutter(8) * ~t,
-			\clean, 5,
+			\fmampfmf, Pseq([8,4,2],inf).stutter(8) * ~t,
+			\clean, 0.2,
 			\adsr, Pseq([
-				[ Env.adsr(0.1,0.1,0.8,0.9) ],
+				[ Env.adsr(0.001,0.1,0.8,0.9) ],
 			],inf),
-			\legato, 7.19,
-			\dur, 1/2,
-			\amp, 0.1,
+			\legato, 1.19,
+			\dur, PdurStutter(Pseq([3,2,4,1].scramble,inf), 1/8).stutter(8),
+			\amp, 0.1/3,
 		))
 	).play;
 )
@@ -498,15 +498,15 @@ Pdef(\fdrums,
 			].clump(8).choose}.dup(4).flat,inf).coin.not,
 			\gain, Pkey(\gain)/2,
 		) <> ~kits.hat[2],
-		Pbind(
-			\instrument, \playersec,
-			\bufnum, BufDef("synth/chord1.flac"),
-			\sustain, 0.7,
-			\isRest, Pseq({[
-				1,0,0,1, 0,0,1,0,
-			].clump(8).choose}.dup(4).flat,inf).coin.not,
-			\dur, 1/4,
-		)
+		//Pbind(
+		//	\instrument, \playersec,
+		//	\bufnum, BufDef("synth/chord1.flac"),
+		//	\sustain, 0.7,
+		//	\isRest, Pseq({[
+		//		1,0,0,1, 0,0,1,0,
+		//	].clump(8).choose}.dup(4).flat,inf).coin.not,
+		//	\dur, 1/4,
+		//)
 	]),
 ).play;
 )

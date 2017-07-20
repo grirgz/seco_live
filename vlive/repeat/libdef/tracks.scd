@@ -187,7 +187,7 @@ TrackTemplateDef(\playertrack, (
 	},
 
 	isEmpty: { arg self;
-		self.children.every({ arg x; x.isEmpty });
+		self.children.every({ arg x; x.isNil or: {x.isEmpty} });
 	},
 
 	source_: { arg self, array;
@@ -409,7 +409,7 @@ TrackTemplateDef(\playergrid, (
 	},
 
 	isPlaying: { arg self;
-		self.children.every({ arg x; x.isEmpty or: {x.isPlaying}});
+		self.children.every({ arg x; x.notNil and: {x.isEmpty or: {x.isPlaying}} });
 	},
 
 	quant: { arg self;
@@ -462,9 +462,9 @@ TrackTemplateDef(\playergrid, (
 				parent.isPlaying and: {
 					self.children.every({ arg x, ii; 
 						//["child:", x,ii, x.activeIndex, idx].postln;
-						x.parentTrack.isEmpty or: {
+						x.notNil and: {x.parentTrack.isEmpty or: {
 							x.parentTrack.activeIndex == idx
-						}
+						}}
 					});
 				};
 			},

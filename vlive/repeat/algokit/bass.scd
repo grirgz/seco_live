@@ -5,7 +5,7 @@ KitTimeline(\secline, PatKitDef(\kitsec)).edit
 KitTimeline(\secline2, PatKitDef(\kitsec)).edit
 
 (
-	2.do { arg x;
+	33.do { arg x;
 
 SynthDef(\babass+++x, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -49,7 +49,7 @@ Pdef(\main,
 )
 
 (
-Pdef(\babass, PmonoArtic(\babass,
+Pdef(\babass, PmonoArtic(\babass0,
 	\degree, Pseq([0],inf),
 	\octave, 3,
 	\legato, Pseq([
@@ -61,7 +61,7 @@ Pdef(\babass, PmonoArtic(\babass,
 );
 
 (
-Pdef(\babass, PmonoArtic(\babass,
+Pdef(\babass, PmonoArtic(\babass1,
 	\degree, Pseq([0],inf),
 	\octave, 3,
 	\legato, Pseq([
@@ -135,9 +135,11 @@ BufferPool.reset
 (
 SynthDef(\kobass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
+	freq = freq.lag(\freqlag.kr(0.4));
 	sig = LFSaw.ar(freq * [1/2,1,2] *.x [1,1.00001], 0.7);
 	sig = RLPF.ar(sig, \lpfratio.kr(1.7)* freq * SinOsc.kr(1/18 * (1..8)).range(0.5,2), \rq.kr(0.5));
 	sig = sig * EnvGen.ar(Env.adsr(0.01,0.01,0.8,0.1,1,-4),gate,doneAction:2);
+	sig = sig * SelectX.kr(\ammix.kr(1),[1,SinOsc.ar(\amf.kr(1*~t)).unipolar]); 
 	sig = sig * 3;
 	sig = Pan2.ar(sig, pan, amp).mean;
 	Out.ar(out, sig);
@@ -153,6 +155,103 @@ Pdef(\kobass, Pbind(
 	\dur, 4,
 	\amp, 0.1
 )).play;
+);
+
+32*31 * 64 / 60 / 60
+(
+Pdef(\kobass, Pmono(\kobass,
+	\degree, Pseq([
+		[0,4],
+		[0,5],
+	],inf),
+	\lpfratio, 1,
+	\amf, Ptuple(Prand(2**(0..5),inf)/4!2).stutter(3)*~t,
+	\ammix, Ptuple(Prand(( 0..10 ),inf)/10!2).stutter(2),
+	\isRest, Pseq([
+		Pn(1,32*3),
+		Pn(0,32*1),
+	],inf).coin.not,
+	\octave, Ptuple(Prand([4,3,5,6],inf).stutter(8)!2),
+	\dur, 4,
+	\amp, 0.1/2,
+)).play;
+);
+
+(
+Pdef(\kobass_treb, Pmono(\kobass,
+	\degree, Pseq([
+		[9],
+		[9],
+		[8],
+		[8],
+	],inf),
+	\lpfratio, 1,
+	\amf, Ptuple(Prand(2**(0..5),inf)/4!2).stutter(3)*~t,
+	\ammix, Ptuple(Prand(( 0..10 ),inf)/10!2).stutter(2),
+	\isRest, Pseq([
+		Pseq({[
+			0,0, 1,1, 0,1, 1,0,
+		].clump(2).choose.dup()}.dup(4).flat,inf)
+	],inf).coin.not,
+	\isRest, Prand([1,0,0],inf).stutter(Prand([8,16,32],inf)),
+	\octave, Ptuple(Prand([4,3,5,6],inf).stutter(8)!2),
+	\dur, 4,
+	\amp, 0.1/2,
+)).play;
+);
+
+(
+Pdef(\kobass_yap, PmonoArtic(\babass+++rrand(0,10),
+	\degree, Pstep(Pseq([
+		[9],
+		[9],
+		[8],
+		[8],
+	],inf),4)+Pseq([0,1,0,3],inf),
+	\legato, Pseq([1,0.96],inf),
+	\lpfratio, 1,
+	\octave, 6,
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+
+(
+	Pdef(\kobass_yap, 
+
+		Plazy({
+
+			Pfindur(64, Ppar([
+				8.collect({ arg idx;
+					PmonoArtic(\babass+++rrand(0,32),
+						\degree, Pstep(Pseq([
+							[9],
+							[9],
+							[8],
+							[8],
+						],inf),4)+Pseq([0,1,0,3],inf),
+						\isRest, Pseq([
+							Pseq([
+								Pseq({[
+									1,0,
+									0,1,
+									1,1,
+									0,0,
+								].clump(2).choose}.dup(4).flat,4).dup(4)
+							].flat,1)
+							* Pstep(Pseq([[1,0].choose],inf),[1,3].choose)
+						],inf).coin.not,
+						\legato, Pseq([{ [0.8,1].choose }!( 2**rrand(0,3) )].flat,inf),
+						\lpfratio, 1,
+						\octave, [4,5,6].choose,
+						\dur, [1/8,1/4,1/2,1,2].choose,
+						\amp, 0.1
+					)
+				})
+			].flat,inf));
+		}).loop
+
+	).play;
 );
 
 Pdef(\kit_workspace, Pdef(\kobass))

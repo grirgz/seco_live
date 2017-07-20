@@ -307,14 +307,14 @@
 		sig = in;
 		mix = \mix.kr(0.5);
 		gain = \gain.kr(1);
-		fb = \fb.kr(0.01);
-		del = \delay.kr(1,0.1);
-		del2 = \delay2.kr(1,0.1);
-		shi = \shift.kr(1);
-		shi2 = \shift2.kr(1);
+		fb = \fb.kr(0.001);
+		del = \delay.kr(0.001,0.1);
+		del2 = \delay2.kr(0.001,0.1);
+		shi = \shift.kr(0);
+		shi2 = \shift2.kr(0);
 		distamp = \distamp.kr(1);
 		pitchlag = \pitchlag.kr(1/8) / TempoClock.default.tempo;
-		pitchmix = \pitchmix.kr(0.5);
+		pitchmix = \pitchmix.kr(0);
 
 		sig = LPF.ar(sig, \prelpf.kr(17000));
 		sig = HPF.ar(sig, \prehpf.kr(17));
@@ -325,7 +325,7 @@
 		sig = HPF.ar(sig, \hpf.kr(17));
 		sig = RandDelayNetwork(rdnkey).ar(sig, code);
 
-		sig1 = sig.tanh * \fbdistamp.kr(1/2.1);
+		sig1 = sig.tanh * \fbdistamp.kr(1/2);
 		sig = SelectX.ar(\fbdistmix.kr(1), [sig, sig1]);
 
 		sig = Limiter.ar(sig);

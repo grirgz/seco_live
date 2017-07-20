@@ -62,11 +62,50 @@ ProtoTemplateDef(\rdn, (
 	presetCompileString: { arg self;
 		RandDelayNetwork(self.fxdef).presetCompileString(self.fxkey);
 	},
+
+	code: { arg self;
+		self.proxy.getHalo(\code)
+	},
+
+	proxy: { arg self;
+		Ndef(self.fxkey);
+	},
+
+	loadDefaultPreset: { arg self;
+		self.fxdef = \deldefault;
+		self.inbus = BusDef(\sendbus0, \audio, 2);
+		self.proxy.put(100, \pset -> Pbind(
+			'wet10', 1.0,
+			'mix', 0.5,
+			'gain', 1,
+			'fb', 0.0001,
+			'delay', 0.0001,
+			'delay2', 0.0001,
+			'shift', 0.0,
+			'shift2', 0.0,
+			'distamp', 1,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 17000,
+			'prehpf', 17,
+			'lpf', 17000,
+			'hpf', 17,
+			'fbdistamp', 0.47619047619048,
+			'fbdistmix', 0.91176470588235,
+			'postlpf', 17000,
+			'posthpf', 17,
+			'wetamp', 0.18504562572587,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+		).keep(1));
+	},
 )).init;
 
 WindowDef(\rdngui, { arg def, model;
 	var fxview;
 
+	def.windowName = model.label;
 	fxview = View.new;
 	fxview.layout = WindowDef(\vertical_paramgroup).asView(Ndef(model.fxkey).asParamGroup);
 	VLayout(

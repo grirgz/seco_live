@@ -565,7 +565,7 @@
 
 // END
 
-Pdef(\algomain, Pdef(\algopat5)).play;
+Pdef(\algomain, Pdef(\algopat4)).play;
 Pdef(\algomain, Pdef(\algopat_test)).play;
 Pdef(\algomain).clear
 

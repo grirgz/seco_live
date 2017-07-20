@@ -1,0 +1,28 @@
+PatKitDef('sample1').presetCompileStringSavePath = "algokit/kits/PatKitDef_sample1.scd";
+
+PatKitDef('sample1').targets = [
+	StepEvent.newFrom((pos: 0.04, instrument: 'playersec_hlpf', bufnum: BufDef('fix3/kick1.flac'))),
+	StepEvent.newFrom((pos: 0.04, instrument: 'playersec', bufnum: BufDef('fix4/kick2.flac'))),
+	nil,
+	nil,
+	StepEvent.newFrom((pos: 0.04, instrument: 'playersec', bufnum: BufDef('fix4/snare2.flac'))),
+	nil,
+	nil,
+	nil,
+	StepEvent.newFrom((adsr: Env([ 0.0, 1.0303951501846, 0.95136773586273, 0.0 ], [ 0.0, 0.57396298646927, 0.46585742716028 ], [ -4.0, -4.0, -4.0 ], 2.0), hpf: 1525.3971718047, pos: 0.75453514739229, gain: 0.50664058590717, speed: 4.6540130718954, lpf: 10160.436093826, bufnum: BufDef('fix3/snare1.flac'), instrument: 'playersec_hlpf', sustain: 0.0070091647770219)),
+	StepEvent.newFrom((gain: 0.75388109528118, pos: 0.14705215419501, speed: 0.90906525539678, instrument: 'playersec', bufnum: BufDef('fix4/hat1.flac'), sustain: 1)),
+	StepEvent.newFrom((gain: 0.75388109528118, pos: 0.064353741496599, speed: 1.6964402173913, instrument: 'playersec', bufnum: BufDef('fix4/hat1.flac'), sustain: 0.0038104686318972)),
+	nil,
+	StepEvent.newFrom((pos: 0.3, instrument: 'playersec_hlpf', speed: 0.94406293706294, bufnum: BufDef('smp/loureed.flac'), lpf: 1696.6857964881)),
+	StepEvent.newFrom((pos: 6.1529024943311, lpf: 5207.3217326848, speed: 0.94406293706294, instrument: 'playersec_hlpf', bufnum: BufDef('smp/loureed.flac'), sustain: 1)),
+	StepEvent.newFrom((pos: 6.771201814059, lpf: 1185.1061951091, speed: 0.94406293706294, instrument: 'playersec_hlpf', bufnum: BufDef('smp/loureed.flac'), sustain: 1)),
+	nil,
+	StepEvent.newFrom((instrument: 'playersec', bufnum: BufDef('smp/beastie.flac'), pos: 76.784739229025, sustain: 1)),
+	StepEvent.newFrom((instrument: 'playersec', bufnum: BufDef('smp/beastie.flac'), pos: 75.380136054422, sustain: 1)),
+	StepEvent.newFrom((instrument: 'playersec', bufnum: BufDef('smp/beastie.flac'), pos: 30.432970521542, sustain: 1)),
+	StepEvent.newFrom((instrument: 'playersec', bufnum: BufDef('smp/beastie.flac'), pos: 90.362517006803, sustain: 1)),
+	StepEvent.newFrom((instrument: 'playersec', bufnum: BufDef('smp/beastie.flac'), pos: 66.48433106576, sustain: 1)),
+	StepEvent.newFrom((instrument: 'playersec', bufnum: BufDef('smp/beastie.flac'), pos: 48.224557823129, sustain: 1)),
+	StepEvent.newFrom((instrument: 'playersec', bufnum: BufDef('smp/beastie.flac'), pos: 137.18247165533, sustain: 1)),
+	StepEvent.newFrom((instrument: 'playersec', bufnum: BufDef('smp/beastie.flac'), pos: 89.894308390023, sustain: 1)),
+];
