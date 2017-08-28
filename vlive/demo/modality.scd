@@ -49,3 +49,119 @@ MKtl(\lp).rebuild("novation-launchpad-s");
 //MKtl(\lp).rebuild;  // doesnt work
 
 k.elAt(\pad).elAt(2).elAt(0).value = 0x0f/127 - 0x0c // substract 0x0c to make it flash
+
+
+////////////////////////::
+
+
+// pas encore reussi a le faire marcher, utiliser MIDIdef a la place (voir ci dessous)
+k = MKtl('midi_10_a_pro', 'midi_10_a_pro_port_1');
+k.explore
+MKtl('midi_10_a_pro').explore(false); // stop
+MKtl('midi_10_a_pro').createDescriptionFile; // must be done in IDE
+
+//////
+(
+SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	freq = freq  * ( 1 + ( SinOsc.ar(\fmfreq.kr(8)) * \fmamt.kr(1) ));
+	sig = SinOsc.ar(freq * [1,1.01,1.001] );
+	sig = sig + LFSaw.ar(freq *  [1,1.0001], mul:1/2 * \sawmul.kr(1));
+	sig = RLPF.ar(sig, \ffreq.kr(2000), \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.01,0.8,\release.kr(0.01)),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).flop;
+	Out.ar(out, sig);
+}).add;
+Pdef(\plop, Pbind(
+	\instrument, \plop,
+	\degree, Pseq([0],inf),
+	\dur, 1,
+));
+~str = Pdef(\plop).asStream;
+~notes = Array.newClear(128);
+~apro_device_id.postln;
+MIDIdef.noteOn(\piano, { arg ... args;
+	var midinote = args[1];
+	var ev;
+	args.debug("noteOn");
+	ev = ~str.next(Event.default);
+	//ev[\type] = \on;
+	ev[\latency] = Ref(nil);
+	ev[\midinote] = midinote;
+	ev[\sustain] = 100;
+	//ev[\hasGate] = false;
+	if(~notes[midinote].notNil) {
+		~notes[midinote][\id].do { arg id;
+			s.sendMsg(*[15, id, \gate, 0.0]);
+		};
+		~notes[midinote] = nil;
+	};
+	~notes[midinote] = ev.play;
+
+
+}, srcID:~apro_device_id);
+MIDIdef.noteOff(\piano_off, { arg ... args;
+	var midinote = args[1];
+	args.debug("noteoff");
+	if(~notes[midinote].notNil) {
+		~notes[midinote].debug("noteoff");
+		//~notes[midinote].release(-1);
+		//~syn = Synth.basicNew(\plop, s, ~notes[midinote][\id]);
+		~notes[midinote][\id].do { arg id;
+			s.sendMsg(*[15, id, \gate, 0.0]);
+		};
+		~notes[midinote] = nil;
+	};
+	
+}, srcID:~apro_device_id);
+
+FileSystemProject.load("lib/piano.scd");
+MIDIdef(\piano).permanent = true;
+MIDIdef(\piano_off).permanent = true;
+MIDIMap(\apk1,Param(Pdef(\plop), \fmamt, ControlSpec(0,4,\lin)) );
+MIDIMap(\apk2,Param(Pdef(\plop), \fmfreq, ControlSpec(0.01,664,\exp)) );
+MIDIMap(\apk8,Param(Pdef(\plop), \release, ControlSpec(0.01,4,\exp)) );
+[\fmant, \fmfreq, \sawmul, \ffreq, \rq].do { arg key;
+	Pdef(\plop).setBusMode(key);
+	Param(Pdef(\plop), key).set(Param(Pdef(\plop), key).default); // bus was not initialized
+}
+)
+
+WindowDef(\PdefEditor).front(Pdef(\plop))
+Pdef(\plop).getVal(\fmfreq)
+Param(Pdef(\plop), \fmant).set(Param(Pdef(\plop), \fmant).default)
+
+
+///////////////////// aproche plus Param
+
+(
+SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	freq = freq  * ( 1 + ( SinOsc.ar(\fmfreq.kr(8)) * \fmamt.kr(1) ));
+	sig = SinOsc.ar(freq * [1,1.01,1.001] );
+	sig = sig + LFSaw.ar(freq *  [1,1.0001], mul:1/2 * \sawmul.kr(1));
+	sig = RLPF.ar(sig, \ffreq.kr(2000), \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.01,0.8,\release.kr(0.01)),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).flop;
+	Out.ar(out, sig);
+}).add;
+Pdef(\plop, Pbind(
+	\instrument, \plop,
+	\degree, Pseq([0],inf),
+));
+~apro_device_id.postln;
+~playergroup = ~seqPlayerGroup.new(Pdef(\plop));
+MIDIdef.noteOn(\piano, { arg ... args;
+	var midinote = args[1];
+	"on".debug(args);
+	~playergroup.elAt(midinote).play;
+}, srcID:~apro_device_id);
+MIDIdef.noteOff(\piano_off, { arg ... args;
+	var midinote = args[1];
+	"off".debug(args);
+	~playergroup.elAt(midinote).stop;
+}, srcID:~apro_device_id);
+
+MIDIdef(\piano).permanent = true;
+MIDIdef(\piano_off).permanent = true;
+)

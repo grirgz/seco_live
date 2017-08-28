@@ -22,11 +22,11 @@ SynthDef(\plop, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig + LFSaw.ar(freq *  [1,1.0001], mul:1/2 * \sawmul.kr(1));
 	sig = RLPF.ar(sig, \ffreq.kr(2000), \rq.kr(0.5));
 	sig = sig * EnvGen.ar(Env.adsr(0.01,0.01,0.8,\release.kr(0.01)),gate,doneAction:2);
+	sig = sig * \gain.kr(1);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
 Pdef(\plop, Pbind(
-	\instrument, \default,
 	\instrument, \plop,
 	\degree, Pseq([0],inf),
 	\dur, 1,
@@ -68,7 +68,22 @@ MIDIdef.noteOff(\piano_off, { arg ... args;
 	};
 	
 });
+
+FileSystemProject.load("lib/piano.scd");
+MIDIMap(\apk1,Param(Pdef(\plop), \fmamt, ControlSpec(0,4,\lin)) );
+MIDIMap(\apk2,Param(Pdef(\plop), \fmfreq, \freq) );
+MIDIMap(\apk3,Param(Pdef(\plop), \sawmul, ControlSpec(0.01,4,\exp)) );
+MIDIMap(\apk4,Param(Pdef(\plop), \ffreq, \freq) );
+MIDIMap(\apk5,Param(Pdef(\plop), \rq, \rq) );
+MIDIMap(\apk8,Param(Pdef(\plop), \release, ControlSpec(0.01,4,\exp)) );
+MIDIMap(\apk9,Param(Pdef(\plop), \gain, ControlSpec(0,4,\lin)) );
+Pdef(\plop).setBusMode(\fmamt);
+Pdef(\plop).setBusMode(\fmfreq);
+Pdef(\plop).setBusMode(\sawmul);
+Pdef(\plop).setBusMode(\ffreq);
+Pdef(\plop).setBusMode(\rq);
 )
+WindowDef(\PdefEditor).front(Pdef(\plop))
 
 ~syn.free
 Synth

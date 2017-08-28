@@ -270,7 +270,7 @@ Pdef(\snarehat, Pbind(
 	};
 	~t = 185/4/60; TempoClock.default.tempo = ~t;
 	Pdef(\main, 
-		Pbind(\out, BusDef(\fx1, \audio)) <>
+		//Pbind(\out, BusDef(\fx1, \audio)) <>
 		Plazy({
 
 			Pseq([

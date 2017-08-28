@@ -220,7 +220,8 @@ Pdef(\main, Pseq([
 			Pfindur(4, Pdef(\trump_bass2)),
 			Pfindur(4, Pdef(\trump_bass3)),
 		],inf),
-		3.collect {Pbind(\dur, Pkey(\dur) * 2) <> ~kitlib.hiphop.kick.value},
+		1.collect {Pbind(\dur, Pkey(\dur) * 2) <> ~kitlib.hiphop.kick.value},
+		1.collect {Pbind(\dur, Pkey(\dur) * 1) <> ~kitlib.hiphop.kick.value},
 		3.collect { arg x; Pbind(\dur, Pkey(\dur) * ( x+1/2 )) <> ~kitlib.hiphop.hat.value},
 		1.collect {~kitlib.hiphop.snare.value},
 	].flat)

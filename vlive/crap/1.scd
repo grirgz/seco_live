@@ -1,3 +1,4 @@
+{ SinOsc.ar() }
 
 10.do({ arg i;
     [1, 2, 3, 4].pyramid(i + 1).postcs;
@@ -640,6 +641,8 @@ Event
 flopTogether(34, [1,2])
 
 Ndef
+
+( 1/3 ).trunc(0.001)
 
 12.midiratio
 { ( 400 * ( LFNoise0.kr(1).poll * 12 ).midiratio ).poll }.play

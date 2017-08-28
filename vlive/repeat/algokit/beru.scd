@@ -1,8 +1,11 @@
 
 
 KitTimeline(\beru).play
+KitTimeline(\beru).
 KitTimeline(\beru).clear
 KitTimeline(\beru).presetCompileString.editorInsert
+NoteTimeline(\berubass).edit
+NoteTimeline(\berubass2).edit
 (
 ~t = 174/2/60; TempoClock.default.tempo = ~t;
 SynthDef(\distbass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
@@ -41,6 +44,7 @@ KitTimeline('beru').eventList = XEventList.newFrom([
 ]);
 
 NoteTimeline(\berubass, Param(Pdef(\bass), \midinote));
+NoteTimeline(\berubass2, Param(Pdef(\bass), \midinote));
 NoteTimeline('berubass').eventList = XEventList.newFrom([
 	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
 	(\absTime: 0.0, \dur: 0.375, \midinote: 40.0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.125, ),
@@ -125,6 +129,37 @@ Pdef(\bass, Pbind(
 
 ProtoDef(\rdn).edit
 ProtoDef(\rdn).presetCompileString.editorInsert;
+(
+	// elecguitar dist
+RandDelayNetwork('deldefault').make('rdn', "4-TJMK-RDAU");
+Ndef('rdn').put(100, \pset -> Pbind(
+	'wet10', 1.0,
+	'mix', 0.55042016806723,
+	'gain', 1.7435855820224,
+	'fb', 0.03619324362049,
+	'delay', 0.0001,
+	'delay2', 0.0001123104501833,
+	'shift', 0.0,
+	'shift2', 0.0,
+	'distamp', 16.034310609962,
+	'pitchlag', 0.125,
+	'pitchmix', 0.0,
+	'prelpf', 17000,
+	'prehpf', 17,
+	'lpf', 17000,
+	'hpf', 17,
+	'fbdistamp', 0.47619047619048,
+	'fbdistmix', 0.98319327731092,
+	'postlpf', 17000,
+	'posthpf', 76.008459127318,
+	'wetamp', 0.1,
+	'indelay', 0.04,
+	'wet20', 1.0,
+	'mamp', 1,
+).keep(1));
+
+);
+
 (
 // cool dist
 RandDelayNetwork('deldefault').make('rdn', "4-R6GK-8E8Q");
@@ -315,9 +350,71 @@ TrackDef(\grid1).source = [
 	[
 		NoteTimeline(\berubass),
 	],
+	[
+		Pdef(\lead),
+	],
+	[
+		ProtoDef(\rdn2, ProtoTemplateDef(\rdn)),
+		nil
+	],
 ];
 );
 
 
 TrackDef(\grid1).edit;
 WindowDef(\multigrid).front;
+ProtoDef(\rdn2).loadDefaultPreset
+
+///////////////////////////////
+(
+Pdef(\lead, Pbind(
+	\instrument, \distbass,
+	\degree, Pseq([0,2b,0,1],inf).stutter(Pseq([4,4],inf)) + [0,4],
+	\ctranspose, 2,
+	\legato, Pseq([
+		Pseq([
+			Pseq([
+				1,0,0,0, 1,0,0,0,
+				1,0,0,1, 1,0,0,1,
+				1,0,0,1, 1,0.1,1,0.11,
+				1,0,1,0, 1,0,1,0,
+
+				1,0,1,0, 1,0,1,1,
+				1,0,0.4,1, 1,0,0.4,1,
+				1,0,0,1, 1,0.1,1,0.11,
+				1,0,1,0, 1,0,1,0,
+			],4),
+		],inf),
+		Pseq([
+			1,0.3, 1,0.3,
+			1,0.3, 1,1.3,
+			1,0.3, 1,0.3,
+			1,0.1, 0.7,0.5,
+			1,0.3, 1,0.3,
+			1,0.3, 1,0.3,
+			1,0.3, 1,0.3,
+			1,1, 0.3,1,
+			
+		],inf),
+
+		Pseq({[
+			1,0,1,0, 3,0,0,0,
+			1,0,0,1, 1,0,1,1,
+			0,0,0,0,
+			1,0,0,0,
+			1,1,1,1,
+			1,1,0,0,
+			0,0,1,1,
+			0,0,1,0,
+		].clump(4).choose}.dup(8).flat,inf)
+	],inf),
+	\adsr, Pseq([
+		[ Env.adsr(0.01,0.1,0.8,0.1) ],
+	],inf),
+	\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+	\octave, 5,
+	\dur, Pseq([3,5],inf)/4,
+	\dur, 1/4,
+	\amp, 0.1/2
+)).play;
+);

@@ -115,6 +115,7 @@ Pdef(\lead, PmonoArtic(\leader1,
 Pdef(\lead).set(\out, BusDef(\sendbus0))
 Pdef(\lead).set(\out, 0)
 ProtoDef(\rdn).edit
+ProtoDef(\rdn).loadDefaultPreset
 ProtoDef(\rdn).play
 
 (

@@ -119,7 +119,7 @@ Ndef(\bass, { arg freq=200, pan=0, amp=0.1;
 
 
 Ndef(\minitek, { SinOsc.ar((1..100) * 2).mean ! 2  }).play
-Ndef(\minitek, { SinOsc.ar((1..100) * Duty.kr(1,0,Dseq([1,2,4,8],inf))).mean ! 2  }).play
+Ndef(\minitek, { SinOsc.ar((1..100) * Duty.kr(4,0,Dseq([1,2,4,8],inf))).mean ! 2  }).play
 Ndef(\minitek, { SinOsc.ar((1..100) * Duty.kr(1,0,Dseq([1,2,4,8],inf))).tanh.mean ! 2  }).play
 Ndef(\minitek, { SinOsc.ar((1..100) * Duty.kr(1,0,Dseq([1,2,4,8],inf))).fold2(0.51).mean ! 2  }).play
 Ndef(\minitek, { SinOsc.ar((1..100) * 2).tanh.mean ! 2  }).play

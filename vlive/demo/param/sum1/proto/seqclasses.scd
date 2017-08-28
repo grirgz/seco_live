@@ -612,7 +612,8 @@ WindowDef(\popup, {
 				ContextMenuWindow(menu.labelList.asArray).front(view, x, y, mouseButton).action_({ arg me, idx;
 					menu.valueList[idx].value
 
-				})
+				});
+				false; // dont pass the click to Knob
 			})
 		)
 

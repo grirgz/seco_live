@@ -41,3 +41,13 @@
 - echo
 - sidechain
 - compressor
+
+
+///////////////// random arpegiate
+
+\note, Pseq([
+	[1,5,8],
+	[1,6,10],
+	[3,8,12, 0],
+	[1,6,10, -2],
+],inf).stutter(8).collect({ arg x; x.choose }),
