@@ -655,3 +655,79 @@ Ndef(\erik).edit
 
 Scale.methods.collect(_.name)
 
+
+(
+Ndef(\sum, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var gate;
+	sig = SinOsc.ar(freq);
+	gate = Duty.kr(1/4/~t, 0, Dseq([
+		1,1,1,1, 1,1,1,1,
+		1,1,1,1, 1,1,1,0,
+	],inf));
+	sig = 300.collect({ arg x;
+		//var xfreq = exprand(20,20000);
+		var xfreq;
+		var tsustain = rrand(0.01,10);
+		xfreq = x * 2.123.rand + freq;
+		SinOsc.ar(xfreq) * EnvGen.kr(Env([0,rrand(0.01,1),rrand(0.01,1),0],{rrand(0.01,1)}.dup(3).normalizeSum), gate, timeScale:tsustain); 
+		
+	}).mean;
+	sig = FreqShift.ar(sig, \fshift.kr(0));
+	sig = sig * 23;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+Ndef(\sum).edit
+
+(
+SynthDef(\partial, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, tsustain=1, gliamp=1;
+	var sig;
+	var fmAmpEnv = EnvGen.kr(\fmAmpEnv.kr(Env([1,2,1,2],[0.1,0.8,0.1])), gate, timeScale:tsustain);
+	var fmfEnv = EnvGen.kr(\fmfEnv.kr(Env([1,2,1,2],[0.1,0.8,0.1])), gate, timeScale:tsustain);
+	var amfEnv = EnvGen.kr(\amfEnv.kr(Env([1,2,1,2],[0.1,0.8,0.1])), gate, timeScale:tsustain);
+	freq = freq * ( 1 + EnvGen.kr(\glienv.kr(Env([1,1,1,1], [1,1,1])), gate, timeScale:tsustain, levelScale:gliamp));
+	freq = freq * ( 1 + ( SinOsc.ar(\fmf.kr(1) * fmfEnv) * fmAmpEnv ));
+	sig = SinOsc.ar(freq);
+	sig = sig * ( 1 + SinOsc.ar(\amf.kr(1) * amfEnv) );
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+	Pdef(\partials, Ppar( 40.collect({
+		Pbind(
+			\instrument, \partial,
+			\degree, Pseq([0],inf),
+			\freq, 400 + Pexprand(0.0007,125),
+			\glienv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.01,1),rrand(0.01,1),0],{rrand(0.01,1)}.dup(3).normalizeSum) ]
+			}),
+			\fmfEnv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.01,1),rrand(0.01,1),0],{rrand(0.01,1)}.dup(3).normalizeSum) ]
+			}),
+			\fmfAmpEnv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.01,1),rrand(0.01,1),0],{rrand(0.01,1)}.dup(3).normalizeSum) ]
+			}),
+			\amfAmpEnv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.01,1),rrand(0.01,1),0],{rrand(0.01,1)}.dup(3).normalizeSum) ]
+			}),
+
+			\amf, Pexprand(0.01,10000),
+			\fmf, Pexprand(0.01,14000),
+			\gliamp, Pwhite(0.01,1),
+			\adsr, Pseq([
+				Pfunc({ arg ev;
+					[ Env.adsr(1.0.rand,1.0.rand,0.8.rand,1.0.rand) ];
+				}),
+			],inf),
+			\dur, 8,
+			\tsustain, Pkey(\sustain) / ~t,
+			\amp, 0.1/10*2,
+		)
+
+	})) 
+).play;
+);

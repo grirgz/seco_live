@@ -10,6 +10,7 @@
 		Pdef.defaultQuant = 4;
 		
 FileSystemProject.load("ex3/lib.scd");
+FileSystemProject.load("libdef/piano.scd");
 //FileSystemProject.load("ex3/barlokkit.scd");
 FileSystemProject.load("algokit/samplersynth.scd");
 FileSystemProject.load("algokit/synthdefs.scd");
@@ -31,6 +32,8 @@ FileSystemProject.load("algokit/grid.scd");
 )
 
 // END
+
+ProtoDef(\piano).startControl(Pdef(\melo))
 
 Pdef(\algo2, PdrumStep(PatKitDef(\algokit).targets, Pdef(\algo2_p3), 1, key:\kitIndex)).play
 KitTimeline(\algo2,PatKitDef(\algokit)).eventList = XEventList.newFrom(Pdef(\algo2_p3));

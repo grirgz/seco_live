@@ -132,6 +132,7 @@ Pdef(\kit_workspace, Pbind(
 Ndef(\nd)
 ProtoDef(\rdn).keys
 Ndef(\kit_workspace_rdn).stop
+ProtoDef(\kit_workspace_rdn).loadDefaultPreset
 Ndef(\kit_workspace_rdn).end
 s.latency = 0.2
 

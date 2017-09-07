@@ -204,3 +204,148 @@ Pdef(\scratch2, PmonoArtic(  \scratch2,
 	\amp, 1.0,
 )).play;
 );
+
+(
+Pdef(\scratch2, PmonoArtic(  \scratch2,
+	\bufnum, BufDef('smp/beastie.flac'),
+	\lfofreq, 2,
+	\lfofreq, Pseq([
+		1,2,4,5,8,8,
+		 32, 32, 32,
+		 32, 32, 32,
+		 32, 32, 32,
+		 32, 32, 32,
+		 Pseq([
+		 	32, 32, 32,
+			32, 32, 32,
+			32, 32, 32,
+			32, 32, 32,
+		 ]*2,1),
+		 Pseq([
+		 	32, 32, 32,
+			32, 32, 32,
+			32, 32, 32,
+			32, 32, 32,
+		 ]*4,1),
+	],inf) * 1 * ~t / 1 * 8,
+	\lfofreq, Pseq([8,4,4,1],inf)*1/~t,
+	\lfofreq, 8,
+	\freq, 55,
+	\flag, 0.0,
+	\legato, Pseq([
+		1,1,0,1, 0,1,0,0,
+		1,1,0,1, 0,1,0,1,
+	],inf),
+	\fspread, 10000,
+	\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+	\range, 1/121,
+	\pos, Pwhite(1,2.0).stutter(8)+3.0,
+	\pos, 4.5,
+	\degree, Pseq([0],inf),
+	\dur, 1/4,
+	\amp, 1.0,
+)).play;
+);
+
+(
+SynthDef(\scratch3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, pos=0;
+	var sig;
+	var phase;
+	var range = \range.kr(0.1);
+	var speed;
+	var imp = Impulse.ar(\afreq.kr(4*~t));
+	speed = EnvGen.kr(\speedenv.kr(Env([1,1,-1,-1],[0.1,1/4,0.1])), imp, timeScale:\speedenvts.kr(1)).lag(\elag.kr(1)) * \speed.kr(1);
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, 1, startPos: (pos*BufFrames.kr(bufnum)), doneAction:0, loop: 1);
+	sig = sig * EnvGen.kr(Env([0,0,1,1,0],[0,0.01,0.8,0.01]), imp, timeScale: \atimescale.kr(1/8));
+	sig.debug("sig");
+	sig = sig.mean;
+	sig.debug("sig");
+	//sig = AllpassC.ar(sig, 1/2, LFSaw.ar([0.0001,0]+( 40*~t )).unipolar*1/2* XLine.kr(1.01,1,4), 0.00);
+	//sig = RLPF.ar(sig, \lpf.kr(15000), \rq.kr(0.5));
+	sig = LPF.ar(sig, \lpf.kr(15000));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,1,0.01),gate,doneAction:2);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+Pdef(\scratch3, 
+	Pseq([
+		Pbind(
+			\bufnum, BufDef('loop/funky1_96bpm.flac'),
+			\bufnum, BufDef('smp/beastie.flac'),
+			\instrument, \scratch3,
+			\atimescale, 1/8,
+			\speedenv, Pseq([
+				[ Env([-1,-1,1,1],[0.1,0.8,0.34]*4) ],
+				[ Env([-1,-1,0.92,1],[0.1,0.8,0.34]/4) ],
+			],inf),
+			\pos, 0.21,
+			\afreq, 8*~t,
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+				1,0,1,1, 1,1,1,1,
+				1,1,0,1, 1,1,1,0,
+				1,0,1,1,
+			],1).coin.not,
+			\speed, Pseq([1],inf),
+			\legato, 1,
+			\dur, 4/1,
+			\amp, 0.8
+		),
+		Pbind(
+			\bufnum, BufDef('smp/beastie.flac'),
+			\instrument, \scratch3,
+			\speedenv, Pseq([
+				[ Env([0,1,1,1],[0.1,0.8,0.34]/2) ]
+			],inf),
+			\isRest, Pseq([
+				1,
+			],1).coin.not,
+			\freq, 200,
+			\pos, 0.21,
+			\speed, Pseq([1],inf),
+			\legato, 1,
+			\dur, 1/2,
+			\amp, 0.1
+		),
+	],inf),
+).play;
+);
+
+
+(
+Pdef(\main, 
+	Pseq([
+		Pdef(\testdrums)
+		
+	])
+).play;
+)
+
+(
+Pdef(\scratch3, 
+	Pseq([
+		Pbind(
+			\bufnum, BufDef('loop/funky1_96bpm.flac'),
+			\bufnum, BufDef('smp/beastie.flac'),
+			\instrument, \scratch3,
+			\atimescale, 1/8,
+			\speedenvts, Pseq([1,2,8,1/8],inf),
+			\afreq, Pseq([1,2,1/2,1/4],inf)* 8*~t,
+			\speedenv, Pseq([
+				//[ Env([-1,-1,1,1],[0.1,0.8,0.34]*4) ],
+				//[ Env([-1,-1,0.92,1],[0.1,0.8,0.34]/4) ],
+				//[ Env([-2,-1,0.92,1],[0.1,0.8,0.34]/4) ],
+				[ Env([1,-1,0,-1],[0.01,0.8,0.04]/18) ],
+			],inf),
+			\pos, 0.31,
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf).coin.not,
+			\speed, Pseq([1],inf),
+			\legato, 1,
+			\dur, 1/4,
+			\amp, 0.8
+		),
+	],inf),
+).play;
+)

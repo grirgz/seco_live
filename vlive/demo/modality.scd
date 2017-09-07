@@ -165,3 +165,6 @@ MIDIdef.noteOff(\piano_off, { arg ... args;
 MIDIdef(\piano).permanent = true;
 MIDIdef(\piano_off).permanent = true;
 )
+
+// defined in libdef/piano.scd
+ProtoDef(\piano).startControl(Pdef(\melo))

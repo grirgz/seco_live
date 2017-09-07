@@ -323,6 +323,69 @@ Ndef(\plop, { arg freq=200, pan=0, amp=0.1, time=1;
 }).play;
 );
 
+///////////////////////// wave indexing !!!!!!!
+
+
+(
+SynthDef(\amdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	freq = freq.lag(0.1);
+
+	sig = SinOsc.ar(freq); 
+	sig = Select.ar(sig+1*2, [ Saw.ar(freq), Pulse.ar(freq), SinOsc.ar(freq) ]);
+	sig = LeakDC.ar(sig);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, PmonoArtic(\amdel,
+	\degree, Pseq([0,2+12,4,6, 8,4,2,-4],inf),
+	\scale, Scale.minor,
+	\trigx, 1,
+	\legato, Pseq([1,1,1,0.8,0.1,1,1,0.9],inf),
+	\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+	//\legato, 0.7,
+	\octave, 3,
+	\dur, 1/2,
+	\dur, PdurStutter(Pseq([1,2,2,4],inf), 1/2),
+	\amp, 0.1
+)).play;
+);
+
+// components changes, harsh sound
+(
+SynthDef(\amdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	freq = freq.lag(0.1);
+
+	sig = SinOsc.ar(freq); 
+	sig = Select.ar(sig+1*2, [ Saw.ar(freq), Pulse.ar(freq/2), SinOsc.ar(freq+1) ]);
+	sig = LeakDC.ar(sig);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+// each repeat change the sound
+(
+SynthDef(\amdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	freq = freq.lag(0.1);
+	sig = SinOsc.ar(freq); 
+	4.do { arg x;
+		sig = Select.ar(sig+1*2, [ Saw.ar(freq+x), Pulse.ar(freq), SinOsc.ar(freq) ].scramble);
+	};
+	//sig = Select.ar(sig+1*2, [ Saw.ar(freq), Pulse.ar(freq), SinOsc.ar(freq) ]);
+	sig = LeakDC.ar(sig);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -368,6 +431,8 @@ soundscape
 	Ndef(\test,{ LFSaw.ar(100 * ( 1 + ( LFSaw.ar(10 * ( 1 + ( SinOsc.ar(10) * 441 ))) * 444 ))) !2*0.1  }).play // high
 	Ndef(\test,{ SinOsc.ar(50 * ( 1 + ( LFSaw.ar(50 * ( 1 + ( SinOsc.ar(10) * 4 ))) * 4 ))) !2*0.1  }).play // bass
 
+/////////// random
+- random from -n to n with bias to 0: 10.0.bilinrand
 
 /////////// pitch types
 - multitonnal Array.series 
@@ -377,6 +442,12 @@ soundscape
 - dist tanh
 - fold
 - CombC with inverse frequency as delay time
+- level shifting: LeakDC.ar(sig + 1.3) 
+- fm
+- pm
+- am
+- add am : sig = sig * (mod + 1)
+- self am:  sig = sig * (sig +1);
 
 ///////////// how to elabore a more complex synthdef
 
