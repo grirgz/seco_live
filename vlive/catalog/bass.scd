@@ -226,3 +226,50 @@ Pdef(\demo, PmonoArtic(\noisybass,
 )).play;
 );
 
+
+///////////////////////////////////////////////////
+
+(
+SynthDef(\swirl, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\env1.kr( Env([1,2,1,1/2],[0.1,0.1,1.8]) ), 1);
+	env2 = EnvGen.kr(\env2.kr( Env([1,2,1,7],[0.1,0.1,1.8]) ), 1);
+	env3 = EnvGen.kr(\env3.kr( Env([1,2,1,7],[0.1,0.1,1.8]) ), 1);
+	env4 = EnvGen.kr(\env4.kr( Env([1,2,1,7],[0.1,0.1,1.8]) ), 1);
+	env5 = EnvGen.kr(\env5.kr( Env([1,2,1,7],[0.1,0.1,1.8]) ), 1);
+	freq = freq * env5;
+	//sig = Pulse.ar(freq * ( 1 + ( SinOsc.ar((1..8) * env1) * (1..8) * env1 ))).mean;
+	sig = LFSaw.ar(freq * ( 1 + ( SinOsc.ar((1..8) * env4) * (1..8)*\fmamp.kr(1/2) * env1 ))).mean;
+	sig = RLPF.ar(sig, ( \lpfr.kr(2.1) * freq * env3 ).clip(20,20000), \rq.kr(0.5));
+	sig = sig + FreqShift.ar(sig, 0.1 * SinOsc.kr(1 * env2).range(0,100));
+	sig = ( sig * env2 * 2).tanh /2;
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, 
+	Ppar([
+		Pbind(
+			\instrument, \swirl,
+			\freq, 200,
+			\env1, [ Env([1,1,1,1]/175,[0.01,0.44,0.1]) ],
+			\env2, [ Env([1,1,1,1],[0.2,0.1,0.1]) ],
+			\env3, [ Env([1,1,1,1],[0.2,0.1,0.1]) ],
+			\env4, [ Env([1,1,1,1]*2,[0.2,0.1,0.1]) ],
+			\env5, [ Env([1,1/2,2,1]/2,[0.2,0.1,0.1]) ],
+			\dur, 1/4,
+			\fmamp, 1,
+			\legato, Pseq([
+				3,0,0,0, 0,0,1,0,
+				6,0,0,0, 0,0,1,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\amp, 0.2
+		),
+	]),
+).play;
+)

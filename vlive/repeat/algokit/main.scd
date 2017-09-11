@@ -43,6 +43,7 @@ PatKitDef(\algokit).edit
 Pdef(\algo2, PdrumStep(PatKitDef(\algokit).targets, Pdef(\algo2_p4), 1, key:\kitIndex)).play
 Pdef(\algo2, PdrumStep(PatKitDef(\algokit).targets, Pdef(\algo2_p5), 1, key:\kitIndex)).play
 
+
 (
 ~set = ~generate_set.(Pdef(\algo2_p3), 8);
 //~sort_cells_by_rest.(~set);

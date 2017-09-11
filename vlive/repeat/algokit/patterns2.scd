@@ -201,7 +201,7 @@
 			]);
 		}).loop
 	);
-)
+);
 
 (
 
@@ -251,7 +251,7 @@
 			]);
 		}).loop
 	);
-)
+);
 
 (
 
@@ -296,7 +296,7 @@
 			]);
 		}).loop
 	);
-)
+);
 
 (
 
@@ -407,6 +407,7 @@
 		}).loop
 	);
 );
+
 (
 	Pdef(\algopat8, 
 		Plazy({
@@ -530,7 +531,7 @@
 			]);
 		}).loop
 	);
-)
+);
 
 (
 
@@ -561,11 +562,13 @@
 			]);
 		}).loop
 	);
-)
+);
 
 // END
 
-Pdef(\algomain, Pdef(\algopat4)).play;
+FileSystemProject.load("algokit/patterns2.scd");
+
+Pdef(\algomain, Pdef(\algopat1)).play;
 Pdef(\algomain, Pdef(\algopat_test)).play;
 Pdef(\algomain).clear
 

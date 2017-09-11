@@ -1,4 +1,6 @@
 
+Pdef(\drums).clear
+Pdef(\algopat_3p2).play
 
 (
 	Pdef(\drums, Pdef(\algopat_3p1, 
@@ -187,4 +189,5 @@
 )
 
 Pdef(\drums).play;
+Pdef(\drums).set(\out, nil)
 2**9
