@@ -160,6 +160,40 @@ SynthDef(\stickfight, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }).add;
 )
 
+(
+// adapted from a post by Neil Cosgrove (other three are original)
+SynthDef(\stick, { |out = 0, amp = 0.5, pan = 0, dur = 1|
+    var env1, env2, snd, noise1, noise2;
+
+    // noise 1 - 4 short repeats
+    env1 = EnvGen.ar(
+        Env.new(
+            [0, 1, 0.9, 0.9, 0.9, 0.7, 0, 0.7, 0],
+            [0.001, 0.001, 0, 0.008, 0, 0.01, 0, 0.01],
+            [0, 0, 0, 00, 0, -3, 0, -4]
+        )
+    );
+
+    noise1 = WhiteNoise.ar(env1);
+    noise1 = HPF.ar(noise1, 600);
+    noise1 = LPF.ar(noise1, XLine.kr(7200, 7000, 0.03)/2);
+    noise1 = BPF.ar(noise1, 1620, 3);
+
+    // noise 2 - 1 longer single
+    env2 = EnvGen.ar(Env.new([0, 1, 0], [0.02, 0.18], [0, -4]), doneAction:2);
+
+    noise2 = WhiteNoise.ar(env2);
+    noise2 = HPF.ar(noise2, 1000);
+    noise2 = LPF.ar(noise2, 7600);
+    noise2 = BPF.ar(noise2, 1230, 0.7, 0.7);
+
+    snd = noise1 + noise2;
+    snd = snd * 2;
+    snd = snd.softclip;
+
+    Out.ar(out, Pan2.ar(snd,pan,amp));
+}).add;
+);
 
 (
 Pdef(\funkydrummer, 
@@ -387,3 +421,37 @@ Pdef(\testdrums3,
 	])
 ).play;
 )
+
+//////////////////////////////////:
+
+
+(
+	// nice generic hat cymbal
+SynthDef(\noiser, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, tsustain=1;
+	var sig;
+	var hpfenv = EnvGen.kr(\hpfenv.kr(Env([1,2,1,2],[0.1,0.8,0.1].normalizeSum)), gate, timeScale:tsustain);
+	var lpfenv = EnvGen.kr(\lpfenv.kr(Env([1,2,1,2],[0.1,0.8,0.1].normalizeSum)), gate, timeScale:tsustain);
+	var bpfenv = EnvGen.kr(\bpfenv.kr(Env([2,1/2,1,2],[0.1,0.8,0.1].normalizeSum)), gate, timeScale:tsustain);
+	sig = WhiteNoise.ar;
+	sig = HPF.ar(sig, \hpf.kr(200) * hpfenv);
+	sig = LPF.ar(sig, \lpf.kr(10000) * lpfenv);
+	sig = sig + BPF.ar(sig, \bpf.kr(200) * bpfenv, \rq.kr(0.1));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+		Pbind(
+			\instrument, \noiser,
+			\lpfenv, [ Env([1,1,1/2,1],[0.1,0.1,0.8]) ],
+			\hpf, 200,
+			\hpfenv, [ Env([1/2,74,82,81],[0.4,0.1,0.8]) ],
+			\isRest, Pseq([
+				0,0,1,0, 0,0,0,0,
+			],inf).coin.not,
+			\tsustain, 1/2/~t,
+			\legato, 2,
+			\dur, 1/8,
+			\amp, 0.1
+		),

@@ -80,6 +80,8 @@ TrackDef(\kit_workspace).edit;
 WindowDef(\multigrid).front;
 
 // END
+~t = 185/4/60; TempoClock.default.tempo = ~t;
+~t*60*4
 
 Pdef(\kitwork_sampler).source.play
 Pdef(\kitwork_sampler).source

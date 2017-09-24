@@ -1,5 +1,6 @@
 
 (
+~t = 140/2/60; TempoClock.default.tempo = ~t;
 r = \r;
 Pdef(\fadrum, 
 	Ppar([

@@ -690,3 +690,68 @@ Pdef(\fadrum,
 	])
 ).play;
 )
+
+(
+	// poly ritm repeated
+r = \r;
+Pdef(\fadrum, 
+	Pfindur(2,
+	Ppar([
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 0,
+			\isRest, Pseq([
+				1,
+			],inf).coin.not,
+			\sustain, 0.171,
+			\dur, 1/8,
+			\dur, 1/(1..9).choose*4,
+			\dur, Pkey(\dur) * (1 + (0.60 * Pseq([-1,1],inf))),
+			\gain, 0.6,
+			\amp, 0.1,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,1
+			],inf).coin.not,
+			\sustain, Pseq([1,1.1],inf).stutter(16) * 0.111,
+			\dur, 1/8,
+			\dur, 1/(1..9).choose*2,
+			\gain, 1/2,
+			\amp, 0.1,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,1,0,
+			],inf).coin.not,
+			\sustain, 0.101,
+			\dur, 1/8,
+			\dur, 1/(1..9).choose * 2,
+			\gain, 1/3,
+			\amp, 0.1,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 8,
+			\isRest, Pseq([
+				1,
+			],inf).coin.not,
+			\sustain, 0.171,
+			\dur, 1/(1..9).choose,
+			\gain, 1/3,
+			\amp, 0.1,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 8,
+			\isRest, Pseq([
+				0,1,
+			],inf).coin.not,
+			\sustain, 0.171,
+			\dur, 1/(1..9).choose * 2,
+			\gain, 1/3,
+			\amp, 0.1,
+		)),
+	])
+	).loop
+).play;
+)

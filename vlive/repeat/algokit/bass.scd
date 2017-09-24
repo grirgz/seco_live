@@ -152,10 +152,13 @@ Pdef(\kobass, Pbind(
 	\degree, Pseq([0],inf),
 	\lpfratio, 1,
 	\octave, 3,
+	\ammix, 0,
 	\dur, 4,
-	\amp, 0.1
 )).play;
 );
+
+ProtoDef(\piano).startControl(Pdef(\kobass))
+MIDIMap(\apk9, Param(Pdef(\kobass), \amp))
 
 32*31 * 64 / 60 / 60
 (

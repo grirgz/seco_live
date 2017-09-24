@@ -11,6 +11,7 @@
 		
 FileSystemProject.load("ex3/lib.scd");
 FileSystemProject.load("libdef/piano.scd");
+FileSystemProject.load("libdef/simplemixer.scd");
 //FileSystemProject.load("ex3/barlokkit.scd");
 FileSystemProject.load("algokit/samplersynth.scd");
 FileSystemProject.load("algokit/synthdefs.scd");

@@ -103,7 +103,7 @@ Pdef(\main,
 )
 
 (
-Pdef(\drums).play;
+//Pdef(\drums).play;
 Pdef(\ixo).play;
 ProtoDef(\rdn2).play;
 ProtoDef(\rdn).play;
@@ -123,6 +123,7 @@ Pdef(\ixo).play
 ProtoDef(\piano).startControl(Pdef(\ixo))
 
 ProtoDef(\simpleMixer).play
+ProtoDef(\simpleMixer).edit
 ProtoDef(\rdn).edit
 ProtoDef(\rdn).loadDefaultPreset
 ProtoDef(\rdn).genfx

@@ -29,7 +29,13 @@ ProtoDef(\simpleMixer, (
 	},
 
 	play: { arg self;
-		self.tracks.do(_.play)
+		self.tracks.do(_.play);
+		self.sidePlayers.do(_.play);
+	},
+
+	stop: { arg self;
+		self.tracks.do(_.stop);
+		self.sidePlayers.do(_.stop);
 	},
 
 ));

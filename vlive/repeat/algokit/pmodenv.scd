@@ -28,18 +28,18 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 		timestr = Plazy({ ev[\dur] }).loop.asStream;
 
 		valstr.do { arg val;
-			var time = timestr.next.debug("time");
+			var time = timestr.next;
 			var prev = previous;
-			val.debug("val");
-			previous.debug("previous");
+			//val.debug("val");
+			//previous.debug("previous");
 			ev[\finish] = {
 				Pbind(
 					\instrument, \modenv,
 					\out, bus,
 					\env, [ Env([0,prev,val],[0,time]/TempoClock.default.tempo) ],
-					\bla, Prout({ arg ev; ev[\env][0].asCompileString.debug("kj"); 1.yield }).loop,
+					//\bla, Prout({ arg ev; ev[\env][0].asCompileString.debug("kj"); 1.yield }).loop,
 					\dur, Pseq([time],1),
-				).trace.play;
+				).play;
 			};
 			previous = val;
 			ev = bus.asMap.yield;
@@ -66,20 +66,27 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 				} {
 					timepat.asStream;
 				};
-				valstr.do { arg val;
-					var prev = previous;
-					time = timestr.next.debug("time");
-					val.debug("val");
-					previous.debug("previous");
-					sp.seq(Pbind(
-						\instrument, \modenv,
-						\out, bus,
-						\env, [ Env([0,prev,val],[0,time]/thisThread.clock.tempo) ],
-						//\bla, Prout({ arg ev; ev[\env][0].asCompileString.debug("kj"); 1.yield }).loop,
-						\dur, Pseq([time],1),
-					).trace);
-					previous = val;
-					//"kj==========aaa".debug;
+				block { arg break;
+
+					valstr.do { arg val;
+						var prev = previous;
+						time = timestr.next;
+						if(time.isNil) { 
+							time = 2;
+							break.value;
+						};
+						//val.debug("val");
+						//previous.debug("previous");
+						sp.seq(Pbind(
+							\instrument, \modenv,
+							\out, bus,
+							\env, [ Env([0,prev,val],[0,time]/thisThread.clock.tempo) ],
+							//\bla, Prout({ arg ev; ev[\env][0].asCompileString.debug("kj"); 1.yield }).loop,
+							\dur, Pseq([time],1),
+						));
+						previous = val;
+						//"kj==========aaa".debug;
+					};
 				};
 				//"kj==end of loop========aaa".debug;
 				running = false;
@@ -107,7 +114,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 		var running = true;
 		var finfun;
 
-		CmdPeriod.doOnce({ bus.free });
+		CmdPeriod.doOnce({ if(bus.index.notNil) {bus.free} });
 
 		finfun = ({
 			Pspawner({ arg sp;
