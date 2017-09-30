@@ -1,8 +1,13 @@
 
 (
+FileSystemProject.load("lib/piano.scd");
 ProtoDef(\piano, (
 	startControl: { arg self, target;
 		~apro_device_id.debug("A-PRO device id");
+		if(target.isNil) {
+			target = Pdef(\piano_player, Pbind(\instrument, \default));
+			MIDIMap(\apk9,Param(Pdef(\piano_player), \amp).setBusMode);
+		};
 		if(self.playergroup.notNil) {
 			self.playergroup.stop;
 		};

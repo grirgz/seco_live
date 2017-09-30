@@ -6,7 +6,7 @@ Ndef(~name+++\fx).quant = Pdef.defaultQuant;
 BusDef(~name+++\fx, \audio,2);
 ~make_fx.();
 Ndef(~name+++\fx).set(\inbus, BusDef(~name+++\fx));
-[\1,\2,\3,\4,\5,\6,\7].do { arg name; ~set_out_bus.(name, BusDef(~name+++\fx)) }
+[\1,\2,\3,\4,\5,\6,\7].do { arg name; ~set_out_bus.(name, BusDef(~name+++\fx).index) }
 
 // END
 

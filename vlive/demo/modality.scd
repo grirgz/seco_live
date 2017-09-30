@@ -5,6 +5,7 @@ MKtl('midi_2_launch', 'midi_2_launchpad_s');
 MKtl('icon', "icon-icontrols");
 k = MKtl('icon')
 k.gui;
+k[\sl][0].action { arg kn; ~param.normSet(kn.value) } // map first slider to a param
 
 k.elementGroup;
 k.postElements;

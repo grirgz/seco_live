@@ -13,7 +13,7 @@ SynthDef(\playersec_fx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, s
 	//sig = Pan2.ar(sig, pan, 1).sum;
 	Out.ar(out, sig * \gain.kr(1) * velamp);
 }).add;
-MenuSpecDef(\patkitdef_synthdefs).addUnique(\playersec);
+MenuSpecDef(\patkitdef_synthdefs).addUnique(\playersec_fx);
 
 SynthDef(\noiser, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, tsustain=1;
 	var sig;

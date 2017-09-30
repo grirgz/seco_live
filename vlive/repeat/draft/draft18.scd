@@ -77,6 +77,8 @@
 
 );
 
+~t = 185/4/60; TempoClock.default.tempo = ~t;
+
 (
 SynthDef(\chord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -1949,7 +1951,7 @@ Pdef(\drumz, Ppar([
 			\dur, 1/8,
 			\amp, 0.1/2,
 		),
-]))
+])).play
 )
 
 (

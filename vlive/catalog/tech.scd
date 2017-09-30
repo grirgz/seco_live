@@ -387,6 +387,102 @@ SynthDef(\amdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }).add;
 );
 
+
+
+//////////////////////// FMGrain
+// en fait on peut faire blindé de trucs avec FMGrain
+
+
+(
+SynthDef(\fm_grain_test, {arg gate = 1, amp = 1, freq=200, fratio=2, pan=0;
+	var sig = FMGrain.ar(
+		Impulse.ar(200), 0.14, freq, freq*fratio,
+		LFNoise1.ar(500!2).range(1, 10),
+	);
+	sig = sig * EnvGen.kr(
+		Env([0, 1, 0], [1, 1], \sin, 1),
+		gate,
+		doneAction: 2
+	);
+	sig = sig /4;
+	sig = Pan2.ar(sig, pan, amp).sum;
+    Out.ar(0, sig);
+}).add;
+)
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \fm_grain_test,
+	\fratio, Pseq([1,2,3/2,1.21314],inf),
+	\degree, Pseq([0,2],inf),
+	\octave, 3,
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+
+(
+SynthDef(\fm_grain_test, {arg gate = 1, amp = 1, freq=200, fratio=2, pan=0;
+	var sig = FMGrain.ar(
+		Impulse.ar(240 * ( 1 + ( SinOsc.ar(4*~t) * 0.1 ))), 0.14, freq, freq*fratio * ( 1 + ( SinOsc.ar(freq*8) * 0.01 )),
+		LFSaw.ar(200!2).range(0.1, 11),
+	);
+	sig = sig * 1/4;
+	sig = LeakDC.ar(sig);
+	sig = HPF.ar(sig, 180);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.4)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).sum;
+    Out.ar(0, sig);
+}).add;
+)
+(
+Pdef(\plop, Pbind(
+	\instrument, \fm_grain_test,
+	\fratio, 1/2,
+	\fratio, Pseq([1,2,3/2,1.21314],inf),
+	\degree, Pseq([0,2],inf),
+	\octave, Pseq([3,4],inf).stutter(2),
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+
+(
+SynthDef(\fm_grain_test, {arg gate = 1, amp = 1, freq=200, fratio=2, pan=0;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig;
+	
+	env1 = EnvGen.kr(Env([1,8,31],[0.3,1.8]), 1);
+	sig = FMGrain.ar(
+		Impulse.ar(40 * ( 1 + ( SinOsc.ar(20*~t) * 0.1 ))), 0.14, freq * [1,2,1/2], freq*fratio * ( 1 + ( SinOsc.ar(freq*1) * 0.001 )),
+		LFSaw.ar([ 200!2 ]).range(0.1, 1 * env1),
+	).sum;
+	sig = sig * 1/4;
+	sig = LeakDC.ar(sig);
+	sig = HPF.ar(sig, 180);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(1.4,0.1,0.8,1.4)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).sum;
+    Out.ar(0, sig);
+}).add;
+)
+
+(
+Pdef(\plop, Pbind(
+	\instrument, \fm_grain_test,
+	\fratio, 1/2,
+	\fratio, Pseq([1],inf),
+	\degree, Pseq([
+		[0,2,4],
+		[0,2-12,4],
+		[0,2,4],
+		[3,5-12,7],
+	],inf),
+	\octave, Pseq([4,5],inf).stutter(2),
+	\legato, 1,
+	\dur, 2,
+	\amp, 0.1/8
+)).play;
+);
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 //////////////////////////////// architecture

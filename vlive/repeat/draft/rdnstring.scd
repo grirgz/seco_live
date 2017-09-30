@@ -11,12 +11,14 @@ RandDelayNetwork(\deldefault).tree
 	};
 	~rdn_to_fbstring = { arg rdn;
 		var str = ~rdn_to_string.(rdn);
+		var pbindcode = rdn.getPbindCompileString;
 		"
 		SynthDef(\\rdnfx, { arg out=0, gate=1;
 			var sig;
 			var si, env = ();
 			var in = InFeedback.ar(\\inbus.kr(BusDef(\\fx1, \\audio)), 2); 
 
+			thisThread.randSeed = %;
 
 			sig = LocalIn.ar(2) * \\fb.kr(0.1) + in;
 			si = sig;
@@ -24,10 +26,10 @@ RandDelayNetwork(\deldefault).tree
 			sig = Limiter.ar(sig);
 			LocalOut.ar(sig);
 
-			sig = MidEQ.ar(sig, \\eqmid1b.kr(12000), \\eqrq1b.kr(1), \\eqdb1b.kr(0));
-			sig = MidEQ.ar(sig, \\eqmid2b.kr(7000), \\eqrq2b.kr(1), \\eqdb2b.kr(0));
-			sig = HPF.ar(sig, \\ehpf.kr(140), \\ehprq.kr(1));
-			sig = LPF.ar(sig, \\elpf.kr(10000), \\elprq.kr(1));
+			//sig = MidEQ.ar(sig, \\eqmid1b.kr(12000), \\eqrq1b.kr(1), \\eqdb1b.kr(0));
+			//sig = MidEQ.ar(sig, \\eqmid2b.kr(7000), \\eqrq2b.kr(1), \\eqdb2b.kr(0));
+			//sig = HPF.ar(sig, \\ehpf.kr(140), \\ehprq.kr(1));
+			//sig = LPF.ar(sig, \\elpf.kr(10000), \\elprq.kr(1));
 			sig = SelectX.ar(\\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
 			sig = Splay.ar(sig, \\spread.kr(1), 1, \\pan.kr(0));
 			sig = sig * \\gain.kr(1);
@@ -35,7 +37,9 @@ RandDelayNetwork(\deldefault).tree
 			Out.ar(out, sig);
 
 		}).add;
-		".format(str)
+
+		%
+		".format(rdn.class.codeToSeeds(rdn.code)[2], str, pbindcode)
 	};
 	~tree_to_string = { arg tree, dict, envir, level=0;
 		var str = "";
@@ -60,7 +64,9 @@ RandDelayNetwork(\deldefault).tree
 				}
 			)
 		} {
-			"%".format(dict[tree].asCompileString.drop(2).drop(-7).replace("arg si;", "").replace("arg si, env;", "")).replace("\t", "").drop(1);
+			var ss = dict[tree].asCompileString;
+			//"%".format(ss.drop(2).drop(-7).replace("arg si;", "").replace("arg si, env;", "")).replace("\t", "").drop(1);
+			"%".format(ss.drop(2).replace("arg si;", "").replace("arg si, env;", "")).replace("\t", "").drop(1).drop(-3);
 			//"%.value(si, env)".format(dict[tree].asCompileString.replace("\t\t", ""));
 
 		}
@@ -89,14 +95,25 @@ RandDelayNetwork(\deldefault).tree
 
 )
 
+// END
+
 	~rdn_to_fbstring.(RandDelayNetwork(\deldefault)).editorInsert
 
 
 
+	~s = RandDelayNetwork(\del3).dict[\shift].asCompileString
+	~s = RandDelayNetwork(\del3).dict[\delay].asCompileString
+
+			"%".format(~s.drop(2).drop(-7).replace("arg si;", "").replace("arg si, env;", "")).replace("\t", "").drop(1);
+			"%".format(~s.drop(2).replace("arg si;", "").replace("arg si, env;", "")).replace("\t", "").drop(1).drop(-3);
+			~s
+			~s.keep(~s.findRegexp("}$")[0][0])
+	Main.version
 
 
 (
 	// POC syntax
+
 {
 	var si;
 	si = 2;
