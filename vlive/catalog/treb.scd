@@ -1,3 +1,4 @@
+(
 SynthDef(\chordb, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
 	var sig, sig1, sig2, sig3;
 	sig = {arg x; 
@@ -39,6 +40,7 @@ Pdef(\chordb, Pbind(
 	],inf),
 	\isRest, false,
 )).play;
+)
 
 /////////////////////////////////:
 
@@ -668,9 +670,9 @@ Ndef(\trebfx).put(0, { arg amp=0.1;
 	],inf));
 
 	freq = EnvGen.kr(
-		Env([400,200,200,120],[4.1,0.8,8.1], [-4]) , trig, timeScale:0.1) 
+		Env([410,221,270,120.12],[4.1,0.8,8.1], [-4]) , trig, timeScale:0.1) 
 		* TRand.kr(0.3,1.5, trig);
-	freq =  TChoose.kr(trig, [500,250,750]) + TRand.kr(0.3,8.5, trig);
+	//freq =  TChoose.kr(trig, [500,250,750]) + TRand.kr(0.3,8.5, trig);
 	freq = freq * [1,1+EnvGen.kr(Env([1,2,1]/100,[4.1,8.8], trig)),-3.midiratio + TRand.kr(0.000,0.001, trig)];
 	
 	sig1 = LFSaw.ar(freq);
@@ -738,6 +740,7 @@ Pdef(\treb, Pmono(\distbass,
 )
 
 //////////////
+(
 SynthDef(\distreb, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
 	var sig, sig1, sig2, sig3;
 	freq = SinOsc.ar(freq*\fmfreq.kr(1).lag(0.3)) * \fmrange.kr(0.5).lag(0.3) * LFNoise1.kr(1/7).range(0.9,1.1) + 1 * freq;
@@ -753,6 +756,7 @@ SynthDef(\distreb, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, do
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
+)
 (
 Pdef(\treb, Pmono(\distreb,
 	\freq, 70 * Pseq(( [0,1]+(2*12) ).midiratio,inf).stutter(16*2),
@@ -867,3 +871,90 @@ Ndef(\treb).put(0, { arg amp=0.1;
 }).play;
 
 )
+
+/////////////////////////////////////////
+
+
+(
+SynthDef(\treb, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	var env;
+	freq = freq.lag(\flag.kr(0.1));
+	env = EnvGen.ar(Env([0.1,1.1,4.4],[0.01,1]),gate,doneAction:0);
+	//sig = SinOsc.ar(freq * [1,1.001]);
+	//sig = sig + LFPulse.ar(freq * [1,1.001]);
+	sig1 = SinOsc.ar(freq, SinOsc.kr(XLine.kr(1000,0.001,0.11)));
+	sig = SinOsc.ar(freq * [1,1/2,2,1.001], sig1 * \ampB.kr(1));
+	sig = SelectX.ar(\select1.kr(0.5), [sig, sig1]);
+
+	sig = LeakDC.ar(sig);
+	sig = RLPF.ar(sig, (freq*[1.01,2.1,2,1] * \lfratio.kr(1)).clip(10,18000));
+	sig = sig * EnvGen.ar(\iadsr.kr(Env.adsr(0.01,0.1,0.8,0.01)),\igate.kr(1),doneAction:0);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+Ndef(\lfo1, { 
+	var freq = Duty.kr(2/~t,0,Dseq([4,8,2,1],inf));
+	SinOsc.kr(freq / ~t / 4 ).range(0,10)  
+});
+Ndef(\lfo1).quant = Pdef.defaultQuant;
+
+Ndef(\lfo2, { 
+	var freq = Duty.kr(2/~t,0,Dseq([4,8,2,1],inf));
+	SinOsc.kr(freq / ~t / 4 ).range(0,1)  
+});
+Ndef(\lfo2).quant = Pdef.defaultQuant;
+
+Pdef(\treb, PmonoArtic(\treb,
+	//\freq, Pseq([])462,
+	\degree, Pseq([
+		-3,0,-8,0,
+		-3,0,4,0,
+	],inf).stutter(4),
+	\freq, Pstep(Pseq([200,220,210,230],inf),4),
+	\freq, Pstep(Pseq([200,220,210,230],inf),4) * Pseq([1,2,1,1, 0.5,2,1,4],inf).stutter(6) * 2,
+	\octave, 6,
+	\adsr, Pseq([
+		[ Env.adsr(0.01,0.1,0.8,0.04) ],
+	],inf),
+	\iadsr, Pseq([
+		[ Env.adsr(0.01,0.1,0.8,0.04) ],
+		[ Env.adsr(0.01,0.1,0.8,0.14) ],
+	],inf),
+	\legato, 1,
+	\ampB, 1000.01,
+	\ampB, 0.01,
+	\dur, 1/8,
+	\select1, 0,
+	\ampB, Ndef(\lfo1),
+	\select1, Ndef(\lfo2),
+	\lfratio, 9,
+	\igate, Pseq([
+		1,0,1,1, 0,0,1,0,
+		1,0,0,0, 1,0,0,0,
+		1,0,0,0, 1,0,0,0,
+		1,0,1,1, 0,0,1,0,
+	],inf),
+	\isRest, Pseq([1,1,1,1],inf).coin.not,
+)).play;
+)
+
+///////////////////////////////////////////////
+
+(
+Ndef(\clochete, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig = SinOsc.ar(freq);
+	sig1 = Dust.ar(10 * SinOsc.kr(1/8).range(10,1/2));
+	sig1 = Ringz.ar(sig1, rrand(100,10000.0!8) * LFNoise0.kr(1/2).range(1/4,1), 1.1).mean/2;
+	sig2 = Dust.ar(7);
+	sig2 = Ringz.ar(sig2, rrand(100,10000.0!8), 1.1).mean/2;
+	sig = sig1 + sig2;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);

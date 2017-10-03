@@ -9,6 +9,90 @@ Pdef(\quart,
 			\dur, 1/8,
 			\amp, 0.1,
 		),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 0,
+			\isRest, Pseq({[
+				1,0,1,0,
+			].clump(8).choose}.dup(8).flat,inf).coin.not,
+			\sustain, 0.1/8,
+			\dur, 1/8,
+			\amp, 0.1,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 9,
+			\isRest, Pseq([
+				0,0,0.51,1,
+				0.1,0.1,0.51,1,
+			],inf).coin.not,
+			\sustain, 0.1/8 * Pseq([1,Pwhite(1,3.1,1)],inf),
+			\gain, 2,
+			\speed, Pseq([1.4,1],inf) * Pwhite(1,1.1),
+			\dur, 1/16,
+			\amp, 0.1,
+		)),
+	])
+).play;
+)
+
+(
+Pdef(\quart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\freq, 200 * Pseg(Pseq([1,1/2,3/4,2],inf),1/4) * Pseg(Pseq([1,2],inf),1),
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/16,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \distbass,
+			\freq, 40 * Pseq([
+				1,1,1,1.3,
+				1,1,1,1.6,
+			]+0.5,inf),
+			\sustain, Pseq([
+				1,2,1,1,
+				1,1,1,1,
+				2,1,1/2,1,
+				3,1/2,1,1/2,
+			],inf)*0.1,
+			\fmfreq, 2.1,
+			\lpf, 1000,
+			\fmrange, 0.1 * Pseq([
+				Pser([
+					1/10
+				],8),
+				Pser([
+					10
+				],8),
+			],inf),
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 0,
+			\isRest, Pseq({[
+				1,0,1,0,
+			].clump(8).choose}.dup(8).flat,inf).coin.not,
+			\sustain, 0.1,
+			\dur, 1/8,
+			\amp, 0.1,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 9,
+			\isRest, Pseq([
+				0,0,0.51,1,
+				0.1,0.1,0.51,1,
+			],inf).coin.not,
+			\sustain, 0.1/8 * Pseq([1,Pwhite(1,3.1,1)],inf),
+			\gain, 2,
+			\speed, Pseq([1.4,1],inf) * Pwhite(1,1.1),
+			\dur, 1/16,
+			\amp, 0.1,
+		)),
 	])
 ).play;
 )

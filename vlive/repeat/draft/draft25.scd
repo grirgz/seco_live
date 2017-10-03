@@ -146,6 +146,9 @@ SynthDef(\busgroup, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 );
 
 
+	ProtoDef(\rdn).loadDefaultPreset;
+	ProtoDef(\rdn).genfx;
+	ProtoDef(\rdn).edit;
 (
 
 	ProtoDef(\simpleMixer).tracks[0].proxy.set(\send0, 1);

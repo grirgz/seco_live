@@ -455,3 +455,407 @@ SynthDef(\noiser, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, tsustain=1;
 			\dur, 1/8,
 			\amp, 0.1
 		),
+
+///////////////////////////////////////////////////
+// congas (or whatever)
+
+
+(
+SynthDef(\conga, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3, sig4, sig5;
+	sig1 = LFTri.ar(111);
+	sig1 = FreqShift.ar(sig1, 175);
+	sig1 = sig1 + FreqShift.ar(sig1, [224 * \harm2.kr(1),224 * \harm1.kr(1)]);
+	sig1 = sig1 * EnvGen.ar(Env.perc(0.0001,0.22), gate);
+
+	sig2 = SinOsc.ar(330) + SinOsc.ar(180);
+	sig2 = sig2 * EnvGen.ar(Env.perc(0.0001,0.151), gate);
+
+	sig3 = PinkNoise.ar(1);
+	sig3 = BRF.ar(sig3, [100,800,300,400]*2).sum;
+	sig3 = LPF.ar(sig3, [5000,6000,100,10000]*1);
+	sig3 = sig3 * EnvGen.ar(Env.perc(0.0001,0.201, 1, \sqr), gate);
+
+	sig4 = WhiteNoise.ar(1);
+	sig4 = BRF.ar(sig4, [100,900,300,400]*4).sum;
+	sig4 = LPF.ar(sig4, [500,4000,100,1000]*2*XLine.kr(1,0.100,0.01));
+	sig4 = sig4 * EnvGen.ar(Env.perc(0.0001,0.251, 1, \cub), gate);
+
+	sig5 = PinkNoise.ar(1) * sig2;
+	//sig5 = BRF.ar(sig5, [100,800,300,400]*2).sum;
+	sig5 = LPF.ar(sig5, [500,600,100,1000]*0.21);
+	sig5 = sig5 * EnvGen.ar(Env.perc(0.0001,0.111, 1, \sqr), gate) * 4;
+
+	sig = sig1 + sig3 + sig4 + sig5;
+	//sig = (HPF.ar(sig,100)*14).distort + LPF.ar(sig, 100);
+	sig = sig * 2;
+
+
+
+
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.0001,0.1,0.8,2.4)),gate,doneAction:doneAction);
+	//sig = DetectSilence.ar(sig, doneAction:2);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+
+Pdef(\conga, Pbind(
+	\instrument, \conga,
+	\harm1, Pseq([
+		Pseq([1,1.92],12).stutter(4),
+		Pseq([1.2,1.42],4).stutter(4),
+	],inf),
+	\freq, 100,
+	\dur, 1/8,
+	\isRest, Pseq([
+		Pser([
+			0,0,0,0, 1,0,0,0,
+			0,0,1,0, 0,0,0,0,
+			0,0,0,0, 1,0,0.5,0,
+			0.51,0,0,0, 1,0,0,0,
+		],inf),
+	],inf).coin.not,
+)).play;
+)
+
+//////////////////////////
+
+(
+SynthDef(\hardhat, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3, sig4, sig5;
+	sig1 = LFTri.ar(111);
+	sig1 = FreqShift.ar(sig1, 175);
+	sig1 = sig1 + FreqShift.ar(sig1, 224);
+	sig1 = sig1 * EnvGen.ar(Env.perc(0.0001,0.02), gate);
+
+	sig2 = SinOsc.ar(330) + SinOsc.ar(180);
+	sig2 = sig2 * EnvGen.ar(Env.perc(0.0001,0.051), gate);
+
+	sig3 = PinkNoise.ar(1);
+	sig3 = BRF.ar(sig3, [100,800,300,400]*2).sum;
+	sig3 = LPF.ar(sig3, [5000,6000,100,10000]*2);
+	sig3 = sig3 * EnvGen.ar(Env.perc(0.0001,0.151), gate);
+
+	sig4 = WhiteNoise.ar(1);
+	sig4 = BRF.ar(sig3, [100,800,300,400]*2).sum;
+	sig4 = LPF.ar(sig3, [5000,6000,100,10000]*1);
+	sig4 = sig3 * EnvGen.ar(Env.perc(0.0001,0.151), gate);
+
+	sig = sig1 + sig2 + sig3 + sig4;
+	sig = (HPF.ar(sig,100)*14).distort + LPF.ar(sig, 100);
+	sig = sig * 1;
+
+
+
+
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.0001,0.1,0.8,0.4)),gate,doneAction:doneAction);
+	//sig = DetectSilence.ar(sig, doneAction:2);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+
+Pdef(\hardhat, Pbind(
+	\instrument, \hardhat,
+	\freq, 100,
+	\dur, 1/8,
+	\isRest, Veco(~namex).isrest(16),
+	\isRest, Pseq([
+		Pser([
+			0,0,0,0, 0,0,0,0,
+			1,0,0,0, 0,0,0,0,
+		],inf),
+	],inf).coin.not,
+)).play;
+);
+
+//////////////////////////////////////////////
+
+// frapper sur de la taule
+
+(
+SynthDef(\taule, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3, sig4, sig5;
+	var osig, asig;
+	sig1 = LFTri.ar(291);
+	sig1 = FreqShift.ar(sig1, 75);
+	sig1 = sig1 + FreqShift.ar(sig1, 24);
+	sig1 = sig1 * EnvGen.ar(Env.perc(0.0001,0.01), gate) * 1;
+
+	sig2 = SinOsc.ar(330) + SinOsc.ar(210);
+	sig2 = sig2 * EnvGen.ar(Env.perc(0.0001,0.03), gate) * 1;
+
+	sig3 = SinOsc.ar(100, SinOsc.ar(10, SinOsc.ar(40)) * 122);
+	sig3 = SinOsc.ar(615.00, 
+		LFSaw.ar(410.87) +
+			WhiteNoise.ar(2) +
+		SinOsc.ar(487, 
+			WhiteNoise.ar(4) +
+			SinOsc.ar(4390, 
+				WhiteNoise.ar(1) +
+				SinOsc.ar(497) * 10.43) 
+			* 1.250) 
+		* 1.31);
+	//sig3 = WhiteNoise.ar(1);
+	sig3 = BRF.ar(sig3, [100,800,300,400]*1).sum;
+	sig3 = BPF.ar(sig3, [100,100,100,200]*6);
+	sig3 = sig3 * EnvGen.ar(Env.perc(0.0001,0.151, 1, \sqr), gate);
+
+	sig4 = WhiteNoise.ar(1);
+	sig4 = BRF.ar(sig4, [100,800,1900,400,900]*2).sum;
+	sig4 = BPF.ar(sig4, [500,3000,740,1000]*1*XLine.kr(1,0.1100,[0.13,0.1,0.3]));
+	sig4 = sig4 * EnvGen.ar(Env.perc(0.0001,0.451, 1, \cub), gate);
+	asig = sig4;
+
+	sig4 = WhiteNoise.ar(1);
+	sig4 = BRF.ar(sig4, [100,800,1900,400,900]*1).sum;
+	sig4 = LPF.ar(sig4, [500,3000,740,1000]*1*XLine.kr(1,0.5100,[0.13,0.1,0.3]));
+	sig4 = sig4 * EnvGen.ar(Env.perc(0.0001,0.451, 1, -4), gate);
+
+	sig = 
+		0
+		+ sig1
+		+ sig2 
+		+ sig3
+		+ sig4
+		+ asig
+		;
+	sig = (HPF.ar(sig,4000 * XLine.kr(1,0.01,0.02))*4).tanh + LPF.ar(sig, 1200);
+
+
+	osig = sig;
+	sig = AllpassL.ar(sig,0.1,[0.012,0.02,0.014,0.0132] *2,0) + sig;
+	sig = AllpassL.ar(sig,0.1,0.001,0) + sig;
+	sig = LPF.ar(sig, 3000);
+	//sig = BRF.ar(sig, [100,940,1700,4000,9000]*1) / 2;
+	sig = sig + osig;
+	//sig = osig;
+	sig.postln;
+	sig = sig * 0.51;
+
+
+	//sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.00001,0.1,0.1,0.2,1,\sqr)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan);
+	DetectSilence.ar(sig, 0.001,0.1,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+
+Pdef(\perc, Pbind(
+	\instrument, \taule,
+	\freq, 100,
+	\dur, 1/4,
+	\isRest, Pseq([
+		Pser([
+			1,0,0,0, 0,0,0,0,
+		],inf),
+	],inf).coin.not,
+)).play;
+)
+
+///////////
+(
+SynthDef(\taule, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3, sig4, sig5;
+	var osig, asig;
+	sig1 = LFTri.ar(291);
+	sig1 = FreqShift.ar(sig1, 75);
+	sig1 = sig1 + FreqShift.ar(sig1, 24);
+	sig1 = sig1 * EnvGen.ar(Env.perc(0.0001,0.01), gate) * 1;
+
+	sig2 = SinOsc.ar(330) + SinOsc.ar(210);
+	sig2 = sig2 * EnvGen.ar(Env.perc(0.0001,0.03), gate) * 1;
+
+	sig3 = SinOsc.ar(100, SinOsc.ar(10, SinOsc.ar(40)) * 122);
+	sig3 = SinOsc.ar(615.00, 
+		LFSaw.ar(410.87) +
+			WhiteNoise.ar(2) +
+		SinOsc.ar(487, 
+			WhiteNoise.ar(4) +
+			SinOsc.ar(4390, 
+				WhiteNoise.ar(1) +
+				SinOsc.ar(497) * 10.43) 
+			* 1.250) 
+		* 1.31);
+	//sig3 = WhiteNoise.ar(1);
+	sig3 = BRF.ar(sig3, [100,800,300,400]*2).sum;
+	sig3 = BPF.ar(sig3, [100,100,100,200]*1);
+	sig3 = FreqShift.ar(sig3, -400)+sig3/2;
+	sig3 = FreqShift.ar(sig3, 300)+sig3/2;
+	sig3 = sig3 * EnvGen.ar(Env.perc(0.1001,0.151, 1, -1), gate);
+
+	sig4 = WhiteNoise.ar(1);
+	sig4 = BRF.ar(sig4, [100,800,1900,400,900]*2).sum;
+	sig4 = BPF.ar(sig4, [500,3000,740,1000]*1*XLine.kr(1,4.7100,[0.13,0.1,0.3]));
+	sig4 = sig4 * EnvGen.ar(Env.perc(0.0001,0.151, 1, \cub), gate);
+	asig = sig4;
+
+	sig4 = WhiteNoise.ar(1);
+	sig4 = BRF.ar(sig4, [100,800,1900,400,900]*2).sum;
+	sig4 = LPF.ar(sig4, [500,3000,740,1000]*1*XLine.kr(1,2.7100,[0.13,0.1,0.3]));
+	sig4 = sig4 * EnvGen.ar(Env.perc(0.1001,0.051, 1/2, 4), gate);
+
+	sig = 
+		0
+		+ sig1
+		+ sig2 
+		+ sig3
+		+ sig4
+		+ asig
+		;
+	sig = (HPF.ar(sig,4000 * XLine.kr(1,0.51,0.02))*4).tanh + LPF.ar(sig, 1200);
+
+
+	osig = sig;
+	sig = AllpassL.ar(sig,0.1,[0.012,0.02,0.014,0.0132] *2,0) + sig;
+	sig = AllpassL.ar(sig,0.1,0.001,0) + sig;
+	sig = LPF.ar(sig, 3000);
+	//sig = BRF.ar(sig, [100,940,1700,4000,9000]*1) / 2;
+	sig = sig + osig;
+	//sig = osig;
+	sig.postln;
+	sig = sig * 0.51;
+
+
+	//sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.00001,0.1,0.1,0.2,1,\sqr)),gate,doneAction:doneAction);
+	//sig = Splay.ar(sig, spread, amp, pan);
+	sig = Pan2.ar(sig, pan, amp).mean*2;
+	DetectSilence.ar(sig, 0.001,0.1,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+
+Pdef(\perc, Pbind(
+	\instrument, \taule,
+	\freq, 100,
+	\dur, 1/4,
+	\isRest, Pseq([
+		Pser([
+			1,0,0,0, 0,0,0,0,
+		],inf),
+	],inf).coin.not,
+)).play;
+)
+
+///////////////////////////////////////////////
+//racle perc
+
+
+(
+~buf = BufDef(\crepe, "field/crepe.flac");
+Pdef(\racle, 
+	Pbind(
+		\instrument, \oscsampler3,
+		\pos, 0.014 + Pseq([0,1,0,2],inf).stutter(8)/100,
+		\pos, 0.110,
+		\freq, Pseq([100,200,150,200]*4,inf) * Pseg(Pseq([0.25,2],inf),10),
+		\range, 0.000001,
+		\posenv, Pseq([
+			//[ Env([0.42,0.3903,0.3513],[0.3,0.4]) ],
+			//[ Env([0.00,0.0189,0.401].integrate.postln,[0.01,0.1]) ],
+			[ Env([0.00,0.0011,0.0012].integrate.postln,[0.01,0.1]) ],
+			[ Env([0.00,0.0001,0.0012].integrate.postln,[0.01,0.1]) ],
+			[ Env([0.00,0.0001,0.0012].integrate.postln,[0.01,0.1]) ],
+			[ Env([0.00,0.0001,0.0012].integrate.postln,[0.01,0.1]) ],
+		],inf),
+		//\finepos, ~envNdefq.(~name+++\lfo1, Env([1,2]/100,1/t)),
+		\legato, Pseq([0.4,0.2,0.8,0.2],inf) * Pseg(Pseq([0.5],inf),8),
+		\dur, 1/4,
+		\fshift, 0,
+		\lpmix, Pseq([0,0,0.56,1, 0,1,0,1, 0.2,0.5,0.7,0.2],inf),
+		\isRest, false,
+		\ffreq, Pseq([1000,500],inf).stutter(1),
+		\amp, 24.0 * Pkey(\amp),
+		\amp, Pkey(\amp) * Pseq([
+			0.5,0.2,1,0.2,
+			0.7,0.4,1,0.2,
+		],inf) + Pwhite(0.0,0.1),
+
+	) <>
+	
+	Pbind(
+		\pos, Pseq([0.0,0.01,0.02,0.03],inf),
+		\pos, Pseg(Pseq([0,0.1],inf),32)+0.8,
+		\pos, 0.172,
+		\posenv, Pseq([
+			//[ Env([0.42,0.3903,0.3513],[0.3,0.4]) ],
+			[ Env([0.001,0.002,0.004].integrate.postln,[0.01,0.1]) ],
+			[ Env([0.001,0.003,0.004].integrate.postln,[0.01,0.1]) ],
+			[ Env([0.101,0.0013,0.004].integrate.postln,[0.01,0.1]) ],
+		],inf),
+		\fshift, 0,
+		\fshift, -48,
+		\fshift, Pseq([0,48,-40],inf),
+		\lpmix, 0.79,
+		\rq, 0.1,
+		\posenv, Pseq([
+			//[ Env([0.42,0.3903,0.3513],[0.3,0.4]) ],
+			[ Env([0.001,0.0089,-0.3481].integrate.postln,[0.01,0.1]) ],
+		],inf),
+		//\pos, Ndef(~name+++\lfo1),
+		//\pos, Pseq([0,0.1,0.5],inf) + Pwhite(0,0.01),
+		//\finepos, Ndef(~name+++\lfo1),
+		//\range, Pseg(Pseq([0.001,0.21],inf),8),
+		//\range, Ndef(~name+++\lfo2),
+		\range, 0.0001,
+		\ffreq, Pseq([100,300,200,200],inf),
+		\ffreq, Pseq([60,1000,3000,200,2000],inf),
+		\ffreq, Pseq([60,70,100,120],inf),
+		\ffreq, Pseq([3000,120],inf),
+		\ffreq, Pseq([6000,4000,120,300],inf),
+		\ffreq, Pwhite(50,10000).stutter(16),
+		//\ffreq, 2000,
+		\bufnum, ~buf,
+		\freq, Pseq([
+			Pser([50,55],16),
+			Pser([40,45],16-4),
+			100,1040,120,300,
+		],inf),
+		\ffreqtab, Pseq([[Array.series(8,0.5,0.1).postln]],inf),
+		\ffreqtab, Pn(Plazy({
+			[{ 1.rand } ! 8]
+		})),
+		\ffreqtab, Pseq([[Array.geom(8,1.8,1.2).postln]],inf),
+		\ffreqtab, Pseq([
+			[[2.3,3.2,0.1,0.1, 0.2,0.8,1.2,1.5]],
+		],inf),
+		\dur, 1/8,
+		\pos, Pwhite(0.0,0.4).stutter(32),
+		\pos, Pseq([0.1,0.1],inf).stutter(2),
+		\adsr, Pseq([
+			[ Env.adsr(0.01,0.3,0.5,0.01) ],
+		],inf),
+		\isRest, Pseq([1],inf).coin.not,
+		\isRest, Pseq([
+			Pser([1],1),
+			Pser([0,0,0,0],4),
+		],inf).coin.not,
+		\legato, Pseq([1,0.4,1,0.3, Pn(1,4)],inf),
+		\legato, Pseq([
+			Pser([1,1,1,1],32-4),
+			0.6,1.0,1.0,0.6
+		],inf),
+		\legato, Pseq([
+			1,0.2,0.1,0.2,
+			1,1,1,1,
+
+			1,0.2,0.1,0.2,
+			1,1,1,1,
+
+			1,0.5,1,1,
+			1,1,1,1,
+		],inf),
+		\legato, Pseq([
+			Pser([
+				1.0,1.3,0.9,0.8,
+				1.0,0.3,0.9,0.3,
+			], 64),
+			Pser([1,1,1,1],32),
+			Pser([1,0.31,1,1],32),
+		],inf).collect({ arg x; if(x == 1) { 1 } { if(x.coin) { 1 } { x.rand + 0.1 } } }),
+		\legato, Pseq([
+			1,1,1,1,
+			1,1,1,0.1,
+		],inf).stutter(4),
+		//\lag, Pseq([0.05, 0, 0.05, 0],inf) / t,
+		\isRest, false,
+	)
+).play;
+)
