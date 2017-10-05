@@ -143,6 +143,34 @@ SynthDef(\phycymbal, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(out, sig);
 }).add;
 
+SynthDef(\phycymbal2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fac1=1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig = SinOsc.ar(freq);
+	sig = WhiteNoise.ar;
+	env1 = EnvGen.kr(Env([8210,4100,4051],[0.1,0.8]), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
+	env2 = EnvGen.kr(Env([18210,200,451],[0.1,0.8],-4), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
+	sig = BPF.ar(sig, env1, LFNoise1.kr((1..8)/8).range(0.1,0.9));
+	sig = HPF.ar(sig, 20000-env2);
+	sig1 = sig;
+	//sig = RLPF.ar(sig, env2, \rq.kr(0.5));
+	sig = WhiteNoise.ar;
+	env3 = EnvGen.kr(Env([1,0.9,1]*Rand(0.91,1.1),[0.01+Rand(0,0.1),0.8]), 1);
+	sig = sig + Ringz.ar(sig, [9400,17030,16410,8000.14,15000] * env3, 0.001).mean/10;
+	env1 = EnvGen.kr(Env([8821,1810,13251],[0.01,0.8*fac1]), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
+	env2 = EnvGen.kr(Env([13820,14800,3151],[0.07,0.8*fac1],-4), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
+	sig = HPF.ar(sig, env1);
+	sig = LPF.ar(sig, env2);
+	sig2 = sig*1.3;
+
+	sig = sig1+sig2;
+
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,1.8,1,-4),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).sum;
+	Out.ar(out, sig);
+}).add;
+
 SynthDef(\stickfight, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
@@ -440,9 +468,8 @@ SynthDef(\noiser, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, tsustain=1;
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
-);
 
-		Pbind(
+		Pdef(\perc,Pbind(
 			\instrument, \noiser,
 			\lpfenv, [ Env([1,1,1/2,1],[0.1,0.1,0.8]) ],
 			\hpf, 200,
@@ -454,7 +481,8 @@ SynthDef(\noiser, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, tsustain=1;
 			\legato, 2,
 			\dur, 1/8,
 			\amp, 0.1
-		),
+		)).play;
+);
 
 ///////////////////////////////////////////////////
 // congas (or whatever)
@@ -737,7 +765,6 @@ Pdef(\perc, Pbind(
 ///////////////////////////////////////////////
 //racle perc
 
-
 (
 ~buf = BufDef(\crepe, "field/crepe.flac");
 Pdef(\racle, 
@@ -857,5 +884,60 @@ Pdef(\racle,
 		//\lag, Pseq([0.05, 0, 0.05, 0],inf) / t,
 		\isRest, false,
 	)
+).play;
+)
+
+/////////////////////////////////
+
+
+(
+SynthDef(\cling, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1/8,1,1/2,1/4],[0.01,1.7,4],-3), 1);
+	sig1 = ( 1 + ( SinOsc.ar(rrand(0.01,1000!4)) * rrand(0.1,10!4) ));
+	sig = SinOsc.ar(exprand(50.0,1000!4) * env1 * ( 1 + ( SinOsc.ar(rrand(0.01,1000!4) * sig1) * rrand(0.01,10!4))));
+	sig = sig * ( 1 + ( SinOsc.ar(rrand(100.0,1000!4)) * 1 ));
+	sig = CombL.ar(sig, 0.01,1/rrand(100.0,1000!14)) + sig;
+	sig = CombL.ar(sig, 0.01,1/rrand(100.0,1000!14)) + sig;
+	sig = ( sig*\distamp.kr(10) ).tanh * \distpostamp.kr(1/2);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.4,1,-4),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).mean * 4;
+	Out.ar(out, sig);
+}).add;
+Pdef(\cling, Pbind(\instrument, \cling,
+	\degree, Pseq([0],inf),
+	\legato, Pseq([
+		0.1,0.1, 0.1,0.1,
+	],inf),
+	\dur, 1,
+	\amp, 0.1,
+)).play;
+);
+
+
+/////////////////// funky drummer accelerated by pattern
+
+(
+Pdef(\test, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/funky3_135bpm.flac'),
+			\isRest, Pseq([
+				1,
+			],inf).coin.not,
+			\pos, Pseq([
+				Pseq((1..16))
+			],inf)/4/~t+0.04,
+			\speed, 1,
+			\gain, 1,
+			\freq, 200,
+			\legato, 1.00,
+			\dur, Pseq([1/8],inf),
+			\amp, 0.1,
+		),
+	])
 ).play;
 )

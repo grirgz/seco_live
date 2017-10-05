@@ -584,7 +584,7 @@
 	Spec.add(\delay3, \delay.asSpec);
 	Spec.add(\shift3, \shift.asSpec);
 	Spec.add(\shiftmix, \unipolar.asSpec);
-	Spec.add(\distamp, ControlSpec(0.01,100,\lin));
+	Spec.add(\distamp, ControlSpec(0.1,100,\exp));
 	Spec.add(\distamp2, \distamp.asSpec);
 	Spec.add(\distamp3, \distamp.asSpec);
 );

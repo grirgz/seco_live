@@ -1,4 +1,5 @@
 (
+ParamProto.init;
 
 ProtoDef(\simpleMixer, (
 
@@ -8,18 +9,24 @@ ProtoDef(\simpleMixer, (
 		self.tracks = self.trackCount.collect { arg index;
 			var mix = ~trackMixerDef.new(\mixer+++index);
 			debug("create mixer: "++index);
+
 			mix.inbus = BusDef(\mixer+++index, \audio, 2);
 			mix.define_mixer;
+			mix.stages[\postdelay] = mix.stages.postfx+1;
+			mix.proxy.put(mix.stages.postdelay, \filter -> { arg in, postdelay=0;
+				DelayC.ar(in, 0.1, postdelay);
+			});
 			4.do { arg x;
 				mix.proxy.set(\sendbus+++x, BusDef(\sendbus+++x, \audio, 2));
 			};
+
 			mix;
 		}
 	},
 
 	init: { arg self;
 		//if(self.initialized.isNil) {
-			self.trackCount = 8;
+			self.trackCount = 10;
 			self.initialized = true;
 		//}
 	},

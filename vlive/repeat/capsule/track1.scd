@@ -1,4 +1,21 @@
 (
+SynthDef(\chordb, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = {arg x; 
+		var isig;
+		var ffac = 8;
+		isig = LFSaw.ar( freq/2 * x + ExpRand(freq/64,2*freq/64));
+		isig = isig + LFPulse.ar( freq/ffac * x + ExpRand(freq/64/ffac,2*freq/64/ffac));
+
+		isig = RLPF.ar(isig, freq/2 * x + ExpRand(freq/64,2*freq/64)* LFNoise1.kr(1/4).range(1.1,1) * \lpffac.kr(2) , \rq.kr(0.5));
+	}!5;
+	sig = sig.scramble;
+	sig = TScramble.ar(sig, Impulse.kr(4),1);
+	//sig = FreqShift.ar(sig, 4 * SinOsc.kr(1/45).range(0,1)) + sig;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1.01,0.1,1,1.1)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan) / 7;
+	Out.ar(out, sig);
+}).add;
 SynthDef(\distbass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
 	var sig, sig1, sig2, sig3;
 	freq = SinOsc.ar(freq*\fmfreq.kr(1).lag(0.3)) * \fmrange.kr(0.5).lag(0.3) * LFNoise1.kr(1/7).range(0.9,1.1) + 1 * freq;
@@ -46,485 +63,381 @@ SynthDef(\cloche, { arg out=0, gate=1, freq=200, pan=0, amp=0.1;
 }).add;
 )
 
+
 (
-	~master.();
-Pdef(\track1_idea, 
-	Ppar([
-		PatKitDef(\sample1).asPattern(Pdef(\kick) <> Pbind(
-			\kitIndex, 0,
+
+		Pdef(\t1kick, Pdef(\kick) <> Pbind(
+			\instrument, \snapkick,
 			\isRest, Pseq([
-				1,0,0,0, 0,0,0,0,
+				1,0,1,0, 0,0,0,0,
+				0,0,0,1, 0,0,0,0,
+				1,0,0,0, 0,0,0,1,
+				0,0,0,0, 0,0,1,0,
+
+				1,1,0,1, 0,0,0,0,
+				0,0,0,1, 0,0,0,0,
+				1,0,0,1, 0,0,0,0,
 				0,0,0,0, 0,0,0,0,
 			],inf).coin.not,
-			\sustain, 1.1,
 			\dur, 1/8,
 			\amp, 0.1,
-		)),
-		PatKitDef(\sample1).asPattern(Pdef(\snare) <> Pbind(
-			\kitIndex, 0,
+		));
+		Pdef(\t1kick2,Pdef(\kick) <> Pbind(
+			\instrument, \snapkick2,
 			\isRest, Pseq([
 				0,0,0,0, 0,0,0,0,
 				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
-
 				0,0,0,1, 0,0,1,0,
 				0,1,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,1,0,
-				0,1,0,0, 0,0,0,0,
-
-				0,0,0,0, 0,0,1,0,
-				0,1,0,0, 1,0,0,0,
-				0,0,0,0, 0,0,1,0,
-				0,1,0,0, 0,0,0,0,
-
-				0,0,0,1, 0,0,1,0,
-				0,1,0,0, 0,0,0,0,
-				0,1,0,1, 0,0,0,0,
-				0,1,0,0, 1,0,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\amp, 0.1,
+		));
+		Pdef(\t1snare, Pdef(\snare) <> Pbind(
+			\instrument, \snaretuned,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
 			],inf).coin.not,
 			\sustain, 0.1/2,
 			\dur, 1/8,
-			\amp, 0.1,
-		)),
-		PatKitDef(\sample1).asPattern(Pdef(\snare) <> Pbind(
-			\kitIndex, 1,
-			\speed, 1.2,
+			\amp, 0.1/1,
+		));
+		Pdef(\t1snare2, Pdef(\snare) <> Pbind(
+			\instrument, \snaretuned,
 			\isRest, Pseq([
-				Pseq([
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-				],4),
-				Pseq([
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,0,0,1,
+				0,1,0,0, 0,0,0,1,
+				0,0,0,0, 1,0,0,1,
+				0,1,0,0, 0,0,0,1,
 
-					0,0,1,0, 0,0,1,1,
-					0,0,0,0, 1,0,1,1,
-					0,1,1,1, 0,0,1,0,
-					1,0,0,0, 1,1,1,0,
-
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-
-					0,0,0,0, 0,0,1,0,
-					0,0,0,1, 1,0,1,0,
-					0,0,0,0, 0,0,1,0,
-					1,0,1,1, 1,0,1,1,
-
-				],1),
+				0,0,0,0, 1,0,0,1,
+				0,1,0,0, 0,0,0,1,
+				0,0,0,0, 1,0,0,1,
+				0,0,0,0, 0,1,0,1,
 			],inf).coin.not,
-			\sustain, 0.1/2,
-			\dur, 1/16,
-			\amp, 0.1,
-		)),
-		PatKitDef(\sample1).asPattern(Pdef(\snare) <> Pbind(
-			\kitIndex, 4,
-			\isRest, Pseq([
-				0,0,0,0, 0,0,0,0,
-				1,0,0,0, 0,0,0,0,
-			],inf).coin.not,
-			\sustain, 0.9,
+			\sustain, 0.011,
 			\dur, 1/8,
-			\amp, 0.1,
-		)),
-		PatKitDef(\sample1).asPattern(Pdef(\hat) <> Pbind(
-			\kitIndex, 8,
-			\isRest, Pseq({[
-				1,1,1,1, 1,1,1,1,
+			\amp, 0.04,
+		));
+		Pdef(\t1hat, Pdef(\hat) <> Pbind(
+			\instrument, \phyhat,
+			\isRest, Pseq([
+				1,0,1,1, 1,0,1,0,
 				1,0,1,0, 1,0,1,0,
-				1,0,0,0, 1,0,0,0,
-				0,0,1,0, 0,0,1,0,
-			].clump(8).choose}.dup(8).flat,inf).coin.not,
-			\sustain, 0.1,
-			\dur, 1/8,
-			\amp, 0.1,
-		)),
-		Pdef(\bass) <> Pmono(\distbass,
-			\freq, 70 * Pseq([0,1].midiratio,inf).stutter(16),
-			\fmrange, Pseq([0.5,1,1.5],inf),
-			\fmfreq, Pseq([0.5,1,2,4],inf),
-			\dur, 1/4,
-			\igate, Pseq([
-				1,0,0,0,
-				0,0,0,0,
-			],inf),
-			\iadsr, Pseq([
-				[ Env.adsr(0.1,0.1,0.8,4.1) ],
-			],inf),
-			\lpf, Pkey(\freq) * Pseq([2,1,4,8],inf).stutter(8),
-			\hpf, Pkey(\freq) / 2,
+				1,1,1,0, 1,1,1,0,
+				1,0,1,0, 1,0,1,0,
 
-			\amp, Pkey(\amp) * 2,
-			\isRest, false,
-		),
-		Pdef(\pad) <> PmonoArtic( \cloche,
-			\legato, Pseq([
-				Pser([
-					1,
-				],7), 0.8,
+				1,0,1,1, 1,0,1,0,
+				1,1,1,0, 1,0,1,1,
+				1,1,1,0, 1,1,1,0,
+				1,0,1,1, 1,0,1,0,
+			],inf).coin.not,
+			\sustain, Pseq([0.08,0.02],inf),
+			\fac1, Pseq([2,0.5,0.7,0.5]*0.5,inf),
+			\pan, Pseq([0.2,0.1,0,-0.1],inf),
+			\fac1, Pseq([
+				0.5,Pser([
+					0.04,
+				],15),
+				0.05,Pser([
+					0.4,0.04,
+				],15),
+				
 			],inf),
+			\dur, 1/16,
+			\dur, Pkey(\dur) * (1 + (-0.01 * Pseq([-1,1],inf))),
+			\pan, 0,
+			\amp, 0.05,
+		));
+		Pdef(\t1cym, Pdef(\hat) <> Pbind(
+			\instrument, \phycymbal,
 			\freq, 200,
+			\isRest, Pseq([
+				1,0,0,0,
+			],inf).coin.not,
+			\fac1, 8,
+			\adsr, Pseq([
+				[ Env.adsr(0.05,0.1,0.9,0.3,1,-4) ]
+			],inf),
+			\sustain, 0.2,
+			\dur, 1,
+			\amp, 0.05,
+		));
+		Pdef(\t1bass, Pdef(\bass)<>Pbind(
+			\instrument, \simplebass,
+			\freq, Pseq([
+				85,86,87,70,
+			],inf),
+			\lpf, 200,
+			\octave, 3,
 			\dur, 1,
 			\amp, 0.1,
-			\isRest, true,
-		),
-		Pdef(\pad) <> Pbind(
-			//\freq, 100,
-			\instrument, \chordb,
-			\amp, 0.1/2,
-			\degree, Pseq([
-				Prand([0,1,-2,0]),
-				Prand([0,1,-2,0])+8,
-			],inf) + Ptuple([0,Pseq([2,4],inf)]),
-			\freq, 70 * Pseq([0,1].midiratio,inf).stutter(16) * 8 * Ptuple([0,Pseq([2b,4],inf)]).midiratio,
-			\lpffac, Ndef(\lfo1, { CuspN.ar(1/7).range(0.50,4)  }),
-			\adsr, Prand([
-				[ Env.adsr(0.1,0.1,0.8,0.1) ],
-				[ Env.adsr(0.001,0.1,0.8,1.1) ],
-				[ Env.adsr(0.1,0.1,0.8,0.001) ],
-				[ Env.adsr(1.1,0.1,0.8,0.1) ],
-			],inf).stutter(4),
-			\scale, Scale.minor,
-			\octave, 5,
-			\dur, 1/4,
-			\legato, Pseq([
-				Pser([
-					4,2,1,1,
-				],4*8*4),
-				Pser([
-					1,2,1,1,
-				],4*8*4)/4,
-			],inf),
+		));
+		Pdef(\t1piano, Pdef(\piano) <> Pbind(
+			\instrument, \rix,
+			\freq, Pstep(Pseq([2200,2220,2240,1345],inf),1),
+			\legato, Pstep(Pseq([
+				1,0.4,
+			],inf),1),
+			\fspread, 4.0001,
+			\dur, Pseq([1,1,1,1/2,1/2],inf),
 			\isRest, Pseq([
-				0,0,0,0, 1,0,0,0,
-				0,0,0,0, 1,0,0,0,
-				0,0,0,0, 1,0,0,0,
-				1,0,1,0, 1,1,0,0,
-				Pseq([
-					1,1,1,1, 1,1,1,1,
-					1,1,0,1, 1,1,1,1,
-					1,1,1,1, 1,1,1,1,
-					1,1,1,1, 1,0,1,1,
-				],3),
+				1,1,1,1, 1,1,1,1,
+				1,1,1,1, 1,1,1,1,
+				1,1,1,1, 1,1,1,1,
+				1,1,1,1, 1,1,1,1,
+				1,0,1,0, 1,0,1,0,
+				1,1,1,1, 1,1,1,1,
+				1,1,1,1, 1,1,1,1,
+				1,0,1,0, 0,1,1,1,
 			],inf).coin.not,
-),
-		
-	])
-).play;
-)
-
-(
-SynthDef(\chordb, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
-	var sig, sig1, sig2, sig3;
-	sig = {arg x; 
-		var isig;
-		var ffac = 8;
-		isig = LFSaw.ar( freq/2 * x + ExpRand(freq/64,2*freq/64));
-		isig = isig + LFPulse.ar( freq/ffac * x + ExpRand(freq/64/ffac,2*freq/64/ffac));
-
-		isig = RLPF.ar(isig, freq/2 * x + ExpRand(freq/64,2*freq/64)* LFNoise1.kr(1/4).range(1.1,1) * \lpffac.kr(2) , \rq.kr(0.5));
-	}!5;
-	sig = sig.scramble;
-	sig = TScramble.ar(sig, Impulse.kr(4),1);
-	//sig = FreqShift.ar(sig, 4 * SinOsc.kr(1/45).range(0,1)) + sig;
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1.01,0.1,1,1.1)),gate,doneAction:doneAction);
-	sig = Splay.ar(sig, spread, amp, pan) / 7;
-	Out.ar(out, sig);
-}).add;
-
-~master.();
-Pdef(\chordb, Pdef(\pad) <> Pbind(
-	//\freq, 100,
-	\instrument, \chordb,
-	\amp, 0.1,
-	\degree, Pseq([
-		Prand([0,1,-2,0]),
-		Prand([0,1,-2,0])+8,
-	],inf) + Ptuple([0,Pseq([2,4],inf)]),
-	\freq, 70 * Pseq([0,1].midiratio,inf).stutter(16) * 8 * Ptuple([0,Pseq([2b,4],inf)]).midiratio,
-	\lpffac, Ndef(\lfo1, { CuspN.ar(1/7).range(0.50,4)  }),
-	\adsr, Prand([
-		[ Env.adsr(0.1,0.1,0.8,0.1) ],
-		[ Env.adsr(0.001,0.1,0.8,1.1) ],
-		[ Env.adsr(0.1,0.1,0.8,0.001) ],
-		[ Env.adsr(1.1,0.1,0.8,0.1) ],
-	],inf).stutter(4),
-	\scale, Scale.minor,
-	\octave, 5,
-	\dur, 1/4,
-	\legato, Pseq([
-		4,2,1,1,
-	],inf),
-	\isRest, false,
-)).play;
-)
-
-
-ProtoDef(\rdn).presetCompileString.editorInsert
-(
-RandDelayNetwork('del3').make('rdn', "4-JIHM-RN78");
-Ndef('rdn').put(100, \pset -> Pbind(
-	'wet10', 1.0,
-	'mix', 1.0,
-	'gain', 1,
-	'fb', 0.0001,
-	'delay', 0.0001,
-	'delay2', 0.0001,
-	'delay3', 0.0001,
-	'distamp', 1.5846456692913,
-	'distamp2', 3.9466141732283,
-	'distamp3', 3.9466141732283,
-	'shift', -5.0,
-	'shift2', -1.1344537815126,
-	'shift3', -2.4789915966387,
-	'shiftmix', 0.0,
-	'pitchlag', 1.0,
-	'pitchmix', 0.0,
-	'prelpf', 17000,
-	'prehpf', 17,
-	'lpf', 17000,
-	'hpf', 17,
-	'brffac', 0.60195390291997,
-	'brfrqfac', 0.37940593233798,
-	'stereo', 0.0,
-	'fbdistamp', 0.47619047619048,
-	'fbdistmix', 0.91176470588235,
-	'postlpf', 17000,
-	'posthpf', 17,
-	'wetamp', 0.18504562572587,
-	'indelay', 0.04,
-	'wet20', 1.0,
-	'mamp', 1,
-).keep(1));
-
-);
-
-(
-	~master.();
-Pdef(\track1_idea, 
-	Ppar([
-		PatKitDef(\sample1).asPattern(Pdef(\kick) <> Pbind(
-			\kitIndex, 0,
-			\isRest, Pseq([
-				1,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
-			],inf).coin.not,
-			\sustain, 1.1,
-			\dur, 1/8,
+			\dur, PdurStutter(Pseq([
+				1,1,1,1,
+				1,1,1,2,
+				1,1,1,1,
+				1,1,1,4,
+				1,1,1,1,
+				1,1,1,2,
+				1,1,16,16,
+				4,1,1,2,
+			],inf), 1),
 			\amp, 0.1,
-		)),
-		Pbind(
-			\instrument, Pseq([\playersec_fx, \playersec],inf).stutter(8*4),
+		));
+		Pdef(\t1cling, Pdef(\pad) <> Pbind(\instrument, \cling,
+			\degree, Pseq([0],inf),
+			\legato, Pseq([
+				0.1, 0.1, 0.7,0.1,
+			],inf)/2,
+			\dur, 2,
+			\amp, 0.1,
+		));
+		Pdef(\t1voice, Pdef(\pad) <> Pbind(
+			\instrument, Pseq([\playersec_zix],inf).stutter(8*4),
 			\out, BusDef(\mixer5, \audio),
 			\bufnum, BufDef('voices/feynman.flac'),
 			\pos, Pseq([
-				4,
+				0,
 				2,
 			],inf).stutter(8),
 			\isRest, Pseq([
 				Pseq([
-					0,0,0,0, 0,0,0,0,
 					1,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-				],4),
-				Pseq([
-					0,0,0,0, 1,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
 					0,0,0,0, 0,0,0,0,
 				],4),
 			],inf).coin.not,
-			\speed, 2.2,
+			\speed, 1,
 			\legato, Pseq([
 				Pser([
 					8.2,
-				],8*2)*3,
+				],8*2)*1,
 			],inf),
 			\gain, 0.6,
 			\dur, 1/8,
 			\amp, 0.1,
-		),
-		PatKitDef(\sample1).asPattern(Pdef(\snare) <> Pbind(
-			\kitIndex, 0,
+		));
+)
+
+Pdef(\part).clear
+(
+	~master.();
+Pdef(\part, Pdef(\t1_intro, 
+	Ptpar([
+		4, Pbind(
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,1,
+			],inf).coin.not,
+		) <> Pdef(\t1hat),
+		0, Pbind(
+			\dur,1,
+		) <> Pdef(\t1piano),
+		4, Pbind(
 			\isRest, Pseq([
 				0,0,0,0, 0,0,0,0,
 				0,0,0,0, 0,0,0,0,
 				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
-
-				0,0,0,1, 0,0,1,0,
-				0,1,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,1,0,
-				0,1,0,0, 0,0,0,0,
-
-				0,0,0,0, 0,0,1,0,
-				0,1,0,0, 1,0,0,0,
-				0,0,0,0, 0,0,1,0,
-				0,1,0,0, 0,0,0,0,
-
-				0,0,0,1, 0,0,1,0,
-				0,1,0,0, 0,0,0,0,
-				0,1,0,1, 0,0,0,0,
-				0,1,0,0, 1,0,0,1,
+				0,0,0,0, 1,0,0,1,
 			],inf).coin.not,
-			\sustain, 0.1/2,
-			\dur, 1/8,
-			\amp, 0.1,
-		)),
-		PatKitDef(\sample1).asPattern(Pdef(\snare) <> Pbind(
-			\kitIndex, 1,
-			\speed, 1.2,
+			\dur,1/8,
+		) <> Pdef(\t1snare2),
+		8, Pbind(
+			\compmix, 0,
+			\lpf, 3000,
+			\isRest, Pseq([
+				1,0,0,1,
+			],inf).coin.not,
+			\dur,1,
+		) <> Pdef(\t1bass),
+	])
+)).play;
+)
+
+Pdef(\part).clear
+(
+	~master.();
+Pdef(\part, Pdef(\t1_outro, 
+	Ppar([
+		Pfindur(2,Pdef(\t1kick)),
+		Pfindur(4,Pdef(\t1kick2)),
+		Pfindur(2,Pdef(\t1snare)),
+		Pfindur(4,Pdef(\t1snare2)),
+		Pfindur(12,Pdef(\t1hat)),
+		Pfindur(8,Pdef(\t1bass)),
+		Pfindur(16,Pdef(\t1piano)),
+	])
+)).play;
+)
+
+(
+	~master.();
+Pdef(\part,Pdef(\t1_verse1, 
+	Ppar([
+		Pdef(\t1kick),
+		Pdef(\t1kick2),
+		Pdef(\t1snare),
+		Pdef(\t1snare2),
+		Pdef(\t1hat),
+		Pdef(\t1bass),
+		Pdef(\t1piano),
+	])
+)).play;
+)
+
+(
+Pdef(\part,Pdef(\t1_verse2, 
+	Ppar([
+		Pdef(\t1kick),
+		Pdef(\t1kick2),
+		Pdef(\t1snare),
+		Pdef(\t1snare2),
+		Pdef(\t1hat),
+		Pdef(\t1bass),
+		Pdef(\t1piano),
+	])
+)).play;
+)
+
+(
+Pdef(\part,Pdef(\t1_break, 
+	Ppar([
+		Pdef(\t1kick),
+		Pdef(\t1snare),
+		Pdef(\t1hat),
+		Pdef(\t1bass),
+	])
+)).play;
+)
+
+(
+Pdef(\part,Pdef(\t1_chorus, 
+	Ppar([
+		Pdef(\t1kick),
+		Pdef(\t1kick2),
+		Pdef(\t1snare),
+		Pdef(\t1snare2),
+		Pdef(\t1hat),
+		Pdef(\t1bass),
+		Pdef(\t1piano),
+		Pdef(\t1cling),
+	])
+)).play;
+)
+
+(
+	~master.();
+Pdef(\part,Pdef(\t1_bridgeprep, 
+	Ppar([
+		Pdef(\t1kick),
+		Pdef(\t1kick2),
+		Pbind(
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+		) <> Pdef(\t1snare2),
+		//Pdef(\t1snare2),
+		Pbind(
 			\isRest, Pseq([
 				Pseq([
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
 					0,0,0,0, 0,0,0,0,
 				],4),
 				Pseq([
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-
-					0,0,1,0, 0,0,1,1,
-					0,0,0,0, 1,0,1,1,
-					0,1,1,1, 0,0,1,0,
-					1,0,0,0, 1,1,1,0,
-
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,0,
-
-					0,0,0,0, 0,0,1,0,
-					0,0,0,1, 1,0,1,0,
-					0,0,0,0, 0,0,1,0,
-					1,0,1,1, 1,0,1,1,
-
-				],1),
+					1,0,0,0, 1,0,0,0,
+				],inf),
 			],inf).coin.not,
-			\sustain, 0.1/2,
-			\dur, 1/16,
-			\amp, 0.1,
-		)),
-		PatKitDef(\sample1).asPattern(Pdef(\snare) <> Pbind(
-			\kitIndex, 4,
-			\isRest, Pseq([
-				0,0,0,0, 0,0,0,0,
-				1,0,0,0, 0,0,0,0,
-			],inf).coin.not,
-			\sustain, 0.9,
-			\dur, 1/8,
-			\amp, 0.1,
-		)),
-		PatKitDef(\sample1).asPattern(Pdef(\hat) <> Pbind(
-			\kitIndex, 8,
-			\isRest, Pseq({[
-				1,1,1,1, 1,1,1,1,
-				1,0,1,0, 1,0,1,0,
-				1,0,0,0, 1,0,0,0,
-				0,0,1,0, 0,0,1,0,
-			].clump(8).choose}.dup(8).flat,inf).coin.not,
-			\sustain, 0.1,
-			\dur, 1/8,
-			\amp, 0.1,
-		)),
-		Pdef(\bass) <> Pmono(\distbass,
-			\freq, 70 * Pstep(Pseq([0,1].midiratio,inf),4),
-			\fmrange, Pseq([0.5,1,1.5],inf).stutter(8),
-			\fmfreq, Pseq([0.5,1,2,4],inf).stutter(8),
-			\dur, 1/16,
-			\igate, Pseq([
-				1,1,1,1, 0,0,1,0,
-				1,0,0,1, 0,0,1,0,
-				1,1,0,1, 0,0,1,1,
-				0,0,0,0, 1,0,1,0,
-
-				1,0,1,0, 1,1,1,0,
-				1,1,1,1, 1,1,1,1,
-				1,1,1,0, 1,1,1,0,
-				1,0,1,0, 1,1,1,0,
-
-				1,1,1,1, 0,0,0,0,
-				1,0,0,1, 0,0,1,0,
-				0,0,0,0, 0,0,0,0,
-				1,0,1,0, 1,1,0,0,
-
-				1,1,1,0, 1,1,1,0,
-				1,1,1,1, 0,0,1,1,
-				1,0,1,0, 1,1,1,0,
-				1,0,1,1, 1,0,0,1,
-			],inf),
-			\iadsr, Pseq([
-				[ Env.adsr(0.1,0.1,0.8,0.1) ],
-			],inf),
-			\lpf, Pkey(\freq) * Pseq([8,6,7,5],inf).stutter(4),
-			\hpf, Pkey(\freq) / 2,
-
-			\amp, Pkey(\amp) * 2,
-			\isRest, false,
-		),
-		Pdef(\pad) <> PmonoArtic( \cloche,
-			\legato, Pseq([
-				Pser([
-					1,
-				],7), 0.8,
-			],inf),
-			\freq, 200,
-			\dur, 1,
-			\amp, 0.1,
-			\isRest, true,
-		),
-		Pdef(\pad) <> Pbind(
-			//\freq, 100,
-			\instrument, \chordb,
-			\amp, 0.1/2,
-			\degree, Pseq([
-				Prand([0,1,-2,0]),
-				Prand([0,1,-2,0])+8,
-			],inf) + Ptuple([0,Pseq([2,4],inf)]),
-			\freq, 70 * Pseq([0,1].midiratio,inf).stutter(16) * 8 * Ptuple([0,Pseq([2b,4],inf)]).midiratio,
-			\lpffac, Ndef(\lfo1, { CuspN.ar(1/7).range(0.50,4)  }),
-			\adsr, Prand([
-				[ Env.adsr(0.1,0.1,0.8,0.1) ],
-				[ Env.adsr(0.001,0.1,0.8,1.1) ],
-				[ Env.adsr(0.1,0.1,0.8,0.001) ],
-				[ Env.adsr(1.1,0.1,0.8,0.1) ],
-			],inf).stutter(4),
-			\scale, Scale.minor,
-			\octave, 5,
-			\dur, 1/4,
-			\legato, Pseq([
-				Pser([
-					4,2,1,1,
-				],4*8*4),
-				Pser([
-					1,2,1,1,
-				],4*8*4)/4,
-			],inf),
-			\isRest, Pseq([
-				0,0,0,0, 1,0,0,0,
-				0,0,0,0, 1,0,0,0,
-				0,0,0,0, 1,0,0,0,
-				1,0,1,0, 1,1,0,0,
-				Pseq([
-					0,1,1,1, 0,1,1,1,
-					0,1,0,1, 0,1,1,1,
-					0,1,1,1, 0,1,1,1,
-					0,1,1,1, 0,0,1,1,
-				],3),
-			],inf).coin.not,
-),
-		
+		) <> Pdef(\t1hat),
+		Pseq([
+			Rest(4),
+			Pbind(
+				\sustain, 12/~t, 
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+					Pseq([
+						0
+					],inf),
+				],1).coin.not,
+			) <> Pdef(\t1voice),
+		],1),
 	])
-).play;
+)).play;
 )
+
+(
+	~master.();
+Pdef(\part,Pdef(\t1_bridge, 
+	Ppar([
+		Pdef(\t1kick),
+		Pdef(\t1snare),
+		Pdef(\t1snare2),
+		Pbind(
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+		) <> Pdef(\t1snare2),
+		//Pdef(\t1snare2),
+		Pbind(
+			\isRest, Pseq([
+				Pseq([
+					1,0,0,0, 1,0,0,0,
+				],inf),
+			],inf).coin.not,
+		) <> Pdef(\t1hat),
+		Pseq([
+			Pbind(
+				\pos, Pseq([0.1,0.7],inf).stutter(Pseq([1,2,4],inf).stutter(2)),
+				\legato, Pseq([
+					4,0,0,0, 0,1,0,0,
+					1,0,1,0, 0,0,0,1,
+					4,0,0,0, 0,1,0,0,
+					1,0,1,0, 0,0,0,1,
+
+					2,0,0,0, 0,1,0,0,
+					1,0,2,0, 1/2,1/2,0,1,
+					1,0,1,1, 1,0,1,1,
+					2,0,2,0, 1,1,1,0,
+				],inf),
+				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+				\dur, 1/16,
+			) <> Pdef(\t1voice),
+		],1),
+	])
+)).play;
+)
+
+(
+	~master.();
+Pdef(\main,Pdef(\track1, 
+	Pseq([
+		Pfindur(16,Pdef(\t1_intro)),
+		Pfindur(16,Pdef(\t1_verse1)),
+		Pfindur(16,Pdef(\t1_break)),
+		Pfindur(16,Pdef(\t1_chorus)),
+		Pfindur(16,Pdef(\t1_bridgeprep)),
+		Pfindur(16,Pdef(\t1_bridge)),
+		Pfindur(16,Pdef(\t1_verse2)),
+		Pfindur(16,Pdef(\t1_outro)),
+	])
+)).play;
+);
+
+8*16 / (135/4/60) / 60
