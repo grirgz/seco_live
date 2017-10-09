@@ -88,6 +88,7 @@ SynthDef(\oscsampler3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, po
 
 
 (
+	t = ~t;
 ~buf = BufDef(\moeten, "voices/02_moeten.flac");
 Ndef(\lfo1).quant = Pdef.defaultQuant;
 Ndef(\lfo3).quant = Pdef.defaultQuant;
@@ -98,7 +99,7 @@ Ndef(\lfo1).put(1, \set -> Pbind(
 	\dur, 1/8,
 ));
 
-Ndef(\lfo3, { arg freq=20; freq.lag(0.101).round(0.1) * SinOsc.kr(1/16*t).range(0.5,1.5).round(0.1)});
+Ndef(\lfo3, { arg freq=20; freq.lag(0.101).round(0.1) * SinOsc.kr(1/16*~t).range(0.5,1.5).round(0.1)});
 Ndef(\lfo3).put(1, \set -> Pbind(
 	\freq, Pseq([
 		2,2,2,2,

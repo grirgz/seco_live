@@ -1,4 +1,64 @@
+// simple custom noise generation: fm + am
+(
+	// no, error: .kr instead of .ar 
+Ndef(\drono, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.kr(freq*1.123) * 1 ))) * LFSaw.ar(freq*4/3) ;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
 
+(
+Ndef(\drono, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.kr(freq*1.123) * 1 ))) * LFSaw.ar(freq*4/3 * SinOsc.kr(1/12).range(1.1,1)) ;
+	sig = RLPF.ar(sig, 3000 * LFNoise1.ar(1/13!4).range(1/4,4), \rq.kr(0.5) * LFNoise1.ar(1/13!4).range(1/4,2)).mean;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+//////////////////////////////// algofm, generate drones!
+
+(
+Ndef(\algofm, { arg freq=3200, pan=0, amp=0.1;
+	var sig;
+	var op;
+	var randfreq;
+
+	op = { arg freq;
+		[
+			LFSaw.ar(freq),
+			LFPulse.ar(freq),
+			LFCub.ar(freq),
+			SinOsc.ar(freq),
+			WhiteNoise.ar,
+		].choose;
+	};
+
+	randfreq = {
+		exprand(1/20,14000);
+	};
+
+	sig = op.(exprand(200, 14000));
+
+	15.do { arg idx;
+		var algos = [
+			{ op.(sig * exprand(0.01,2) + 1 * randfreq.value); }, // fm
+			{ op.(sig * exprand(0.01,2) + 1 * randfreq.value) + sig; }, // fm + sig
+			{ sig * exprand(0.01,2) + 1 * op.(randfreq.value); }, // am
+			{ sig * op.(randfreq.value); }, // ring
+			{ sig + op.(randfreq.value); }, // sum
+		];
+		sig = algos.choose.value;
+	};
+
+	sig = LPF.ar(sig, 14000);
+	sig = HPF.ar(sig, 140);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+/////////////////////////////////////
 
 // ambiant is a lot of channel spread across whole spectrum
 // technic 1: whitenoise > BPF, BRF

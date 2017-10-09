@@ -55,11 +55,26 @@ s.waitForBoot {
 
 );
 
+~startControl.();
+
+
+(
+	~master.();
+	Pdef(\main, 
+		Pseq([
+			Pdef(\track1),
+			Rest(8),
+			Pdef(\drbass),
+			Rest(8),
+			Pdef(\track2),
+		])
+	).play;
+)
+
 // END
 
 ////////////// CONTROL
 
-~startControl.();
 ProtoDef(\rdn).edit;
 ProtoDef(\simpleMixer).edit;
 ~master.()

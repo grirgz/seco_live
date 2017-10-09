@@ -36,7 +36,7 @@ SynthDef(\playersec_hlpf, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum,
 	Out.ar(out, sig * \gain.kr(1) * velamp);
 }).add;
 MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\playersec_hlpf);
-)
+);
 
 
 ParamProto.init;
@@ -131,7 +131,7 @@ FileSystemProject.load("capsule/RDN_track1.scd");
 		};
 
 	};
-)
+);
 
 // END
 

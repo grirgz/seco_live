@@ -539,21 +539,6 @@ Pdef(\faty, Pdef(\pad) <> PmonoArtic(\faty,
 
 (
 ~master.();
-SynthDef(\cling, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([1,2,1/2],[0.01,0.2],-3), 1);
-	sig1 = ( 1 + ( SinOsc.ar(rrand(0.01,1000!4)) * rrand(0.1,10!4) ));
-	sig = SinOsc.ar(rrand(100.0,1000!4) * env1 * ( 1 + ( SinOsc.ar(rrand(0.01,1000!4) * sig1) * rrand(0.01,10!4))));
-	sig = sig * ( 1 + ( SinOsc.ar(rrand(100.0,1000!4)) * 1 ));
-	sig = CombL.ar(sig, 0.01,1/rrand(100.0,1000!14)) + sig;
-	sig = CombL.ar(sig, 0.01,1/rrand(100.0,1000!14)) + sig;
-	sig = ( sig*\distamp.kr(10) ).tanh * \distpostamp.kr(1/2);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,1.4,1,-4),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp).mean * 4;
-	Out.ar(out, sig);
-}).add;
 Pdef(\cling, Pdef(\pad) <> Pbind(\instrument, \cling,
 	\degree, Pseq([0],inf),
 	\legato, Pseq([
@@ -839,19 +824,6 @@ Pdef(\bassal, Pdef(\bass) <> Pbind(
 
 
 (
-SynthDef(\playersec_xx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, trigger=1, velamp=1;
-	// pos in seconds
-	var sig;
-	var sig1;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([1,0.5,0],[0.1,0.8]), 1);
-	env2 = EnvGen.kr(Env([1,0.5,0],[0.1,0.8]), 1);
-	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
-	sig = HPF.ar(sig, 40);
-	//sig = Pan2.ar(sig, pan, 1).sum;
-	Out.ar(out, sig * \gain.kr(1) * velamp);
-}).add;
 Pdef(\drums, 
 	Ppar([
 		Pdef(\pad) <> Pbind(
@@ -1556,57 +1528,6 @@ Pdef(\track1_idea,
 		
 	])).play
 );
-(
-
-SynthDef(\snapkick, { |out = 0, pan = 0, amp = 0.3|
-	var body, bodyFreq, bodyAmp;
-	var pop, popFreq, popAmp;
-	var click, clickAmp;
-	var snd;
-
-	// body starts midrange, quickly drops down to low freqs, and trails off
-	bodyFreq = EnvGen.ar(Env([261, 60, 51], [0.035, 0.08], curve: \exp));
-	bodyAmp = EnvGen.ar(Env.linen(0.005, 0.1, 0.3), doneAction: 2);
-	body = SinOsc.ar(bodyFreq) * bodyAmp;
-	// pop sweeps over the midrange
-	popFreq = XLine.kr(750, 261, 0.02);
-	popAmp = EnvGen.ar(Env.linen(0.001, 0.02, 0.001)) * 0.15;
-	pop = SinOsc.ar(popFreq) * popAmp;
-	// click is spectrally rich, covering the high-freq range
-	// you can use Formant, FM, noise, whatever
-	clickAmp = EnvGen.ar(Env.perc(0.001, 0.01)) * 0.15;
-	click = LPF.ar(Formant.ar(910, 4760, 2110), 3140) * clickAmp;
-
-	snd = body + pop + click;
-	snd = snd.tanh;
-
-	Out.ar(out, Pan2.ar(snd, pan, amp));
-}).add;
-SynthDef(\snapkick2, { |out = 0, pan = 0, amp = 0.3|
-	var body, bodyFreq, bodyAmp;
-	var pop, popFreq, popAmp;
-	var click, clickAmp;
-	var snd;
-
-	// body starts midrange, quickly drops down to low freqs, and trails off
-	bodyFreq = EnvGen.ar(Env([561, 50, 51], [0.015, 0.08], curve: \exp));
-	bodyAmp = EnvGen.ar(Env.linen(0.005, 0.1, 0.1), doneAction: 2);
-	body = SinOsc.ar(bodyFreq) * bodyAmp;
-	// pop sweeps over the midrange
-	popFreq = XLine.kr(750, 261, 0.02);
-	popAmp = EnvGen.ar(Env.linen(0.001, 0.02, 0.001)) * 0.15;
-	pop = SinOsc.ar(popFreq) * popAmp;
-	// click is spectrally rich, covering the high-freq range
-	// you can use Formant, FM, noise, whatever
-	clickAmp = EnvGen.ar(Env.perc(0.001, 0.01)) * 0.15;
-	click = LPF.ar(Formant.ar(910, 4760, 2110), 3140) * clickAmp;
-
-	snd = body + pop + click;
-	snd = snd.tanh;
-
-	Out.ar(out, Pan2.ar(snd, pan, amp));
-}).add;
-)
 
 ////////////////////////
 Pdef(\track1_idea).clear
@@ -2190,41 +2111,9 @@ Pdef(\track1_idea,
 	])).play
 );
 
-(
-SynthDef(\rix, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fspread=0.1;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([1,2,1],[0.1,0.8]), 1);
-	env2 = EnvGen.kr(Env([1,2,1.7],[0.1,0.8]), 1).round(0.11);
-	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * fspread + 1));
-	sig = sig + Pulse.ar(freq/2 * ((0..7)/7 - 0.5 * fspread + 1));
-	sig = sig + SinOsc.ar(freq*2.12 * env2 * ((0..7)/7 - 0.5 * fspread + 1));
-	//sig = RLPF.ar(sig, ( \lpfr.kr(4.1) * freq ).clip(20,20000), \rq.kr(0.5));
-	sig = sig.fold2(1.1 *env1);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp).mean;
-	Out.ar(out, sig);
-}).add;
-);
 
 ///////////////////////////////////////:
 
-(
-SynthDef(\playersec_zix, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, trigger=1, velamp=1;
-	// pos in seconds
-	var sig;
-	var sig1;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([1,0.5,0],[0.1,0.8]), 1);
-	env2 = EnvGen.kr(Env([1,0.5,0],[0.1,0.8]), 1);
-	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
-	//sig = FreqShift.ar(LPF.ar(sig, 4000), 2300) + HPF.ar(sig, 4000);
-	sig = HPF.ar(sig, 6000)*18;
-	//sig = Pan2.ar(sig, pan, 1).sum;
-	Out.ar(out, sig * \gain.kr(1) * velamp);
-}).add;
-)
 
 (
 Pdef(\test, 
@@ -2327,349 +2216,14 @@ Ndef(\drone2).clear
 Ndef(\drone3).clear
 Ndef(\drone).clear
 
-(
-SynthDef(\sindrone1, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = XLine.kr(1,10,10);
-	sig = WhiteNoise.ar;
-	sig = Klank.ar(Ref([ exprand(20.0,10100!2!48), 0.001!8 ]), sig);
-	sig = sig.debug("sig");
-	sig = FreqShift.ar(sig, XLine.kr(0.0001,1000*[1,2,3],10*[1,2,3])).sum + sig;
-	//sig = sig * SinOsc.kr(4*~t).range(0,1);
-	//sig = sig.clump(2).sum;
-	sig = sig * EnvGen.kr(\env.kr(Env([0,2,1,0],[0.1,0.8,0.1].normalizeSum)), Impulse.kr(2*~t*env1), timeScale:1/2);
-	sig = sig  * 2;
-	sig = sig * amp;
 
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	Out.ar(out, sig);
-}).add;
 
-SynthDef(\sindrone1b, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([1,20,1,1,20],[0.1,0.8,2,10]), 1);
-	sig = WhiteNoise.ar;
-	sig = Klank.ar(Ref([ exprand(20.0,10100!2!48), 0.001!8 ]), sig);
-	sig = sig.debug("sig");
-	sig = FreqShift.ar(sig, XLine.kr(0.0001,1000*[1,2,3],10*[1,2,3])).sum + sig;
-	//sig = sig * SinOsc.kr(4*~t).range(0,1);
-	//sig = sig.clump(2).sum;
-	sig = sig * EnvGen.kr(\env.kr(Env([0,2,1,0],[0.1,0.8,0.1].normalizeSum)), Impulse.kr(2*~t*env1), timeScale:1/2);
-	sig = sig  * 2;
-	sig = sig * amp;
-
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	Out.ar(out, sig);
-}).add;
-
-SynthDef(\sindrone2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([1,1,4,4],[5.1,8,8.8]), 1);
-	env2 = EnvGen.kr(Env([1,1,0.04,0.01],[6.1,8,8.8]), 1);
-	sig = WhiteNoise.ar;
-	sig = 4.collect({
-		SinOsc.ar(rrand(400,11000)* env1 * ( 1 + ( SinOsc.ar(rrand(0.1,1000)) * LFNoise1.kr(rrand(0.1,10)).range(0,5) * env2 ))); 
-	});
-	sig = sig.collect({ arg isig;
-		isig * SinOsc.ar(rrand(10.1!2,201)).range(0,1)
-	});
-	sig = sig * Duty.kr(2/~t, 0, Dseq([
-		1,1,
-	],inf));
-
-	sig = sig.sum;
-	sig = sig  / 2;
-	sig = sig.debug("sig");
-	sig = sig * amp;
-
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	Out.ar(out, sig);
-}).add;
-
-SynthDef(\sindrone3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = WhiteNoise.ar;
-	sig = 2.collect({
-		DynKlank.ar(Ref([ rrand(0,1.0!48).round(SinOsc.kr(1/10).range(0.0001,1/80) ).linexp(0,1,20.0,15000) * [ [1,1.0 + SinOsc.kr(1/11).range(0,0.0051)] ], 0.001!8 ]), sig);
-	});
-	sig = sig.collect({ arg isig;
-		isig * SinOsc.kr(rrand(0.1,1)).range(0,1)
-	});
-
-	sig = sig  / 1;
-	sig = sig.flop.sum;
-	sig = sig.debug("sig");
-	sig = sig * amp;
-
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	Out.ar(out, sig);
-}).add;
-
-);
-
-(
-Pdef(\drones, 
-	Ppar([
-		Pbind(
-			\instrument, \sindrone1,
-			\freq, 200,
-			\isRest, Pseq([
-				0,0,0,1, 
-			],inf).coin.not,
-			\legato, 1,
-			\dur, 4,
-			\amp, 0.1,
-		),
-		Pseq([
-			Rest(4),
-			Pmono(\sindrone2,
-				\freq, 200,
-				\dur, Pseq([1],12),
-				\amp, 0.1,
-			),
-			Rest(16),
-			Pmono(\sindrone2,
-				\freq, 200,
-				\dur, Pseq([1],8),
-				\amp, 0.1,
-			),
-		],inf),
-		Pseq([
-			Rest(16),
-			Rest(2),
-			Pmono( \sindrone1b,
-				\freq, 200,
-				\isRest, Pseq([
-					1, 
-				],inf).coin.not,
-				\legato, 1,
-				\dur, 1,
-				\amp, 0.1,
-			),
-		],inf),
-		Pmono(\sindrone3,
-			\freq, 200,
-			\dur, Pseq([1],16),
-			\amp, 0.1 * Pseg(Pseq([1,0],inf),8),
-		).loop,
-		
-	])
-).play;
-)
-
-(
-	~master.();
-	Pdef(\drbass, 
-		Pseq([
-			Pfindur(32,Pdef(\drones)),
-
-			Ppar([
-				Pfindur(16,Pdef(\drones)),
-				Pfindur(16,Pbind(
-					\instrument, \distbass,
-					\freq, 70,
-					\dur, 1,
-					\amp, 0.1,
-				)),
-			]),
-			Pfindur(16,Ptpar([
-				0, Pfindur(16,Pdef(\drones)),
-				0, Pdef(\fudrums),
-				0, Pfindur(16,Pdef(\bass) <> Pbind(
-					\instrument, \distbass,
-					\freq, 70,
-					\legato, Pseq([
-						4,0,0,0, 0,0,1,0,
-					],inf),
-					\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-					\dur, 1/8,
-					\amp, 0.1,
-				)),
-			])),
-			Pfindur(64,Ptpar([
-				0,Pdef(\kick) <> Pdef(\fudrums),
-				0, Pfindur(64,Pdef(\bass) <> Pbind(
-					\instrument, \distbass,
-					\freq, Pseg(Pseq([70,70,70,65],inf), 1),
-					\fmfreq, 1/2,
-					\legato, Pseq([
-						4,0,0,0, 0,0,1,0,
-					],inf),
-					\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-					\dur, 1/8,
-					\amp, 0.1 * Pseg(Pseq([0,1,2,Pseq([2],inf)],inf),8),
-				)),
-			])),
-			Pfindur(64,Ptpar([
-				0,Pdef(\kick) <> Pdef(\fudrums),
-				32, Pfindur(64,Pdef(\bass) <> Pbind(
-					\instrument, \distbass,
-					\freq, Pseg(Pseq([70,70,70,65],inf), 1),
-					\fmfreq, 1/2,
-					\legato, Pseq([
-						4,0,0,0, 0,0,1,0,
-					],inf),
-					\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-					\dur, 1/8,
-					\amp, 0.1 * Pseg(Pseq([0,1,2,Pseq([2],inf)],inf),8),
-				)),
-			])),
-			// break
-			Pfindur(32,Ptpar([
-				0,Pdef(\kick) <> Pdef(\fudrums),
-			])),
-			// part2
-			Pfindur(64,Ptpar([
-				0,Pdef(\kick) <> Pdef(\fudrums),
-				0, Pfindur(16,Pdef(\bass) <> Pbind(
-					\instrument, \distbass,
-					\freq, Pseg(Pseq([70,70,70,65],inf), 1),
-					\fmfreq, 1,
-					\legato, Pseq([
-						4,0,0,0, 0,0,1,0,
-					],inf),
-					\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-					\dur, 1/8,
-					\amp, 0.1,
-				)),
-				8, Pdef(\cat),
-			])),
-			// part2 bis
-			Rest(4),
-			Pfindur(60,Ptpar([
-				0,Pdef(\kick) <> Pdef(\fudrums),
-				0, Pfindur(16,Pdef(\bass) <> Pbind(
-					\instrument, \distbass,
-					\freq, Pseg(Pseq([70,70,70,65],inf), 1),
-					\fmfreq, 1,
-					\legato, Pseq([
-						4,0,0,0, 0,0,1,0,
-					],inf),
-					\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-					\dur, 1/8,
-					\amp, 0.1,
-				)),
-				0, Pfindur(64, Pdef(\pad) <> Pbind(\instrument, \pad,
-				\legato, Pseq([
-					12,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,0,0,1,
-					8,0,0,0, 0,0,0,0,
-					4,0,0,0, 3,0,0,1,
-				],inf)*0.9,
-				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-				\degree, Pstep(Pseq([
-					0,0,0,-1,
-				],inf),1),
-				\dur, 1/8,
-				\amp, 0.2
-			)),
-			])),
-
-		],1),
-	).play;
-)
 
 64*4+32+64 / (135/4/60) /60
-(
-	~master.();
-Pdef(\fudrums, 
-	Ppar([
-		Pdef(\pad) <> Pbind(
-			\instrument, \playersec_xx,
-			\bufnum, Pseq([
-				BufDef('loop/funky1_135bpm.flac'),
-				BufDef('loop/funky4_135bpm.flac'),
-				BufDef('loop/funky4_135bpm.flac'),
-				BufDef('loop/funky3_135bpm.flac'),
 
-				BufDef('loop/funky1_135bpm.flac'),
-				BufDef('loop/funky4_135bpm.flac'),
-				BufDef('loop/funky3_135bpm.flac'),
-				BufDef('loop/funky2_135bpm.flac'),
-			],inf).stutter(4),
-			\isRest, Pseq([
-				1,
-			],inf).coin.not,
-			\pos, Pseq([
-				//Pseq((1..24) ++ [4,5,6,2,3,4,5,6]),
-				Pseq((0..31)),
-				Pseq((0..23)),
-				Pseq([0,7,8,4, 7,8,7,4].rotate(0)),
-			],inf)/8/~t+0.04,
-			\speed, 1,
-			\gain, 1,
-			\freq, 200,
-			\legato, 1.00,
-			\dur, Pseq([1/8],inf),
-			\amp, 0.1,
-		),
-	])
-).play;
-)
 
 
 (
-Pdef(\cat, 
-	Ppar([
-		
-		Pdef(\pad) <>
-		Pbind(
-			//\out, BusDef(\fx1, \audio),
-		) <> Pseq([
-			Pfindur(16/4, PmonoArtic( \pad,
-				\legato, Pseq([
-					1,1,1,0.8,
-				],inf),
-				\degree, Pseq([
-					0,0,0,-1,
-				],inf),
-				\dur, 1,
-				\amp, 0.2
-			)),
-			Pfindur(15/4, PmonoArtic( \pad,
-				\legato, Pseq([
-					1,1,1,0.8,
-				],inf),
-				\degree, Pseq([
-					0,0,0,-1,
-				],inf),
-				\dur, 1,
-				\amp, 0.2
-			)),
-			Pfindur(1/4, PmonoArtic( \pad,
-				\legato, Pseq([
-					0.81,
-				],inf),
-				\degree, Pseq([
-					0,
-				],inf),
-				\dur, 1/4,
-				\amp, 0.2
-			)),
-		],inf),
-	])
-).play;
-)
-
-(
-SynthDef(\pad, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([0.1,1,0.51,0.1],[0.1,0.8,1]), 1);
-	env2 = EnvGen.kr(Env([0.1,1,0.51,0.1],[0.1,2.8,1]), 1);
-	sig = SinOsc.ar(freq * [1,1.01,1.001,2,1/2]);
-	sig1 = LFSaw.ar(freq*2);
-	sig = sig + sig1;
-	sig = sig.fold2(env1);
-	sig1 = RLPF.ar(sig1, \lpfr.kr(2.1) * freq * env2, \rq.kr(0.5));
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp).mean;
-	Out.ar(out, sig);
-}).add;
 )
 
 
@@ -2816,4 +2370,604 @@ Pdef(\track1_idea,
 
 		
 	])).play
+);
+
+//////////////////////////////////////////
+
+
+(
+	~master.();
+Pdef(\test, 
+	Ppar([
+		Pdef(\pad) <> Pbind(
+			\instrument, \playersec_xx,
+			\bufnum, Pseq([
+				BufDef('loop/funky1_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky3_135bpm.flac'),
+
+				BufDef('loop/funky1_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky3_135bpm.flac'),
+				BufDef('loop/funky2_135bpm.flac'),
+			],inf).stutter(4),
+			\isRest, Pseq([
+				1,
+			],inf).coin.not,
+			\pos, Pseq([
+				//Pseq((1..24) ++ [4,5,6,2,3,4,5,6]),
+				Pseq((0..31)),
+				Pseq((0..23)),
+				Pseq([0,7,8,4, 7,8,7,4].rotate(0)),
+			],inf)/8/~t+0.04,
+			\pos, Pseq([
+				0,3,0,3,4,7,7,12,
+				3,15,3,3,4,7,7,7,
+			],inf)/8/~t+0.04,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,0,1,
+				0,1,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\speed, 1.2,
+			\gain, 1,
+			\freq, 200,
+			\legato, 1.00,
+			\dur, Pseq([1/8],inf),
+			\amp, 0.1,
+		),
+		Pdef(\pad) <> Pbind(
+			\instrument, \playersec_xx,
+			\bufnum, Pseq([
+				BufDef('loop/funky1_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky3_135bpm.flac'),
+
+				BufDef('loop/funky1_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky3_135bpm.flac'),
+				BufDef('loop/funky2_135bpm.flac'),
+			],inf).stutter(4),
+			\pos, Pseq([
+				//Pseq((1..24) ++ [4,5,6,2,3,4,5,6]),
+				Pseq((0..31)),
+				Pseq((0..23)),
+				Pseq([0,7,8,4, 7,8,7,4].rotate(0)),
+			],inf)/8/~t+0.04,
+			\pos, Pseq([
+				Pseq([
+					33,30,30,30,
+				],1)-9,
+			],inf)/8/~t+0.04,
+			\isRest, Pseq([
+				1,0,1,1, 1,0,1,0,
+				1,0,1,0, 1,0,1,1,
+			],inf).coin.not,
+			\sustain, 0.05 * Pseq([1.2,1],inf),
+			\speed, 1 * Pseq([1,1.0001],inf),
+			\gain, 1,
+			\freq, 200,
+			\dur, Pseq([1/16],inf),
+			\amp, 0.1,
+		),
+	])
+).play;
+)
+
+(
+	~master.();
+Pdef(\test, 
+	Ppar([
+				Pdef(\bass) <> Pbind(
+					\instrument, \distbass,
+					\freq, 70,
+					\legato, Pseq([
+						4,0,0,0, 0,0,1,0,
+					],inf),
+					\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+					\dur, 1/8,
+					\amp, 0.1,
+				),
+				Pdef(\piano) <> Pbind(
+					\instrument, \distbasspoly,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.1) ],
+					],inf),
+					\freq, 70 * 12 * Pseq([
+						[0,7,12],
+						[-1,5,12]
+					],inf).midiratio.stutter(2),
+					\legato, Pseq([
+						Pseq([
+							0,0,0,0, 0,0,0,0, 
+						],4),
+						Pseq([
+							1,0,1,0, 1,0,1,0, 
+						],4),
+						Pseq([
+							1,1,1,1, 1,1,1,1,
+						],4),
+						Pseq([
+							1,0,0,0, 0,0,0,0, 
+						],4),
+					],inf)/1,
+					\legato, Pseq([
+						Pseq([
+							0,0,0,0, 1,0,0,0, 
+						],3),
+						Pseq([
+							0,0,0,0, 1,0,1,0, 
+						],1),
+						Pseq([
+							0,0,0,0, 1,0,0,0, 
+						],3),
+						Pseq([
+							0,0,0,0, 1,0,1,0, 
+						],2),
+						Pseq([
+							0,0,1,0, 0,1,1,0, 
+							0,0,1,0, 0,0,1,1, 
+						],1),
+						Pseq([
+							0,0,1,0, 1,0,0,0, 
+						],2),
+						Pseq([
+							1,0,0,0, 0,0,0,0, 
+						],4),
+					],inf)/1,
+					\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+					\dur, 1/16,
+					\amp, 0.1,
+				),
+		Pdef(\kick) <> Pbind(
+			\instrument, \playersec_xx,
+			\bufnum, Pseq([
+				BufDef('loop/funky1_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky3_135bpm.flac'),
+
+				BufDef('loop/funky1_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky3_135bpm.flac'),
+				BufDef('loop/funky2_135bpm.flac'),
+			],inf).stutter(4),
+			\isRest, Pseq([
+				1,
+			],inf).coin.not,
+			\pos, Pseq([
+				//Pseq((1..24) ++ [4,5,6,2,3,4,5,6]),
+				Pseq((0..31)),
+				Pseq((0..23)),
+				Pseq([0,7,8,4, 7,8,7,4].rotate(0)),
+			],inf)/8/~t+0.04,
+			\pos, Pseq([
+				0,3,0,3,4,7,7,12,
+				3,15,3,3,4,7,7,7,
+
+				16,3,16,16.3,20,7,7,12,
+				3,15,16.3,3,4,7,16.3,16.3,
+
+				0,3,0,3,4,7,7,12,
+				3,15,3,3,4,7,7,7,
+
+				16,3,16,16.3,20,7,7,12,
+				3,15,11,3, 4,7+8,9,16.3,
+			],inf)/8/~t+0.04,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,0,1,
+				0,1,0,0, 1,0,0,0,
+
+				1,0,1,1, 1,0,0,1,
+				0,1,1,0, 1,0,0,1,
+
+				1,0,1,0, 1,0,0,1,
+				0,1,0,0, 1,0,0,0,
+
+				1,0,1,1, 1,0,0,1,
+				0,1,0,1, 1,0,1,1,
+			],inf).coin.not,
+			\speed, 1.2,
+			\gain, 1,
+			\freq, 200,
+			\legato, 1.00,
+			\dur, Pseq([1/8],inf),
+			\amp, 0.1,
+		),
+		Pdef(\pad) <> Pbind(
+			\instrument, \playersec_xx,
+			\bufnum, Pseq([
+				BufDef('loop/funky1_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky3_135bpm.flac'),
+
+				BufDef('loop/funky1_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky3_135bpm.flac'),
+				BufDef('loop/funky2_135bpm.flac'),
+			],inf).stutter(4),
+			\pos, Pseq([
+				//Pseq((1..24) ++ [4,5,6,2,3,4,5,6]),
+				Pseq((0..31)),
+				Pseq((0..23)),
+				Pseq([0,7,8,4, 7,8,7,4].rotate(0)),
+			],inf)/8/~t+0.04,
+			\pos, Pseq([
+				Pseq([
+					33,30,30,30,
+				],4*3)-11,
+				Pseq([
+					32,30,31,30,
+				],4)-10,
+				Pseq([
+					33,30,30,30,
+				],4*3)-11,
+				Pseq([
+					32,30,31,30,
+				],4)-15,
+			],inf)/8/~t+0.04,
+			\isRest, Pseq([
+				1,0,1,1, 1,0,1,0,
+				1,0,1,0, 1,0,1,1,
+			],inf).coin.not,
+			\sustain, 0.05 * Pseq([1.2,1],inf),
+			\speed, 1 * Pseq([1,1.0001],inf),
+			\gain, 1,
+			\freq, 200,
+			\dur, Pseq([1/16],inf),
+			\amp, 0.1,
+		),
+		Pdef(\pad) <> Pbind(
+			\instrument, \playersec_xx,
+			\bufnum, Pseq([
+				BufDef('loop/funky1_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky3_135bpm.flac'),
+
+				BufDef('loop/funky1_135bpm.flac'),
+				BufDef('loop/funky4_135bpm.flac'),
+				BufDef('loop/funky3_135bpm.flac'),
+				BufDef('loop/funky2_135bpm.flac'),
+			],inf).stutter(4),
+			\pos, Pseq([
+				//Pseq((1..24) ++ [4,5,6,2,3,4,5,6]),
+				Pseq((0..31)),
+				Pseq((0..23)),
+				Pseq([0,7,8,4, 7,8,7,4].rotate(0)),
+			],inf)/8/~t+0.04,
+			\pos, Pseq([
+				Pseq([
+					21
+				],1),
+			],inf)/8/~t+0.04,
+			\isRest, Pseq([
+				1,0,0,1, 0,1,0,0, 
+				0,0,0,0, 1,0,0,0, 
+				0,0,0,0, 1,1,0,1, 
+				0,0,1,0, 0,1,0,1, 
+
+				0,1,0,1, 0,0,1,0, 
+				0,0,1,0, 0,0,0,0, 
+				0,0,0,0, 1,1,0,1, 
+				0,0,1,0, 0,1,0,1, 
+			],inf).coin.not,
+			\sustain, 0.05 * Pseq([1.2,1],inf),
+			\speed, 1 * Pseq([1,1.0001],inf),
+			\gain, 1,
+			\freq, 200,
+			\dur, Pseq([1/16],inf),
+			\amp, 0.1,
+		),
+	])
+).play;
+)
+
+//////////////////////////////////////////
+
+
+(
+Ndef(\drono, { arg freq=3200, pan=0, amp=0.1;
+	var sig;
+	var op;
+	op = { arg freq;
+		var sig;
+		sig = SinOsc.ar(freq * LFNoise1.kr(1/23.0.rand!4).range(1.1,1) *  ( 1 + ( SinOsc.ar(freq*1.123.rand) * 1 ))) * LFSaw.ar(freq*( 4/3 ).rand * SinOsc.kr(( 1/12 ).rand).range(1.1,1)) ;
+		sig = BPF.ar(sig, ( freq * LFNoise1.ar(( 1/13 ).rand!4).range(1/4,4) ).clip(20,20000), \rq.kr(0.5) * LFNoise1.ar(( 1/13 ).rand!4).range(1/4,2)) + sig;
+		sig = sig.mean;
+	};
+
+	sig = [
+		op.(1230),
+		op.(230),
+		op.(3230),
+		op.(7230),
+	].mean;
+
+	sig = LPF.ar(sig, 14000);
+	sig = HPF.ar(sig, 140);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+
+(
+Ndef(\drono, { arg freq=3200, pan=0, amp=0.1;
+	var sig;
+	var op;
+	op = { arg freq;
+		var sig;
+		sig = SinOsc.ar(freq * LFNoise1.kr(1/23.0.rand!4).range(1.1,1) *  ( 1 + ( SinOsc.ar(freq*1.123.rand) * 1 ))) * LFSaw.ar(freq*( 4/3 ).rand * SinOsc.kr(( 1/12 ).rand).range(1.1,1)) ;
+		sig = BPF.ar(sig, ( freq * LFNoise1.ar(( 1/13 ).rand!4).range(1/4,4) ).clip(20,20000), \rq.kr(0.5) * LFNoise1.ar(( 1/13 ).rand!4).range(1/4,2)) + sig;
+		sig = sig.mean;
+	};
+
+	sig = [
+		op.(1230),
+		op.(230),
+		op.(3230),
+		op.(7230),
+	].mean;
+	sig = op.(1200 * op.(1/2).range(1,2) * ( op.(1000 * op.(1/2).range(1,2) * SinOsc.ar( op.(5000)).range(2,1)) * 0.1 + 1 ));
+	sig = sig + op.(1200 * op.(1/7).range(1,2) * ( op.(1000 * op.(1/2).range(1,2) * SinOsc.ar( op.(5000)).range(2,1)) * 0.1 + 1 ));
+
+	sig = LPF.ar(sig, 14000);
+	sig = HPF.ar(sig, 140);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\algofm, { arg freq=3200, pan=0, amp=0.1;
+	var sig;
+	var op;
+	var randfreq;
+
+	op = { arg freq;
+		[
+			LFSaw.ar(freq),
+			LFPulse.ar(freq),
+			LFCub.ar(freq),
+			SinOsc.ar(freq),
+			WhiteNoise.ar,
+		].choose;
+	};
+
+	randfreq = {
+		exprand(1/20,14000);
+	};
+
+	sig = op.(exprand(200, 14000));
+
+	15.do { arg idx;
+		var algos = [
+			{ op.(sig * exprand(0.01,2) + 1 * randfreq.value); }, // fm
+			{ op.(sig * exprand(0.01,2) + 1 * randfreq.value) + sig; }, // fm + sig
+			{ sig * exprand(0.01,2) + 1 * op.(randfreq.value); }, // am
+			{ sig * op.(randfreq.value); }, // ring
+			{ sig + op.(randfreq.value); }, // sum
+			{ ( sig * rrand(1,10.0) ).tanh; }, // sum
+		];
+		sig = algos.choose.value;
+	};
+
+	sig = LPF.ar(sig, 14000);
+	sig = HPF.ar(sig, 140);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\algofm, { arg freq=3200, pan=0, amp=0.1;
+	var sig;
+	var op;
+	var randfreq;
+
+	op = { arg freq;
+		[
+			LFSaw.ar(freq),
+			LFPulse.ar(freq),
+			LFCub.ar(freq),
+			SinOsc.ar(freq),
+			WhiteNoise.ar,
+		].choose;
+	};
+
+	randfreq = {
+		exprand(1/20,14000);
+	};
+
+
+	sig = 8.collect({
+		var sig = op.(exprand(20, 14000));
+		5.do { arg idx;
+			var algos = [
+				//{ op.(sig * exprand(0.01,2) + 1 * randfreq.value); }, // fm
+				{ op.(sig * exprand(0.01,2) + 1 * randfreq.value) + sig; }, // fm + sig
+				{ sig * exprand(0.01,2) + 1 * op.(randfreq.value); }, // am
+				//{ sig * op.(randfreq.value); }, // ring
+				{ sig + op.(randfreq.value); }, // sum
+				{ ( sig * rrand(1,10.0) ).tanh; }, // sum
+			];
+			sig = algos.choose.value;
+		};
+		sig;
+	}).mean;
+
+	sig = LPF.ar(sig, 14000);
+	sig = HPF.ar(sig, 40);
+	sig = sig * Duty.kr(1/~t, 0, Dseq([
+		0,1,
+	],inf));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+	32.do { arg idx;
+
+		SynthDef(\algofm+++idx, { arg freq=3200, pan=0, amp=0.1, gate=1, out=0;
+			var sig;
+			var op;
+			var randfreq;
+
+			op = { arg freq;
+				[
+					LFSaw.ar(freq),
+					LFPulse.ar(freq),
+					LFCub.ar(freq),
+					SinOsc.ar(freq),
+					WhiteNoise.ar,
+				].choose;
+			};
+
+			randfreq = {
+				exprand(1/20,14000);
+			};
+
+
+			sig = 10.collect({
+				var sig = op.(exprand(0.20, 14000));
+				rrand(5,20).do { arg idx;
+					var algos = [
+						//{ op.(sig * exprand(0.01,2) + 1 * randfreq.value); }, // fm
+						{ op.(sig * exprand(0.01,2) + 1 * randfreq.value) + sig; }, // fm + sig
+						{ op.(sig * exprand(0.01,2) + 1 * randfreq.value* XLine.kr(0.01,1,rrand(5.0,40))) + sig; }, // fm + sig
+						{ op.(sig * exprand(0.01,2) + 1 * randfreq.value* XLine.kr(1,0.01,rrand(5.0,40))) + sig; }, // fm + sig
+						{ sig * exprand(0.01,2) + 1 * op.(randfreq.value); }, // am
+						//{ sig * op.(randfreq.value); }, // ring
+						{ sig + op.(randfreq.value); }, // sum
+						{ ( sig * rrand(1,10.0) ).tanh; }, // sum
+						{ sig * Line.kr(0,1,20.0.rand) }, // rise
+						{ sig * Line.kr(1,0,20.0.rand) }, // fall
+					];
+					sig = algos.choose.value;
+				};
+				sig;
+			}).mean;
+
+			sig = LeakDC.ar(sig);
+			sig = LPF.ar(sig, 14000);
+			sig = HPF.ar(sig, 40);
+			sig = Limiter.ar(sig);
+			sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,1.1)), gate, doneAction:2);
+			sig = Pan2.ar(sig, pan, amp);
+			Out.ar(out, sig);
+		}).add;
+
+	}
+)
+
+(
+Pdef(\dronegen,
+	
+	Ppar(
+		4.collect({
+			Pbind(
+				\instrument, Pfunc({ \algofm+++rrand(0,31) }),
+				\adsr, Pseq([
+					[ Env.adsr(1.1,0.1,0.8,1.1) ],
+				],inf),
+				\legato, 1,
+				\degree, Pseq([0],inf),
+				\dur, rrand(3.0,14),
+				\amp, 0.1,
+			)
+		})
+	),
+).play;
+);
+
+// next level: make one channel per synthdef instead of 10, and create them independently in pattern
+
+
+(
+	32.do { arg idx;
+
+		SynthDef(\algovoice+++idx, { arg freq=3200, pan=0, amp=0.1, gate=1, out=0;
+			var sig;
+			var op;
+			var randfreq;
+
+			op = { arg freq;
+				[
+					LFSaw.ar(freq),
+					LFPulse.ar(freq),
+					LFCub.ar(freq),
+					SinOsc.ar(freq),
+					LFNoise1.ar(freq),
+					WhiteNoise.ar,
+				].choose;
+			};
+
+			randfreq = {
+				exprand(1/20,14000);
+			};
+
+
+			sig = op.(exprand(0.20, 14000));
+			rrand(5,20).do { arg idx;
+				var algos = [
+					//{ op.(sig * exprand(0.01,2) + 1 * randfreq.value); }, // fm
+					{ op.(sig * exprand(0.01,2) + 1 * randfreq.value) + sig; }, // fm + sig
+					{ op.(sig * exprand(0.01,2) + 1 * randfreq.value* XLine.kr(0.01,1,rrand(5.0,40))) + sig; }, // fm + sig rise
+					{ op.(sig * exprand(0.01,2) + 1 * randfreq.value* XLine.kr(1,0.01,rrand(5.0,40))) + sig; }, // fm + sig fall
+					{ sig * exprand(0.01,2) + 1 * op.(randfreq.value); }, // am
+					//{ sig * op.(randfreq.value); }, // ring
+					{ sig + op.(randfreq.value); }, // sum
+					{ ( sig * rrand(1,10.0) ).tanh; }, // sum
+					{ sig * Line.kr(0,1,20.0.rand) }, // rise
+					{ sig * Line.kr(1,0,20.0.rand) }, // fall
+					{ FreqShift.ar(sig, randfreq.value) + sig },
+				];
+				sig = algos.choose.value;
+			};
+
+			sig = LeakDC.ar(sig);
+			sig = LPF.ar(sig, 14000);
+			sig = HPF.ar(sig, 40);
+			sig = Limiter.ar(sig);
+			sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,1.1)), gate, doneAction:2);
+			sig = Pan2.ar(sig, pan, amp);
+			Out.ar(out, sig);
+		}).add;
+
+	}
+)
+
+(
+Pdef(\dronegen,
+	
+	Ppar(
+		8.collect({
+			Pbind(
+				\instrument, Pfunc({ \algovoice+++rrand(0,31) }),
+				\adsr, Pseq([
+					[ Env.adsr(1.1,0.1,0.8,1.1) ],
+				],inf),
+				\legato, 1,
+				\isRest, Prand([
+					1,1,0,
+				],inf).coin.not,
+				\pan, Pwhite(0.0,1),
+				\degree, Pseq([0],inf),
+				\dur, rrand(3.0,14),
+				\amp, 0.1,
+			)
+		})
+	),
+).play;
+);
+
+
+(
+Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = FreqShift.ar(freq, SinOsc.ar(freq*1.1));
+	sig = sig / 500;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
 );
