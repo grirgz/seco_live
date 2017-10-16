@@ -78,3 +78,17 @@ Ndef(\localmax, { arg freq=200, pan=0, amp=0.1;
 );
 
 
+////////////////////////
+
+SynthDef(\filterfx, { arg out=0, amp=0.1, gate=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig1 = LPF.ar(sig, \lpf.kr(20000));
+	sig = SelectX.ar(\lpmix.kr(0), [sig, sig1]);
+	sig1 = HPF.ar(sig, \hpf.kr(20));
+	sig = SelectX.ar(\hpmix.kr(0), [sig, sig1]);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0,1,0.01),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;

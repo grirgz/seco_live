@@ -465,6 +465,8 @@ SynthDef(\cling, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 		));
 );
 
+// END
+
 (
 	~master.();
 Pdef(\part, Pdef(\t1_intro, 
@@ -530,6 +532,7 @@ Pdef(\part,Pdef(\t1_verse1,
 );
 
 (
+	~master.();
 Pdef(\part,Pdef(\t1_verse2, 
 	Ppar([
 		Pdef(\t1kick),

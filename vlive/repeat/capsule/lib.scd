@@ -48,6 +48,8 @@ FileSystemProject.load("libdef/multifbdel.scd");
 FileSystemProject.load("libdef/basicrecorder.scd");
 FileSystemProject.load("libdef/rdngui.scd");
 FileSystemProject.load("libdef/simplemixer.scd");
+FileSystemProject.load("libdef/pmodenv.scd");
+FileSystemProject.load("capsule/RDN_track1.scd");
 FileSystemProject.load("capsule/RDN_track1.scd");
 
 ///////////////////// control

@@ -24,10 +24,20 @@ ProtoTemplateDef(\rdn, (
 
 	outBus_: { arg self, val;
 		PlayerWrapper(Ndef(self.fxkey)).outBus = val;
+		self.changed(\outBus);
+		self;
 	},
 
 	outBus: { arg self;
 		PlayerWrapper(Ndef(self.fxkey)).outBus;
+	},
+
+	inBus: { arg self;
+		self.inbus; // can't decide :/
+	},
+
+	inBus_: { arg self, val;
+		self.inbus = val;
 	},
 
 	genfx: { arg self; 
@@ -56,7 +66,7 @@ ProtoTemplateDef(\rdn, (
 	},
 
 	edit: { arg self;
-		WindowDef(\rdngui).front(self)
+		WindowDef(\rdngui_+++self.key, WindowDef(\rdngui)).front(self)
 	},
 
 	presetCompileString: { arg self;

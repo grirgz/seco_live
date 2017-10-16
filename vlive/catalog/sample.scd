@@ -1,3 +1,29 @@
+//// techniques
+// - basic sampling: start + sustain, speed (constant duration)
+// - slice sampling: start + end, speed (always reach end and can start from end in reverse)
+// - oscsampling + posenv
+// - granulation
+
+// options:
+// - specify position (and Phaser): BufRd
+// - specify rate: BufPlay
+// - keep sample panning or sum + custom pan
+// - hpf + lpf
+// - fixed sustain: use another key for sustain to allow timeline no caring about sustain
+// - startpos in seconds or normalized
+
+// fx:
+// - freqshift
+// - am
+// - ring
+
+
+
+
+
+
+//////////////////////////////
+
 SynthDef(\recorder, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum;
 	var sig;
 	var sig1;
@@ -182,6 +208,122 @@ Pdef(\sample,
 			\dur, 1/16,
 			\amp, 0.1,
 		),
+	])
+).play;
+)
+//////////////////////////////////////////////
+// use the sampler as an oscillator with pmodenv to modulate position
+
+SynthDef(\playersec_osc, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
+	// pos in seconds
+	var sig;
+	var sig1;
+	var trigger = Impulse.ar(\trigfreq.kr(0));
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig1 = RLPF.ar(sig, \lpfr.kr(1) * \trigfreq.kr, \rq.kr(0.5));
+	sig = SelectX.ar(\lpmix.kr(0.5), [sig, sig1]);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
+	//sig = Pan2.ar(sig, pan, 1).sum;
+	Out.ar(out, sig * \gain.kr(1) * velamp);
+}).add;
+SynthDef(\playersec_osczig, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
+	// pos in seconds
+	var sig;
+	var sig1;
+	var trigger = Impulse.ar(\trigfreq.kr(0));
+	var speedtrigger = Impulse.ar(\trigfreq.kr*2);
+	speed = speed * Demand.ar(speedtrigger, 0, Dseq([
+		1,-1,
+	],inf));
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig1 = RLPF.ar(sig, \lpfr.kr(1) * \trigfreq.kr, \rq.kr(0.5));
+	sig = SelectX.ar(\lpmix.kr(0.5), [sig, sig1]);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
+	//sig = Pan2.ar(sig, pan, 1).sum;
+	Out.ar(out, sig * \gain.kr(1) * velamp);
+}).add;
+)
+
+
+(
+Pdef(\glitch, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec_osczig,
+			\trigfreq, 400 * 1/8 * Pseq([
+				0,0,0,-1,
+			],inf).midiratio,
+			\pos, Pseg(Pseq([0,0.1],inf),8)+0.1,
+			\pos, ~pmodenv.(Pseq([0.1,1,0.1,2]/4,inf), 8)+0.3,
+			\speed, ~pmodenv.(Pseq([2.1,1,0.1,2],inf), 8),
+			\lpfr, 8,
+			\legato, 1,
+			\bufnum, BufDef(\table, "field/table.flac"),
+			\bufnum, BufDef('voices/feynman.flac'),
+			\freq, 200,
+			\dur, 1/2,
+			\gain, 30,
+			\gain, 1/2,
+			\amp, 0.1,
+		);
+		
+	])
+).play;
+)
+
+////////////
+// hear the sampled voice pitched
+
+(
+SynthDef(\playersec_osczig_stereo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
+	// pos in seconds
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var trigger = Impulse.ar(\trigfreq.kr(0));
+	var speedtrigger = Impulse.ar(\trigfreq.kr*2);
+	speed = speed * Demand.ar(speedtrigger, 0, Dseq([
+		1,-1,
+	],inf));
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos+[0,0.01]*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig1 = RLPF.ar(sig, \lpfr.kr(1) * \trigfreq.kr, \rq.kr(0.5));
+	sig = SelectX.ar(\lpmix.kr(0.5), [sig, sig1]);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
+	sig.debug("sig");
+	sig = sig.flop.sum.debug("sig");
+	//sig = Pan2.ar(sig, pan, 1).sum;
+	Out.ar(out, sig * \gain.kr(1) * velamp);
+}).add;
+)
+
+
+(
+Pdef(\glitch, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec_osczig_stereo,
+			\trigfreq, 400 * 1/4 * Pseq([
+				0,0,0,-1,
+			],inf).midiratio,
+			\pos, Pseg(Pseq([0,0.1],inf),8)+0.1,
+			\pos, 0.4,
+			\speed, Pseq([
+				1,1.1,0.8,
+			],inf),
+			\speed, ~pmodenv.(Pseq([2.1,1,0.1,2],inf), 1),
+			\pos, ~pmodenv.(Pseq([0.1,4,0.1,2]/4,inf), 1)+2.0,
+			\lpfr, 8,
+			\legato, 1,
+			\bufnum, BufDef(\table, "field/table.flac"),
+			\bufnum, BufDef('loop/clean7_135bpm.flac'),
+			\bufnum, BufDef('loop/loop3b_185bpm.flac'),
+			\bufnum, BufDef('voices/feynman.flac'),
+			\freq, 200,
+			\dur, 1/2,
+			\gain, 30,
+			\gain, 1/2,
+			\amp, 0.1,
+		);
+		
 	])
 ).play;
 )
@@ -459,3 +601,18 @@ Ndef(\sample, { arg amp=0.5, pan=0, freq=200, mbufnum,
 	)).play;
 )
 
+
+/////////////////////////
+
+
+(
+Pdef(\rand, Pbind(
+	\instrument, \playersec,
+	\bufnum, BufDef('loop/clean7_135bpm.flac'),
+	\pos, Pwhite(0,2.0),
+	\speed, Pseg(Pseq([0,4],inf),8),
+	\pos, Pseg(Pseq([0,1,1/4],inf),1),
+	\dur, 1/16,
+	\amp, 0.1,
+)).play;
+);
