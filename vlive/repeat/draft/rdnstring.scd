@@ -91,13 +91,15 @@ RandDelayNetwork(\deldefault).tree
 		applyRule.(tree);
 	};
 	//~rdn_to_string.(RandDelayNetwork(\deldefault)).editorInsert
-	~rdn_to_fbstring.(RandDelayNetwork(\deldefault));
+//	~rdn_to_fbstring.(RandDelayNetwork(\deldefault));
 
 )
 
 // END
 
 	~rdn_to_fbstring.(RandDelayNetwork(\deldefault)).editorInsert
+	~rdn_to_fbstring.(RandDelayNetwork(\del3)).editorInsert
+
 
 
 

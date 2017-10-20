@@ -361,7 +361,7 @@ ParamProto.init;
 };
 ~parPlayerGroup[\asPresetCompileString] = ~parPlayerGroup[\presetCompileString]; // backward compat
 ~parPlayerGroup[\edit] = { arg self;
-	WindowDef(\samplekit).front(self);
+	WindowDef(\samplekit_+++self.key, WindowDef(\samplekit)).front(self);
 };
 ~parPlayerGroup[\startControl] = { arg self;
 	var count = 0;
@@ -383,8 +383,16 @@ ParamProto.init;
 		}
 	})
 };
-)
 
+// update existing instances
+PatKitDef.all.do({ arg inst;
+	inst[\presetCompileString] = ~parPlayerGroup[\presetCompileString];
+	inst[\asPresetCompileString] = ~parPlayerGroup[\asPresetCompileString];
+	inst[\edit] = ~parPlayerGroup[\edit];
+	inst[\startControl] = ~parPlayerGroup[\startControl];
+});
+
+);
 
 
 // END

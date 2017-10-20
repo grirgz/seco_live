@@ -616,3 +616,22 @@ Pdef(\rand, Pbind(
 	\amp, 0.1,
 )).play;
 );
+
+///////////////////////// like a scratch which start the sample
+(
+SynthDef(\playersec_zix2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, trigger=1, velamp=1;
+	// pos in seconds
+	var sig;
+	var sig1;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,0.5,0],[0.1,0.8]), 1);
+	env2 = EnvGen.kr(Env([1,0.5,0],[0.1,0.8]), 1);
+	speed = speed * EnvGen.kr(Env([0.21,1,1],[0.12,0.8]), 1);
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
+	//sig = FreqShift.ar(LPF.ar(sig, 4000), 2300) + HPF.ar(sig, 4000);
+	sig = HPF.ar(sig, 6000)*18;
+	//sig = Pan2.ar(sig, pan, 1).sum;
+	Out.ar(out, sig * \gain.kr(1) * velamp);
+}).add;
+)

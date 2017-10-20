@@ -1,21 +1,21 @@
 FileSystemProject.load("libdef/buttonselector.scd");
 (
 
-WindowDef(\multigrid_menu, { arg def, gridlist;
+WindowDef(\multipatkitdef_menu, { arg def, gridlist;
 	var gridstack = StackLayout.new;
 	var selectmenu;
 	var scroller;
 	if( gridlist.isNil ) {
 		gridlist = List.new;
-		TrackDef.all.select({ arg x; x.protoClass == \playergrid }).reject({ arg x; x.key == \playergrid }).do { arg x;
-			gridlist.add(x)
+		PatKitDef.all.do { arg x;
+			gridlist.add(x) // take only values
 		}
 	};
-	selectmenu = PopUpMenu.new.items_(gridlist.collect(_.label)).action_({ arg view;
+	selectmenu = PopUpMenu.new.items_(gridlist.collect(_.key)).action_({ arg view;
 		gridstack.index = view.value;
 	});
 	gridlist.do { arg grid;
-		gridstack.add(WindowDef(\playergrid).asView(grid));
+		gridstack.add(WindowDef(\samplekit).asView(grid));
 	};
 	//scroller = ScrollView.new.canvas_(View.new.layout_( VLayout(
 	//	selectmenu,
@@ -29,7 +29,7 @@ WindowDef(\multigrid_menu, { arg def, gridlist;
 	);
 });
 
-WindowDef(\multigrid, { arg def, gridlist;
+WindowDef(\multipatkitdef, { arg def, gridlist;
 	var gridstack = StackLayout.new;
 	var selectmenu;
 	var scroller;
@@ -38,18 +38,19 @@ WindowDef(\multigrid, { arg def, gridlist;
 	});
 	if( gridlist.isNil ) {
 		gridlist = List.new;
-		TrackDef.all.select({ arg x; x.protoClass == \playergrid }).reject({ arg x; x.key == \playergrid }).do { arg x;
+		// TODO: use class method
+		PatKitDef.all.do { arg x;
 			gridlist.add(x)
 		}
 	};
 	selectmenu = HLayout(
 		*gridlist.collect({ arg grid;
-			selector.makeButton.string_(grid.label)
+			selector.makeButton.string_(grid.key)
 		})
 		++ [nil]
 	);
 	gridlist.do { arg grid;
-		gridstack.add(WindowDef(\playergrid).asView(grid));
+		gridstack.add(WindowDef(\samplekit).asView(grid));
 		def.waitIfNeeded;
 	};
 	//scroller = ScrollView.new.canvas_(View.new.layout_( VLayout(

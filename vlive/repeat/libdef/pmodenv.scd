@@ -5,6 +5,18 @@ SynthDef(\modenv, { arg out=0, amp=0.1, gate=1;
 	sig = EnvGen.kr(\env.kr(Env([1,2,1],[0.1,0.8])), gate, doneAction:2);
 	Out.kr(out, sig);
 }).store;
+SynthDef(\modenvlag, { arg out=0, amp=0.1, gate=1;
+	var sig;
+	var prev = In.kr(out);
+	sig = EnvGen.kr(Env([prev,prev,\target.kr],[0,\time.kr]), gate, doneAction:2);
+	Out.kr(out, sig);
+}).store;
+SynthDef(\modenvmono, { arg out=0, amp=0.1, gate=1;
+	var sig;
+	sig = EnvGen.kr(\env.kr(Env([1,1],[0.1])), \itrig.tr(1), doneAction:0);
+	sig = sig * EnvGen.kr(Env([1,1,1],[0.1,0.8], releaseNode:1), gate, doneAction:2);
+	Out.kr(out, sig);
+}).store;
 SynthDef(\simplefm, { arg out=0, amp=0.1, gate=1, pan=0;
 	var sig;
 	sig = LFSaw.ar(\freq.ar(200) * ( 1 + ( SinOsc.ar(\fmf.kr(1) * [1,1+\fmfmul.kr(0.001)]) * \fma.kr(1) )));
@@ -21,39 +33,83 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 }).add;
 );
 (
-~pmodseg = { arg valpat, repeat=inf;
+~pmodenv = { arg valpat, timepat=1, repeat=1;
 	Prout({ arg ev;
-		var bus = Bus.control(s,1);
-		var valstr = valpat.asStream;
+		var bus = Bus.control(s, 1);
 		var timestr;
-		var previous = valstr.next;
+		var running = true;
+		var finfun;
+		var cleanup = EventStreamCleanup.new;
+		var patplayer;
 
-		CmdPeriod.doOnce({ bus.free });
+		timepat = timepat ??  { Plazy({ ev[\dur] }).loop };
 
-		timestr = Plazy({ ev[\dur] }).loop.asStream;
+		cleanup.addFunction(ev, {
+			//"pmodenv freed !!!".debug;
+			patplayer.stop;
+			running = false;
+			{
+				2.wait;
+				bus.free;
+			}.fork;
+		});
 
-		valstr.do { arg val;
-			var time = timestr.next;
-			var prev = previous;
-			//val.debug("val");
-			//previous.debug("previous");
-			ev[\finish] = {
-				Pbind(
-					\instrument, \modenv,
-					\out, bus,
-					\env, [ Env([0,prev,val],[0,time]/TempoClock.default.tempo) ],
-					//\bla, Prout({ arg ev; ev[\env][0].asCompileString.debug("kj"); 1.yield }).loop,
-					\dur, Pseq([time],1),
-				).play;
-			};
-			previous = val;
+		CmdPeriod.doOnce({ 
+			if(bus.index.notNil) {
+				bus.free 
+			}
+		});
+
+		finfun = {
+			patplayer = Pmono(\modenvmono,
+				\out, bus,
+				\itrig, 1,
+				[ \dur, \env ], Prout({ arg monoev;
+					var valstr = valpat.asStream;
+					var previous = valstr.next;
+					var time;
+					timestr = timepat.asStream;
+
+					block { arg break;
+						valstr.do { arg val;
+							var prev = previous;
+							time = timestr.next;
+							if(time.isNil) { 
+								time = 2;
+								monoev[\dur] = time;
+								break.value;
+							};
+
+							//monoev[\dur] = time;
+							//Env([prev,val],[time]/thisThread.clock.tempo).asCompileString.debug("env");
+							monoev = [time, [ Env([prev,val],[time]/thisThread.clock.tempo) ]].yield;
+
+							previous = val;
+						};
+					};
+					monoev;
+				}),
+				\legato, 1,
+			).play;
+		};
+
+		if(ev[\finish].isKindOf(Function)) {
+			var oldfun = ev[\finish];
+			ev[\finish] = { finfun.value; oldfun.value };
+		} {
+			ev[\finish] = finfun;
+		};
+
+		while{ running == true } {
 			ev = bus.asMap.yield;
 		};
 		ev;
 	}).repeat(repeat)
 };
 
-~pmodenv = { arg valpat, timepat=1, repeat=1;
+
+~pmodenv_old = { arg valpat, timepat=1, repeat=1;
+	// doesnt work : there is clicks between segments, new implementation use Pmono
 	Prout({ arg ev;
 		var bus = Bus.control(s, 1);
 		var timestr;
@@ -99,13 +155,41 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 						};
 						//val.debug("val");
 						//previous.debug("previous");
-						sp.seq(Pbind(
-							\instrument, \modenv,
+
+						//-- modenv
+
+						//sp.seq(Pbind(
+							//\instrument, \modenv,
+							//\out, bus,
+							//\env, [ Env([prev,prev,val],[0,time]/thisThread.clock.tempo) ],
+							//\legato, 1,
+							////\bla, Prout({ arg ev; ev[\env][0].asCompileString.debug("kj"); 1.yield }).loop,
+							//\dur, Pseq([time],1),
+						//));
+
+						//-- modenvlag
+
+						//sp.seq(Pbind(
+							//\instrument, \modenvlag,
+							//\out, bus,
+							//\target, val,
+							//\time, time/thisThread.clock.tempo,
+							//\legato, 1,
+							////\bla, Prout({ arg ev; ev[\env][0].asCompileString.debug("kj"); 1.yield }).loop,
+							//\dur, Pseq([time],1),
+						//));
+
+						//-- modenvmono
+
+						sp.seq(Pmono(\modenvmono,
 							\out, bus,
-							\env, [ Env([0,prev,val],[0,time]/thisThread.clock.tempo) ],
+							\env, [ Env([prev,val],[time]/thisThread.clock.tempo) ],
+							\legato, 1,
 							//\bla, Prout({ arg ev; ev[\env][0].asCompileString.debug("kj"); 1.yield }).loop,
 							\dur, Pseq([time],1),
 						));
+
+
 						previous = val;
 						//"kj==========aaa".debug;
 					};
@@ -128,41 +212,6 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 		};
 		ev;
 	}).repeat(repeat)
-};
-
-
-~pmodpat = { arg pat, rate=\control;
-	Prout({ arg ev;
-		var bus = Bus.alloc(rate, s, 1);
-		var timestr;
-		var running = true;
-		var finfun;
-
-		CmdPeriod.doOnce({ if(bus.index.notNil) {bus.free} });
-
-		finfun = ({
-			Pspawner({ arg sp;
-				sp.seq(
-					Pbind(\out, bus)  <> pat <> Pbind(\superEvent, Plazy({ ev }).loop)
-				);
-				running = false;
-				sp.wait( 2 );
-				bus.free;
-			}).play;
-		});
-		if(ev[\finish].isKindOf(Function)) {
-			var oldfun = ev[\finish];
-			ev[\finish] = { finfun.value; oldfun.value };
-		} {
-			ev[\finish] = finfun;
-		};
-
-		while{ running == true } {
-			ev = bus.asMap.yield;
-		};
-		ev;
-	
-	})
 };
 
 ~pmodsynth = { arg fun, dur, repeat=1, chainpat;
@@ -254,6 +303,76 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 
 };
 
+////////
+
+~pmodseg = { arg valpat, repeat=inf;
+	Prout({ arg ev;
+		var bus = Bus.control(s,1);
+		var valstr = valpat.asStream;
+		var timestr;
+		var previous = valstr.next;
+
+		CmdPeriod.doOnce({ bus.free });
+
+		timestr = Plazy({ ev[\dur] }).loop.asStream;
+
+		valstr.do { arg val;
+			var time = timestr.next;
+			var prev = previous;
+			//val.debug("val");
+			//previous.debug("previous");
+			ev[\finish] = {
+				Pbind(
+					\instrument, \modenv,
+					\out, bus,
+					\env, [ Env([0,prev,val],[0,time]/TempoClock.default.tempo) ],
+					\legato, 1,
+					//\bla, Prout({ arg ev; ev[\env][0].asCompileString.debug("kj"); 1.yield }).loop,
+					\dur, Pseq([time],1),
+				).play;
+			};
+			previous = val;
+			ev = bus.asMap.yield;
+		};
+		ev;
+	}).repeat(repeat)
+};
+
+~pmodpat = { arg pat, rate=\control;
+	Prout({ arg ev;
+		var bus = Bus.alloc(rate, s, 1);
+		var timestr;
+		var running = true;
+		var finfun;
+
+		CmdPeriod.doOnce({ if(bus.index.notNil) {bus.free} });
+
+		finfun = ({
+			Pspawner({ arg sp;
+				sp.seq(
+					Pbind(\out, bus)  <> pat <> Pbind(\superEvent, Plazy({ ev }).loop)
+				);
+				running = false;
+				sp.wait( 2 );
+				bus.free;
+			}).play;
+		});
+		if(ev[\finish].isKindOf(Function)) {
+			var oldfun = ev[\finish];
+			ev[\finish] = { finfun.value; oldfun.value };
+		} {
+			ev[\finish] = finfun;
+		};
+
+		while{ running == true } {
+			ev = bus.asMap.yield;
+		};
+		ev;
+	
+	})
+};
+
+
 );
 
 // END
@@ -321,3 +440,51 @@ Pdef(\plop6, Pbind(
 ~rs = ~rr.asStream;
 )
 ~rs.next
+
+
+(
+Pdef(\testmod, Pbind(
+	\instrument, \default,
+	\freq, ~pmodenv.(Pseq([1,2,1,4]*400,inf), 1),
+	\legato, 0.7,
+	\isRest, Pseq([
+		1,1,1,1, 1,1,1,0,
+	],inf).coin.not,
+	\dur, 1/4,
+	\amp, 0.1,
+)).play;
+);
+
+
+//////// test with mono env
+
+(
+	Pdef(\testmonox, 
+		Ppar([
+			Pmono(\modenvmono,
+				\out, BusDef(\lfo1, \control),
+				\itrig, 1,
+				\env,
+				Pseq([
+					[ Env([1,2]*400,[1]/~t) ],
+					[ Env([2,1]*400,[1]/~t) ],
+					[ Env([1,4]*400,[1]/~t) ],
+					[ Env([4,1]*400,[1]/~t) ],
+				],inf),
+				\legato, 1,
+				//\bla, Prout({ arg ev; ev[\env][0].asCompileString.debug("kj"); 1.yield }).loop,
+				\dur, Pseq([1],inf),
+			),
+			Pbind(
+				\instrument, \default,
+				\freq, BusDef(\lfo1, \control).asMap,
+				\legato, 0.5,
+				\latency, 
+				\dur, 4,
+				\amp, 0.1,
+			),
+
+		])
+	).play;
+);
+

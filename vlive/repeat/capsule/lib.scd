@@ -41,6 +41,7 @@ MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\playersec_hlpf);
 
 ParamProto.init;
 
+FileSystemProject.load("libdef/drumkit.scd");
 FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
 
 FileSystemProject.load("libdef/synthplayrec.scd");

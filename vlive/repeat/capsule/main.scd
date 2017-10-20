@@ -1,4 +1,6 @@
 (
+Pdef.defaultQuant = 2;
+Ndef.defaultQuant = 1;
 ~t = 135/4/60; TempoClock.default.tempo = ~t;
 s.waitForBoot {
 	FileSystemProject.load("capsule/lib.scd");
