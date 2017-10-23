@@ -60,12 +60,12 @@ Pdef(\chordb, Pbind(
 
 
 
-(
 ~t = 60/60; TempoClock.default.tempo = ~t;
+(
 ~buf = BufDef(\moeten, "voices/02_moeten.flac");
 Ndef(\lfo1).quant = Pdef.defaultQuant;
 
-Ndef(\lfo1, { arg freq=1; SinOsc.kr(freq * t).range(50,7500).lag(0.051)});
+Ndef(\lfo1, { arg freq=1; SinOsc.kr(freq * ~t).range(50,7500).lag(0.051)});
 Ndef(\lfo1).put(1, \set -> Pbind(
 	\freq, Pseq([1,1,16,1,1,8,1,1],inf),
 	\dur, 1/1,

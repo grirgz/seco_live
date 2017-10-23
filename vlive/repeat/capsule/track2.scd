@@ -15,6 +15,30 @@ SynthDef(\star, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\star2, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	var env1;
+	var fspread;
+	env1 = EnvGen.kr(Env([1,2,1],[1.7,0.8]), 1);
+	fspread = 0.0007 + Rand(0,0.007);
+	sig = LFSaw.ar(freq * \modfreq.kr(1) * ((0..7)/7 - 0.5 * fspread + 1));
+	sig = sig + SinOsc.ar(freq * \modfreq.kr * ((0..7)/7 - 0.5 * fspread + 1));
+
+	sig1 = CombL.ar(sig, 0.1, 1/( freq * env1 ),4.5)/2+sig  / 4;
+	sig = SelectX.ar( EnvGen.kr(Env([0,1,0],[0.1+Rand(0,2.0),0.1+Rand(0,2.0)]), 1), [sig, sig1]);
+
+	sig1 = CombL.ar(sig, 0.1, 1/freq * env1,4.5)/2+sig  / 4;
+	sig = SelectX.ar( EnvGen.kr(Env([0,1,0],[0.1+Rand(0,2.0),0.1+Rand(0,2.0)]), 1), [sig, sig1]);
+
+	sig = sig * ( sig/(sig+1.1)*50 * env1 ).clip(0.5);
+	sig1 = sig * (sig.abs > Rand(0.1,0.7));
+	sig = SelectX.ar( EnvGen.kr(Env([0,1,0],[0.1+Rand(0,2.0),0.1+Rand(0,2.0)]), 1), [sig, sig1]);
+	sig = sig * 2;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1.01,0.1,1,1.1)),gate,doneAction:doneAction);
+	sig = sig /10;
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
 )
 
 
@@ -903,9 +927,9 @@ Pdef(\part,Pdef(\t2_outro,
 	~master.();
 Pdef(\main,Pdef(\track2, 
 	Pseq([
-		Pfindur(16,Pdef(\t2_intro)),
-		Pfindur(16,Pdef(\t2_verse1)), // focus:rix&perc
-		Pfindur(16,Pdef(\t2_break)), // focus:bass&perc
+//		Pfindur(16,Pdef(\t2_intro)),
+//		Pfindur(16,Pdef(\t2_verse1)), // focus:rix&perc
+//		Pfindur(16,Pdef(\t2_break)), // focus:bass&perc
 		Pfindur(16,Pdef(\t2_chorus)),
 		Pfindur(16,Pdef(\t2_bridgeprep)),
 		Pfindur(16,Pdef(\t2_bridge)),
@@ -1233,4 +1257,186 @@ Pdef(\track2_idea,
 ).play;
 )
 
+	(
+	~master.();
+Pdef(\part, Pdef(\xxx, 
+	Pseq([
+		Pfindur(4,
+			Pdef(\t2_verse1),
+		),
+		Pfindur(12,
+			Pdef(\t2_verse1_explore),
+		),
+	])
+)).play;
+	)
 
+(
+	// explore
+	~master.();
+Pdef(\part, Pdef(\t2_verse1_explore, 
+	Ppar([
+		PatKitDef(\sample1).asPattern(Pdef(\kick) <> Pbind(
+			\kitIndex, 0,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 1/2,
+			\dur, 1/8,
+			\amp, 0.1,
+		)),
+		PatKitDef(\sample1).asPattern(Pdef(\snare) <> Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				Pseq([
+					0,0,0,0, 1,0,0,0,
+				],inf),
+			],inf).coin.not,
+			\pos, Pseq([
+				0.04,
+			],inf),
+			\sustain, 0.1,
+			\gain, 1/2,
+			\dur, 1/16,
+			\amp, 0.1,
+		)),
+		PatKitDef(\sample1).asPattern(Pdef(\snare) <> Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				1,0,1,0, 0,0,1,1,
+
+				Pseq([
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,1,
+					0,0,0,0, 0,0,0,0,
+					1,0,1,0, 0,0,0,1,
+
+					0,0,0,0, 0,1,0,1,
+					0,1,0,0, 0,0,0,1,
+					0,0,1,0, 0,1,0,0,
+					1,0,1,0, 0,0,1,1,
+				],inf),
+			],inf).coin.not,
+			\pos, Pseq([
+				Pseg(Pseq([0.04,0.04,1],inf),Pseq([1,3,0]*2,inf)),
+			],inf),
+			\sustain, 0.1,
+			\gain, 1/2,
+			\dur, 1/16,
+			\amp, 0.1,
+		)),
+		PatKitDef(\sample1).asPattern(Pdef(\snare) <> Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+
+				Pseq([
+					0,1,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					
+					0,1,0,0, 0,0,0,1,
+					0,1,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+				],inf),
+			],inf).coin.not,
+			\pos, Pseq([
+				Pseg(Pseq([1.04,1.04,0.4],inf),Pseq([1,3,0]*2,inf)),
+			],inf),
+			\sustain, 0.1,
+			\gain, 1/2,
+			\dur, 1/16,
+			\amp, 0.1,
+		)),
+		Pdef(\hat) <> Pbind(
+			\instrument, \phyhat,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0,
+				1,0,1,1, 1,0,1,0, 1,0,1,1, 1,0,1,1,
+				1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0,
+				1,1,0,1, 1,0,0,0, 1,0,1,1, 1,0,1,0,
+
+				1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,0, 1,0,1,1, 1,0,1,0,
+				1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0,
+				1,0,1,1, 1,0,1,0, 1,0,1,1, 1,0,1,1,
+			],inf).coin.not,
+			\sustain, Pseq([0.08,0.02],inf),
+			\fac1, Pseq([2,0.5,0.7,0.5]*0.5,inf),
+			\pan, Pseq([0.2,0.1,0,-0.1],inf),
+			\fac1, Pseq([
+				0.5,Pser([
+					0.04,
+				],15),
+				0.05,Pser([
+					0.4,0.04,
+				],15),
+				
+			],inf),
+			\dur, 1/16,
+			\gain, 1/2,
+			\dur, Pkey(\dur) * (1 + (-0.01 * Pseq([-1,1],inf))),
+			\pan, 0,
+			\amp, 0.05,
+		),
+		Pdef(\bass) <> Pbind(
+			\instrument, \distbass,
+			\freq, 70 * Pseq([
+				Pser([
+					2
+				],12),
+				Pser([
+					1
+				],4),
+			],inf),
+			\fmrange, 10.40,
+			\fmfreq, ~pmodenv.(Pseq(1/[1,1.2,1,1.4],inf), 8),
+			\legato, Pseq([
+				7,0,0,0, 0,0,0,0,
+				7,0,0,0, 0,0,0,1,
+				7,0,0,0, 0,0,0,0,
+				3,0,0,0, 0,1.8,0,1,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\amp, 0.2,
+		),
+		Pdef(\pad) <> Pbind(
+			\instrument,\star2,
+			\freq, 70 * [1,2,4,47/56] * 4 * Pstep(Pseq([1,7/9],inf),1/2) * 2,
+			\freq, ~pmodenv.(70 * [1,2,4,47/56] * 4 * Pstep(Pseq([1,7/9],inf),1/2) * 2, 8),
+			\spread, 100.001 * Pseq([1/200000],inf),
+			\dur, PdurStutter(Pseq([Pser([1],5),4],inf), 1/2),
+			\dur, 1/8,
+			\legato, Pseq([
+				1,0,2,0,
+				1,0,1,1,
+				1,0,2,0,
+				1,1,2,0,
+
+				1,0,2,0,
+				1,0,2,0,
+				0,0,0,0,
+				0.1,0.1,0,0, 1,1,1,1,
+			],inf)*0.8,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\adsr, Pseq([
+				Pser([
+					[ Env.adsr(0.01,0.1,0.8,0.01) ],
+				],4),
+			],inf),
+			\amp, 0.2,
+		),
+	])
+)).play;
+);
