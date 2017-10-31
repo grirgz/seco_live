@@ -95,19 +95,19 @@ Ndef.defaultQuant = 1
 Ndef(\eyes, { arg freq=80, pan=0, amp=0.1;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = Duty.kr(1/8/~t, 0, Dseq([
+	env1 = Duty.kr(1/4/~t, 0, Dseq([
 		1,0,0,0,
+		0,0,1,0,
+		1,1,0,0,
 		1,0,0,0,
-		0,0,0,0,
-		0,0,0,0,
 	],inf)).lag(0.31);
 	sig = LFSaw.ar(freq * [1,1.001]);
 	sig = 0;
 	sig = sig + LFSaw.ar(freq * ( 1 + ( SinOsc.ar(freq*2 * 1.0 * env1) * 1.91 )));
 	//sig = sig + SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq*2 * 1.0 * LFPulse.kr(2)) * 0.91 )));
 	sig = RLPF.ar(sig, ( [4000, 4001, 8000 ] * ( [1.07,1,1.0001 * SinOsc.kr(1/8).range(0.1,4)] * 1.1 * Amplitude.kr(sig)**1.8 ) ).clip(5,18000));
-	sig = (sig * 40).tanh / 2;
-	sig = Pan2.ar(sig, SinOsc.kr([1,2,3]/10).range(-1,1) * 0.3, amp).flop;
+	sig = (sig * 40).tanh / 1;
+	sig = Pan2.ar(sig, SinOsc.kr([1,2,3]/10).range(-1,1) * 0.3, amp).mean;
 }).play
 );
 
@@ -699,7 +699,7 @@ WindowLayout({
 		),
 		VLayout (
 			* views = pgroup.collect({ arg param, i;
-				ParamView.horizontal_slider(param). mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+				ParamViewToolBox.horizontal_slider(param). mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 					[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
 					//view.background_(Color.red)
 					sel.select_item(i, views);

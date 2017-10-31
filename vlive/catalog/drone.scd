@@ -363,6 +363,7 @@ Ndef(\drone, { arg amp=0.5, pan=0, freq=200, mbufnum,
 
 //////////////////////////////////////////////
 
+// sink
 (
 Ndef(\drone).put(0, { arg amp=0.1;
 	var sig;
@@ -392,6 +393,7 @@ Ndef(\drone).put(0, { arg amp=0.1;
 
 );
 
+// bulles
 (
 Ndef(\drone).put(0, { arg amp=0.1;
 	var sig;
@@ -491,6 +493,7 @@ Ndef(\dronefx).put(50, \filter -> { arg in;
 //////////////////////////
 
 
+////// feerique
 
 (
 Ndef(\drone).put(0, { arg amp=0.1;
@@ -500,15 +503,19 @@ Ndef(\drone).put(0, { arg amp=0.1;
 	var freq;
 	var lpspread;
 
-	freq = 140 * [0,3,5].midiratio;
+	freq = 140 * [0,-3,7].midiratio;
 	freq = freq *.t [1,4,1.01,1/2,4.01,1.001,2];
 
+	// so we have 3 notes * 7 octave/detune * 3 waveform = 63 voices
 	sig1 = LFSaw.ar(freq);
 	sig2 = LFPulse.ar(freq);
 	sig3 = SinOsc.ar(freq);
-	sig = SelectX.ar(SinOsc.kr(0.5*(1..11)/12).unipolar*2, [sig1, sig2, sig3]);
-	//sig = SelectX.ar(0.3, [sig1, sig2, sig3]);
 
+	// now we select 11 times between the 3 waveform: 11 * 3 * 7 = 231 voices
+	sig = SelectX.ar(SinOsc.kr(0.5*(1..11)/12).unipolar*2, [sig1, sig2, sig3]);
+
+
+	// different waveshaping and filtering for each 11 channels
 	sig = sig.fold2( SinOsc.kr(1/4/(1..11)).range(0.1,2));
 	sig = sig.wrap2( SinOsc.kr(1/4/(1..11).reverse).range(0.1,2));
 	lpspread = SinOsc.kr(1/5*(1..11)/9)*1.5;
@@ -519,6 +526,7 @@ Ndef(\drone).put(0, { arg amp=0.1;
 	sig = sig / 5;
 	
 	amp = amp * \gain.kr(1);
+	// spread the 3 midinotes accross the field
 	sig = Splay.ar(sig, \spread.kr(0.2), amp, \pan.kr(0));
 	sig;
 }).play;
@@ -631,5 +639,89 @@ Ndef(\dodrone, { arg freq=200, pan=0, amp=0.1;
 	sig = AllpassL.ar(sig, 0.1,0.1 * SinOsc.kr(1/35).range(0.1,1),2)+sig;
 	sig = AllpassL.ar(sig, 0.3,0.221,2)+sig;
 	sig = Pan2.ar(sig, pan, amp).sum;
+}).play;
+);
+
+//////////////
+
+(
+Ndef(\winter, { arg freq=180, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in;
+	var bprq = \bprq.kr(1);
+	freq = [0,2,5].midiratio * freq;
+	sig = WhiteNoise.ar(1);
+	sig = LFNoise2.ar(8000);
+	//sig = BPF.ar(sig, freq * SinOsc.ar(freq).range(1,2), bprq);
+	//sig = sig + BPF.ar(sig, freq * ( 1 + ( SinOsc.ar(4 * [1,2,3]) * 4.1 ) ), bprq * 0.1);
+	sig = BPF.ar(sig, freq + SinOsc.kr(1/4).range(0,100), bprq * 0.1);
+	sig = BPF.ar(sig, freq, bprq * 0.1);
+	sig = sig * 100;
+	sig = sig.tanh;
+	sig = Pan2.ar(sig, SinOsc.kr(1/7 * (1..3)).range(-1,1)*0.1, amp).flop;
+}).play
+);
+
+(
+Ndef(\wind, { arg freq=180, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in;
+	var bprq = \bprq.kr(1);
+	freq = [0,2,5].midiratio * freq;
+	//sig = WhiteNoise.ar(1);
+	sig = LFNoise2.ar(8000 * ( 1 + ( SinOsc.kr(1/28) * 1 )));
+	//sig = BPF.ar(sig, freq * SinOsc.ar(freq).range(1,2), bprq);
+	//sig = sig + BPF.ar(sig, freq * ( 1 + ( SinOsc.ar(4 * [1,2,3]) * 4.1 ) ), bprq * 0.1);
+	sig = BPF.ar(sig, freq + SinOsc.kr(1/9 * ( 1 + ( SinOsc.kr(1/7) * 1 ))).range(0,1000), bprq * 1);
+	sig = BPF.ar(sig, freq + SinOsc.kr(1/19 * ( 1 + ( SinOsc.kr(1/7) * 1 ))).range(0,1000), bprq * 1);
+	sig = BPF.ar(sig, freq, bprq * SinOsc.kr(1/7 * ( 1 + ( SinOsc.kr(1/12) * 1 ))).range(0.1,1));
+	sig = BPF.ar(sig, freq, bprq * 0.1);
+	sig = sig * 100;
+	sig = sig.tanh;
+	sig = Pan2.ar(sig, SinOsc.kr(1/7 * (1..3)).range(-1,1)*0.1, amp).flop;
+}).play
+);
+
+/////////// dusty noise
+
+(
+Ndef(\grat, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = Dust.ar(freq*4);
+	sig = Ringz.ar(sig, SinOsc.ar((1..10)) * freq, 0.001);
+	sig = (sig + 0.05) * (SinOsc.ar(freq));
+	//sig = BPF.ar(sig, freq * SinOsc.kr((1..10)).range(1,1.02));
+	sig = sig * 1.7;
+	sig = Pan2.ar(sig, SinOsc.kr((1..10)) * 0.1, amp).flop;
+	sig = LeakDC.ar(sig);
+}).play;
+);
+
+(
+Ndef(\grat, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var in;
+	freq = freq * Duty.kr(1/~t, 0, Dseq([
+		1,0,0,0,
+		4,4,3,3,
+	],inf)).midiratio;
+	in = LocalIn.ar(10);
+	sig = Dust.ar(freq * \dustfac.kr(1));
+	sig = Ringz.ar(sig, freq, \ringz.kr(0.1));
+	//sig = (sig + 0.05) * (SinOsc.ar(freq));
+	sig = sig + (in * \fbfac.kr(1.4));
+	sig = LPF.ar(sig, freq * SinOsc.ar((1..10)*freq).range(1,8.02));
+	//sig = sig * 0.7;
+	sig = sig.tanh;
+	sig = FreqShift.ar(sig, [0.01,0]) + sig;
+	LocalOut.ar(sig);
+
+	//sig = sig/ 4;
+	sig = Pan2.ar(sig, SinOsc.kr((1..10)) * 0.1, amp).flop;
+	sig = LeakDC.ar(sig);
 }).play;
 );

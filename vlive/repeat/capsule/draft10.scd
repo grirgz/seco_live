@@ -47,7 +47,7 @@ SynthDef(\playersec_zix2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum,
 				Pbind(
 					\instrument, \snapkick,
 					\isRest, Pseq([
-						1,0,0, 0,0,1,  0,0,0, 0,0,0,
+						1,0,0, 1,0,0,  0,0,0, 0,0,0,
 						1,0,0, 0,1,0,  0,0,0, 1,0,0,
 					],inf).coin.not,
 					\sustain, 0.01,
@@ -546,3 +546,530 @@ SynthDef(\playersec_zix2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum,
 
 
 { [ SinOsc.ar(2),SinOsc.ar(3),SinOsc.ar([3,5]).sum ]   }.plot(4)
+
+(
+	// test triolet beat
+	~master.();
+	Pdef(\part, Pdef(\trio,
+		Ppar([
+
+			Pbind(\out, BusDef(\sendbus1))<>Ppar([
+				Pbind(
+					\instrument, \phyhat3,
+					\isRest, Pseq([
+						1,0,0, 1,0,0,
+					],inf).coin.not,
+					\adsr, Pseq([
+						[ Env.adsr(0.05,0.1,0.8,0.02) ],
+					],inf),
+					\sustain, Pseq([0.08,0.02],inf),
+					\fac1, Pseq([2,0.5,0.7,0.5]*0.5,inf),
+					\pan, Pseq([0.2,0.1,0,-0.1],inf),
+					\fac1, Pseq([
+						0.1,0.01,0.01
+
+					],inf),
+					\dur, 1/12,
+					//\dur, Pkey(\dur) * (1 + (-0.01 * Pseq([-1,1],inf))),
+					\pan, 0,
+					\amp, 0.0132,
+				),
+				Pbind(
+					\instrument, \snapkick,
+					\isRest, Pseq([
+						1,0,0, 0,0,1,  1,0,0, 1,0,0,
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+					],inf).coin.not,
+					\sustain, 0.01,
+					\dur, 1/12,
+					\amp, 0.1,
+				),
+				Pbind(
+					\instrument, \snaretuned,
+					\isRest, Pseq([
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						1,0,0, 0,0,0,  0,0,0, 0,0,0,
+					],inf).coin.not,
+					\sustain, 0.1/4,
+					\dur, 1/12,
+					\amp, 0.1/2,
+				),
+				Pbind(
+					\instrument, \snaretuned,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.07) ],
+					],inf),
+					\isRest, Pseq([
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						0,0,0, 0,0,0,  0,0,0, 0,0,1,
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						0,0,0, 0,0,0,  0,0,1, 0,0,0,
+					],inf).coin.not,
+					//\lag, 0.120/~t,
+					\sustain, 0.1/4,
+					\dur, 1/12,
+					\amp, 0.1/3,
+				),
+				Pbind(
+					\instrument, \snapclap,
+					\isRest, Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\sustain, 0.1/1,
+					\dur, 1/8,
+					\amp, 0.28,
+					\isRest, true,
+				),
+				Pbind(
+					\instrument, \snaretuned2,
+					\isRest, Pseq([
+						0
+					],inf).coin.not,
+					//\lag, 0.05,
+					\sustain, 0.1/4,
+					\dur, 1/8,
+					\amp, 0.04,
+					\isRest, true,
+				),
+				Pbind(
+					\instrument, \phyhat3,
+					\isRest, Pseq([
+						0
+					],inf).coin.not,
+					\sustain, Pseq([0.08,0.02],inf),
+					\sustain, 0.02,
+					\fac1, Pseq([2,0.5,0.7,0.5]*0.5,inf),
+					\pan, Pseq([0.2,0.1,0,-0.1],inf),
+					\fac1, Pseq([
+						//0.31, 0.31, 0.31, 0.31,
+						0.01, 0.01, 0.01, 0.01,
+
+					],inf),
+					\adsr, Pseq([
+						[ Env.adsr(0.15,0.1,0.8,0.02) ],
+					],inf),
+					\dur, 1/8,
+					//\dur, Pkey(\dur) * (1 + (-0.01 * Pseq([-1,1],inf))),
+					\pan, 0,
+					\amp, 0.0272,
+				),
+				Pbind(
+					\instrument, Pseq([\playersec_zix],inf).stutter(8*4),
+					\out, BusDef(\mixer5, \audio),
+					\bufnum, BufDef('voices/feynman.flac'),
+					\pos, Pseq([
+						0,
+					],inf).stutter(8),
+					\isRest, Pseq([
+						1,0,0, 1,0,0, 1,0,0, 1,0,0,
+						1,0,0, 1,0,0, 1,0,0, 1,0,1,
+						1,0,0, 1,0,0, 1,0,0, 1,0,0,
+						1,0,0, 1,0,1, 1,0,0, 1,0,1,
+					],inf).coin.not,
+					\speed, 1,
+					\legato, Pseq([
+						Pser([
+							0.1,
+						],8*2)*1,
+					],inf),
+					\gain, 0.6,
+					\dur, 1/12,
+					\amp, 0.1,
+				),
+			]),
+
+
+
+		])
+	)).play;
+)
+
+
+(
+Ndef(\autobass, { arg freq=80, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = Duty.kr(1/4/~t, 0, Dseq([
+		1,0,0,0,
+		0,0,1,0,
+		1,1,0,0,
+		1,0,0,0,
+	],inf)).lag(0.31);
+	sig = LFSaw.ar(freq * [1,1.001]);
+	sig = 0;
+	sig = sig + LFSaw.ar(freq * ( 1 + ( SinOsc.ar(freq*2 * 1.0 * env1) * 1.91 )));
+	//sig = sig + SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq*2 * 1.0 * LFPulse.kr(2)) * 0.91 )));
+	sig = RLPF.ar(sig, ( [4000, 4001, 8000 ] * ( [1.07,1,1.0001 * SinOsc.kr(1/8).range(0.1,4)] * 1.1 * Amplitude.kr(sig)**1.8 ) ).clip(5,18000));
+	sig = (sig * 40).tanh / 1;
+	sig = Pan2.ar(sig, SinOsc.kr([1,2,3]/10).range(-1,1) * 0.3, amp).mean;
+}).play
+);
+
+(
+	// test triolet beat
+	~master.();
+	Pdef(\part, Pdef(\trio,
+		Ppar([
+
+			Pbind(\out, BusDef(\sendbus1))<>Ppar([
+				Pbind(
+					\instrument, \phyhat3,
+					\isRest, Pseq([
+						1,0,0, 1,0,0, 1,0,0, 1,0,0,
+						1,0,0, 1,0,0, 1,0,0, 1,0,0,
+						1,1,1, 1,0,0, 1,0,0, 1,0,0,
+						1,0,0, 1,0,0, 1,0,0, 1,0,0,
+					],inf).coin.not,
+					\adsr, Pseq([
+						[ Env.adsr(0.05,0.1,0.8,0.02) ],
+					],inf),
+					\sustain, Pseq([0.08,0.02],inf),
+					\fac1, Pseq([2,0.5,0.7,0.5]*0.5,inf),
+					\pan, Pseq([0.2,0.1,0,-0.1],inf),
+					\fac1, Pseq([
+						0.1,0.01,0.01
+
+					],inf),
+					\dur, 1/12,
+					//\dur, Pkey(\dur) * (1 + (-0.01 * Pseq([-1,1],inf))),
+					\pan, 0,
+					\amp, 0.0132,
+				),
+				Pbind(
+					\instrument, \snapkick,
+					\isRest, Pseq([
+						1,0,0, 0,0,1,  1,0,0, 1,0,0,
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						1,0,0, 0,0,1,  0,0,0, 1,0,0,
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+					],inf).coin.not,
+					\sustain, 0.01,
+					\dur, 1/12,
+					\amp, 0.1,
+				),
+				Pbind(
+					\instrument, \snaretuned,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.3) ],
+					],inf),
+					\isRest, Pseq([
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						1,0,0, 0,0,0,  0,0,0, 0,0,0,
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						1,0,0, 0,0,0,  0,0,0, 0,0,0,
+					],inf).coin.not,
+					\sustain, 0.1/4,
+					\dur, 1/12,
+					\amp, 0.1/2,
+				),
+				Pbind(
+					\instrument, \snaretuned,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.07) ],
+					],inf),
+					\isRest, Pseq([
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						0,0,0, 0,0,0,  0,0,0, 0,0,1,
+						0,0,1, 1,0,0,  0,0,1, 0,0,0,
+						0,0,0, 0,0,0,  0,0,1, 0,0,0,
+					],inf).coin.not,
+					//\lag, 0.120/~t,
+					\sustain, 0.1/4,
+					\dur, 1/12,
+					\amp, 0.1/3,
+				),
+				Pbind(
+					\instrument, \snapclap,
+					\isRest, Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\sustain, 0.1/1,
+					\dur, 1/8,
+					\amp, 0.28,
+					\isRest, true,
+				),
+				Pbind(
+					\instrument, \snaretuned2,
+					\isRest, Pseq([
+						0
+					],inf).coin.not,
+					//\lag, 0.05,
+					\sustain, 0.1/4,
+					\dur, 1/8,
+					\amp, 0.04,
+					\isRest, true,
+				),
+				Pbind(
+					\instrument, \phyhat3,
+					\isRest, Pseq([
+						0
+					],inf).coin.not,
+					\sustain, Pseq([0.08,0.02],inf),
+					\sustain, 0.02,
+					\fac1, Pseq([2,0.5,0.7,0.5]*0.5,inf),
+					\pan, Pseq([0.2,0.1,0,-0.1],inf),
+					\fac1, Pseq([
+						//0.31, 0.31, 0.31, 0.31,
+						0.01, 0.01, 0.01, 0.01,
+
+					],inf),
+					\adsr, Pseq([
+						[ Env.adsr(0.15,0.1,0.8,0.02) ],
+					],inf),
+					\dur, 1/8,
+					//\dur, Pkey(\dur) * (1 + (-0.01 * Pseq([-1,1],inf))),
+					\pan, 0,
+					\amp, 0.0272,
+				),
+				Pbind(
+					\instrument, Pseq([\playersec_zix],inf).stutter(8*4),
+					\out, BusDef(\mixer5, \audio),
+					\bufnum, BufDef('voices/feynman.flac'),
+					\pos, Pseq([
+						1.9,
+					],inf).stutter(8),
+					\isRest, Pseq([
+						1,0,0, 0,0,1,
+					],inf).coin.not,
+					\speed, 1.1,
+					\legato, Pseq([
+						Pser([
+							0.02,0.1,0.1,
+						],8*2)*1,
+					],inf),
+					\gain, 0.6,
+					\dur, 1/12,
+					\amp, 0.1,
+				),
+			]),
+
+
+
+		])
+	)).play;
+)
+
+(
+	// test triolet beat
+	~master.();
+	Pdef(\part, Pdef(\trio,
+		Ppar([
+
+			Pbind(\out, BusDef(\sendbus1))<>Ppar([
+				Pbind(
+					\instrument, \phyhat3,
+					\isRest, Pseq([
+						1,0,1, 1,1,0, 1,0,1, 1,1,0,
+						1,0,1, 1,1,0, 1,0,1, 1,1,0,
+						1,0,1, 1,1,0, 1,0,1, 1,1,0,
+						1,0,1, 1,1,0, 1,1,0, 1,0,1,
+					],inf).coin.not,
+					\adsr, Pseq([
+						[ Env.adsr(0.05,0.1,0.8,0.02) ],
+					],inf),
+					\sustain, Pseq([0.08,0.02],inf),
+					\fac1, Pseq([2,0.5,0.7,0.5]*0.5,inf),
+					\pan, Pseq([0.2,0.1,0,-0.1],inf),
+					\fac1, Pseq([
+						0.1,0.01,0.01
+
+					],inf),
+					\dur, 1/12,
+					//\dur, Pkey(\dur) * (1 + (-0.01 * Pseq([-1,1],inf))),
+					\pan, 0,
+					\amp, 0.0132,
+				),
+				Pbind(
+					\instrument, \snapkick,
+					\isRest, Pseq([
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						Pseq([
+							1,0,0, 0,0,0,  0,0,0, 0,0,0,
+						],inf),
+					],inf).coin.not,
+					\sustain, 0.01,
+					\dur, 1/12,
+					\amp, 0.1,
+				),
+				Pbind(
+					\instrument, \snaretuned,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.3) ],
+					],inf),
+					\isRest, Pseq([
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						1,0,0, 0,0,0,  0,0,0, 0,0,0,
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						1,0,0, 0,0,0,  0,0,0, 0,0,0,
+					],inf).coin.not,
+					\sustain, 0.1/4,
+					\dur, 1/12,
+					\amp, 0.1/2,
+					\isRest, true,
+				),
+				Pbind(
+					\instrument, \snaretuned,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.07) ],
+					],inf),
+					\isRest, Pseq([
+						0,0,0, 0,0,0,  1,0,0, 0,0,1,
+						0,0,1, 0,0,0,  1,0,0, 0,0,0,
+						0,0,0, 0,0,0,  1,0,0, 0,0,1,
+						0,0,0, 0,0,1,  1,0,0, 1,0,1,
+						0,0,0, 0,0,0,  1,0,0, 0,0,0,
+						0,0,0, 0,0,0,  1,0,1, 0,0,1,
+						0,0,0, 0,0,0,  1,0,0, 0,0,0,
+						0,0,0, 0,0,0,  1,0,1, 1,0,1,
+					],inf).coin.not,
+					//\lag, 0.120/~t,
+					\sustain, 0.1/4,
+					\dur, 1/12,
+					\amp, 0.1/3,
+				),
+				Pbind(
+					\instrument, \snapclap,
+					\isRest, Pseq([
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						0,0,1, 0,0,0,  0,0,0, 0,0,0,
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						0,0,0, 0,1,0,  0,0,0, 0,0,0,
+					],inf).coin.not,
+					\adsr, Pseq([
+						[ Env.adsr(0.1,0.1,0.8,0.01) ],
+					],inf),
+					\sustain, 0.1/4,
+					\dur, 1/12,
+					\amp, 0.28,
+				),
+				Pbind(
+					\instrument, \snaretuned2,
+					\isRest, Pseq([
+						0,0,0, 0,0,1,  0,0,0, 0,0,0,
+						0,0,0, 0,0,0,  0,0,0, 0,0,0,
+						0,0,0, 0,0,1,  0,0,1, 0,0,0,
+						0,0,0, 0,0,0,  0,0,0, 
+					],inf).coin.not,
+					//\lag, 0.05,
+					\sustain, 0.1/4,
+					\dur, 1/12,
+					\amp, 0.04,
+				),
+				Pbind(
+					\instrument, \phyhat3,
+					\isRest, Pseq([
+						0
+					],inf).coin.not,
+					\sustain, Pseq([0.08,0.02],inf),
+					\sustain, 0.02,
+					\fac1, Pseq([2,0.5,0.7,0.5]*0.5,inf),
+					\pan, Pseq([0.2,0.1,0,-0.1],inf),
+					\fac1, Pseq([
+						//0.31, 0.31, 0.31, 0.31,
+						0.01, 0.01, 0.01, 0.01,
+
+					],inf),
+					\adsr, Pseq([
+						[ Env.adsr(0.15,0.1,0.8,0.02) ],
+					],inf),
+					\dur, 1/8,
+					//\dur, Pkey(\dur) * (1 + (-0.01 * Pseq([-1,1],inf))),
+					\pan, 0,
+					\amp, 0.0272,
+				),
+				Pbind(
+					\instrument, Pseq([\playersec_zix],inf).stutter(8*4),
+					\out, BusDef(\mixer5, \audio),
+					\bufnum, BufDef('voices/feynman.flac'),
+					\pos, Pseq([
+						1.9,
+					],inf).stutter(8),
+					\isRest, Pseq([
+						1,0,0, 0,0,1,
+					],inf).coin.not,
+					\speed, 1.1,
+					\legato, Pseq([
+						Pser([
+							0.02,0.1,0.1,
+						],8*2)*1,
+					],inf),
+					\gain, 0.6,
+					\dur, 1/12,
+					\amp, 0.1,
+				),
+			]),
+
+
+
+		])
+	)).play;
+)
+
+
+(
+Pdef(\part, 
+	Ppar([
+		
+				Pbind(
+					\instrument, \phyhat3,
+					\isRest, Pseq([
+						1,0,1,0,
+					],inf).coin.not,
+					\adsr, Pseq([
+						[ Env.adsr(0.05,0.1,0.8,0.02) ],
+					],inf),
+					\sustain, Pseq([0.08,0.02],inf),
+					\fac1, Pseq([2,0.5,0.7,0.5]*0.5,inf),
+					\pan, Pseq([0.2,0.1,0,-0.1],inf),
+					\fac1, Pseq([
+						0.1,0.01,0.01
+
+					],inf),
+					\dur, 1/8,
+					//\dur, Pkey(\dur) * (1 + (-0.01 * Pseq([-1,1],inf))),
+					\pan, 0,
+					\amp, 0.0132,
+				),
+				Pbind(
+					\instrument, \snapkick,
+					\isRest, Pseq([
+						1,0,0,1, 1,0,0,1,
+						0,0,0,0, 0,0,0,0,
+						1,0,0,1, 0,0,1,0,
+						0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\sustain, 0.01,
+					\dur, 1/8,
+					\amp, 0.1,
+				),
+				Pbind(
+					\instrument, \snaretuned,
+					\isRest, Pseq([
+						0,0,0,0, 0,0,0,0,
+						1,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\sustain, 0.1/4,
+					\dur, 1/8,
+					\amp, 0.1/2,
+				),
+				Pbind(
+					\instrument, \snaretuned,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.07) ],
+					],inf),
+					\isRest, Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,1,
+						0,0,1,0, 0,1,0,0,
+						0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					//\lag, 0.120/~t,
+					\sustain, 0.1/4,
+					\dur, 1/8,
+					\amp, 0.1/3,
+				),
+	])
+).play;
+);

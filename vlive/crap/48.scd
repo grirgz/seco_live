@@ -106,8 +106,8 @@ Ndef(\remix)[2] = \filter -> { arg in;  in + FreqShift.ar(in, 0700)}
 
 (
 Tdef(\hop, {
-	Ndef(\chat).start;
-	Ndef(\chien).start;
+	Ndef(\chat).play;
+	Ndef(\chien).play;
 	Ndef(\remix).stop;
 	4.wait;
 	Ndef(\remix).play;

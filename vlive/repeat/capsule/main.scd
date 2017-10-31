@@ -95,7 +95,7 @@ ProtoDef(\simpleMixer).edit;
 ~master.()
 
 	(
-	~master = {
+	~master2 = {
 		ProtoDef(\simpleMixer).play;
 		ProtoDef(\rdn).play;
 		ProtoDef(\rdn2).play;

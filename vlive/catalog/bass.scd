@@ -294,7 +294,7 @@ SynthDef(\fm_grain_test, {arg gate = 1, amp = 1, freq=200, fratio=2, pan=0;
 )
 
 (
-Pdef(\plop, Pbind(
+Pdef(\demo, Pbind(
 	\instrument, \fm_grain_test,
 	\fratio, Pseq([1,2,3/2,1.21314],inf),
 	\degree, Pseq([0,2],inf),
@@ -325,7 +325,7 @@ SynthDef(\fmgbass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fratio=1;
 
 
 (
-Pdef(\bass, 
+Pdef(\demo, 
 	Ppar([
 		Pbind(
 			\instrument, \fmgbass,
@@ -344,9 +344,10 @@ Pdef(\bass,
 				],1*4),
 		
 			],inf),
+			\out, BusDef(\sendbus1, \audio),
 			\octave, 3,
 			\dur, 1/8,
-			\amp, 0.1
+			\amp, 0.1/8
 		),
 	])
 ).play;
@@ -786,4 +787,98 @@ Pdef(\demobass,
 		\delay3, ~pmodenv.(Pseq([1,2,1,4]/10,inf), 4),
 	)
 ).play;
+);
+
+////////////////////////
+// deep bass with autopitch
+
+(
+Ndef(\demobass, { arg freq=70, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var fmfreq;
+	env1 = Duty.kr(1/8/~t, 0, Dseq([
+		1,0,0,0,
+		1,0,1,1,
+		1,0,0,1,
+		1,0,0,0,
+	],inf)).lag(0.01);
+	fmfreq = freq * ( 1 + ( SinOsc.ar(freq * 1 * env1) * 2.2 ));
+	sig = LFSaw.ar(fmfreq * [1,1.0001]);
+	sig = RLPF.ar(sig, freq*2 * [1,2 * SinOsc.kr(1/8).range(2,1),1], 0.2 * SinOsc.kr(1/4).range(2,1));
+	sig = Pan2.ar(sig, 0, amp).flop;
+}).play
+);
+
+// disto
+(
+Ndef(\demobass, { arg freq=80, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = Duty.kr(1/8/~t, 0, Dseq([
+		1,0,0,0,
+		1,0,0,0,
+		0,0,0,0,
+		0,0,0,0,
+	],inf)).lag(0.31);
+	sig = LFSaw.ar(freq * [1,1.001]);
+	sig = 0;
+	sig = sig + LFSaw.ar(freq * ( 1 + ( SinOsc.ar(freq*2 * 1.0 * env1) * 1.91 )));
+	//sig = sig + SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq*2 * 1.0 * LFPulse.kr(2)) * 0.91 )));
+	sig = RLPF.ar(sig, ( [4000, 4001, 8000 ] * ( [1.07,1,1.0001 * SinOsc.kr(1/8).range(0.1,4)] * 1.1 * Amplitude.kr(sig)**1.8 ) ).clip(5,18000));
+	sig = (sig * 40).tanh / 2;
+	sig = Pan2.ar(sig, SinOsc.kr([1,2,3]/10).range(-1,1) * 0.3, amp).flop;
+}).play
+);
+
+/////////// dirtylongbass
+(
+Ndef(\demobass, { arg freq=80, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = Duty.kr(1/8/~t, 0, Dseq([
+		1,0,0,0,
+		1,0,0,0,
+		0,0,0,0,
+		0,0,0,0,
+	],inf)).lag(0.31);
+	freq =  freq * Duty.kr(1/~t, 0, Dseq([
+		1,0,0,0,
+		4,4,4,4,
+		5,5,5,5,
+	],inf)).midiratio * ( 1 + ( SinOsc.kr(1/42 * [1,1.1]) * 0.01 ));
+	sig = LFSaw.ar(freq * [1,1.001]);
+	sig = 0;
+	sig = sig + LFSaw.ar(freq * ( 1 + ( SinOsc.ar(freq*2 * 1.0 ) * 1.91 )));
+	//sig = sig + SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq*2 * 1.0 * LFPulse.kr(2)) * 0.91 )));
+	sig = RLPF.ar(sig, ( [4000, 4001, 8000 ] * ( [1.07,1,1.0001 * SinOsc.kr(1/8).range(0.1,4)] * 1.1 * Amplitude.kr(sig)**1.8 ) ).clip(5,18000));
+	sig = (sig * 40).tanh / 2;
+	sig = Pan2.ar(sig, SinOsc.kr([1,2,3]/10).range(-1,1) * 0.3, amp).flop;
+}).play
+);
+
+///////////// more washed disto long bass
+(
+Ndef(\demobass, { arg freq=80, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = Duty.kr(1/8/~t, 0, Dseq([
+		1,0,0,0,
+		1,0,0,0,
+		0,0,0,0,
+		0,0,0,0,
+	],inf)).lag(0.31);
+	freq =  freq * Duty.kr(1/~t, 0, Dseq([
+		1,0,0,0,
+		4,4,4,4,
+		5,5,5,5,
+	],inf)).midiratio * ( 1 + ( SinOsc.kr(1/42 * [1,1.1]) * 0.01 ));
+	sig = LFSaw.ar(freq * [1,1.001]);
+	sig = 0;
+	sig = sig + SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq*[1,2,4] * 1.0 ) * 1.91 )));
+	//sig = sig + SinOsc.ar(freq * ( 1 + ( SinOsc.ar(freq*2 * 1.0 * LFPulse.kr(2)) * 0.91 )));
+	sig = RLPF.ar(sig, ( [4000, 4001, 8000 ] * ( [1.07,1,1.0001 * SinOsc.kr(1/8).range(0.1,4)] * 1.1 * Amplitude.kr(sig)**1.8 ) ).clip(5,18000));
+	sig = (sig * 40).tanh / 2;
+	sig = Pan2.ar(sig, SinOsc.kr([1,2,3]/10).range(-1,1) * 0.3, amp).flop;
+}).play
 );

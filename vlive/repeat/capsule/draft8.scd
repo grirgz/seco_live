@@ -259,7 +259,8 @@ Pdef(\chocho,
 );
 
 
-ProtoDef[\r]
+ProtoDef(\rdn).edit
+ProtoDef(\rdn2).edit
 //////////////////////////////////////////////////////////// PARTS
 
 (
@@ -1104,6 +1105,13 @@ Pdef(\part, Pdef(\bassy_trans,
 					Pser([
 						1,0,0,0, 0,0,0,0,
 						0,0,0,0, 0,0,1,0,
+						1,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,1,1,0,
+
+						1,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,1,0,
+						1,0,0,0, 0,0,0,0,
+						0,0,1,0, 0,1,1,0,
 					],8*14),
 					0,0,0,0, 0,0,0,0,
 					0,0,0,0, 0,0,0,0,
@@ -1135,7 +1143,25 @@ Pdef(\part, Pdef(\bassy_trans,
 				\instrument, \snaretuned2,
 				\isRest, Pseq([
 					Pser([
+
 						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+
+						0,0,0,0, 0,0,0,0,
+						0,0,0,1, 0,0,0,0,
+						0,0,0,0, 0,0,0,1,
+						0,0,0,0, 0,0,0,0,
+
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+
+						0,0,0,0, 0,0,0,0,
+						0,0,1,1, 0,0,0,1,
+						0,0,0,0, 0,0,0,1,
 						0,0,0,0, 0,0,0,0,
 					],8*14),
 					Pser([
@@ -1320,7 +1346,7 @@ Pdef(\part, Pdef(\bassy_trans,
 		
 	])
 )).play;
-)
+);
 
 (
 // haha!
@@ -1632,7 +1658,7 @@ Pdef(\part, Pdef(\haha_trans,
 		
 	])
 )).play;
-)
+);
 
 (
 // bassy experiment + violin
@@ -1674,6 +1700,13 @@ SynthDef(\breakfx, { arg out=0, amp=0.1, gate=1;
 					\isRest, Pseq([
 						1,0,0,0, 0,0,0,0,
 						0,0,0,0, 0,0,1,0,
+						1,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,1,1,0,
+
+						1,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,1,0,
+						1,0,0,0, 0,0,0,0,
+						0,0,1,0, 0,1,1,0,
 					],inf).coin.not,
 					\dur, 1/8,
 					\amp, 0.1,
@@ -1699,14 +1732,29 @@ SynthDef(\breakfx, { arg out=0, amp=0.1, gate=1;
 					\amp, 0.1/2,
 				),
 				Pbind(
-					\instrument, \snaretuned2,
+					\instrument, \snaretuned,
 					\isRest, Pseq([
 						0,0,0,0, 0,0,0,0,
 						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,1,0,0, 0,0,0,0,
+
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 1,0,0,1,
+						0,0,0,0, 0,0,0,0,
+
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,1, 0,0,1,0,
+						0,0,0,0, 0,0,0,0,
 					],inf).coin.not,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.1) ],
+					],inf),
 					\sustain, 0.1/4,
 					\dur, 1/8,
-					\amp, 0.04,
+					\amp, 0.1/5,
 				),
 				Pbind(
 					\instrument, \phyhat3,
@@ -1902,15 +1950,15 @@ SynthDef(\breakfx, { arg out=0, amp=0.1, gate=1;
 
 /////////////////////// main
 (
-	~master.();
+	~master2.();
 Pdef(\part,Pdef(\main, 
 	Pseq([
-				Pfindur(8,Pdef(\haha_intro)),
+				//Pfindur(8,Pdef(\haha_intro)),
 		Ppar([
 			Pdef(\supx),
 			Pseq([
-				Pfindur(12,Pdef(\haha_trans)),
-				Pfindur(4,Pdef(\haha_trans3)),
+				//Pfindur(12,Pdef(\haha_trans)),
+				//Pfindur(4,Pdef(\haha_trans3)),
 				Pfindur(16,Pdef(\bassy_trans)),
 				Pfindur(16,Pdef(\bassyviolin_trans)),
 				Pfindur(16,Pdef(\bassy_trans2)),
@@ -2257,7 +2305,7 @@ Pdef(\part, Pdef(\haha_trans2,
 		
 	])
 )).play;
-)
+);
 
 (
 // haha!
@@ -2559,7 +2607,7 @@ Pdef(\part, Pdef(\haha_trans3,
 		
 	])
 )).play;
-)
+);
 
 (
 // bassy experiment 
@@ -2788,7 +2836,7 @@ Pdef(\part, Pdef(\bassy_trans2,
 		
 	])
 )).play;
-)
+);
 
 (
 	// test triphop beat
@@ -3115,7 +3163,7 @@ Pdef(\part, Pdef(\bassy_trans3,
 		
 	])
 )).play;
-)
+);
 
 (
 	// test triolet beat
@@ -3326,7 +3374,7 @@ Pdef(\part, Pdef(\bassy_trans3,
 		
 	])
 )).play;
-)
+);
 
 (
 	// test triolet beat 2

@@ -840,6 +840,7 @@ Pdef(\bassos,
 
 PatKitDef(\natural1).edit
 
+
 (
 MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\snapkick);
 MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\snapkick2);
@@ -853,7 +854,26 @@ MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\snapclap);
 MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\phycymbal);
 )
 
+PatKitDef(\natural1).presetCompileString.editorInsert
+(
+PatKitDef('natural1').targets = [
+	StepEvent.newFrom((adsr: Env([ 0.0, 1.0, 0.93975901603699, 0.61847388744354, 0.0 ], [ 0.0099999997764826, 0.058387098833919, 0.061612896621227, 0.091397849462366 ], [ 0, 0, 0 ]), instrument: 'snapkick', amp: 0.3053153551801)),
+	StepEvent.newFrom((instrument: 'snapkick2')),
+	nil,
+	nil,
+	StepEvent.newFrom((instrument: 'snaretuned')),
+	StepEvent.newFrom((instrument: 'snaretuned2')),
+	StepEvent.newFrom((instrument: 'snapsnare')),
+	StepEvent.newFrom((instrument: 'snapclap')),
+	StepEvent.newFrom((instrument: 'phyhat', amp: 0.077050892552892)),
+	StepEvent.newFrom((instrument: 'phyhat2')),
+	StepEvent.newFrom((instrument: 'phyhat3')),
+	StepEvent.newFrom((adsr: Env([ 0.0, 1.0, 0.80000001192093, 0.0 ], [ 0.010000000707805, 0.099999998696148, 0.43032259470032 ], [ -4.0, -4.0, -4.0 ], 2.0), instrument: 'phycymbal', amp: 0.089792029924749)),
+];
+);
+
 KitTimeline(\natural1, PatKitDef(\natural1)).edit
+KitTimeline(\natural1, PatKitDef(\natural1)).startControl
 ProtoDef(\rdn2, ProtoTemplateDef(\rdn))
 ProtoDef(\rdn2).outBus = BusDef(\mixer8)
 ProtoDef(\rdn2).edit

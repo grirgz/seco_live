@@ -409,7 +409,7 @@ Pdef(\testox, Pdef(\oxwave,
 				),
 	].flat),
 )).play;
-)
+);
 
 (
 	// end waving bass & drone
@@ -609,7 +609,7 @@ Pdef(\testox, Pdef(\oxendwave,
 				),
 	].flat),
 )).play;
-)
+);
 
 (
 	// fastbass
@@ -820,7 +820,7 @@ Pdef(\testox, Pdef(\oxfast,
 				),
 	].flat),
 )).play;
-)
+);
 
 
 (
@@ -1011,7 +1011,7 @@ Pdef(\testox, Pdef(\oxfast2,
 				),
 	].flat),
 )).play;
-)
+);
 
 (
 	// short
@@ -1183,7 +1183,7 @@ Pdef(\testox, Pdef(\oxtrans1,
 				),
 	].flat),
 )).play;
-)
+);
 
 (
 	// short2
@@ -1355,7 +1355,7 @@ Pdef(\testox, Pdef(\oxtrans2,
 				),
 	].flat),
 )).play;
-)
+);
 
 (
 	// static endbar
@@ -1537,7 +1537,7 @@ Pdef(\testox, Pdef(\oxstatic_endbar,
 	].flat),
 
 )).play;
-)
+);
 
 (
 	// fast endbar
@@ -1721,10 +1721,11 @@ Pdef(\testox, Pdef(\oxfast_endbar,
 	].flat),
 
 )).play;
-)
+);
 
 //////////////// MAIN
 
+Ndef(\rdn2).end
 (
 ~mymaster.();
 ~master.();
