@@ -46,6 +46,9 @@ SinOsc.ar(freq * ( 1 + ( SinOsc.kr(200) * 1 )))
 // ring
 SinOsc.ar(freq) * LFSaw.ar(freq)
 
+// am
+SinOsc.ar(freq) * ( 1 + ( SinOsc.kr(100) * 1 ))
+
 
 /////////////////////////////// multichannel
 SinOsc.ar(freq * (1..8)/8)  // create a range from 1/8 to 1 (8 channels)
@@ -394,7 +397,7 @@ SynthDef(\amdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 
 
 (
-SynthDef(\fm_grain_test, {arg gate = 1, amp = 1, freq=200, fratio=2, pan=0;
+SynthDef(\fm_grain_test, {arg out=0,gate = 1, amp = 1, freq=200, fratio=2, pan=0;
 	var sig = FMGrain.ar(
 		Impulse.ar(200), 0.14, freq, freq*fratio,
 		LFNoise1.ar(500!2).range(1, 10),
@@ -405,8 +408,9 @@ SynthDef(\fm_grain_test, {arg gate = 1, amp = 1, freq=200, fratio=2, pan=0;
 		doneAction: 2
 	);
 	sig = sig /4;
+	sig = LeakDC.ar(sig);
 	sig = Pan2.ar(sig, pan, amp).sum;
-    Out.ar(0, sig);
+    Out.ar(out, sig);
 }).add;
 )
 
@@ -467,21 +471,23 @@ SynthDef(\fm_grain_test, {arg gate = 1, amp = 1, freq=200, fratio=2, pan=0;
 )
 
 (
-Pdef(\plop, Pbind(
-	\instrument, \fm_grain_test,
-	\fratio, 1/2,
-	\fratio, Pseq([1],inf),
-	\degree, Pseq([
-		[0,2,4],
-		[0,2-12,4],
-		[0,2,4],
-		[3,5-12,7],
-	],inf),
-	\octave, Pseq([4,5],inf).stutter(2),
-	\legato, 1,
-	\dur, 2,
-	\amp, 0.1/8
-)).play;
+Pdef(\plop,
+	Pbind(
+		\instrument, \fm_grain_test,
+		\fratio, 1/2,
+		\fratio, Pseq([1],inf),
+		\degree, Pseq([
+			[0,2,4],
+			[0,2-12,4],
+			[0,2,4],
+			[3,5-12,7],
+		],inf),
+		\octave, Pseq([4,5],inf).stutter(2),
+		\legato, 1,
+		\dur, 2,
+		\amp, 0.1/8
+	)
+).play;
 );
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////

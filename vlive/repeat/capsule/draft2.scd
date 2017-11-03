@@ -839,8 +839,11 @@ Pdef(\bassos,
 ///////////////////////////
 
 PatKitDef(\natural1).edit
+PatKitDef(\natural1).clear
+PatKitDef(\natural1).targets
 
-
+MenuSpecFuncDef(\patkitdef_synthdefsx).list
+MenuSpecFuncDef(\patkitdef_synthdefsx).addUnique(\boixrdel);
 (
 MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\snapkick);
 MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\snapkick2);
@@ -874,6 +877,7 @@ PatKitDef('natural1').targets = [
 
 KitTimeline(\natural1, PatKitDef(\natural1)).edit
 KitTimeline(\natural1, PatKitDef(\natural1)).startControl
+PatKitDef(\natural1).startControl
 ProtoDef(\rdn2, ProtoTemplateDef(\rdn))
 ProtoDef(\rdn2).outBus = BusDef(\mixer8)
 ProtoDef(\rdn2).edit

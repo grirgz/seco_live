@@ -88,7 +88,9 @@ Ndef(~name+++\fx).quant = Pdef.defaultQuant;
 
 // END
 
-BusDef(\amixer)
+BusDef(\amixer,\audio);
+BusDef(\zmixer,\audio);
+BusDef(\emixer,\audio);
 1031 >> 2
 Ndef(~)
 

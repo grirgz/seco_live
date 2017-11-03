@@ -66,3 +66,5 @@ Ndef(~name+++\fx).isPlaying
 Ndef(~name+++\fx).
 2 << 4
 2**13
+~name=\bla
+Ndef(~name+++\fx).play

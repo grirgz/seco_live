@@ -12,6 +12,7 @@ s.waitForBoot {
 
 (
 
+
 	// define channels
 	Pdef(\kick, Pbind(
 		\out, BusDef(\mixer0, \audio),
@@ -34,10 +35,21 @@ s.waitForBoot {
 	BusDef(\mixer6, \audio);
 	BusDef(\mixer7, \audio);
 	BusDef(\mixer8, \audio);
-);
+
+	WindowDef(\main, {
+		VLayout (
+			* [
+				"master" -> { ~master.(); },
+				"mixer" -> { ProtoDef(\simpleMixer).edit },
+				"rdn" -> { ProtoDef(\rdn).edit },
+				"rdn2" -> { ProtoDef(\rdn2).edit },
+			].collect({  arg target;
+				BasicButton.new.string_(target.key).action_(target.value)
+			})
+		)
+	});
 
 
-(
 
 	ProtoDef(\simpleMixer).tracks[0].proxy.set(\send0, 1);
 	ProtoDef(\simpleMixer).tracks[1].proxy.set(\send0, 1);
@@ -63,6 +75,10 @@ s.waitForBoot {
 		ProtoDef(\rdn).play;
 		Ndef(\drumgroup, \busgroup).set(\inbus, BusDef(\sendbus0)).play(BusDef(\mixer6).index, 2);
 	};
+	~master_simple = {
+		ProtoDef(\simpleMixer).play;
+		Ndef(\drumgroup, \busgroup).set(\inbus, BusDef(\sendbus0)).play(BusDef(\mixer6).index, 2);
+	};
 
 
 );
@@ -86,6 +102,8 @@ s.waitForBoot {
 // END
 
 ////////////// CONTROL
+
+WindowDef(\main).front;
 
 ProtoDef(\rdn).edit;
 ProtoDef(\rdn2, ProtoTemplateDef(\rdn));

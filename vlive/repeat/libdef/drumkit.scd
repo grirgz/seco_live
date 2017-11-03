@@ -5,6 +5,7 @@
 Spec.add(\adsr, XEnvSpec.adsr);
 
 WindowDef(\sampler_new, { arg def, target, show_buttons=true;
+	// new version not working so not used for the moment
 	var pkey = \sampler;
 	var anchor;
 	var sndfileview = View.new;
@@ -96,7 +97,8 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 	var oldbuf;
 	var paramgroup;
 	var proxy;
-	paramgroup  = target.asParamGroup
+	target.debug("target!!!!!");
+	paramgroup  = ( target.asParamGroup ?? { ParamGroup([]) } )
 		.add(Param(target, \sustain))
 		.add(Param(target, \lag))
 		.asView
@@ -503,3 +505,9 @@ WindowDef(\test, {
 )
 
 StepEvent.newFrom((instrumet:\playerset)) == StepEvent.newFrom((instrumet:\playerset))
+
+Param(StepEvent.newFrom((instrument: 'playersec')), 'sustain')
+
+Pdef(\rono).asParamGroup.asView
+
+StepEvent.newFrom((instrument: 'playersec')).asParamGroup

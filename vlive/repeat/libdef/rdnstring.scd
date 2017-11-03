@@ -1,6 +1,4 @@
 
-RandDelayNetwork(\deldefault).make(\fx1, "5--")
-RandDelayNetwork(\deldefault).tree
 
 (
 	~rdn_to_string = { arg rdn;
@@ -65,6 +63,7 @@ RandDelayNetwork(\deldefault).tree
 			)
 		} {
 			var ss = dict[tree].asCompileString;
+			//ss.debug("ss:"++tree);
 			//"%".format(ss.drop(2).drop(-7).replace("arg si;", "").replace("arg si, env;", "")).replace("\t", "").drop(1);
 			"%".format(ss.drop(2).replace("arg si;", "").replace("arg si, env;", "")).replace("\t", "").drop(1).drop(-3);
 			//"%.value(si, env)".format(dict[tree].asCompileString.replace("\t\t", ""));
@@ -96,9 +95,15 @@ RandDelayNetwork(\deldefault).tree
 )
 
 // END
+RandDelayNetwork(\deldefault).make(\fx1, "5--")
+RandDelayNetwork(\deldefault).tree
+RandDelayNetwork(\del3full).tree
 
 	~rdn_to_fbstring.(RandDelayNetwork(\deldefault)).editorInsert
 	~rdn_to_fbstring.(RandDelayNetwork(\del3)).editorInsert
+	~rdn_to_fbstring.(RandDelayNetwork(\del3full)).editorInsert
+
+	~rdn_to_fbstring.(RandDelayNetwork(\del3full))
 
 
 
