@@ -172,6 +172,8 @@ SynthDef(\filterfx, { arg out=0, amp=0.1, gate=1;
 
 );
 
+1+1
+
 (
 	
 Pdefn(\chords, Pstep(Pseq([

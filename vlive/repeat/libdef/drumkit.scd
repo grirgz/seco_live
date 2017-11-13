@@ -1,5 +1,6 @@
 
 // synthdefs listed in MenuSpecFuncDef(\patkitdef_synthdefs)
+FileSystemProject.load("libdef/soundfileview.scd");
 (
 // ~sampler_synthdef_list = [\playersec, \playerbeat] // define custom sampler synthdefs
 Spec.add(\adsr, XEnvSpec.adsr);
@@ -183,28 +184,50 @@ WindowDef(\samplekit, { arg def, group;
 	var selected = 0;
 	var default_stepevent = { StepEvent.newFrom((instrument: \playersec)) };
 	var make_saveas_button;
-	var keyDownAction;
+	var keyDownAction, keyUpAction;
+	var padkeys;
+
+	padkeys = "&X\"'azerqsdfwxcv(-X_tyuighjkbn,;".as(Array);
+	padkeys[1] = -23.asAscii;
+	padkeys[1+16] = -24.asAscii;
 
 	keyDownAction = { arg me, key, modifiers, unicode, keycode;
 		[me, key.asCompileString, modifiers, unicode, keycode].debug("samplekit keyDownAction");
 		case
-			{ modifiers.isCtrl and: { key == $c } } {
+			{ modifiers.isCtrl and: { keycode == 99 } } { // ^c
 				"copy!".debug;
 				~windowdef_samplekit_clipboard = group.elAt(selected).target.copy;
 			}
-			{ modifiers.isCtrl and: { key == $v } } {
-				"copy!".debug;
+			{ modifiers.isCtrl and: { keycode == 118 } } { // ^v
+				"paste!".debug;
 				if(~windowdef_samplekit_clipboard.notNil) {
 					group.elAt(selected).target = ~windowdef_samplekit_clipboard.copy;
 					group.reboot;
 					edit.(selected);
 				};
 			}
+			{ modifiers == 0 and:{ padkeys.includes(key) }} {
+				var idx = padkeys.indexOf(key);
+				"play!".debug(idx);
+				group.elAt(idx).play;
+			}
 		;
+	};
+	keyUpAction = { arg me, key, modifiers, unicode, keycode;
+		[me, key.asCompileString, modifiers, unicode, keycode].debug("samplekit keyUpAction");
+		case
+			{ modifiers == 0 and:{ padkeys.includes(key) }} {
+				var idx = padkeys.indexOf(key);
+				"stop!".debug(idx);
+				group.elAt(idx).stop;
+			}
+		;
+		
 	};
 
 	if(def.window.notNil) {
 		def.window.view.keyDownAction = keyDownAction;
+		def.window.view.keyUpAction = keyUpAction;
 	};
 
 	"1".debug;

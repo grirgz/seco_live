@@ -19,6 +19,23 @@ SynthDef(\simplebass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\basicbass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	var in;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,1.2,1],[0.1,1.8]), 1);
+	sig = LFSaw.ar(freq * [1,1.0001,1.001]);
+	sig = sig + LFPulse.ar(freq * [1,1.0001,1.001]);
+	sig = sig / 2;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = BPF.ar(sig, freq * env1, 0.1).tanh + sig;
+
+	//sig = sig;
+	sig = RLPF.ar(sig, \lpf.kr(100), \rq.kr(0.5));
+	sig.debug("basicbas");
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\rix, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fspread=0.1;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;

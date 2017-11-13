@@ -10,6 +10,20 @@ SynthDef(\simplebass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
+
+SynthDef(\doublebass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = LFSaw.ar(freq * [1,1.0001,1.001]);
+	sig = sig + LFPulse.ar(freq * [1,1.0001,1.001]);
+	sig = sig / 2;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+
+	sig1 = RLPF.ar(sig, \lpf.kr(100), \rq.kr(0.5)) * \lpfgain.kr(1);
+	sig2 = RLPF.ar(sig, \lpf2.kr(100), \rq2.kr(0.5)) * \lpfgain2.kr(1);
+	sig = sig1 + sig2;
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\snapkickx, { |out = 0, pan = 0, amp = 0.3|
 	var body, bodyFreq, bodyAmp;
 	var pop, popFreq, popAmp;
@@ -1205,9 +1219,13 @@ WindowDef(\main).front
 				),
 			]),
 				Pbind(
-					\instrument, \simplebass,
+					\instrument, \doublebass,
 					\out, BusDef(\mixer4, \audio),
 					\note, Pstep(Pseq([0,1,-3,-3],inf),1),
+					\lpfgain2, 0.05,
+					\lpfgain, 0.75,
+					\lpf2, 2000,
+					\rq2,0.1,
 					\legato, Pseq([
 						1,0,0,1,
 						3,0,0,0,
@@ -1220,7 +1238,7 @@ WindowDef(\main).front
 
 					],inf),
 					\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-					\lpf, Pseg(Pseq([200,1400,2000,1000],inf),8),
+					\lpf, Pseg(Pseq([200,140,300,400],inf),8),
 					\rq, 0.5,
 					\octave, 3,
 					\dur, 1/4,
@@ -1315,3 +1333,167 @@ Pdef(\treb, PmonoArtic( \star,
 	\dur, 1/8,
 )).play;
 )
+
+
+(
+	~master_simple.();
+	Pdef(\part, Pdef(\ronoswingx,
+		Ppar([
+
+			Pbind(\out, BusDef(\mixer3))<>Ppar([
+				Pbind(
+					\instrument, \snapkickx,
+					\bodyenv, [ Env.linen(0.001,0.01,0.1) ],
+					\bodyfreqenv, [ Env([261, 54, 41], [0.035, 0.08], curve: \exp) ],
+					\isRest, Pseq([
+						1,0,0,0, 0,0,0,1,
+						1,0,0,0, 0,0,0,0,
+						1,0,0,1, 0,0,1,0,
+						1,0,1,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/8 * Pseq([4/3,2/3],inf),
+					\amp, 0.1,
+				),
+				Pbind(
+					\instrument, \snaretuned,
+					\sustain ,0.051,
+					\isRest, Pseq([
+						0,0,0,0, 1,0,0,0,
+					],inf).coin.not,
+					\dur, 1/8 * Pseq([4/3,2/3],inf),
+					\amp, 0.1,
+				),
+				Pbind(
+					\instrument, \snaretuned,
+					\sustain ,0.011,
+					\isRest, Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,1,0,
+
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,1,0,0, 0,0,0,1,
+
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,1,
+
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,1,0,0,
+						0,1,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/8 * Pseq([4/3,2/3],inf),
+					\amp, 0.07,
+				),
+				Pbind(
+					\instrument, \phyhat3,
+					\isRest, Pseq([
+						1,0,1,0,
+						1,1,1,0,
+						1,0,1,0,
+						1,0,1,0,
+						1,0,1,0,
+						1,0,0,1,
+						1,0,1,0,
+						1,0,1,0,
+						0,0,1,0,
+						1,0,1,0,
+						1,0,1,0,
+						1,1,0,0,
+						1,0,1,0,
+					],inf).coin.not,
+					\sustain, Pseq([0.08,0.02],inf),
+					\fac1, Pseq([2,0.5,0.7,0.5]*0.5,inf),
+					\pan, Pseq([0.2,0.1,0,-0.1],inf),
+					\fac1, Pseq([
+						0.05,Pser([
+							0.04, 0.04, 0.04, 0.04,
+							0.04, 0.04, 0.04, 0.04,
+						],15),
+						0.05,Pser([
+							0.04, 0.74, 0.04, 0.04,  0.04, 0.04, 0.04, 0.04,
+							0.04, 0.04, 0.04, 0.74,  0.04, 0.04, 0.04, 0.04,
+						],15),
+
+					],inf),
+					\dur, 1/16,
+					\dur, 1/16 * Pseq([4/3,2/3],inf).stutter(2),
+					\pan, 0,
+					\amp, 0.02,
+				),
+			]),
+				Pbind(
+					\instrument, \doublebass,
+					\out, BusDef(\mixer4, \audio),
+					\degree, Pseq([1,1,1,-4,],inf).stutter(6),
+					\legato, Pseq([
+						1,1,1, 1,1,0,
+						0,0,0, 0,0,0,
+						1,0,1, 1,1,1,
+						1,0,1, 1,0,0,
+
+						1,1,1, 1,1,0,
+						0,0,1, 1,1,1,
+						0,0,1, 1,1,1,
+						1,0,1,
+
+					],inf)*0.8,
+					\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+					\lpf, Pseq([400,200],inf),
+					\lpf2, Pseq([1400,400],inf),
+					\lpfgain2, 0.1,
+					\rq, 0.5,
+					\octave, 3,
+					\dur, 1/12,
+					\amp, 0.1,
+				),
+			Pmono(\rdnroom,
+				\freq, 200,
+				\dur, 1/4,
+				\amp, 0.1,
+				\inbus, BusDef(\sendbus1),
+				'wet10', 1.0,
+				'mix', 0.5,
+				'gain', 1/4,
+				'fb', 0.0000111,
+				'delay3', Pseq([
+					0.0001,0.000041,0.000001,0.00001,
+					0.0001,0.000041,0.000081,0.00001,
+					0.0001,0.000041,0.000001,0.40001,
+					0.0001,1.400041,0.000001,0.00001,
+				],inf),
+				'delay2', 0.000072394574653723,
+				'distamp', Pseq([
+					Pseq([ 0.73886430789846, ],8*4),
+					Pseq([ 1.73886430789846, ],4*4),
+					Pseq([ 0.93886430789846, ],4*4),
+				],inf),
+				'distamp3', 0.6985772146511,
+				'shift', -70.0001,
+				'shiftmix', 0.0,
+				'pitchlag', 1.0,
+				'pitchmix', 0.0,
+				'prelpf', 17000,
+				'prehpf', 17,
+				'lpf', 17000,
+				'hpf', 17,
+				'stereo', 100.0,
+				'fbdistamp', 3.9234346672443,
+				'fbdistmix', 0.91176470588235,
+				'postlpf', 17000,
+				'posthpf', 17,
+				'wetamp', 0.18504562572587,
+				'indelay', 0.04,
+				'wet20', 1.0,
+				'mamp', 1,
+				'brfrqfac', 0.37940593233798,
+				'brffac', 0.60195390291997,
+			),
+		])
+	)).play;
+);
