@@ -829,6 +829,53 @@ SynthDef(\medelfx2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\seqdelfx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sigx;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var delays1 = \delays1.kr(1!4);
+	sig = LocalIn.ar(2) * \fb.kr(0.9);
+	sig = sig + in;
+	//sig = FreqShift.ar(sig, \shift.kr(100)) + sig;
+	//sig = sig * ( 1 + ( SinOsc.ar(freq) * 1 ));
+	sig = [
+		{ arg sig;
+			delays1.do { arg del;
+				sig = DelayC.ar(sig, 1, del) + sig;
+			};
+			sig;
+		}.value(sig),
+		{ arg sig;
+			\delays2.kr({ rrand(0.0001,0.4) }!4).do { arg del, idx;
+				var xsig = sig;
+				if(idx==0) {
+					sig = ( sig*\distamp.kr(10) ).tanh * \distpostamp.kr(1/2);
+				};
+				sig = DelayC.ar(sig, 1, del) + xsig;
+			};
+			sig;
+		}.value(sig),
+		{ arg sig;
+			\delays3.kr({ rrand(0.0001,0.4) }!4).do { arg del;
+				sig = DelayC.ar(sig, 1, del) + sig;
+			};
+			sig;
+		}.value(sig),
+	].mean + sig;
+	sig1 = Compander.ar(sig, in, \cpt.kr(0.04), \cpbelow.kr(1.701), \cpabove.kr(1), \cpclamp.kr(0.01), \cprelax.kr(2.1));
+	sig = SelectX.ar(\compmix.kr(0), [sig, sig1]);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Limiter.ar(sig);
+	LocalOut.ar(sig);
+	sig = sig /2;
+	sig = RLPF.ar(sig, \lpf.kr(15000,0.6));
+	sig = HPF.ar(sig, \hpf.kr(150));
+	//sig = Limiter.ar(sig * \limit.kr(1.2)) / \limit.kr;
+	sig = SelectX.ar(\mix.kr(1), [DelayC.ar(in, 0.04,0.04), sig]);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
 Pdef(\part_meloxy).reset;
 );
 Ndef(\memefx).source = \memefx;
@@ -1014,6 +1061,145 @@ Pdef(\part_meloxy, Pdef(\trente_meme3,
 (
 	~master.();
 //	Ndef(\memefx).play;
+Pdef(\part_meloxy, Pdef(\trente_meme4b,
+	Ppar([
+		//Pbind(\out, BusDef(\mixer5))<>
+		Pbind(\isRest, true)<>
+		Ppar([
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 1,
+				\isRest, Pseq([
+					1,0,1,0, 0,0,0,1,
+					1,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 5,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 9,
+				\isRest, Pseq([
+						1,0,1,0, 1,0,1,0,
+						0,0,0,0, 0,0,1,0,
+						1,0,1,0, 1,0,1,0,
+						0,0,1,1, 0,0,0,0,
+						1,0,1,0, 1,0,1,1,
+						0,0,1,0, 0,0,0,0,
+						1,0,1,0, 1,0,1,0,
+						1,0,1,1, 1,0,1,1,
+					],inf).coin.not,
+				\sustain, 0.021,
+				\dur, 1/8,
+				\gain, 0.14,
+				//\out, BusDef(\fx, \audio),
+				\amp, 0.1,
+			)),
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 9,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+					1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0,
+					1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0,
+
+					1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0,
+					0,0,0,0, 0,0,0,0, 1,0,1,0, 1,0,1,0,
+					1,0,0,0, 0,0,1,0, 1,0,1,0, 1,0,1,0,
+					0,0,0,0, 0,0,0,0, 1,1,1,1, 1,0,1,0,
+			],inf).coin.not,
+				\gain, 0.14,
+			\gain, Pkey(\gain) * Pswitch1(
+				[
+					Pseg(Pseq([1,0],inf),8),
+					Pseg(Pseq([0,0.8],inf),10),
+				],
+				Pseq([
+					0,0,0,1,
+					1,1,0,1,
+				],inf)
+			).stutter(2),
+				\sustain, 0.011,
+			\sustain, Pkey(\sustain) * Pswitch1(
+				[
+					Pseg(Pseq([1,3,2],inf),7),
+					Pseg(Pseq([2,1,3],inf),9),
+				],
+				Pseq([0,1],inf)
+			).stutter(2),
+				\dur, 1/32,
+				//\out, BusDef(\fx, \audio),
+			)),
+		]),
+		Pbind(\out, BusDef(\fx))<>
+		Ppar([
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 1,
+				\isRest, Pseq([
+						1,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+				\sustain, 0.2,
+				\gain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 5,
+				\isRest, Pseq([
+						0,0,0,0, 1,0,0,0,
+					],inf).coin.not,
+				\sustain, 0.2,
+				\gain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+		]),
+		Pmono(\seqdelfx,
+			\inbus, BusDef(\fx, \audio),
+			\compmix, 1,
+			\fb, Pseg(Pseq([0,1],inf),8),
+			\fb, Pseq([
+				Pser([
+					0.0100,
+				],1),
+				//0,
+			],inf),
+			\delays1, Pseq([
+				[ [ 0.001,0.00005,0.00001,0.00001 ].rand ],
+			],inf),
+			\delays2, Pseq([
+				[ [ 0.08001,0.00005,0.00001,0.00001 ].rand ],
+			],inf),
+			\delays3, Pseq([
+				[ [ 0.00001,0.00005,0.00001,0.00001 ].rand ],
+			],inf).stutter(4),
+			\hpf, 40,
+			\limit, 5,
+			\distamp, 80,
+			\gain, 0.95,
+			\freq, Pseg(Pseq([0,1,10],inf),8)*200,
+			\freq, 500,
+			\shift, Pseg(Pseq([0,1],inf),8)*200,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+	~master.();
+//	Ndef(\memefx).play;
 Pdef(\part_meloxy, Pdef(\trente_meme4,
 	Ppar([
 		Pbind(\out, BusDef(\mixer5))<>
@@ -1179,6 +1365,225 @@ Pdef(\part_meloxy, Pdef(\trente_meme4,
 				[ 0.70001,0.05,0.01,0.0001 ].rand,
 				[ 0.70001,0.05,0.01,0.0001 ].rand,
 				[ 0.70001,0.05,0.01,0.0001 ].rand,
+			],inf).stutter(4),
+			\hpf, 40,
+			\limit, 5,
+			\distamp, 84,
+			\gain, 0.15,
+			\freq, Pseg(Pseq([0,1,10],inf),8)*200,
+			\freq, 500,
+			\shift, Pseg(Pseq([0,1],inf),8)*200,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+	~master.();
+//	Ndef(\memefx).play;
+Pdef(\part_meloxy, Pdef(\trente_meme4fix,
+	Ppar([
+		Pbind(\out, BusDef(\mixer5))<>
+		Ppar([
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 1,
+				\isRest, Pseq([
+					1,0,1,0, 0,0,0,1,
+					1,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 5,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 9,
+				\isRest, Pseq([
+						1,0,1,0, 1,0,1,0,
+						0,0,0,0, 0,0,1,0,
+						1,0,1,0, 1,0,1,0,
+						0,0,1,1, 0,0,0,0,
+						1,0,1,0, 1,0,1,1,
+						0,0,1,0, 0,0,0,0,
+						1,0,1,0, 1,0,1,0,
+						1,0,1,1, 1,0,1,1,
+					],inf).coin.not,
+				\sustain, 0.021,
+				\dur, 1/8,
+				\gain, 0.14,
+				//\out, BusDef(\fx, \audio),
+				\amp, 0.1,
+			)),
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 9,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+					1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0,
+					1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0,
+
+					1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0,
+					0,0,0,0, 0,0,0,0, 1,0,1,0, 1,0,1,0,
+					1,0,0,0, 0,0,1,0, 1,0,1,0, 1,0,1,0,
+					0,0,0,0, 0,0,0,0, 1,1,1,1, 1,0,1,0,
+			],inf).coin.not,
+				\gain, 0.14,
+			\gain, Pkey(\gain) * Pswitch1(
+				[
+					Pseg(Pseq([1,0],inf),8),
+					Pseg(Pseq([0,0.8],inf),10),
+				],
+				Pseq([
+					0,0,0,1,
+					1,1,0,1,
+				],inf)
+			).stutter(2),
+				\sustain, 0.011,
+			\sustain, Pkey(\sustain) * Pswitch1(
+				[
+					Pseg(Pseq([1,3,2],inf),7),
+					Pseg(Pseq([2,1,3],inf),9),
+				],
+				Pseq([0,1],inf)
+			).stutter(2),
+				\dur, 1/32,
+				//\out, BusDef(\fx, \audio),
+			)),
+		]),
+		Pbind(\out, BusDef(\fx))<>
+		Ppar([
+				PatKitDef(\ksh2).asPattern(Pbind(
+					\kitIndex, 1,
+					\isRest, Pseq([
+							0,0,0,0, 0,0,0,0,
+							1,0,1,0, 0,0,0,0,
+							0,0,0,0, 0,0,0,0,
+							1,0,0,1, 0,0,0,0,
+						],inf).coin.not,
+					\sustain, 0.1,
+					\dur, 1/8,
+					\amp, 0.1,
+				)),
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 5,
+				\isRest, Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 1,0,0,0,
+						0,0,0,0, 0,0,0,1,
+						0,0,0,0, 1,0,0,0,
+
+						0,0,0,0, 0,0,0,0,
+						0,1,0,0, 1,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 1,0,0,1,
+					],inf).coin.not,
+				\sustain, 0.1,
+				\gain, 0.2,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 4,
+				\isRest, Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,1,0,1,
+					],inf).coin.not,
+				\sustain, 0.2,
+				\gain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\ksh2).asPattern(Pbind(
+				\kitIndex, 1,
+				\isRest, Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,1,0,0,
+					],inf).coin.not,
+				\sustain, 0.1,
+				\gain, 0.2,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			Pbind(
+				\instrument, \default,
+				\freq, 65,
+				\sustain, 0.02,
+				\dur, 2,
+				\amp, 0.1,
+			),
+		]),
+		Pmono(\medelfx2,
+			\inbus, BusDef(\fx, \audio),
+			\compmix, 0,
+			\fb, Pseg(Pseq([0,1],inf),8),
+			\fb, Pseq([
+				Pser([
+					0.010,
+				],1),
+				0,
+			],inf),
+			\delays1, Pseq([
+				[ [ 0.00001,0.0005,0.0001,0.0001 ].rand ],
+			],inf),
+			\delays2, Pseq([
+				[ [ 0.0101,0.0005,0.00071,0.0001 ].rand ],
+			],inf),
+			\delays3, Pseq([
+				[ [ 0.10001,0.0005,0.0001,0.0001 ].rand ],
+				[ [ 0.10001,0.0005,0.0001,0.0001 ].rand ],
+				[ [ 0.10001,0.0005,0.0001,0.0001 ].rand ],
+				[ [ 0.10001,0.0005,0.0001,0.0001 ].rand ],
+			],inf).stutter(4),
+			\hpf, 40,
+			\limit, 5,
+			\distamp, 84,
+			\gain, 0.35,
+			\freq, Pseg(Pseq([0,1,10],inf),8)*200,
+			\freq, 500,
+			\shift, Pseg(Pseq([0,1],inf),8)*200,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		Pmono(\seqdelfx,
+			\inbus, BusDef(\fx, \audio),
+			\compmix, 0,
+			\fb, Pseg(Pseq([0,1],inf),8),
+			\fb, Pseq([
+				Pser([
+					0.010,
+				],1),
+				Pser([
+					0.040,
+				],1),
+				Pser([
+					0.10,
+				],1),
+				0,
+			],inf),
+			\delays1, Pseq([
+				[ [ 0.10001,0.0005,0.0001,0.0001 ].rand ],
+			],inf),
+			\delays2, Pseq([
+				[ [ 0.0001,0.0005,0.00071,0.0001 ].rand ],
+			],inf),
+			\delays3, Pseq([
+				[ [ 0.70001,0.05,0.01,0.0001 ].exprand(0.0000001) ],
 			],inf).stutter(4),
 			\hpf, 40,
 			\limit, 5,
@@ -2200,19 +2605,22 @@ Pdef(\part).clear
 	~master.();
 Pdef(\part, Pdef(\main, 
 	Pseq([
-		//Pfindur(2, Pdef(\trente_intro)),
-		//Pfindur(16, Pdef(\trente_intro2)),
-		//Pfindur(16, Pdef(\trente_verse1)),
-		//Pfindur(16, Pdef(\trente_verse2)),
-		//Pfindur(16, 
-			//Ptpar([
-				//0,Pdef(\trente_meme3),
-				//4,Pdef(\trente_meme1),
-			//]),
-		//),
+		Pfindur(2, Pdef(\trente_intro)),
+		Pfindur(16, Pdef(\trente_intro2)),
+		Pfindur(16, Pdef(\trente_verse1)),
+		Pfindur(16, Pdef(\trente_verse2)),
+		Pfindur(16, 
+			Ptpar([
+				0,Pdef(\trente_meme3),
+				4,Pdef(\trente_meme1),
+			]),
+		),
 		Pfindur(16, Pdef(\trente_meme4)),
 		Pfindur(16, Pdef(\trente_meme5)),
+		Pfindur(16, Pdef(\trente_meme4fix)),
 		
 	],inf)
 )).play;
 )
+
+

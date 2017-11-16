@@ -489,6 +489,19 @@ Pdef(\plop,
 	)
 ).play;
 );
+
+////////////////////////////// pok
+// the env is very important, the pok sound is from the extreme short env + the extreme curve
+{ SinOsc.ar(300) * EnvGen.kr(Env([0,1,0],[0.01,0.01], [4,-4]), Impulse.kr(1)) * 0.1 !2  }.play
+
+{ SinOsc.ar(700) * EnvGen.kr(Env([0,1,0.1,0],[0.01,0.01,0.5], [4,-4]), Impulse.kr(1)) * 0.1 !2  }.play // this give a perc attack to sound
+
+{ SinOsc.ar(700) * EnvGen.kr(Env([0,1,0],[0.01,0.5], [0,-0]), Impulse.kr(1)) * 0.1 !2  }.play // compare
+
+{ SinOsc.ar(700) * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.01,0.1,0.5,1,[4,-4])), Duty.kr(1/2, 0, Dseq([ 1,0],inf))) * 0.1 !2  }.play // with adsr
+
+
+
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 //////////////////////////////// architecture

@@ -882,3 +882,46 @@ Ndef(\demobass, { arg freq=80, pan=0, amp=0.1;
 	sig = Pan2.ar(sig, SinOsc.kr([1,2,3]/10).range(-1,1) * 0.3, amp).flop;
 }).play
 );
+
+/////////////////////
+(
+SynthDef(\basscomb, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	env1 = EnvGen.kr(Env([1,1/5,1],[1.1,0.8]), 1);
+	sig = Saw.ar(freq + [0,0.001]).mean;
+	sig = sig + SinOsc.ar(freq * ( 1 + ( SinOsc.ar(\fmfreq.kr(100)) * \fmamp.kr(1) )));
+	sig = ( sig*env1*3 ).tanh;
+	sig = CombL.ar(sig, 0.1,1/freq/1.01,\combdecay.kr(0))+sig;
+	sig = ( sig*env1*1/2 ).tanh;
+	sig = sig /1;
+	sig1 = sig;
+	sig1 = FreqShift.ar(sig1, 1000.01);
+	sig1 = sig1 * EnvGen.ar(Env.adsr(0.01,0.1,0.8,3.7),gate,doneAction:2);
+	sig1 = Pan2.ar(sig, SinOsc.kr(1/2*~t)*0.1, amp);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:0);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
+	sig = Pan2.ar(sig, pan, amp);
+	sig = sig+sig1;
+	sig = LeakDC.ar(sig);
+	Out.ar(out, sig);
+}).add;
+);
+(
+Pdef(\demobass, Pdef(\plop, 
+	Ppar([
+		Pbind(
+			\instrument, \basscomb,
+			\freq, 70,
+			\fmamp, ~pmodenv.(Pseq([1,2,4,10],inf), 8),
+			//\fmfreq, ~pmodenv.(Pseq([1,200,1,4],inf), 8),
+			\combdecay,1,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+)
+

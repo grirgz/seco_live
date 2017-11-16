@@ -33,7 +33,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 }).add;
 );
 (
-~pmodenv = { arg valpat, timepat=1, repeat=1;
+~pmodenv = { arg valpat, timepat=1, repeat=1, curvepat;
 	Prout({ arg ev;
 		var bus = Bus.control(s, 1);
 		var timestr;
@@ -43,6 +43,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 		var patplayer;
 
 		timepat = timepat ??  { Plazy({ ev[\dur] }).loop };
+		curvepat = curvepat ??  { 0 };
 
 		cleanup.addFunction(ev, {
 			//"pmodenv freed !!!".debug;
@@ -66,6 +67,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 				\itrig, 1,
 				[ \dur, \env ], Prout({ arg monoev;
 					var valstr = valpat.asStream;
+					var curvestr = curvepat.asStream;
 					var previous = valstr.next;
 					var time;
 					timestr = timepat.asStream;
@@ -73,8 +75,15 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 					block { arg break;
 						valstr.do { arg val;
 							var prev = previous;
+							var curve;
 							time = timestr.next;
+							curve = curvestr.next;
 							if(time.isNil) { 
+								time = 2;
+								monoev[\dur] = time;
+								break.value;
+							};
+							if(curve.isNil) { 
 								time = 2;
 								monoev[\dur] = time;
 								break.value;
@@ -82,7 +91,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 
 							//monoev[\dur] = time;
 							//Env([prev,val],[time]/thisThread.clock.tempo).asCompileString.debug("env");
-							monoev = [time, [ Env([prev,val],[time]/thisThread.clock.tempo) ]].yield;
+							monoev = [time, [ Env([prev,val],[time]/thisThread.clock.tempo, curve) ]].yield;
 
 							previous = val;
 						};
