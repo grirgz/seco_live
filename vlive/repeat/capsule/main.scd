@@ -32,6 +32,30 @@ s.waitForBoot {
 	Pdef(\piano, Pbind(
 		\out, BusDef(\mixer5, \audio),
 	));
+
+	// less generic name to avoid name clash
+	Pdef(\c_kick, Pbind(
+		\out, BusDef(\mixer0, \audio),
+	));
+	Pdef(\c_snare, Pbind(
+		\out, BusDef(\mixer1, \audio),
+	));
+	Pdef(\c_hat, Pbind(
+		\out, BusDef(\mixer2, \audio),
+	));
+	Pdef(\c_bass, Pbind(
+		\out, BusDef(\mixer3, \audio),
+	));
+	Pdef(\c_pad, Pbind(
+		\out, BusDef(\mixer4, \audio),
+	));
+	Pdef(\c_piano, Pbind(
+		\out, BusDef(\mixer5, \audio),
+	));
+	Pdef(\c_drums, Pbind(
+		\out, BusDef(\mixer6, \audio),
+	));
+
 	BusDef(\mixer6, \audio);
 	BusDef(\mixer7, \audio);
 	BusDef(\mixer8, \audio);

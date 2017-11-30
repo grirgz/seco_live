@@ -44,6 +44,7 @@ ParamProto.init;
 FileSystemProject.load("libdef/drumkit.scd");
 FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
 
+FileSystemProject.load("libdef/piano.scd");
 FileSystemProject.load("libdef/synthplayrec.scd");
 FileSystemProject.load("libdef/multifbdel.scd");
 FileSystemProject.load("libdef/basicrecorder.scd");
@@ -112,6 +113,34 @@ FileSystemProject.load("capsule/RDN_track1.scd");
 				params[idx].normSet(kn.value)
 			} 
 		});
+		k[\kn].keep(8).do({ arg knob, idx; 
+			~icon_map_param.(
+				knob,
+				ProtoDef(\simpleMixer).tracks[idx].asParam(\send1)
+			)
+		});
+	};
+	~startControl_dubecho = {
+		var k = MKtl('icon', "icon-icontrols");
+		var params = [
+			\fb,
+			\delay,
+			\sep,
+		].collect({ arg key;
+			Param(Ndef(\dubecho), key)
+		});
+		//params = params ++ [ Param(s, \volume) ];
+		params.do({ arg param, idx; 
+			k[\sl][idx].action = { arg kn, val; 
+				params[idx].normSet(kn.value)
+			} 
+		});
+		k[\kn].keep(8).do({ arg knob, idx; 
+			~icon_map_param.(
+				knob,
+				ProtoDef(\simpleMixer).tracks[idx].asParam(\send2)
+			)
+		});
 	};
 	~startControl = {
 		var k = MKtl('icon', "icon-icontrols");
@@ -124,6 +153,10 @@ FileSystemProject.load("capsule/RDN_track1.scd");
 			"Fx mode".debug;
 			~startControl_rdn.();
 		};
+		k[\tr][2][\on].action = {
+			"Fx 2 mode".debug;
+			~startControl_dubecho.();
+		};
 		k[\tr][3][\on].action = {
 			"Edit mixer".debug;
 			{ProtoDef(\simpleMixer).edit}.defer;
@@ -131,6 +164,10 @@ FileSystemProject.load("capsule/RDN_track1.scd");
 		k[\tr][4][\on].action = {
 			"Edit rdn".debug;
 			{ProtoDef(\rdn).edit;}.defer;
+		};
+		k[\tr][5][\on].action = {
+			"Edit dubecho".debug;
+			{Ndef(\dubecho).edit;}.defer;
 		};
 
 	};

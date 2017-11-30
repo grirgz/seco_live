@@ -35,7 +35,7 @@ WindowDef(\main).front
 (
 	~master.();
 Pdef(\part, 
-	Pbind(\out, BusDef(\mixer5))<>
+	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
 			\kitIndex, 1,
@@ -173,7 +173,7 @@ Pdef(\part,
 (
 	~master.();
 Pdef(\part, 
-	Pbind(\out, BusDef(\mixer5))<>
+	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
 			\kitIndex, 1,
@@ -269,7 +269,7 @@ Pdef(\part,
 (
 	~master.();
 Pdef(\part, 
-	Pbind(\out, BusDef(\mixer5))<>
+	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
 			\kitIndex, 1,
@@ -346,7 +346,7 @@ Pdef(\part,
 	~master.();
 Pdef(\part, 
 	Ppar([
-		Pbind(\out, BusDef(\mixer5))<>
+		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
 			PatKitDef(\ksh2).asPattern(Pbind(
 				\kitIndex, 1,
@@ -436,7 +436,7 @@ Pdef(\part,
 	~master.();
 Pdef(\part, 
 	Ppar([
-		Pbind(\out, BusDef(\mixer5))<>
+		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
 			PatKitDef(\ksh2).asPattern(Pbind(
 				\kitIndex, 1,
@@ -574,7 +574,7 @@ Pdef(\part_melox,
 (
 	~master.();
 Pdef(\part, 
-	Pbind(\out, BusDef(\mixer5))<>
+	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
 			\kitIndex, 1,
@@ -628,7 +628,7 @@ Pdef(\part,
 (
 	~master.();
 Pdef(\part, 
-	Pbind(\out, BusDef(\mixer5))<>
+	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
 			\kitIndex, 1,
@@ -677,7 +677,7 @@ Pdef(\part,
 (
 	~master.();
 Pdef(\part, 
-	Pbind(\out, BusDef(\mixer5))<>
+	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
 			\kitIndex, 1,
@@ -948,7 +948,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme2,
 //	Ndef(\memefx).play;
 Pdef(\part_meloxy, Pdef(\trente_meme3,
 	Ppar([
-		Pbind(\out, BusDef(\mixer5))<>
+		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
 			PatKitDef(\ksh2).asPattern(Pbind(
 				\kitIndex, 1,
@@ -1185,7 +1185,8 @@ Pdef(\part_meloxy, Pdef(\trente_meme4b,
 			\hpf, 40,
 			\limit, 5,
 			\distamp, 80,
-			\gain, 0.95,
+			\gain, 0.45,
+			\out, BusDef(\mixer5),
 			\freq, Pseg(Pseq([0,1,10],inf),8)*200,
 			\freq, 500,
 			\shift, Pseg(Pseq([0,1],inf),8)*200,
@@ -1202,7 +1203,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme4b,
 //	Ndef(\memefx).play;
 Pdef(\part_meloxy, Pdef(\trente_meme4,
 	Ppar([
-		Pbind(\out, BusDef(\mixer5))<>
+		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
 			PatKitDef(\ksh2).asPattern(Pbind(
 				\kitIndex, 1,
@@ -1254,26 +1255,26 @@ Pdef(\part_meloxy, Pdef(\trente_meme4,
 					0,0,0,0, 0,0,0,0, 1,0,1,0, 1,0,1,0,
 					1,0,0,0, 0,0,1,0, 1,0,1,0, 1,0,1,0,
 					0,0,0,0, 0,0,0,0, 1,1,1,1, 1,0,1,0,
-			],inf).coin.not,
+				],inf).coin.not,
 				\gain, 0.14,
-			\gain, Pkey(\gain) * Pswitch1(
-				[
-					Pseg(Pseq([1,0],inf),8),
-					Pseg(Pseq([0,0.8],inf),10),
-				],
-				Pseq([
-					0,0,0,1,
-					1,1,0,1,
-				],inf)
-			).stutter(2),
+				\gain, Pkey(\gain) * Pswitch1(
+					[
+						Pseg(Pseq([1,0],inf),8),
+						Pseg(Pseq([0,0.8],inf),10),
+					],
+					Pseq([
+						0,0,0,1,
+						1,1,0,1,
+					],inf)
+				).stutter(2),
 				\sustain, 0.011,
-			\sustain, Pkey(\sustain) * Pswitch1(
-				[
-					Pseg(Pseq([1,3,2],inf),7),
-					Pseg(Pseq([2,1,3],inf),9),
-				],
-				Pseq([0,1],inf)
-			).stutter(2),
+				\sustain, Pkey(\sustain) * Pswitch1(
+					[
+						Pseg(Pseq([1,3,2],inf),7),
+						Pseg(Pseq([2,1,3],inf),9),
+					],
+					Pseq([0,1],inf)
+				).stutter(2),
 				\dur, 1/32,
 				//\out, BusDef(\fx, \audio),
 			)),
@@ -1348,6 +1349,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme4,
 			\inbus, BusDef(\fx, \audio),
 			\compmix, 0,
 			\fb, Pseg(Pseq([0,1],inf),8),
+			\out, BusDef(\mixer5),
 			\fb, Pseq([
 				Pser([
 					0.020,
@@ -1386,7 +1388,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme4,
 //	Ndef(\memefx).play;
 Pdef(\part_meloxy, Pdef(\trente_meme4fix,
 	Ppar([
-		Pbind(\out, BusDef(\mixer5))<>
+		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
 			PatKitDef(\ksh2).asPattern(Pbind(
 				\kitIndex, 1,
@@ -1605,7 +1607,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme4fix,
 //	Ndef(\memefx).play;
 Pdef(\part_meloxy, Pdef(\trente_meme5,
 	Ppar([
-		Pbind(\out, BusDef(\mixer5))<>
+		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
 			PatKitDef(\ksh2).asPattern(Pbind(
 				\kitIndex, 1,
@@ -1790,7 +1792,7 @@ Pdef(\plop,
 //	Ndef(\memefx).play;
 Pdef(\part_meloxy, 
 	Ppar([
-		Pbind(\out, BusDef(\mixer5))<>
+		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
 			PatKitDef(\ksh2).asPattern(Pbind(
 				\kitIndex, 1,
@@ -2042,7 +2044,7 @@ SynthDef(\, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 
 (
 Pdef(\part, Pdef(\trente_intro, 
-	Pbind(\out, BusDef(\mixer5))<>
+	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
 			\kitIndex, 1,
@@ -2156,7 +2158,7 @@ Pdef(\part, Pdef(\trente_intro2b,
 (
 Pdef(\part, Pdef(\trente_intro2, 
 	Ppar([
-		Pbind(\out, BusDef(\mixer5))<>
+		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
 			PatKitDef(\ksh2).asPattern(Pbind(
 				\kitIndex, 1,
@@ -2232,7 +2234,7 @@ Pdef(\trente_verse1).clear
 (
 Pdef(\part, Pdef(\trente_verse1, 
 	Ppar([
-	Pbind(\out, BusDef(\mixer5))<>
+	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
 			\kitIndex, 1,
@@ -2417,7 +2419,7 @@ Pdef(\part, Pdef(\trente_verse1,
 (
 Pdef(\part, Pdef(\trente_verse2, 
 	Ppar([
-	Pbind(\out, BusDef(\mixer5))<>
+	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
 			\kitIndex, 1,

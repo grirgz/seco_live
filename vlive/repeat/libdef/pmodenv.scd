@@ -38,22 +38,25 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 		var bus = Bus.control(s, 1);
 		var timestr;
 		var running = true;
-		var finfun;
 		var cleanup = EventStreamCleanup.new;
 		var patplayer;
+		var finish_fun;
+		var cleanup_fun = {
+			patplayer.stop;
+			running = false;
+			//"pmodenv: CLEANUP".debug;
+			{
+				2.wait;
+				if(bus.index.notNil) {
+					bus.free;
+				}
+			}.fork;
+		};
 
 		timepat = timepat ??  { Plazy({ ev[\dur] }).loop };
 		curvepat = curvepat ??  { 0 };
 
-		cleanup.addFunction(ev, {
-			//"pmodenv freed !!!".debug;
-			patplayer.stop;
-			running = false;
-			{
-				2.wait;
-				bus.free;
-			}.fork;
-		});
+		cleanup.addFunction(ev, cleanup_fun);
 
 		CmdPeriod.doOnce({ 
 			if(bus.index.notNil) {
@@ -61,7 +64,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 			}
 		});
 
-		finfun = {
+		finish_fun = {
 			patplayer = Pmono(\modenvmono,
 				\out, bus,
 				\itrig, 1,
@@ -76,6 +79,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 						valstr.do { arg val;
 							var prev = previous;
 							var curve;
+							//val.debug("pmodenv val");
 							time = timestr.next;
 							curve = curvestr.next;
 							if(time.isNil) { 
@@ -96,6 +100,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 							previous = val;
 						};
 					};
+					running = false;
 					monoev;
 				}),
 				\legato, 1,
@@ -104,13 +109,19 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 
 		if(ev[\finish].isKindOf(Function)) {
 			var oldfun = ev[\finish];
-			ev[\finish] = { finfun.value; oldfun.value };
+			ev[\finish] = { finish_fun.value; oldfun.value };
 		} {
-			ev[\finish] = finfun;
+			ev[\finish] = finish_fun;
 		};
 
 		while{ running == true } {
+			//"pmodenv running".debug;
 			ev = bus.asMap.yield;
+			//ev.debug("ev");
+			if(ev.isNil) {
+				"pmodenv: pattern ends".debug; // this never happen
+				cleanup_fun.value;
+			}
 		};
 		ev;
 	}).repeat(repeat)
@@ -386,7 +397,25 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 
 // END
 
-Pdef(\bla2, Pbind(
+// test simple pmodenv
+(
+	// SUCCESS
+Pdef(\testmod, Pbind(
+	\instrument, \default,
+	\freq, ~pmodenv.(Pseq([1,2,1,4]*400,inf), 1),
+	\legato, 0.7,
+	\isRest, Pseq([
+		1,1,1,1, 1,1,1,0,
+	],inf).coin.not,
+	\dur, 1/4,
+	\amp, 0.1,
+)).play;
+);
+
+// test pmodpat with pmodenv inside
+(
+	// SUCCESS
+Pdef(\testmod, Pbind(
 	\instrument, \simplefm,
 	\degree, Pseq([0],inf),
 	\dur, 1/8,
@@ -418,15 +447,72 @@ Pdef(\bla2, Pbind(
 	),
 	\amp, 0.1
 )).play;
+)
 
-// test pmodenv
-Pdef(\plop6, Pbind(
+// test breaks
+(
+	// FAIL: use sequencing instead, Pmono skip the 0
+Pdef(\testmod, Pbind(
+	\instrument, \default,
+	\freq, ~pmodenv.(Pseq([
+		1,4,
+	]*500,inf), Pseq([
+		1,1,1,0,0,
+	],inf)),
+	\legato, 1,
+	\isRest, Pseq([
+		1,1,1,1, 1,1,1,1,
+	],inf).coin.not,
+	\dur, 1/4,
+	\amp, 0.1,
+)).play;
+);
+
+// test sequencing
+(
+	// SUCCESS
+Pdef(\testmod, Pbind(
+	\instrument, \default,
+	\freq, Pseq([
+		~pmodenv.(Pseq([1,2,4,2]*500,1), 1,1),
+		~pmodenv.(Pseq([1,2,4,2]*200,1), 1,1),
+	]),
+	\legato, 1,
+	\isRest, Pseq([
+		1,1,1,1, 1,1,1,0,
+	],inf).coin.not,
+	\dur, 1/4,
+	\amp, 0.1,
+)).play;
+);
+
+// test sequencing for break
+(
+	// SUCCESS
+Pdef(\testmod, Pbind(
+	\instrument, \default,
+	\freq, Pseq([
+		~pmodenv.(Pseq([1,4]*500,1), 1,1),
+	],inf),
+	\legato, 0.71,
+	\isRest, Pseq([
+		1,1,1,1, 1,1,1,0,
+	],inf).coin.not,
+	\dur, 1/4,
+	\amp, 0.1,
+)).play;
+);
+
+// test sequencing with other patterns
+(
+Pdef(\testmod, Pbind(
 	\instrument, \simplefm,
 	\degree, Pseq([0],inf),
 	\dur, 1/4,
 	\legato, 0.7,
 	\freq, Pseq([
 		1000, 1000, 1000, 1000,
+		4000, 1000, Pwhite(100.0,5000,2),
 		~pmodenv.(Pseq([400,5000,700,500],1), 1, 1),
 	],inf),
 	\lpfr, ~pmodenv.(Pseq([1,2,5,1/2,3],inf), 1),
@@ -434,34 +520,53 @@ Pdef(\plop6, Pbind(
 	\rq, ~pmodenv.(Pseq(1/[1,2,5,2,3],inf), 1/2),
 	\amp, 0.1
 ).trace).play;
-
-
-(
-~bla = { arg pok;
-	Prout({
-		pok = pok+1;
-		4.do {
-			pok.yield;
-		}
-	})
-};
-~rr = ~bla.(1);
-~rs = ~rr.asStream;
 )
-~rs.next
 
 
+// test cleanup
 (
+	// SUCCESS
 Pdef(\testmod, Pbind(
 	\instrument, \default,
-	\freq, ~pmodenv.(Pseq([1,2,1,4]*400,inf), 1),
-	\legato, 0.7,
+	\freq, ~pmodenv.(Pseq([1,2,4,2]*500,inf), 1),
+	\legato, 1,
 	\isRest, Pseq([
 		1,1,1,1, 1,1,1,0,
 	],inf).coin.not,
 	\dur, 1/4,
 	\amp, 0.1,
 )).play;
+);
+Pdef(\testmod).stop;
+
+// test cleanup when pattern end
+(
+	// FAIL
+Pdef(\testmod, Pbind(
+	\instrument, \default,
+	\legato, 1,
+	\isRest, Pseq([
+		1,1,1,1, 1,1,1,0,
+	],1).coin.not,
+	\freq, ~pmodenv.(Pseq([1,2,4,2]*500,inf), 1),
+	\dur, 1/4,
+	\amp, 0.1,
+)).play;
+);
+
+// test cleanup when pattern is ended by parent
+(
+	// SUCCESS
+Pdef(\testmod, Pfindur(1,Pbind(
+	\instrument, \default,
+	\freq, ~pmodenv.(Pseq([1,2,4,2]*500,inf), 1),
+	\legato, 1,
+	\isRest, Pseq([
+		1,1,1,1, 1,1,1,0,
+	],inf).coin.not,
+	\dur, 1/4,
+	\amp, 0.1,
+))).play;
 );
 
 
@@ -496,4 +601,24 @@ Pdef(\testmod, Pbind(
 		])
 	).play;
 );
+
+
+//////////////////////////
+
+
+(
+~bla = { arg pok;
+	Prout({
+		pok = pok+1;
+		4.do {
+			pok.yield;
+		}
+	})
+};
+~rr = ~bla.(1);
+~rs = ~rr.asStream;
+)
+~rs.next
+
+
 

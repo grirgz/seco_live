@@ -725,3 +725,35 @@ Ndef(\grat, { arg freq=200, pan=0, amp=0.1;
 	sig = LeakDC.ar(sig);
 }).play;
 );
+
+//////////////////
+(
+play({
+    SinOsc.ar((ToggleFF.ar(Dust.ar(XLine.kr(1,1000,60))) * 400) + 800, 0, 0.1);
+})
+)
+
+/////////////////
+
+
+(
+Ndef(\demo, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var size = 24;
+	sig = Dust.ar(100 * SinOsc.kr(1/13).range(1/10,1));
+	sig = Ringz.ar(sig, exprand(50.0!size,15000) * LFNoise0.ar(exprand(1/10000!size,1/10)).range(1/2,1), SinOsc.kr(exprand(1/10000!size,1/10)).range(4,40));
+	sig = sig.collect({ arg si;
+		si = [
+			{ si.fold2(0.8) },
+			{ si.tanh },
+			{ si * 0.4 },
+		].choose.value;
+		si = si * SinOsc.kr(exprand(1/10000,1/10), 1.0.rand).exprange(0.01,1);
+		si;
+	});
+	sig = sig * 6;
+	sig = sig.mean;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);

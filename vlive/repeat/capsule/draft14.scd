@@ -957,7 +957,7 @@ SynthDef(\snapkickx, { |out = 0, pan = 0, amp = 0.3|
 				\inbus, BusDef(\sendbus1),
 				'wet10', 1.0,
 				'mix', 1,
-				'gain', 1/8,
+				'gain', 1/4,
 				\fb, ~pmodenv.(Pseq([0.0001,0.0002,0.001,0.004],inf), 8),
 				\fb, 0.00001,
 				'delay3', Pseq([
@@ -1086,7 +1086,7 @@ SynthDef(\snapkickx, { |out = 0, pan = 0, amp = 0.3|
 				\inbus, BusDef(\fx1),
 				'wet10', 1.0,
 				'mix', 1,
-				'gain', 1/2,
+				'gain', 0.7,
 				\fb, ~pmodenv.(Pseq([0.0001,0.0002,0.001,0.004],inf), 8),
 				\fb, 0.00001,
 				'delay3', Pseq([

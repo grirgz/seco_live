@@ -490,6 +490,37 @@ Pdef(\plop,
 ).play;
 );
 
+/////////////////////////////////////
+// kind of acid without RLPF
+
+(
+SynthDef(\melsap, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	freq = freq * EnvGen.kr(Env([1,  2, 1.1, 0.9, 1,  1/2],[0.1,0.1, 0.8, 0.1,0.1,0.8 ]), 1);
+	sig = SinOsc.ar(freq);
+	env2 = EnvGen.kr(Env([1,0.2,1,0.7],[0.4,1.8,2]), 1);
+	sig = sig.fold(env2);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\demome, 
+	Ppar([
+		Pbind(
+			\instrument, \melsap,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+
 ////////////////////////////// pok
 // the env is very important, the pok sound is from the extreme short env + the extreme curve
 { SinOsc.ar(300) * EnvGen.kr(Env([0,1,0],[0.01,0.01], [4,-4]), Impulse.kr(1)) * 0.1 !2  }.play

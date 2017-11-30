@@ -304,6 +304,7 @@ Pdef(\funkydrummer,
 //	- ghost snare
 //	- 
 
+~t = 96/2/60; TempoClock.default.tempo = ~t;
 
 (
 Pdef(\testdrums3, 
@@ -464,7 +465,7 @@ SynthDef(\noiser, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, tsustain=1;
 	sig = HPF.ar(sig, \hpf.kr(200) * hpfenv);
 	sig = LPF.ar(sig, \lpf.kr(10000) * lpfenv);
 	sig = sig + BPF.ar(sig, \bpf.kr(200) * bpfenv, \rq.kr(0.1));
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
@@ -472,6 +473,9 @@ SynthDef(\noiser, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, tsustain=1;
 		Pdef(\perc,Pbind(
 			\instrument, \noiser,
 			\lpfenv, [ Env([1,1,1/2,1],[0.1,0.1,0.8]) ],
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
 			\hpf, 200,
 			\hpfenv, [ Env([1/2,74,82,81],[0.4,0.1,0.8]) ],
 			\isRest, Pseq([
@@ -938,4 +942,37 @@ Pdef(\test,
 		),
 	])
 ).play;
+)
+
+/////////////////////
+
+
+(
+SynthDef(\chh, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([12000,182,61],[4.1,2.8],[1,1]),1);
+	env2 = EnvGen.kr(Env([1000,152,91],[4.1,2.8],[1,1]), 1);
+	env3 = EnvGen.kr(Env([7100,1000,100],[4.5,0.8],[1,1]), 1);
+	sig = WhiteNoise.ar;
+	sig = Ringz.ar(sig, rrand(70.0!8,1000),0.01).mean;
+	//sig = RLPF.ar(sig, env2, \rq2.kr(0.8));
+	sig = RLPF.ar(sig,  [env3, env2, env1 ], \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,2.4),gate,doneAction:2);
+	sig = Pan2.ar(sig, [-1,0,1]*0.1, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\plop, 
+	Ppar([
+		Pbind(
+			\instrument, \chh,
+			\freq, 200,
+			\dur, 4,
+			\amp, 0.1,
+		);
+	])
+)).play;
 )

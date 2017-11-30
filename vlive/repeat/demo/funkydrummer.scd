@@ -156,7 +156,7 @@ SynthDef(\phycymbal, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }).add;
 )
 
-~t = 96/1/60; TempoClock.default.tempo = ~t;
+~t = 96/2/60; TempoClock.default.tempo = ~t;
 
 (
 Pdef(\funkydrummer, 

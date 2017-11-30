@@ -1048,3 +1048,27 @@ Pdef(\demo, Pdef(\demotreb,
 	])
 )).play;
 )
+
+//////////////////////////////////
+
+
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		20.collect({ arg n;
+			
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				n*1,
+				n*2,
+				n*3,
+			],inf),
+			\dur, 1 + 0.1.rand,
+			\amp, 0.1,
+		);
+		})
+	].flat)
+)).play;
+)

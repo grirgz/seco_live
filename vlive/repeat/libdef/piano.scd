@@ -1,5 +1,6 @@
 
 (
+ParamProto.init;
 FileSystemProject.load("lib/piano.scd");
 ProtoDef(\piano, (
 	startControl: { arg self, target;
