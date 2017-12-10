@@ -271,7 +271,7 @@ ProtoDef(\rdn2).edit
 Pdef(\part, Pdef(\haha, 
 	Ppar([
 
-		Pbind(\out, BusDef(\sendbus1))<>Ppar([
+		Pbind(\out, BusDef(\mixer6))<>Ppar([
 			Pbind(
 				\instrument, \snapkick,
 				\isRest, Pseq([
@@ -386,7 +386,7 @@ Pdef(\part, Pdef(\haha,
 				\inbus, BusDef(\fx1, \audio),
 				\dur, 1,
 				\amp, 0.1,
-				\out, BusDef(\sendbus2),
+				\out, BusDef(\mixer4),
 			),
 			Pbind( // haha
 				\instrument, \playersec_fixzig_stereo,

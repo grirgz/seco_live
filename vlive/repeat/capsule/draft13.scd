@@ -34,6 +34,20 @@ SynthDef(\snapkickx, { |out = 0, pan = 0, amp = 0.3|
 
 	Out.ar(out, Pan2.ar(snd, pan, amp));
 }).add;
+SynthDef(\fm_grain_test, {arg out=0, gate = 1, amp = 1, freq=200, fratio=2, pan=0;
+	var sig = FMGrain.ar(
+		Impulse.ar(200), 0.14, freq, freq*fratio,
+		LFNoise1.ar(500!2).range(1, 10),
+	);
+	sig = sig * EnvGen.kr(
+		Env([0, 1, 0], [1, 1], \sin, 1),
+		gate,
+		timeScale:\timeScale.kr(1),
+		doneAction: 2
+	);
+	sig = Pan2.ar(sig, pan, amp).sum;
+    Out.ar(out, sig);
+}).add;
 )
 
 
@@ -87,6 +101,7 @@ Pdef(\rono,
 );
 
 (
+	~master.();
 SynthDef(\rono2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var lfo = { 
@@ -580,6 +595,83 @@ Pdef(\part, Pdef(\ronopart1,
 
 		Pbind(\out, BusDef(\mixer6))<>Ppar([
 			Pbind(
+				\instrument, \snapkickx,
+				\bodyenv, [ Env.linen(0.001,0.01,0.1) ],
+				\bodyfreqenv, [ Env([261, 54, 41], [0.035, 0.08], curve: \exp) ],
+				\isRest, Pseq([
+					1,0,1,0, 0,0,0,0,
+					1,0,1,0, 0,0,0,0,
+					1,0,1,0, 0,0,0,0,
+					1,1,0,0, 0,0,0,1,
+				],inf).coin.not,
+				\dur, 1/8,
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \snapclap,
+				\isRest, Pseq([
+					Pser([
+						0,0,0,0, 1,0,0,0,
+						0,0,0,0, 1,0,0,0,
+					],8*14),
+						0,0,0,0, 1,0,0,0,
+						0,1,0,0, 1,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1/1,
+				\dur, 1/8,
+				\amp, 0.28,
+			),
+			Pbind(
+				\instrument, \snaretuned,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,1,
+					0,0,0,0, 1,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1/4,
+				\dur, 1/8,
+				\amp, 0.1/2,
+			),
+			Pbind(
+				\instrument, \snaretuned2,
+				\isRest, Pseq([
+					Pser([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+					],8*14),
+						0,0,0,0, 0,0,0,0,
+						1,0,0,1, 0,0,0,1,
+				],inf).coin.not,
+				\sustain, 0.1/4,
+				\dur, 1/8,
+				\amp, 0.04,
+			),
+		]),
+		Pbind(
+			\instrument, Pseq([\playersec_zix],inf).stutter(8*4),
+			\out, BusDef(\mixer5, \audio),
+			\bufnum, BufDef('voices/feynman.flac'),
+			\pos, Pseq([
+				0,
+			],inf).stutter(8),
+			\isRest, Pseq([
+				Pseq([
+					1,0,1,0,
+				],4),
+			],inf).coin.not,
+			\speed, 1,
+			\legato, Pseq([
+				Pser([
+					0.1,
+					0.1,
+					0.1,
+					0.2,
+				],8*2)*2,
+			],inf).stutter(2),
+			\gain, 0.6,
+			\dur, 1/16,
+			\amp, 0.1,
+		),
+			Pbind(
 				\instrument, \fm_grain_test,
 				\fratio, 1/2,
 				\fratio, Pseq([1],inf),
@@ -589,6 +681,7 @@ Pdef(\part, Pdef(\ronopart1,
 					[0,2,4],
 					[3,5-12,7],
 				],inf),
+				\out, BusDef(\mixer4, \audio),
 				\octave, Pseq([4,5],inf).stutter(2),
 				\legato, [
 					0.7,0.7,1,
@@ -596,6 +689,59 @@ Pdef(\part, Pdef(\ronopart1,
 				\dur, 2,
 				\amp, 0.1/6,
 			),
+		Pmono(\ronordn,
+		'wet10', 1.0,
+		'mix', 1.52100840336134,
+		'gain', 0.24454369503751,
+		'fb', 0.0101,
+		'fb', ~pmodenv.(Pseq([0.001,0.011,0.01,0.03],inf), 1),
+		'delay', 0.000010394574653723,
+		'delay2', 0.000828221925227,
+		'delay3', 0.0001,
+		'distamp', 0.92682721311638,
+		'distamp2', 001.0,
+		'distamp3', 1.9904517086311,
+		'shift', -5.0,
+		'shift2', -1.1344537815126,
+		'shift3', -2.4789915966387,
+		'shiftmix', 0.15966386554622,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 17000,
+		'prehpf', 17,
+		'lpf', 17000,
+		'hpf', 17,
+		'stereo', 0.0,
+		'brffac', 0.60195390291997,
+		'brfrqfac', 0.37940593233798,
+		'fbdistamp', 0.47619047619048,
+		'fbdistmix', 0.91176470588235,
+		'postlpf', 17000,
+		'posthpf', 17,
+		'wetamp', 0.18504562572587,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+
+		\eqmid1b, 6000,
+		\eqrq1b, 0.6,
+		\eqdb1b, 1.6,
+
+			\freq, 200,
+			\inbus, BusDef(\sendbus2, \audio),
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+(
+	// fx for treb
+	~master.();
+Pdef(\part, Pdef(\ronopart1,
+	Ppar([
+
+		Pbind(\out, BusDef(\mixer6))<>Ppar([
 			Pbind(
 				\instrument, \snapkickx,
 				\bodyenv, [ Env.linen(0.001,0.01,0.1) ],
@@ -647,6 +793,20 @@ Pdef(\part, Pdef(\ronopart1,
 				\dur, 1/8,
 				\amp, 0.04,
 			),
+			Pbind(
+				\instrument, \phyhat3,
+				\isRest, Pseq([
+					1,1,
+				],inf).coin.not,
+				\sustain, 0.1/8,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.3,1,-1) ],
+					[ Env.adsr(0.01,0.1,0.8,0.1,1,-1) ],
+				],inf).stutter(1),
+				\dur, 1/8,
+				\amp, 0.04 * Pseq([1,0.2],inf),
+			),
+		]),
 		Pbind(
 			\instrument, Pseq([\playersec_zix],inf).stutter(8*4),
 			\out, BusDef(\mixer5, \audio),
@@ -656,7 +816,9 @@ Pdef(\part, Pdef(\ronopart1,
 			],inf).stutter(8),
 			\isRest, Pseq([
 				Pseq([
-					1,0,1,0,
+					0,0,0,0, 1,0,0,0,
+					1,0,0,1, 1,0,0,0,
+					0,0,0,0, 1,0,1,0,
 				],4),
 			],inf).coin.not,
 			\speed, 1,
@@ -665,29 +827,58 @@ Pdef(\part, Pdef(\ronopart1,
 					0.1,
 					0.1,
 					0.1,
-					0.2,
 				],8*2)*2,
 			],inf).stutter(2),
 			\gain, 0.6,
 			\dur, 1/16,
 			\amp, 0.1,
 		),
-		]),
+			Pbind(
+				\instrument, \fm_grain_test,
+				\fratio, 1/2,
+				\fratio, Pseq([1],inf),
+				\note, Pseq([
+					[1,7],
+					[2,4],
+					[2,4],
+					[9,4],
+				],inf).stutter(2),
+				\out, BusDef(\mixer4, \audio),
+				\octave, Pseq([5,5,4,6,3,5],inf).stutter(2),
+				\legato, Pseq([
+						6,0,0,0, 0,0,2,0,
+						6,0,0,0, 0,0,0,1,
+						3,0,0,3, 0,0,2,0,
+						2,0,1,1, 0,0,2,0,
+
+						3,0,0,3, 0,0,2,0,
+						1,0,2,0, 2,0,2,0,
+						4,0,0,0, 2,0,2,0,
+						2,0,5,0, 0,0,0,1,
+				],inf),
+				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+				\timeScale, 0.1,
+				\legato, Pkey(\legato) * [
+					0.9,0.71,
+				],
+				\dur, 1/4,
+				\amp, 0.1/16,
+			),
 		Pmono(\ronordn,
 		'wet10', 1.0,
 		'mix', 1.52100840336134,
 		'gain', 0.24454369503751,
-		'fb', 0.0101,
-		'fb', ~pmodenv.(Pseq([0.001,0.081,0.01,0.03],inf), 1),
-		'delay', 0.000010394574653723,
-		'delay2', 0.000828221925227,
-		'delay3', 0.0001,
-		'distamp', 0.92682721311638,
-		'distamp2', 001.0,
-		'distamp3', 1.9904517086311,
+		'fb', ~pmodenv.(Pseq([0.001,0.011,0.01,0.03],inf), 1),
+		'fb', 0.08,
+		'delay', 0.00000010394574653723,
+		'delay2', 0.00000828221925227,
+		'delay3', 0.0000001,
+		'distamp', 0.42682721311638,
+		'distamp2', 000.5,
+		'distamp3', 0.5904517086311,
 		'shift', -5.0,
 		'shift2', -1.1344537815126,
-		'shift3', -2.4789915966387,
+		'shift3', -0.4789915966387,
 		'shiftmix', 0.15966386554622,
 		'pitchlag', 1.0,
 		'pitchmix', 0.0,

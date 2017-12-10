@@ -1,4 +1,16 @@
 (
+SynthDef(\playersec_osc, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
+	// pos in seconds
+	var sig;
+	var sig1;
+	var trigger = Impulse.ar(\trigfreq.kr(0));
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig1 = RLPF.ar(sig, \lpfr.kr(1) * \trigfreq.kr, \rq.kr(0.5));
+	sig = SelectX.ar(\lpmix.kr(0.5), [sig, sig1]);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
+	//sig = Pan2.ar(sig, pan, 1).sum;
+	Out.ar(out, sig * \gain.kr(1) * velamp);
+}).add;
 SynthDef(\playersec_osczig_fat, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
 	// pos in seconds
 	var sig;
@@ -88,9 +100,13 @@ SynthDef(\droblipbass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(out, sig);
 }).add;
 ~mymaster = {
+	GroupDef(\fx, 1, \addAfter);
 	ProtoDef(\simpleMixer).play;
+	ProtoDef(\rdn2).play;
 };
-)
+Pdefn(\fxgroup, Pfunc({ GroupDef(\fx, 1, \addAfter)  }));
+ProtoDef(\simpleMixer).tracks[0].proxy.set(\send3, 1);
+);
 
 (
 	~mymaster.();
@@ -129,7 +145,7 @@ Pdef(\testox, Pdef(\oxstatic,
 		},
 
 		Pmono(\comp,
-			\group, GroupDef(\fx, 1, \addAfter),
+			\group, Pdefn(\fxgroup),
 			\inbus, BusDef(\fx1, \audio),
 			\sidebus, BusDef(\sendbus3, \audio),
 			\cpt, 0.021,
@@ -204,6 +220,7 @@ Pdef(\testox, Pdef(\oxstatic,
 				),
 	].flat),
 ));
+Pdef(\testox).play;
 );
 
 ProtoDef(\simpleMixer).edit
@@ -243,7 +260,7 @@ Pdef(\testox, Pdef(\oxwave,
 		},
 
 		Pmono(\concombre,
-			\group, GroupDef(\fx, 1, \addAfter),
+			\group, Pdefn(\fxgroup),
 			\inbus, BusDef(\fx1, \audio),
 			\sidebus, BusDef(\sendbus3, \audio),
 			\cpt, 0.021,
@@ -443,7 +460,7 @@ Pdef(\testox, Pdef(\oxendwave,
 		},
 
 		Pmono(\concombre,
-			\group, GroupDef(\fx, 1, \addAfter),
+			\group, Pdefn(\fxgroup),
 			\inbus, BusDef(\fx1, \audio),
 			\sidebus, BusDef(\sendbus3, \audio),
 			\cpt, 0.021,
@@ -644,7 +661,7 @@ Pdef(\testox, Pdef(\oxfast,
 		},
 
 		Pmono(\concombre,
-			\group, GroupDef(\fx, 1, \addAfter),
+			\group, Pdefn(\fxgroup),
 			\inbus, BusDef(\fx1, \audio),
 			\sidebus, BusDef(\sendbus3, \audio),
 			\cpt, 0.021,
@@ -856,7 +873,7 @@ Pdef(\testox, Pdef(\oxfast2,
 		},
 
 		Pmono(\concombre,
-			\group, GroupDef(\fx, 1, \addAfter),
+			\group, Pdefn(\fxgroup),
 			\inbus, BusDef(\fx1, \audio),
 			\sidebus, BusDef(\sendbus3, \audio),
 			\cpt, 0.021,
@@ -1056,7 +1073,7 @@ Pdef(\testox, Pdef(\oxtrans1,
 		},
 
 		Pmono(\concombre,
-			\group, GroupDef(\fx, 1, \addAfter),
+			\group, Pdefn(\fxgroup),
 			\inbus, BusDef(\fx1, \audio),
 			\sidebus, BusDef(\sendbus3, \audio),
 			\cpt, 0.021,
@@ -1228,7 +1245,7 @@ Pdef(\testox, Pdef(\oxtrans2,
 		},
 
 		Pmono(\concombre,
-			\group, GroupDef(\fx, 1, \addAfter),
+			\group, Pdefn(\fxgroup),
 			\inbus, BusDef(\fx1, \audio),
 			\sidebus, BusDef(\sendbus3, \audio),
 			\cpt, 0.021,
@@ -1395,7 +1412,7 @@ Pdef(\testox, Pdef(\oxstatic_endbar,
 		},
 
 		Pmono(\comp,
-			\group, GroupDef(\fx, 1, \addAfter),
+			\group, Pdefn(\fxgroup),
 			\inbus, BusDef(\fx1, \audio),
 			\sidebus, BusDef(\sendbus3, \audio),
 			\cpt, 0.021,
@@ -1560,7 +1577,7 @@ Pdef(\testox, Pdef(\oxfast_endbar,
 		},
 
 		Pmono(\concombre,
-			\group, GroupDef(\fx, 1, \addAfter),
+			\group, Pdefn(\fxgroup),
 			\inbus, BusDef(\fx1, \audio),
 			\sidebus, BusDef(\sendbus3, \audio),
 			\cpt, 0.021,
@@ -1729,7 +1746,6 @@ Ndef(\rdn2).end
 (
 ~mymaster.();
 ~master.();
-GroupDef(\fx, 1, \addAfter);
 Pdef(\testox, Pdef(\main, 
 	Pseq([
 		Pfindur(12,

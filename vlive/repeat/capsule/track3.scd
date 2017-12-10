@@ -1,3 +1,18 @@
+(
+SynthDef(\fmgbass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fratio=1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,2,1],[0.1,0.8]), 1);
+	sig = FMGrain.ar(
+		Impulse.ar(freq/2), 0.1, freq , freq*fratio * ( 1 + ( SinOsc.ar(freq*1) * 0.001 )),
+		LFSaw.ar( freq!2 ).range(0.1, 1 * env1),
+	).sum;
+	sig = sig * 3;
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+)
 
 (
 	~master.();
@@ -52,7 +67,7 @@ Pdef(\track3_idea,
 				],32),
 				Prand([1/8,1/4,1/3, Prand(1/(1..8),1)],4).stutter(6),
 			],inf),
-			\amp, 0.2
+			\amp, 0.02
 		),
 		
 	])

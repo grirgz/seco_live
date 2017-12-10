@@ -22,17 +22,21 @@ SynthDef(\fx_gain, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }).add;
 SynthDef(\fx_rlpf, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
-	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
 	sig = RLPF.ar(sig, \lpf.kr(2301), \rq.kr(0.5));
 	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.1),gate,doneAction:2);
+	sig = SelectX.ar(\mix.kr(1), [in, sig]);
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
 SynthDef(\fx_rhpf, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
-	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
 	sig = RHPF.ar(sig, \hpf.kr(2301), \rq.kr(0.5));
 	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.1),gate,doneAction:2);
+	sig = SelectX.ar(\mix.kr(1), [in, sig]);
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
@@ -45,8 +49,49 @@ SynthDef(\fx_reverb, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = SelectX.ar(\lpmix.kr(0.5), [sig, sig1]);
 	sig = sig + in;
 	15.do {
-		sig = AllpassL.ar(sig, 0.06, Rand(0.001,0.06) * \delayfac.kr(1), 3);
+		sig = AllpassL.ar(sig, 0.06, Rand(0.001,0.06) * \delayfac.kr(1), \decay.kr(3));
 	};
+	LocalOut.ar(sig);
+	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.1),gate,doneAction:2);
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fx_gatedreverb, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var gater; 
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = LocalIn.ar(2) * \fb.kr(0.1);
+	gater = ( Amplitude.kr(sig) > \gatelevel.kr(0.1) ).poll;
+	//sig = sig * ( Amplitude.kr(sig) > \gatelevel.kr(0.1) ).poll;
+	sig1 = LPF.ar(sig, \lpf.kr(16000));
+	sig = SelectX.ar(\lpmix.kr(0.5), [sig, sig1]);
+	sig = sig + in;
+	15.do {
+		sig = AllpassL.ar(sig, 0.06, Rand(0.001,0.06) * \delayfac.kr(1), \decay.kr(3) * gater);
+	};
+	LocalOut.ar(sig);
+	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.1),gate,doneAction:2);
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fx_gatedreverblim, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var gater; 
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = LocalIn.ar(2) * \fb.kr(0.1);
+	gater = ( Amplitude.kr(sig) > \gatelevel.kr(0.1) ).poll;
+	//sig = sig * ( Amplitude.kr(sig) > \gatelevel.kr(0.1) ).poll;
+	sig1 = LPF.ar(sig, \lpf.kr(16000));
+	sig = SelectX.ar(\lpmix.kr(0.5), [sig, sig1]);
+	sig = sig + in;
+	15.do {
+		sig = AllpassL.ar(sig, 0.06, Rand(0.001,0.06) * \delayfac.kr(1), \decay.kr(3) * gater);
+	};
+	sig = Limiter.ar(sig);
 	LocalOut.ar(sig);
 	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.1),gate,doneAction:2);
 	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
@@ -363,7 +408,7 @@ SynthDef(\bitcode, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
         ) / 127-1 * 3
         , 20
     ).distort * 0.2; 
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
@@ -392,12 +437,15 @@ Pdef(\part, Pdef(\plop,
 			\instrument, \bitcode,
 			\freq, 200,
 			\sustain, 0.8,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.4,4.7) ],
+			],inf),
 			\isRest, Pseq([
-				0,0,1,0,
 				0,0,0,0,
+				1,0,0,0,
 			],inf).coin.not,
-			\dur, 1,
-			\amp, 0.1,
+			\dur, 1/2,
+			\amp, 0.1/2,
 			\out, BusDef(\fxreverb, \audio),
 		),
 		Pmono(\fx_reverb,
@@ -1648,6 +1696,179 @@ Pdef(\part_drum2, Pdef(\petitdrum,
 )).play;
 )
 
+(
+	// gated reverb
+Pdef(\part_drum2, Pdef(\petitdrum, 
+	Ppar([
+		Pbind(\out, BusDef(\fx1))<>
+		Ppar([
+			PatKitDef(\sample1).asPattern(Pbind(
+				\kitIndex, 0,
+				\isRest, Pseq([
+
+					 [
+						1,0,1,0, 0,0,0,1,
+						1,0,1,0, 0,0,0,0,
+						1,0,1,1, 0,0,0,0,
+						1,0,1,0, 0,0,1,0,
+					].clump(8).collect({ arg xx; 
+						 [
+							1,0,1,0, 0,0,0,0,
+							1,0,1,0, 0,0,0,0,
+							1,0,1,0, 0,0,0,0,
+						] ++ xx
+					})
+				].flat,inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\sample1).asPattern(Pbind(
+				\kitIndex, 4,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,1,
+
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,1,
+					0,1,0,0, 1,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+		]),
+		Pseq([
+			Pmono(\fx_gatedreverblim,
+				\inbus, BusDef(\fx1, \audio),
+				//\lpf, 7000 + Pseg(Pseq([0,4000],inf),8),
+				\gatelevel, Pseq([
+					0.02,
+				],inf),
+				\fb, 0.5,
+				\delayfac, 0.1,
+				\mix, 0.21,
+				\decay, 4.01,
+				\dur, Pseq([1/4],4*4),
+				\gain, 0.6,
+				\amp, 0.1,
+			),
+			Pmono(\fx_gatedreverblim,
+				\inbus, BusDef(\fx1, \audio),
+				//\lpf, 7000 + Pseg(Pseq([0,4000],inf),8),
+				\gatelevel, Pseq([
+					0.7,
+				],inf),
+				\fb, 0.9,
+				\delayfac, 0.00001,
+				\mix, 0.21,
+				\decay, 0.1,
+				\dur, Pseq([1/4],4*4),
+				\gain, 0.6,
+				\amp, 0.1,
+			),
+			Pmono(\fx_gatedreverblim,
+				\inbus, BusDef(\fx1, \audio),
+				//\lpf, 7000 + Pseg(Pseq([0,4000],inf),8),
+				\gatelevel, Pseq([
+					0.01,
+				],inf),
+				\fb, 0.9,
+				\delayfac, 0.10001,
+				\mix, 0.21,
+				\decay, 0.1,
+				\dur, Pseq([1/4],4*4),
+				\gain, 0.6,
+				\amp, 0.1,
+			),
+			Pmono(\fx_gatedreverblim,
+				\inbus, BusDef(\fx1, \audio),
+				//\lpf, 7000 + Pseg(Pseq([0,4000],inf),8),
+				\gatelevel, Pseq([
+					0.1,
+				],inf),
+				\fb, 0.9,
+				\delayfac, 0.00001,
+				\mix, 0.21,
+				\decay, 0.9,
+				\dur, Pseq([1/4],4*4),
+				\gain, 0.6,
+				\amp, 0.1,
+			),
+			Pmono(\fx_gatedreverblim,
+				\inbus, BusDef(\fx1, \audio),
+				//\lpf, 7000 + Pseg(Pseq([0,4000],inf),8),
+				\gatelevel, Pseq([
+					0.01,
+				],inf),
+				\fb, 0.1,
+				\delayfac, 0.4,
+				\mix, 0.31,
+				\decay, 0.9,
+				\dur, Pseq([1/4],4*2),
+				\gain, 0.6,
+				\amp, 0.1,
+			),
+			Pmono(\fx_gatedreverblim,
+				\inbus, BusDef(\fx1, \audio),
+				//\lpf, 7000 + Pseg(Pseq([0,4000],inf),8),
+				\gatelevel, Pseq([
+					0.01,
+				],inf),
+				\fb, 0.6,
+				\delayfac, 0.4,
+				\mix, 0.31,
+				\decay, 0.02,
+				\dur, Pseq([1/4],4*2),
+				\gain, 0.6,
+				\amp, 0.1,
+			),
+			Pmono(\fx_gatedreverblim,
+				\inbus, BusDef(\fx1, \audio),
+				//\lpf, 7000 + Pseg(Pseq([0,4000],inf),8),
+				\gatelevel, Pseq([
+					0.1,0.01,1,
+				],inf),
+				\fb, 0.6,
+				\delayfac, 0.1,
+				\mix, 0.31,
+				\decay, 0.2,
+				\dur, Pseq([1/4],4),
+				\gain, 0.6,
+				\amp, 0.1,
+			),
+			Pmono(\fx_gatedreverb,
+				\inbus, BusDef(\fx1, \audio),
+				//\lpf, 7000 + Pseg(Pseq([0,4000],inf),8),
+				\gatelevel, 0.0009,
+				\fb, 0.2,
+				\delayfac, 0.1,
+				\mix, 0.31,
+				\decay, 0.2,
+				\dur, Pseq([2],1),
+				\gain, 0.8,
+				\amp, 0.1,
+			),
+		],inf),
+
+		
+	])
+)).play;
+)
+
 ////////////////////////////////////////////////
 
 (
@@ -1655,6 +1876,7 @@ Pdef(\part_drum2, Pdef(\petitdrum,
 		var sig, env;
 		env = EnvGen.ar(Env.perc(0.01, 2, curve: -4), doneAction: 2);
 		sig = HPF.ar(Ringz.ar(WhiteNoise.ar(0.1), {exprand(1000, 20000)}.dup(100)).mean, 1000);
+		sig = sig * 0.3;
 		Out.ar(out, Pan2.ar(sig * env, pan));
 	}).add;
 )
@@ -1669,6 +1891,258 @@ Pdef(\part, Pdef(\plop,
 			\dur, 1,
 			\amp, 0.1,
 		);
+	])
+)).play;
+)
+
+
+////////////////////////////////////
+
+
+(
+SynthDef(\fx_multitap, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fbr=1, delayr=1, lpfr=1, hpfr=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var tap = { arg idx;
+		var fbnode = FbNode(2);
+		var sig;
+
+		//sig = fbnode.delay((\delay+++idx).kr(0.25/~t)) * (\fb+++idx).kr(0.3) + in;
+		sig = fbnode * (\fb+++idx).kr(1) * fbr + in;
+		sig1 = sig;
+		sig1 = LPF.ar(sig1, ( \lpf+++idx ).kr(15000) * lpfr);
+		sig1 = HPF.ar(sig1, ( \hpf+++idx ).kr(50) * hpfr);
+		//sig = fbnode.delay((\delay+++idx).kr(0.25/~t));
+		sig = SelectX.ar(\pfmix.kr(1), [sig, sig1]);
+		sig = DelayC.ar(sig, 1.1, ( \delay+++idx ).kr(0.1) * delayr);
+
+		fbnode.write(sig);
+		sig;
+		
+	};
+	sig = 4.collect(tap).sum;
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+
+SynthDef(\fx_multitapbpf, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fbr=1, delayr=1, bpfr=1, rqr=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var tap = { arg idx;
+		var fbnode = FbNode(2);
+		var sig;
+
+		//sig = fbnode.delay((\delay+++idx).kr(0.25/~t)) * (\fb+++idx).kr(0.3) + in;
+		sig = fbnode * (\fb+++idx).kr(1) * fbr + in;
+		sig1 = sig;
+		sig1 = BPF.ar(sig1, ( \bpf+++idx ).kr(50) * bpfr, ( \rq+++idx ).kr(0.5) * rqr);
+		//sig = fbnode.delay((\delay+++idx).kr(0.25/~t));
+		sig = SelectX.ar(\pfmix.kr(1), [sig, sig1]);
+		sig = DelayC.ar(sig, 1.1, ( \delay+++idx ).kr(0.1) * delayr);
+
+		fbnode.write(sig);
+		sig;
+		
+	};
+	sig = 4.collect(tap).sum;
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+)
+
+
+(
+	// multitap
+Pdef(\part_drum2, Pdef(\petitdrum, 
+	Ppar([
+		Pbind(\out, BusDef(\fx1))<>
+		Ppar([
+			PatKitDef(\sample1).asPattern(Pbind(
+				\kitIndex, 0,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,1,
+					1,0,1,0, 0,0,0,0,
+				].flat,inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\sample1).asPattern(Pbind(
+				\kitIndex, 4,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,1,
+
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,1,
+					0,1,0,0, 1,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+		]),
+		Pmono(\fx_multitapbpf,
+			\inbus, BusDef(\fx1, \audio),
+			\delay0, 1/2/~t,
+			\delay1, 1/8/~t,
+			\delay2, 3/8/~t,
+			\delay3, 6/8/~t,
+			\rqr, ~pmodenv.(Pseq(1/[1,2,1,4],inf), 2),
+			\bpf0, 1000,
+			\bpf1, 400,
+			\bpf2, 4400,
+			\bpf3, 10400,
+			\delayr, 1,
+			\hpfr, 1,
+			\lpfr, 1,
+			\fbr, 0.9,
+			\mix, 0.5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+
+		
+	])
+)).play;
+)
+
+
+Pdef(\part_drum2).clear;
+(
+Pdef(\part_drum2, Pdef(\petitdrum, 
+	Ppar([
+		Pbind(\out, BusDef(\fx1))<>
+		Ppar([
+			PatKitDef(\sample1).asPattern(Pbind(
+				\kitIndex, 0,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,1,
+					1,0,1,0, 0,0,0,0,
+				].flat,inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\sample1).asPattern(Pbind(
+				\kitIndex, 4,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,1,
+
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,1,
+					0,1,0,0, 1,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('voices/kaspi.flac'),
+			\pos, Pseq([
+				4,2
+			],inf).stutter(2),
+			\isRest, Pseq([
+				Pseq([
+					0,0,
+					0,0,
+					0,0,
+					1,0,
+				],inf),
+			],inf).coin.not,
+			\legato, 2,
+			\dur, 1,
+			\out, BusDef(\fx, \audio),
+			\gain, 1/2,
+			\amp, 0.1,
+		),
+		]),
+		Pmono(\fx_multitapbpf,
+			\inbus, BusDef(\fx1, \audio),
+			\out, BusDef(\fx2, \audio),
+			\delay0, 1/2/~t,
+			\delay1, 1/8/~t,
+			\delay2, 3/8/~t,
+			\delay3, 6/8/~t,
+			\rqr, ~pmodenv.(Pseq(1/[1,2,1,4],inf), 2),
+			\bpf0, 1000,
+			\bpf1, 400,
+			\bpf2, 4400,
+			\bpf3, 10400,
+			\delayr, 1,
+			\hpfr, 1,
+			\lpfr, 1,
+			\fbr, 0.9,
+			\mix, 0.5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+			Pmono(\fx_gatedreverblim,
+				\inbus, BusDef(\fx2, \audio),
+				\out, BusDef(\fx3, \audio),
+				//\lpf, 7000 + Pseg(Pseq([0,4000],inf),8),
+				\gatelevel, Pseq([
+					0.1,0.01,1,
+				],inf),
+				\fb, 0.6,
+				\delayfac, 0.1,
+				\mix, 0.11,
+				\decay, 0.2,
+				\dur, Pseq([1/4],inf),
+				\gain, 1.0,
+				\amp, 0.1,
+			),
+			Pmono(\fx_stutter,
+				\inbus, BusDef(\fx3, \audio),
+				\freq, 200,
+				\mix, Pseq([
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,1, 0,0,1,0,
+					1,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 1,0,1,1,
+					0,0,0,0, 0,0,1,0,
+				],inf),
+				\time, Pstep(Pseq([1/16,1/12],inf),1/4)/~t,
+				\fb, 0.1,
+				\dur, Pser([1/8],inf),
+			),
+
+		
 	])
 )).play;
 )

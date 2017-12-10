@@ -1,4 +1,25 @@
 (
+SynthDef(\desapat1, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	//env3 = \env3.kr(4000);
+	env3 = EnvGen.kr(Env([5000,4002,1]+\efreq.kr(0),[0.1,0.8]*5), 1, \ts0.kr(1));
+	freq = EnvGen.kr(Env([1000,200,500,100]+env3,[0.1,0.8,0.1]*5), Impulse.kr(1/1*~t), timeScale: \ts1.kr(1));
+	env1 = EnvGen.kr(Env([1,2,1.5],[0.8,0.8]*5), Impulse.kr(1/8*~t), timeScale: \ts2.kr(1) );
+	env4 = EnvGen.kr(Env([0,0,0.1,1.5,10],[0.1,0.1,1.8,1]*5), Impulse.kr(1/8*~t), timeScale: \ts3.kr(1) );
+	sig = LFSaw.ar(freq * [1,1.23,1.001,1*( env1/100 )]).sum;
+	sig = sig * ( 1 + ( LFSaw.ar(freq+( env4*40 ) * [1,1.2,1.34,1*( env1/110 )]).sum * 1 ));
+	sig = CombL.ar(sig, 0.1, 1/( freq * [1,1.2] *env1 ), 0 + (sig * env4)).sum + sig/10;
+	env2 = \env2.kr(1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), env2, doneAction:0);
+	sig = Limiter.ar(sig);
+
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+)
+(
 
 	// intro
 	~master.();
@@ -1333,25 +1354,6 @@ Pdef(\part, Pdef(\perc_end1,
 );
 
 (
-SynthDef(\desapat1, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	//env3 = \env3.kr(4000);
-	env3 = EnvGen.kr(Env([5000,4002,1]+\efreq.kr(0),[0.1,0.8]*5), 1, \ts0.kr(1));
-	freq = EnvGen.kr(Env([1000,200,500,100]+env3,[0.1,0.8,0.1]*5), Impulse.kr(1/1*~t), timeScale: \ts1.kr(1));
-	env1 = EnvGen.kr(Env([1,2,1.5],[0.8,0.8]*5), Impulse.kr(1/8*~t), timeScale: \ts2.kr(1) );
-	env4 = EnvGen.kr(Env([0,0,0.1,1.5,10],[0.1,0.1,1.8,1]*5), Impulse.kr(1/8*~t), timeScale: \ts3.kr(1) );
-	sig = LFSaw.ar(freq * [1,1.23,1.001,1*( env1/100 )]).sum;
-	sig = sig * ( 1 + ( LFSaw.ar(freq+( env4*40 ) * [1,1.2,1.34,1*( env1/110 )]).sum * 1 ));
-	sig = CombL.ar(sig, 0.1, 1/( freq * [1,1.2] *env1 ), 0 + (sig * env4)).sum + sig/10;
-	env2 = \env2.kr(1);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), env2, doneAction:0);
-	sig = Limiter.ar(sig);
-
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
 
 Pdef(\test, 
 	Ppar([

@@ -1,4 +1,29 @@
 (
+SynthDef(\allreverbdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = LocalIn.ar(2) * \fb.kr(0.1);
+	sig = sig + in;
+	15.do {
+		sig = AllpassL.ar(sig, 0.06, Rand(0.001,0.06) * \delay.kr(1), 3);
+	};
+	sig1 = ( sig*\distamp.kr(10) ).tanh * \distpostamp.kr(1/4);
+	sig = SelectX.ar(\distmix.kr(0.5), [sig, sig1]);
+	sig = Limiter.ar(sig);
+	LocalOut.ar(sig);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = SelectX.ar(\mix.kr(0.5).lag(0.1), [in, sig]);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\twik, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\slurp, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
@@ -167,6 +192,7 @@ SynthDef(\nidi, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 Pdef(\part).reset;
 );
 
+Pdef(\part).clear;
 (
 Pdef(\part, Pdef(\plop, 
 	Ppar([
@@ -914,6 +940,7 @@ SynthDef(\kickret, { |out = 0, pan = 0, amp = 0.3|
 )
 
 (
+	~master.();
 Pdef(\part, Pdef(\serpent1, 
 	Ppar([
 		Pbind(

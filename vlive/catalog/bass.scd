@@ -278,18 +278,33 @@ Pdef(\demo,
 
 
 (
-SynthDef(\fm_grain_test, {arg gate = 1, amp = 1, freq=200, fratio=2, pan=0;
+SynthDef(\fm_grain_test, {arg out=0, gate = 1, amp = 1, freq=200, fratio=2, pan=0;
 	var sig = FMGrain.ar(
-		Impulse.ar(200), 0.14, freq, freq*fratio,
-		LFNoise1.ar(500!2).range(1, 10),
+		Impulse.ar(\grainfreq.kr(200)), 0.14, freq, freq*fratio,
+		LFNoise1.ar(\grainindexfreq.kr(500)!2).range(1, 10),
 	);
 	sig = sig * EnvGen.kr(
 		Env([0, 1, 0], [1, 1], \sin, 1),
 		gate,
 		doneAction: 2
 	);
+	sig = sig / 4;
 	sig = Pan2.ar(sig, pan, amp).sum;
-    Out.ar(0, sig);
+    Out.ar(out, sig);
+}).add;
+SynthDef(\fm_grain2, {arg out=0, gate = 1, amp = 1, freq=200, fratio=2, pan=0;
+	var sig = FMGrain.ar(
+		Impulse.ar(\grainfreq.kr(200)), 0.14, freq, freq*fratio,
+		\grainindex.kr(1)*[1,1.001]
+	);
+	sig = sig * EnvGen.kr(
+		Env([0, 1, 0], [1, 1], \sin, 1),
+		gate,
+		doneAction: 2
+	);
+	sig = sig / 4;
+	sig = Pan2.ar(sig, pan, amp).sum;
+    Out.ar(out, sig);
 }).add;
 )
 
@@ -298,6 +313,35 @@ Pdef(\demo, Pbind(
 	\instrument, \fm_grain_test,
 	\fratio, Pseq([1,2,3/2,1.21314],inf),
 	\degree, Pseq([0,2],inf),
+	\octave, 3,
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+
+(
+Pdef(\demo, Pbind(
+	\instrument, \fm_grain_test,
+	\fratio, Pseq([1,2,3/2,1.21314],inf),
+	\degree, Pseq([0,2],inf),
+	\grainfreq, ~pmodenv.(Pseq([1,20,100,400],inf), 8),
+	\grainindexfreq, Pseq([
+		500,0.1,
+	],inf).stutter(16),
+	\octave, 3,
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+
+(
+Pdef(\demo, Pbind(
+	\instrument, \fm_grain2,
+	\fratio, Pseq([1.21314],inf),
+	\degree, Pseq([0,2],inf),
+	//\grainfreq, ~pmodenv.(Pseq([1,20,100,400],inf), 8),
+	\grainfreq, 100,
+	\grainindex, 1,
 	\octave, 3,
 	\dur, 1,
 	\amp, 0.1

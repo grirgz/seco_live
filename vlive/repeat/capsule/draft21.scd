@@ -108,7 +108,7 @@ Pbind(
 	~master.();
 Pdef(\part, Pdef(\plop, 
 	Ppar([
-		Pbind(\out, BusDef(\mixer5, \audio))<>
+		Pbind(\out, BusDef(\mixer6, \audio))<>
 		Ppar([
 			PatKitDef(\ksh2b).asPattern(Pbind(
 				\kitIndex, 1,
@@ -182,7 +182,7 @@ Pdef(\part, Pdef(\plop,
 	~master.();
 Pdef(\part, Pdef(\plop, 
 	Ppar([
-		Pbind(\out, BusDef(\mixer5, \audio))<>
+		Pbind(\out, BusDef(\mixer6, \audio))<>
 		Ppar([
 			PatKitDef(\ksh2b).asPattern(Pbind(
 				\kitIndex, 1,

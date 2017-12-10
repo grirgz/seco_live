@@ -6,6 +6,7 @@ s.waitForBoot {
 	FileSystemProject.load("capsule/lib.scd");
 	FileSystemProject.load("capsule/track1.scd");
 	FileSystemProject.load("capsule/draftsynth.scd");
+	FileSystemProject.load("capsule/PatKitDef_ksh.scd");
 
 };
 );
@@ -67,6 +68,8 @@ s.waitForBoot {
 				"mixer" -> { ProtoDef(\simpleMixer).edit },
 				"rdn" -> { ProtoDef(\rdn).edit },
 				"rdn2" -> { ProtoDef(\rdn2).edit },
+				"startControl icon" -> { ~startControl.() },
+				"startControl piano" -> { ProtoDef(\piano).startControl },
 			].collect({  arg target;
 				BasicButton.new.string_(target.key).action_(target.value)
 			})

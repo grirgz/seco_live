@@ -1,6 +1,36 @@
 
 
 (
+	SynthDef(\perctone, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+		var sig;
+		var pop, popFreq, popAmp;
+		var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+		var env1, env2, env3, env4, env5, env6, env7, env8;
+		env1 = EnvGen.kr(Env([2,1,1/4],[0.13,0.04],-1), 1);
+		sig = LFPulse.ar(freq) + LFSaw.ar(freq+[0,10.101*env1]).mean /2;
+		sig = sig + SinOsc.ar(freq * [1,2,1/2], mul:env1.lag(1)).mean / 2; 
+		sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * env1, \rq.kr(0.5));
+		sig = ( sig * env1 ).distort;
+
+		popFreq = XLine.kr(350, 61, 0.02);
+		popAmp = EnvGen.ar(Env.linen(0.001, 0.02, 0.001)) * 0.15;
+		pop = SinOsc.ar(popFreq) * popAmp;
+		sig = sig + pop;
+
+		sig1 = SinOsc.ar(freq*2);
+		sig1 = LPF.ar(sig1, freq * EnvGen.kr(Env([1,1/2,1/4],[0.01,0.8]), 1));
+		sig = sig + sig1;
+
+		sig1 = WhiteNoise.ar;
+		sig1 = LPF.ar(sig1, EnvGen.kr(Env([10000,710,100],[0.01,0.8], -4), 1));
+		sig1 = HPF.ar(sig1, Rand(700,800.0));
+		sig1 = Ringz.ar(sig1, freq, 0.1)/6;
+		sig = sig + sig1;
+
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.001,0.1,0.8,0.1)), gate, doneAction:2);
+		sig = Pan2.ar(sig, pan, amp);
+		Out.ar(out, sig);
+	}).add;
 SynthDef(\organ, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	sig = Pulse.ar(freq * [1,1.0001, 2/3],mul: [1,1,1/3]).mean;
@@ -161,6 +191,40 @@ Pdef(\part, Pdef(\plop,
 				\amp, 0.1 * Pseq([
 					1
 				],inf),
+			),
+			Pbind(
+				\instrument, \perctone,
+				\note, Pseq([
+					Pser([
+						[0,4,7],
+						[0,4,7],
+						[0,4,7-12]+12,
+						[0,4,7],
+					],12*2),
+					Pser([
+						[5,9,0],
+						[5,9,0],
+						[5,9-12,0]+12,
+						[5,9,0],
+					],12*2),
+				],inf),
+				\sustain, Pseq([
+					0.01, 0.01, 0.01, 0.03, 0.01, 0.01,
+					0.01, 0.01, 0.01, 0.07, 0.01, 0.01,
+				],inf),
+				\out, BusDef(\fx1, \audio),
+				\isRest, Pseq([
+
+						0,0,0, 1,0,0,  0,0,0, 1,0,0,
+						0,0,1, 0,0,0,  0,0,0, 1,0,0,
+						0,0,1, 1,0,0,  0,0,0, 1,0,0,
+						0,0,0, 1,0,1,  0,0,0, 1,0,0,
+						1,0,1, 0,0,0,  0,0,0, 1,0,0,
+						//0.1,0.1,0.1, 0.51,0,0.51,  0,0.1,0.1, 0.51,0,0.51,
+				],inf).coin.not,
+				\dur, 1/12,
+				\octave, 6,
+				\amp, 0.1,
 			),
 		Pmono(\dubecho,
 			\delay, 3/4/~t,

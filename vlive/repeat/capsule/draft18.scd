@@ -24,6 +24,14 @@ PatKitDef('ksh2b').targets = [
 ];
 );
 (
+SynthDef(\whitenoise, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = WhiteNoise.ar;
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\trebi, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	sig = Saw.ar(freq * ( 1 + ( SinOsc.ar(freq*\fmr.kr(1)*[1,1.01]) * 1 )));
@@ -172,7 +180,7 @@ Pdef(\part, Pdef(\plop,
 			\octave, 3,
 			\dur, 1/8,
 			\lpf, ~pmodenv.(Pseq([1,2,1,4]*400,inf), 8),
-			\amp, ~pmodenv.(Pseq([0,1,1,1]*0.1*0.1,inf), 2),
+			\amp, ~pmodenv.(Pseq([0,1,1,1]*0.1,inf), 2),
 		),
 		Pmono(\medelfx2,
 			\inbus, BusDef(\fx, \audio),
@@ -1496,14 +1504,6 @@ Pdef(\part, Pdef(\plop,
 )
 
 (
-SynthDef(\whitenoise, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = WhiteNoise.ar;
-	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
 );
 
 (
@@ -1787,6 +1787,9 @@ Pdef(\part, Pdef(\plop,
 			\combdecay, ~pmodenv.(Pseq([0,2,1,4],inf), 8),
 			\isRest, Pseq([
 				1,0,
+				1,0,
+				1,0,
+				0,0,
 			],inf).coin.not,
 			\lpfr, ~pmodenv.(Pseq([1,2,1,4],inf), 8),
 			\adsr2, Pseq([
@@ -1794,6 +1797,26 @@ Pdef(\part, Pdef(\plop,
 			],inf),
 			\dur, 1/2,
 			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \basscomb,
+			\freq, 70*4 * [1,0.654],
+			\fmamp, ~pmodenv.(Pseq([1,2,4,10],inf), 8),
+			\fmfreq, ~pmodenv.(Pseq([200,1000],inf), 8),
+			\legato, 1.9,
+			\combdecay, ~pmodenv.(Pseq([0,2,1,4],inf), 8),
+			\isRest, Pseq([
+				0,0,
+				0,0,
+				0,0,
+				1,0,
+			],inf).coin.not,
+			\lpfr, ~pmodenv.(Pseq([1,2,1,4],inf), 8),
+			\adsr2, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ]
+			],inf),
+			\dur, 1/2,
+			\amp, 0.07,
 		),
 		Pbind(
 			\instrument, \basscomb,
@@ -1807,6 +1830,14 @@ Pdef(\part, Pdef(\plop,
 			\combdecay, ~pmodenv.(Pseq([0,2,1,4],inf), 8),
 			\isRest, Pseq([
 				0,0,0,1,
+				0,0,0,1,
+				0,0,0,1,
+				0,0,0,0,
+
+				0,0,0,1,
+				0,0,0,1,
+				0,0,0,0,
+				0,0,0,1,
 			],inf).coin.not,
 			\lpfr, ~pmodenv.(Pseq([1,2,1,4],inf), 8),
 			\adsr2, Pseq([
@@ -1815,6 +1846,32 @@ Pdef(\part, Pdef(\plop,
 			\lag, Pwhite(0.01,0.4),
 			\sustain, 1/4/~t - Pkey(\lag),
 			\dur, 1/4,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \basscomb,
+			\freq, Pseq([
+				450,450,450,200,
+				741,312,312,741,
+			],inf).stutter(8),
+			//\freq, 1200,
+			\fmamp, ~pmodenv.(Pseq([4,1/10],inf), 8),
+			\fmfreq, ~pmodenv.(Pseq([2,1000],inf), 8),
+			//\legato, 0.9,
+			\combdecay, ~pmodenv.(Pseq([0,2,1,4],inf), 8),
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\lpfr, ~pmodenv.(Pseq([1,2,1,4],inf), 8),
+			\adsr2, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.01) ]
+			],inf),
+			//\lag, Pwhite(0.01,0.4),
+			\sustain, 1/4/~t/8,
+			\dur, 1/16,
 			\amp, 0.1,
 		),
 		Pmono(\face,
