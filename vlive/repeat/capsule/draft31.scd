@@ -254,59 +254,6 @@ SynthDef(\seqdelfx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
-	SynthDef(\ronordn, { arg out=0, gate=1;
-		var sig;
-		var si, env = ();
-		var in = InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio)), 2); 
-
-		thisThread.randSeed = 740492;
-
-		sig = LocalIn.ar(2) * \fb.kr(0.1) + in;
-		si = sig;
-		sig = { arg si, env;
-			si = (si * 10.rand * \distamp.kr).tanh / 2;
-			si = SelectX.ar(\shiftmix.kr, [
-				si,
-				FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift.kr) + si / 1.2,
-			]);
-			si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
-			BRF.ar(si, exprand(100,10000)* \brffac.kr(1), ( 0.5.rand * \brfrqfac.kr(1) ) + 0.01) + ( si / 4 );
-			BRF.ar(si, exprand(100,10000)* \brffac.kr(1), ( 0.5.rand * \brfrqfac.kr(1) ) + 0.01) + ( si / 4 );
-			si = (si * 10.rand * \distamp3.kr).tanh / 2;
-			si = [
-				{ arg si, env;
-					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
-					si = (si * 10.rand * \distamp.kr).tanh / 2;
-				}.value(si, env);
-				,
-				{ arg si, env;
-					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
-					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
-				}.value(si, env);
-
-			].mean;
-			si = SelectX.ar(\shiftmix.kr, [
-				si,
-				FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift3.kr) + si / 1.2,
-			]);
-			si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
-			si = (si * 10.rand * \distamp.kr).tanh / 2;
-		}.value(si, env);
-
-		sig = Limiter.ar(sig);
-		LocalOut.ar(sig);
-
-		sig = MidEQ.ar(sig, \eqmid1b.kr(12000), \eqrq1b.kr(1), \eqdb1b.kr(0));
-		//sig = MidEQ.ar(sig, \eqmid2b.kr(7000), \eqrq2b.kr(1), \eqdb2b.kr(0));
-		//sig = HPF.ar(sig, \ehpf.kr(140), \ehprq.kr(1));
-		//sig = LPF.ar(sig, \elpf.kr(10000), \elprq.kr(1));
-		sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
-		sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0));
-		sig = sig * \gain.kr(1);
-		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:2);
-		Out.ar(out, sig);
-
-	}).add;
 		SynthDef(\rdnroom, { arg out=0, gate=1;
 			var sig;
 			var si, env = ();
@@ -385,6 +332,7 @@ SynthDef(\seqdelfx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 			sig1 = HPF.ar(sig1, \ehpf.kr(140), \ehprq.kr(1));
 			sig1 = LPF.ar(sig1, \elpf.kr(10000), \elprq.kr(1));
 			sig = SelectX.ar(\ffmix.kr(0.0), [sig, sig1]);
+			sig = sig * \wetgain.kr(1);
 			sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
 			sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0));
 			sig = sig * \gain.kr(1);
@@ -788,3 +736,288 @@ Pdef(\part, Pdef(\plop,
 		])
 	)).play;
 );
+
+///////////////////////////////////////// test rono
+
+	(
+	SynthDef(\ronoreal, { arg out=0, gate=1;
+		var sig;
+		var si, env = ();
+		var in = InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio)), 2); 
+
+		thisThread.randSeed = 740492;
+
+		sig = LocalIn.ar(2) * \fb.kr(0.1) + in;
+		si = sig;
+		sig = { arg si, env;
+			CheckBadValues.ar(si, id:0);
+			si = (si * 10.0.rand * \distamp.kr).tanh / 2;
+			CheckBadValues.ar(si, id:1);
+			si = SelectX.ar(\shiftmix.kr, [
+				si,
+				FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift.kr) + si / 1.2,
+			]);
+			CheckBadValues.ar(si, id:11);
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
+			CheckBadValues.ar(si, id:12);
+			BRF.ar(si, exprand(100.0,10000)* \brffac.kr(1), ( 0.5.rand * \brfrqfac.kr(1) ) + 0.01) + ( si / 4 );
+			CheckBadValues.ar(si, id:13);
+			BRF.ar(si, exprand(100.0,10000)* \brffac.kr(1), ( 0.5.rand * \brfrqfac.kr(1) ) + 0.01) + ( si / 4 );
+			CheckBadValues.ar(si, id:14);
+			si = (si * 10.rand * \distamp3.kr).tanh / 2;
+
+			CheckBadValues.ar(si, id:2);
+
+			////////// safe part
+
+			si = [
+				{ arg si, env;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+					si = (si * 10.0.rand * \distamp.kr).tanh / 2;
+				}.value(si, env);
+				,
+				{ arg si, env;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+				}.value(si, env);
+
+			].mean;
+			CheckBadValues.ar(si, id:3);
+			si = SelectX.ar(\shiftmix.kr, [
+				si,
+				FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift3.kr) + si / 1.2,
+			]);
+			CheckBadValues.ar(si, id:4);
+			si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
+			CheckBadValues.ar(si, id:5);
+			si = (si * 10.0.rand * \distamp.kr).tanh / 2;
+			CheckBadValues.ar(si, id:6);
+			si = LPF.ar(si, \ilpf.kr(19000), \ilprq.kr(1));
+			si;
+		}.value(si, env);
+
+		sig = LeakDC.ar(sig);
+		sig = Limiter.ar(sig);
+		LocalOut.ar(sig);
+
+		sig = MidEQ.ar(sig, \eqmid1b.kr(12000), \eqrq1b.kr(1), \eqdb1b.kr(0));
+		//sig = MidEQ.ar(sig, \eqmid2b.kr(7000), \eqrq2b.kr(1), \eqdb2b.kr(0));
+		sig = HPF.ar(sig, \ehpf.kr(14), \ehprq.kr(1));
+		sig = LPF.ar(sig, \elpf.kr(19000), \elprq.kr(1));
+		sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
+		sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0)); // doesnt change signal, just add a pan control
+		sig = sig * \gain.kr(1);
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:2);
+		Out.ar(out, sig);
+
+	}).add;
+	)
+
+
+	(
+	SynthDef(\ronordn, { arg out=0, gate=1;
+		var sig;
+		var si, env = ();
+		var in = InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio)), 2); 
+
+		thisThread.randSeed = 740492;
+
+		sig = LocalIn.ar(2) * \fb.kr(0.1) + in;
+		si = sig;
+		sig = { arg si, env;
+			CheckBadValues.ar(si, id:0);
+			si = (si * 10.rand * \distamp.kr).tanh / 2;
+			CheckBadValues.ar(si, id:1);
+			si = SelectX.ar(\shiftmix.kr, [
+				si,
+				FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift.kr) + si / 1.2,
+			]);
+			CheckBadValues.ar(si, id:11);
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
+			CheckBadValues.ar(si, id:12);
+			BRF.ar(si, exprand(100,10000)* \brffac.kr(1), ( 0.5.rand * \brfrqfac.kr(1) ) + 0.01) + ( si / 4 );
+			CheckBadValues.ar(si, id:13);
+			BRF.ar(si, exprand(100,10000)* \brffac.kr(1), ( 0.5.rand * \brfrqfac.kr(1) ) + 0.01) + ( si / 4 );
+			CheckBadValues.ar(si, id:14);
+			si = (si * 10.rand * \distamp3.kr).tanh / 2;
+
+			CheckBadValues.ar(si, id:2);
+
+			////////// safe part
+
+			si = [
+				{ arg si, env;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+					si = (si * 10.rand * \distamp.kr).tanh / 2;
+				}.value(si, env);
+				,
+				{ arg si, env;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+				}.value(si, env);
+
+			].mean;
+			CheckBadValues.ar(si, id:3);
+			si = SelectX.ar(\shiftmix.kr, [
+				si,
+				FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift3.kr) + si / 1.2,
+			]);
+			CheckBadValues.ar(si, id:4);
+			si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
+			CheckBadValues.ar(si, id:5);
+			si = (si * 10.rand * \distamp.kr).tanh / 2;
+			CheckBadValues.ar(si, id:6);
+			si;
+		}.value(si, env);
+
+		sig = LeakDC.ar(sig);
+		sig = Limiter.ar(sig);
+		LocalOut.ar(sig);
+
+		sig = MidEQ.ar(sig, \eqmid1b.kr(12000), \eqrq1b.kr(1), \eqdb1b.kr(0));
+		//sig = MidEQ.ar(sig, \eqmid2b.kr(7000), \eqrq2b.kr(1), \eqdb2b.kr(0));
+		//sig = HPF.ar(sig, \ehpf.kr(140), \ehprq.kr(1));
+		//sig = LPF.ar(sig, \elpf.kr(10000), \elprq.kr(1));
+		sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
+		sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0)); // doesnt change signal, just add a pan control
+		sig = sig * \gain.kr(1);
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:2);
+		Out.ar(out, sig);
+
+	}).add;
+	)
+
+	(
+	SynthDef(\ronordn, { arg out=0, gate=1;
+		var sig;
+		var si, env = ();
+		var in = InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio)), 2); 
+
+		thisThread.randSeed = 740492;
+
+		sig = LocalIn.ar(2) * \fb.kr(0.1) + in;
+		si = sig;
+		sig = { arg si, env;
+			CheckBadValues.ar(si, id:0);
+			si = (si * 10.rand * \distamp.kr).tanh / 2;
+			CheckBadValues.ar(si, id:1);
+			si = SelectX.ar(\shiftmix.kr, [
+				si,
+				FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift.kr) + si / 1.2,
+			]);
+			CheckBadValues.ar(si, id:11);
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
+			CheckBadValues.ar(si, id:12);
+			BRF.ar(si, exprand(100,10000)* \brffac.kr(1), ( 0.5.rand * \brfrqfac.kr(1) ) + 0.01) + ( si / 4 );
+			CheckBadValues.ar(si, id:13);
+			BRF.ar(si, exprand(100,10000)* \brffac.kr(1), ( 0.5.rand * \brfrqfac.kr(1) ) + 0.01) + ( si / 4 );
+			CheckBadValues.ar(si, id:14);
+			si = (si * 10.rand * \distamp3.kr).tanh / 2;
+
+			CheckBadValues.ar(si, id:2);
+
+			////////// safe part
+
+			si = [
+				{ arg si, env;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+					si = (si * 10.rand * \distamp.kr).tanh / 2;
+				}.value(si, env);
+				,
+				{ arg si, env;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+				}.value(si, env);
+
+			].mean;
+			CheckBadValues.ar(si, id:3);
+			si = SelectX.ar(\shiftmix.kr, [
+				si,
+				FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift3.kr) + si / 1.2,
+			]);
+			CheckBadValues.ar(si, id:4);
+			si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
+			CheckBadValues.ar(si, id:5);
+			si = (si * 10.rand * \distamp.kr).tanh / 2;
+			CheckBadValues.ar(si, id:6);
+			si;
+		}.value(si, env);
+
+		sig = LeakDC.ar(sig);
+		sig = Limiter.ar(sig);
+		LocalOut.ar(sig);
+
+		sig = MidEQ.ar(sig, \eqmid1b.kr(12000), \eqrq1b.kr(1), \eqdb1b.kr(0));
+		//sig = MidEQ.ar(sig, \eqmid2b.kr(7000), \eqrq2b.kr(1), \eqdb2b.kr(0));
+		//sig = HPF.ar(sig, \ehpf.kr(140), \ehprq.kr(1));
+		//sig = LPF.ar(sig, \elpf.kr(10000), \elprq.kr(1));
+		sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
+		sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0)); // doesnt change signal, just add a pan control
+		sig = sig * \gain.kr(1);
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:2);
+		Out.ar(out, sig);
+
+	}).add;
+	)
+
+
+
+
+
+	// sauvegarde
+	(
+	SynthDef(\ronordn, { arg out=0, gate=1;
+		var sig;
+		var si, env = ();
+		var in = InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio)), 2); 
+
+		thisThread.randSeed = 740492;
+
+		sig = LocalIn.ar(2) * \fb.kr(0.1) + in;
+		si = sig;
+		sig = { arg si, env;
+			si = (si * 10.rand * \distamp.kr).tanh / 2;
+			si = SelectX.ar(\shiftmix.kr, [
+				si,
+				FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift.kr) + si / 1.2,
+			]);
+			si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
+			BRF.ar(si, exprand(100,10000)* \brffac.kr(1), ( 0.5.rand * \brfrqfac.kr(1) ) + 0.01) + ( si / 4 );
+			BRF.ar(si, exprand(100,10000)* \brffac.kr(1), ( 0.5.rand * \brfrqfac.kr(1) ) + 0.01) + ( si / 4 );
+			si = (si * 10.rand * \distamp3.kr).tanh / 2;
+			si = [
+				{ arg si, env;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+					si = (si * 10.rand * \distamp.kr).tanh / 2;
+				}.value(si, env);
+				,
+				{ arg si, env;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+				}.value(si, env);
+
+			].mean;
+			si = SelectX.ar(\shiftmix.kr, [
+				si,
+				FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift3.kr) + si / 1.2,
+			]);
+			si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
+			si = (si * 10.rand * \distamp.kr).tanh / 2;
+		}.value(si, env);
+
+		sig = LeakDC.ar(sig);
+		sig = Limiter.ar(sig);
+		LocalOut.ar(sig);
+
+		sig = MidEQ.ar(sig, \eqmid1b.kr(12000), \eqrq1b.kr(1), \eqdb1b.kr(0));
+		//sig = MidEQ.ar(sig, \eqmid2b.kr(7000), \eqrq2b.kr(1), \eqdb2b.kr(0));
+		//sig = HPF.ar(sig, \ehpf.kr(140), \ehprq.kr(1));
+		//sig = LPF.ar(sig, \elpf.kr(10000), \elprq.kr(1));
+		sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
+		sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0)); // doesnt change signal, just add a pan control
+		sig = sig * \gain.kr(1);
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:2);
+		Out.ar(out, sig);
+
+	}).add;
+	)
