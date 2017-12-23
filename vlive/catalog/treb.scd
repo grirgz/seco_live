@@ -453,7 +453,7 @@ Pdef(\treb, Pbind(
 
 (
 Pdef(\treb, Pbind(
-	\instrument, Prand([\star,\starlet],inf).stutter(16),
+	\instrument, Pseq([\starlet,\star, Prand([\starlet,\star],2)],inf).stutter(1),
 	//\freq, 100,
 	\degree, Pseq([
 		Pwalk(
@@ -466,8 +466,16 @@ Pdef(\treb, Pbind(
 				0+12,2+12,4+12,
 				[2,4],
 			],
-			Pseq([
-				1,-2,Pwhite(0,3), Pwhite(0,-3)
+			Prand([
+				Pseq([
+					1,-2,Pwhite(0,3,1), Pwhite(0,-3,5),
+				],1),
+				Pseq([
+					1,-2,Pwhite(0,3,1), Pwhite(0,-3,1),
+				],1),
+				Pseq([
+					Pwhite(0,3,8),
+				],1),
 			],inf),
 		),
 	],inf),
@@ -479,7 +487,7 @@ Pdef(\treb, Pbind(
 	//\ctranspose, Pstep(Pseq([0,5,7,5],inf),4),
 	\scale, Scale.major,
 	\octave, 4,
-	\dur, 1/1,
+	\dur, 1/4,
 	\lag, 
 		Pseq([
 			Pseq([0,0],8) / ~t,
@@ -1054,7 +1062,7 @@ Pdef(\demo, Pdef(\demotreb,
 
 
 (
-Pdef(\part, Pdef(\plop, 
+Pdef(\demo, Pdef(\demomo, 
 	Ppar([
 		20.collect({ arg n;
 			
@@ -1072,3 +1080,103 @@ Pdef(\part, Pdef(\plop,
 	].flat)
 )).play;
 )
+
+////////////////////////////////
+(
+SynthDef(\crackle, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = Crackle.ar(\chaos.kr(1));
+	sig = Formlet.ar(sig, freq,\format.kr(0.21),\formdec.kr(0.1));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = HPF.ar(sig, 50);
+	sig = Limiter.ar(sig);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		Pmono(\crackle,
+			\chaos, 1.93500,
+			\note, Pseq([
+				1,3,12,4,
+			],inf),
+			\octave, 5,
+			\format, Pseq([
+				1,2,3,4,5
+			],inf)/4,
+			\formdec, 0.03,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+(
+SynthDef(\crackle2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = Crackle.ar(\chaos.kr(1));
+	sig = LFSaw.ar(freq * ( sig* 10.1 + 1 )); 
+	//sig = Formlet.ar(sig, freq,\format.kr(0.21),\formdec.kr(0.1));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = HPF.ar(sig, 50);
+	sig = Limiter.ar(sig);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part2).reset;
+);
+
+
+(
+SynthDef(\cracksoft, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\env.kr(Env([1,2,1],[0.1,0.8])), 1);
+	sig = Crackle.ar(\chaos.kr(1));
+	sig = LFSaw.ar(freq * [1/2,1,2,1.001,2.0001] * ( sig* \modamp.kr(1.1)  + 1 )); 
+	//sig = Formlet.ar(sig, freq,\format.kr(0.21)* env1,\formdec.kr(0.1));
+	sig = LPF.ar(sig, \lpf.kr(300) * env1);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = HPF.ar(sig, \hpf.kr(50));
+	sig = Limiter.ar(sig);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\plop2, 
+	Ppar([
+		Pbind(
+			\instrument, \cracksoft,
+			\chaos, 1.93500,
+			\note, Pseq([
+				1,3,12,4,
+			],inf),
+			\note, Pseq(6
+				[1,3,9],
+				[1,3,9],
+				[1,3,9],
+				[1,3,9]+4,
+			],inf),
+			\lpf, Pseg(Pseq([300,4000],inf),8),
+			\legato, Pseq([
+					7,0,0,0, 0,0,0,1,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\octave, 5,
+			\format, Pseq([
+				1,2,3,4,5
+			],inf)/14,
+			\formdec, 0.3,
+			\dur, 1,
+			\amp, 0.3,
+		),
+	])
+)).play;
+)
+Pdef(\part2).clear

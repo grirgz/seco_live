@@ -31,6 +31,7 @@
 			sig = sig * \modamp.kr(1).lag(0.1);
 			sig = DelayC.ar(sig, 0.01,0.001) + sig;
 			sig = Pan2.ar(sig, pan, amp).mean;
+			sig = sig * 0.8;
 			Out.ar(out, sig);
 		}).add;
 	};

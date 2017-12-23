@@ -121,7 +121,7 @@ SynthDef(\fx_chorus, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = LocalIn.ar(2) * \fb.kr(0.4);
 	sig = sig + in;
-	sig = DelayC.ar(sig, \maxdelay.ir(0.2), \delay.kr(0.0101) * ((0..7)/7 - 0.5 * \diff.kr(0.4001) + 1) * ( SinOsc.kr(\modfreq.kr(8.1)) * \modamp.kr(0.48) + 1 )).mean;
+	sig = DelayC.ar(sig, \maxdelay.ir(0.2), \delay.kr(0.0101) * ((0..7)/7 - 0.5 * \diff.kr(0.4001) + 1) * ( SinOsc.ar(\modfreq.kr(8.1)) * \modamp.kr(0.48) + 1 )).mean;
 	//sig = LPF.ar(sig, \dif.kr(7500));
 	LocalOut.ar(sig);
 
@@ -209,6 +209,8 @@ SynthDef(\fx_expecho, { arg out=0, gate=1,
 	Out.ar(out, snd);
 }).add;
 );
+
+// END
 
 LocalBuf(1000).size
 

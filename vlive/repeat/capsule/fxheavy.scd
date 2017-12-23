@@ -131,8 +131,72 @@ SynthDef(\gain, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
-Pdef(\part_drum).reset;
+SynthDef(\fxknife4, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var in;
+	var insig;
+	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	//sig = Decimator.ar(sig, \samplerate.kr(1)*SampleRate.ir,8);
+	//insig = SelectX.ar(\inmix.kr(0.5), [DC.ar(0), in]);
+	insig = in;
+	sig = LocalIn.ar(2) * \fb.kr(0.01);
+	sig = sig + insig;
+	//sig = sig * ( SinOsc.ar(4) * 1 + 1 );
+	//sig = sig * ( SinOsc.ar(410 * ( SinOsc.kr(1/13) * 1 + 1 )) * 1 + 1 );
+	//sig = DelayC.ar(sig, 0.2, 0.10001 * ( SinOsc.kr(4.01*[1,3.23,1.342]) * 0.02 + 1 )).sum + sig;
+	//sig = DelayC.ar(sig, 0.1, 0.01 * ( SinOsc.kr(12 * ( SinOsc.kr(1/12) * 1 + 1 )) * 1 + 1 ) * ( SinOsc.kr(0.01*[1,3.23,1.342]*0.123) * 0.2 + 1 )).sum + sig;
+	//sig = AllpassC.ar(sig, 0.2, 0.1 * ( SinOsc.ar(341) * 1 + 1 ),0)+sig;
+	sig = AllpassC.ar(sig, 0.2, 0.0001 * ( SinOsc.ar(1341) * 1 + 1 ),0)+sig;
+	//sig = DelayC.ar(sig, 0.3, 0.01 * ( SinOsc.kr(1/10) * 1 + 1 ) * ( SinOsc.ar(3208*[1,1.023,1.0342]) * 0.1 + 1 )).sum + sig;
+	//sig = DelayC.ar(sig, 0.3, 0.1 * ( SinOsc.ar(0.01*[1,1.023,1.0342]) * 0.8 + 1 )).sum + sig;
+	sig = ( sig*\distamp.kr(1) ).tanh * \distpostamp.kr(1/2);
+	sig = LPF.ar(sig, SinOsc.kr(1/4 * ( SinOsc.kr(1/23) * 1 + 1 )).range(30,11000));
+	//sig = MidEQ.ar(sig, 200, 1, -0.2);
+	sig = sig /2;
+	sig = Limiter.ar(sig);
+	sig = LeakDC.ar(sig);
+	LocalOut.ar(sig);
+	sig.debug("sig");
+	sig = SelectX.ar(\mix.kr(0.5), [insig, sig]);
+	sig = sig * \gain.kr(0.3);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fxknife4fil, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var in;
+	var insig;
+	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	//sig = Decimator.ar(sig, \samplerate.kr(1)*SampleRate.ir,8);
+	//insig = SelectX.ar(\inmix.kr(0.5), [DC.ar(0), in]);
+	insig = in;
+	sig = LocalIn.ar(2) * \fb.kr(0.01);
+	sig = sig + insig;
+	//sig = sig * ( SinOsc.ar(4) * 1 + 1 );
+	//sig = sig * ( SinOsc.ar(410 * ( SinOsc.kr(1/13) * 1 + 1 )) * 1 + 1 );
+	//sig = DelayC.ar(sig, 0.2, 0.10001 * ( SinOsc.kr(4.01*[1,3.23,1.342]) * 0.02 + 1 )).sum + sig;
+	//sig = DelayC.ar(sig, 0.1, 0.01 * ( SinOsc.kr(12 * ( SinOsc.kr(1/12) * 1 + 1 )) * 1 + 1 ) * ( SinOsc.kr(0.01*[1,3.23,1.342]*0.123) * 0.2 + 1 )).sum + sig;
+	//sig = AllpassC.ar(sig, 0.2, 0.1 * ( SinOsc.ar(341) * 1 + 1 ),0)+sig;
+	sig = AllpassC.ar(sig, 0.2, 0.0001 * ( SinOsc.ar(1341) * 1 + 1 ),0)+sig;
+	//sig = DelayC.ar(sig, 0.3, 0.01 * ( SinOsc.kr(1/10) * 1 + 1 ) * ( SinOsc.ar(3208*[1,1.023,1.0342]) * 0.1 + 1 )).sum + sig;
+	//sig = DelayC.ar(sig, 0.3, 0.1 * ( SinOsc.ar(0.01*[1,1.023,1.0342]) * 0.8 + 1 )).sum + sig;
+	sig = ( sig*\distamp.kr(1) ).tanh * \distpostamp.kr(1/2);
+	sig = LPF.ar(sig, SinOsc.kr(1/4 * ( SinOsc.kr(1/23) * 1 + 1 )).range(30,11000));
+	sig = LPF.ar(sig, \lpf.kr(10000));
+	//sig = MidEQ.ar(sig, 200, 1, -0.2);
+	sig = sig /2;
+	sig = Limiter.ar(sig);
+	sig = LeakDC.ar(sig);
+	LocalOut.ar(sig);
+	sig.debug("sig");
+	sig = SelectX.ar(\mix.kr(0.5), [insig, sig]);
+	sig = sig * \gain.kr(0.3);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+//Pdef(\part_drum).reset;
 );
+
 (
 SynthDef(\memefx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -378,6 +442,8 @@ SynthDef(\seqdelfx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 
 
 );
+
+// END
 
 (
 Pdef(\part, Pdef(\plop, 
@@ -772,13 +838,13 @@ Pdef(\part, Pdef(\plop,
 
 			si = [
 				{ arg si, env;
-					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+					si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
 					si = (si * 10.0.rand * \distamp.kr).tanh / 2;
 				}.value(si, env);
 				,
 				{ arg si, env;
-					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
-					si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+					si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
+					si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay2.kr) + si;
 				}.value(si, env);
 
 			].mean;
@@ -788,7 +854,7 @@ Pdef(\part, Pdef(\plop,
 				FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift3.kr) + si / 1.2,
 			]);
 			CheckBadValues.ar(si, id:4);
-			si = DelayC.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+(\stereo.kr*0.01.rand)] * \delay3.kr) + si;
 			CheckBadValues.ar(si, id:5);
 			si = (si * 10.0.rand * \distamp.kr).tanh / 2;
 			CheckBadValues.ar(si, id:6);
@@ -804,7 +870,8 @@ Pdef(\part, Pdef(\plop,
 		//sig = MidEQ.ar(sig, \eqmid2b.kr(7000), \eqrq2b.kr(1), \eqdb2b.kr(0));
 		sig = HPF.ar(sig, \ehpf.kr(14), \ehprq.kr(1));
 		sig = LPF.ar(sig, \elpf.kr(19000), \elprq.kr(1));
-		sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
+		sig = sig * \wetgain.kr(1);
+		sig = SelectX.ar(\mix.kr(0.5), [DelayL.ar(in,0.04,0.04), sig]);
 		sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0)); // doesnt change signal, just add a pan control
 		sig = sig * \gain.kr(1);
 		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:2);

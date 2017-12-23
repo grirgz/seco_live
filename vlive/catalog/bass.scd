@@ -564,7 +564,7 @@ SynthDef(\kickbass, { |out=0, amp=0.1, pan=0, release=0.26, fratio=1.5, freqpan=
 	OffsetOut.ar(out, sig);
 }).add;
 
-Pdef(\bass, Pbind(
+Pdef(\demo, Pbind(
 	\instrument, \kickbass,
 	\amp, 0.1,
 	\env0, [ Env.new([0.5, 4, 1.5, 0], [0.105, 0.46, 1.4], [-4, -2, 4]) ],
@@ -619,7 +619,7 @@ SynthDef(\simplebass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
-Pdef(\bass, Pbind(
+Pdef(\demo, Pbind(
 	\instrument, \simplebass,
 	\degree, Pseq([0,2b,4,-4],inf),
 	\lpf, 200,
@@ -719,7 +719,7 @@ SynthDef(\distbass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, d
 
 
 (
-Pdef(\bass, Pmono(\distbass,
+Pdef(\demo, Pmono(\distbass,
 	\freq, 70 * Pseq([0,1].midiratio,inf).stutter(16),
 	\fmrange, Pseq([0.5,1,1.5],inf),
 	\fmfreq, Pseq([0.5,1,2,4],inf),
@@ -801,7 +801,7 @@ SynthDef(\delbass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(out, sig);
 }).add;
 
-Pdef(\demobass, 
+Pdef(\demo, 
 	Pbind(
 		\instrument, \delbass,
 		\note, Pseq([
@@ -837,7 +837,7 @@ Pdef(\demobass,
 // deep bass with autopitch
 
 (
-Ndef(\demobass, { arg freq=70, pan=0, amp=0.1;
+Ndef(\demo, { arg freq=70, pan=0, amp=0.1;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
 	var fmfreq;
@@ -856,7 +856,7 @@ Ndef(\demobass, { arg freq=70, pan=0, amp=0.1;
 
 // disto
 (
-Ndef(\demobass, { arg freq=80, pan=0, amp=0.1;
+Ndef(\demo, { arg freq=80, pan=0, amp=0.1;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
 	env1 = Duty.kr(1/8/~t, 0, Dseq([
@@ -877,7 +877,7 @@ Ndef(\demobass, { arg freq=80, pan=0, amp=0.1;
 
 /////////// dirtylongbass
 (
-Ndef(\demobass, { arg freq=80, pan=0, amp=0.1;
+Ndef(\demo, { arg freq=80, pan=0, amp=0.1;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
 	env1 = Duty.kr(1/8/~t, 0, Dseq([
@@ -886,7 +886,7 @@ Ndef(\demobass, { arg freq=80, pan=0, amp=0.1;
 		0,0,0,0,
 		0,0,0,0,
 	],inf)).lag(0.31);
-	freq =  freq * Duty.kr(1/~t, 0, Dseq([
+	freq =  freq * Duty.kr(1/2/~t, 0, Dseq([
 		1,0,0,0,
 		4,4,4,4,
 		5,5,5,5,
@@ -903,7 +903,7 @@ Ndef(\demobass, { arg freq=80, pan=0, amp=0.1;
 
 ///////////// more washed disto long bass
 (
-Ndef(\demobass, { arg freq=80, pan=0, amp=0.1;
+Ndef(\demo, { arg freq=80, pan=0, amp=0.1;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
 	env1 = Duty.kr(1/8/~t, 0, Dseq([
@@ -937,12 +937,12 @@ SynthDef(\basscomb, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = Saw.ar(freq + [0,0.001]).mean;
 	sig = sig + SinOsc.ar(freq * ( 1 + ( SinOsc.ar(\fmfreq.kr(100)) * \fmamp.kr(1) )));
 	sig = ( sig*env1*3 ).tanh;
-	sig = CombL.ar(sig, 0.1,1/freq/1.01,\combdecay.kr(0))+sig;
+	sig = CombL.ar(sig, 0.1,1/freq*\delayfac.kr(1.01),\combdecay.kr(0))+sig;
 	sig = ( sig*env1*1/2 ).tanh;
 	sig = sig /1;
 	sig1 = sig;
-	sig1 = FreqShift.ar(sig1, 1000.01);
-	sig1 = sig1 * EnvGen.ar(Env.adsr(0.01,0.1,0.8,3.7),gate,doneAction:2);
+	sig1 = FreqShift.ar(sig1, \shift.kr(1000.01));
+	sig1 = sig1 * EnvGen.ar(\shiftenv.kr(Env.adsr(0.01,0.1,0.8,3.7)),gate,doneAction:2);
 	sig1 = Pan2.ar(sig, SinOsc.kr(1/2*~t)*0.1, amp);
 	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:0);
 	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
@@ -953,7 +953,7 @@ SynthDef(\basscomb, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }).add;
 );
 (
-Pdef(\demobass, Pdef(\plop, 
+Pdef(\demo, Pdef(\plopdemo, 
 	Ppar([
 		Pbind(
 			\instrument, \basscomb,

@@ -757,3 +757,8 @@ Ndef(\demo, { arg freq=200, pan=0, amp=0.1;
 	sig = Pan2.ar(sig, pan, amp);
 }).play;
 );
+
+/////////////
+
+
+y.stop;y.free;y = fork{loop{play{Splay.ar({Formlet.ar(Crackle.ar(2,0.01),(66.rand+17).midicps.postln,0.005)*LFGauss.ar(9,1/4,0,0,3)}!4)};2.wait;}}; //
