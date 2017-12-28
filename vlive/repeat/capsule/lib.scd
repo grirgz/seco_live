@@ -56,6 +56,7 @@ FileSystemProject.load("capsule/RDN_track1.scd");
 FileSystemProject.load("capsule/RDN_track1.scd");
 FileSystemProject.load("capsule/PatKitDef_ksh.scd");
 FileSystemProject.load("capsule/fxsimple.scd");
+FileSystemProject.load("capsule/fxheavy.scd");
 
 ///////////////////// control
 

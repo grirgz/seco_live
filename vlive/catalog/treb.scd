@@ -535,7 +535,7 @@ Pdef(\treb, Pbind(
 	\mtranspose, Pstep(Pseq([5,4,2,3],inf),4),
 	\scale, Scale.major,
 	\octave, 4,
-	\dur, 1/1,
+	\dur, 1/4,
 	\lag, 
 		Pseq([
 			Pseq([0,0],8) / ~t,
