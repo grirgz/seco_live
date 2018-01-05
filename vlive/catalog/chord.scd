@@ -132,7 +132,7 @@ Pdef(\chord,
 // laminated chord
 
 (
-Ndef(\chord, { arg freq=200, pan=0, amp=0.1;
+Ndef(\chord, { arg freq=800, pan=0, amp=0.1;
 	var sig;
 	freq = freq * [0,8,15].midiratio;
 	freq = freq *.x [1,1/2,2];

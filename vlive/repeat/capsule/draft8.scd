@@ -3863,6 +3863,7 @@ Pdef(\glitch,
 ).play;
 )
 
+Pdef(\glitch).clear
 (
 	~master.();
 Pdef(\glitch, 

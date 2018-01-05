@@ -965,7 +965,23 @@ Ndef(\clochete, { arg freq=200, pan=0, amp=0.1;
 	sig2 = Ringz.ar(sig2, rrand(100,10000.0!8), 1.1).mean/2;
 	sig = sig1 + sig2;
 	sig = Pan2.ar(sig, pan, amp);
-}).play;
+}).play(BusDef(\mixer5).index, 2);
+);
+
+(
+SynthDef(\clochete, { arg out=0, gate=1, freq=200, pan=0, amp=0.1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig = SinOsc.ar(freq);
+	sig1 = Dust.ar(10 * SinOsc.kr(1/8).range(10,1/2));
+	sig1 = Ringz.ar(sig1, rrand(100,10000.0!8) * LFNoise0.kr(1/2).range(1/4,1), 1.1).mean/2;
+	sig2 = Dust.ar(7);
+	sig2 = Ringz.ar(sig2, rrand(100,10000.0!8), 1.1).mean/2;
+	sig = sig1 + sig2;
+	sig = Pan2.ar(sig, pan, amp);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
 );
 
 

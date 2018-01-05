@@ -95,6 +95,77 @@
 )
 
 // END
+
+
+/// usage
+
+
+~rdn_to_fbstring.(RandDelayNetwork(\deldefault)).editorInsert
+~rdn_to_fbstring.(RandDelayNetwork(ProtoDef(\rdn).fxdef)).editorInsert
+
+ProtoDef(\rdn).synthDefCompileString.editorInsert
+
+
+//////// to use as template
+			default_make_graph = { arg in, code, rdnkey;
+				var sig;
+				var del, shi;
+				var del2, shi2;
+				var distamp;
+				var hasFreq, afreq;
+				var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+				var pitchlag;
+				var pitchmix;
+				var fb;
+				//"default_make_graph".debug("!!!");
+				rdnkey = rdnkey ? \default;
+				code = code ? "4--";
+				sig = in;
+				fb = \fb.kr(0.01);
+				del = \delay.kr(1,0.1);
+				del2 = \delay2.kr(1,0.1);
+				shi = \shift.kr(1);
+				shi2 = \shift2.kr(1);
+				distamp = \distamp.kr(1);
+				pitchlag = \pitchlag.kr(1/8) / TempoClock.default.tempo;
+				pitchmix = \pitchmix.kr(0.5);
+
+				sig = LPF.ar(sig, \prelpf.kr(17000));
+				sig = HPF.ar(sig, \prehpf.kr(17));
+
+				sig = sig + (LocalIn.ar(2) * fb);
+
+				sig = LPF.ar(sig, \lpf.kr(17000));
+				sig = HPF.ar(sig, \hpf.kr(17));
+				sig = RandDelayNetwork(rdnkey).ar(sig, code);
+
+				sig1 = sig.tanh * \fbdistamp.kr(1/2.1);
+				sig = SelectX.ar(\fbdistmix.kr(1), [sig, sig1]);
+
+				sig = Limiter.ar(sig);
+
+				sig1 = sig;
+				#afreq, hasFreq = Pitch.kr(sig1).flop;
+				sig1 = BRF.ar(sig1, afreq.lag(pitchlag));
+				#afreq, hasFreq = Pitch.kr(sig1).flop;
+				sig1 = BRF.ar(sig1, afreq.lag(pitchlag));
+				sig = SelectX.ar(pitchmix, [sig, sig1]);
+
+				LocalOut.ar(sig);
+				sig = LPF.ar(sig, \postlpf.kr(17000));
+				sig = HPF.ar(sig, \posthpf.kr(17));
+				sig = Limiter.ar(sig);
+				sig = sig * \wetamp.kr(1);
+				//sig.debug("end sig");
+				sig;
+			};
+
+
+
+
+
+//////////////////////////////// DRAFT
+
 RandDelayNetwork(\deldefault).make(\fx1, "5--")
 RandDelayNetwork(\deldefault).tree
 RandDelayNetwork(\del3full).tree

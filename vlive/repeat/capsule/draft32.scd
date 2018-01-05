@@ -1,4 +1,11 @@
 (
+SynthDef(\twik, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\riseflang, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	freq = freq * EnvGen.kr(Env([1,1.02,1],[0.01,0.8]), 1);
@@ -2041,7 +2048,7 @@ Pdef(\part, Pdef(\plop,
 
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
-///////// Treasure Island
+///////// Treasure Island / epigentic landscape
 
 (
 Pdef(\part, Pdef(\island_verse1a, 

@@ -81,6 +81,18 @@ ProtoTemplateDef(\rdn, (
 		Ndef(self.fxkey);
 	},
 
+	rdn: { arg self;
+		RandDelayNetwork(self.fxdef);
+	},
+
+	synthDefCompileString: {
+		~rdn_to_string.(self.rdn);
+	},
+
+	rebuild: { arg self; // use current code instead of new one
+		RandDelayNetwork(self.fxdef).make(self.fxkey, self.code, self.inbus) 
+	},
+
 	loadDefaultPreset: { arg self;
 		self.fxdef = \deldefault;
 		self.inbus = BusDef(\sendbus0, \audio, 2);

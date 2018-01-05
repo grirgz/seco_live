@@ -105,45 +105,45 @@ Pdef(\part, Pdef(\noir_draft3,
 		
 		
 		]),
-	Pbind(
-	\instrument, Pseq([\starlet,\star, Prand([\starlet,\star],2)],inf).stutter(1),
-	\note, Pseq([
-		3,2,1,
+		Pbind(
+			\instrument, Pseq([\starlet,\star, Prand([\starlet,\star],2)],inf).stutter(1),
+			\note, Pseq([
+				3,2,1,
 
-		
-	],inf),
-	\scale, Scale.minor,
-	\octave, 4,
-	\dur, 1/3,
-	\lag, Pseq([
-		Pseq([0,0],8) / ~t,
-		Pseq([0,1/4 + Pwhite(0,0.01,1)],4) / ~t,
-		Pseq([0,0],4) / ~t,
-		Pseq([0,1/2 + Pwhite(0,0.01,1)],4) / ~t,
-		Pseq([0,0],4) / ~t,
-		Pseq([0,1/8 + Pwhite(0,0.01,1)],4) / ~t,
-		Pseq([0,0],Pwhite(4,8,1)) / ~t,
-		Pseq([0,1/8 + Pwhite(0,0.05,1)],Pwhite(4,8,1)) / ~t,
-	],inf),
-	\lag, 0,
-	\adsr, Pseq([
-		Prand([
-			[ Env.adsr(0.005,0.1,1.0,1.8) ],
-			[ Env.adsr(0.005,0.1,1.0,1.8) ],
-			[ Env.adsr(0.005,0.1,1.0,1.8) ],
-			[ Env.adsr(0.005,0.1,1.0,2.0) ],
-			[ Env.adsr(0.005,0.1,1.8,1.0) ],
-			[ Env.adsr(0.005,0.1,1.8,0.5) ],
-		],1),
-	],inf),
-	\legato, 0.2,
-	\isRest, Pseq([
-		1,0,0,0,
-		1,0,1,1,
-	],inf).coin.not,
-	\isRest, false,
-	\out, BusDef(\fx2, \audio),
-),
+
+			],inf),
+			\scale, Scale.minor,
+			\octave, 4,
+			\dur, 1/3,
+			\lag, Pseq([
+				Pseq([0,0],8) / ~t,
+				Pseq([0,1/4 + Pwhite(0,0.01,1)],4) / ~t,
+				Pseq([0,0],4) / ~t,
+				Pseq([0,1/2 + Pwhite(0,0.01,1)],4) / ~t,
+				Pseq([0,0],4) / ~t,
+				Pseq([0,1/8 + Pwhite(0,0.01,1)],4) / ~t,
+				Pseq([0,0],Pwhite(4,8,1)) / ~t,
+				Pseq([0,1/8 + Pwhite(0,0.05,1)],Pwhite(4,8,1)) / ~t,
+			],inf),
+			\lag, 0,
+			\adsr, Pseq([
+				Prand([
+					[ Env.adsr(0.005,0.1,1.0,1.8) ],
+					[ Env.adsr(0.005,0.1,1.0,1.8) ],
+					[ Env.adsr(0.005,0.1,1.0,1.8) ],
+					[ Env.adsr(0.005,0.1,1.0,2.0) ],
+					[ Env.adsr(0.005,0.1,1.8,1.0) ],
+					[ Env.adsr(0.005,0.1,1.8,0.5) ],
+				],1),
+			],inf),
+			\legato, 0.2,
+			\isRest, Pseq([
+				1,0,0,0,
+				1,0,1,1,
+			],inf).coin.not,
+			\isRest, false,
+			\out, BusDef(\fx2, \audio),
+		),
 			Pbind(
 				\instrument, \fmbass,
 				\chaos, 1.93500,
