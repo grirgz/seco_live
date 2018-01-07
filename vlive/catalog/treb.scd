@@ -1196,3 +1196,85 @@ Pdef(\demo, Pdef(\plop2,
 )).play;
 )
 Pdef(\part2).clear
+
+
+/////////////////////////
+
+
+
+(
+SynthDef(\iron, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	// cpu light
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	sig = SinOsc.ar(freq * ( LFSaw.ar(freq * \fmr.kr(4) * ((0..7)/7 - 0.5 * \diff.kr(1) + 1)) * \fmamp.kr(1) + 1 ));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
+	sig = sig.fold( SinOsc.ar( (1..8)/8, (1..8) ) * \foldlevel.kr(1) + \foldbias.kr(1) ).flop.mean;
+	sig.debug("sig");
+	env1 = EnvGen.kr(\env1.kr(Env(2.01-[1,2,1],[0.1,0.8])), \trigenv.tr(1));
+	sig = RLPF.ar(sig, \lpfr.kr(1.7) * env1 * freq, \rq.kr(0.5));
+	pan = pan + sig.collect({ arg x;
+		SinOsc.kr(1/( x+1 ));
+	});
+	sig = LeakDC.ar(sig);
+	sig = HPF.ar(sig, \hpf.kr(10));
+	sig = sig * \gain.kr(18);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}, metadata:(specs:(
+	env1: XEnvSpec(),
+))).add;
+)
+
+(
+Pdef(\demo, Pdef(\xdemo, 
+	Ppar([
+		Pbind(
+			\instrument, \iron,
+			\note, Pseq([
+				1,0,
+			],inf),
+			\dur, 1,
+			\fmr,1,
+			\diff, 1,
+			\rq, 0.7,
+			\gain, 5,
+			\amp, 0.1,
+		);
+		
+	])
+)).play;
+)
+
+(
+	// kind of hat
+Pdef(\demo, Pdef(\plop, 
+	Ppar([
+		Pbind(
+			\instrument, \iron,
+			\note, Pstep(Pseq([
+				0,0,0,-1,
+			],inf),1/2) + [0,3,7],
+			\octave, 8,
+			\hpf, 30,
+			\env1, Pseq([
+				[ Env([1,1.5,1],[0.1,0.8]) ]
+			],inf),
+			\diff, 1.1,
+			\fmr, 1/2,
+			\lpfr,2,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.01,0.8,0.1) ],
+			],inf),
+			\lag, 0.04,
+			\legato, Pseq([
+				0,0,0,0, 1,0,0,0, 0,0,0,0, 4,0,1,0,
+				0,0,0,0, 4,0,0,0, 0,0,0,0, 1,0,0,0,
+			],inf)/10,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/16,
+			\amp,0.05,
+		),
+	])
+)).play;
+)

@@ -332,3 +332,15 @@ SynthDef(\fmz1, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(out, sig);
 }).add;
 )
+
+
+//////////// TOOLS
+
+
+SynthDef(\sendtoarbus2, { arg out=0, out2=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0,1,0.01)),gate,doneAction:2);
+	Out.ar(out, sig * \gain.kr(1));
+	Out.ar(out2, sig * \gain2.kr(0));
+}).add;

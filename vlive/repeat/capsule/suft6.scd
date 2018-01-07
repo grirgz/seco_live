@@ -1,11 +1,4 @@
-SynthDef(\sendtoarbus2, { arg out=0, out2=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = sig * \gain.kr(1);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0,1,0.01),gate,doneAction:2);
-	Out.ar(out, sig);
-	Out.ar(out2, sig * \gain2.kr(0));
-}).add;
+(
 SynthDef(\chordb, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
 	var sig, sig1, sig2, sig3;
 	sig = {arg x; 
@@ -57,6 +50,7 @@ SynthDef(\snapkickx, { |out = 0, pan = 0, amp = 0.3|
 
 	Out.ar(out, Pan2.ar(snd, pan, amp));
 }).add;
+)
 
 (
 	~master.();
@@ -97,6 +91,56 @@ Pdef(\part, Pdef(\plop,
 			\sustain, 0.5,
 			\dur, 1/16,
 			\amp, 0.051,
+		),
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				1,1,
+			],inf).coin.not,
+			\sustain, 0.05,
+			\fac1,0.1,
+			\dur, 1/8,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+		),
+	])
+)).play;
+)
+
+(
+	~master.();
+Pdef(\part, Pdef(\plop, 
+	Pbind(\out, BusDef(\mixer0, \audio)) <>
+	Ppar([
+		Pbind(
+			\instrument, \snapkickx,
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,1,
+				0,0,1,0, 0,0,0,0,
+			],inf).coin.not,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \snaretuned,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\fac1,0.1,
+			\sustain, 0.05,
+			\dur, 1/8,
+			\amp, 0.051,
+		),
+		Pbind(
+			\instrument, \snaretuned,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.01,0.8,0.2) ],
+			],inf),
+			\sustain, 0.02,
+			\dur, 1/16,
+			\amp, 0.011,
 		),
 		Pbind(
 			\instrument, \phyhat3,
@@ -4532,6 +4576,296 @@ Pdef(\part, Pdef(\plopfx,
 // sendtoarbus2 with automation !
 // automated double fx, clochete on track 5
 // mysterious melody with somemore synthdef
+	~master_simple.();
+Pdef(\part, Pdef(\plopfx, 
+	Ppar([
+		Pbind(\out, BusDef(\mixer0, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \snapkickx,
+				\dur, 1/8,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+					1,0,0,0, 0,0,0,1,
+					0,0,1,0, 0,0,0,0,
+					1,0,0,1, 0,0,0,1,
+
+					1,0,0,0, 0,0,0,0,
+					1,0,0,0, 0,0,0,1,
+					0,0,1,0, 0,1,0,0,
+					1,0,0,1, 0,0,0,1,
+				],inf).coin.not,
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \snaretuned,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,1,
+					0,0,0,0, 1,0,0,0,
+				],inf).coin.not,
+				\fac1,0.1,
+				\sustain, 0.05,
+				\dur, 1/8,
+				\amp, 0.051,
+			),
+			Pbind(
+				\instrument, \snapsnare,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,1,0,0,
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
+					0,0,0,0, 0,0,0,0, 0,0,0,1, 0,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.5,
+				\dur, 1/16,
+				\amp, 0.051,
+				\isRest, true,
+			),
+		]),
+		Pbind(
+			\instrument, \chordb,
+			\note, Pseq([
+				[0,3,7,9],	
+				[1,4,8,11],	
+				[0,3,7,10],	
+				[1,4,8,13],	
+			],inf).stutter(4).collect({ arg xx; var zz = xx.size.rand; xx[zz] = xx[zz]+12; xx  })-5,
+			\octave, 8,
+			\dur, 1/4,
+			\lag, Pseq([
+				Ptuple(
+					Pwhite(0,0.05,1) / ~t ! 3
+				,1),
+			],inf),
+			\lag, 0,
+			\adsr, Pseq([
+				Prand([
+					[ Env.adsr(0.105,0.1,1.0,0.1) ],
+				],1),
+			],inf),
+			\legato, 3.8,
+			\isRest, Pseq([
+				1,0,0,0,
+			],inf).coin.not,
+				\out, BusDef(\bus0, \audio),
+		),
+			Pmono(\sendtoarbus2,
+				\inbus, BusDef(\bus0, \audio),
+				\out, BusDef(\sendbus2, \audio),
+				\gain, ~pmodenv.(Pseq([0,0.31,0,0.01],inf), 8),
+				\out2, BusDef(\sendbus1, \audio),
+				\gain2, ~pmodenv.(Pseq([0,0.21,0,0.01,0],inf), 9),
+				\dur, 1,
+			),
+		Pbind(
+			\instrument, \somemore,
+			\note, Pseq([
+				[0,3,7,9],	
+				[1,4,8,11],	
+				[0,3,7,10],	
+				[1,4,8,13],	
+			].collect(Pseq(_)),inf).stutter(1)-5,
+			\octave, 6,
+			\dur, 1/4,
+			\lag, Pseq([
+				Ptuple(
+					Pwhite(0,0.05,1) / ~t ! 3
+				,1),
+			],inf),
+			\lag, 0,
+			\adsr, Pseq([
+				Prand([
+					[ Env.adsr(0.105,0.1,1.0,0.1) ],
+				],1),
+			],inf),
+			\legato, 0.8,
+			\isRest, Pseq([
+				1,
+			],inf).coin.not,
+				\out, BusDef(\bus1, \audio),
+		),
+			Pmono(\sendtoarbus2,
+				\inbus, BusDef(\bus1, \audio),
+				\out, BusDef(\sendbus2, \audio),
+				\gain, ~pmodenv.(Pseq([0,0.41],inf), 3),
+				\out2, BusDef(\sendbus1, \audio),
+				\gain2, ~pmodenv.(Pseq([0,0.41],inf), 13),
+				\dur, 1,
+			),
+		Pmono( \clochete,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1,
+			\out, BusDef(\bus2, \audio),
+		),
+			Pmono(\sendtoarbus2,
+				\inbus, BusDef(\bus1, \audio),
+				\out, BusDef(\sendbus2, \audio),
+				\gain, ~pmodenv.(Pseq([0,0.41],inf), 10),
+				\out2, BusDef(\sendbus1, \audio),
+				\gain2, ~pmodenv.(Pseq([0,0.41],inf), 11),
+				\dur, 1,
+			),
+		Pbind(\out, BusDef(\mixer2, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \phyhat3,
+				\isRest, Pseq([
+					1,0,1,0, 1,0,0,0,
+					1,0,1,0, 1,0,1,1,
+					1,0,0,0, 1,0,1,0,
+					1,1,0,1, 1,0,0,1,
+				],inf).coin.not,
+				\sustain, 0.05,
+				\fac1,0.1,
+				\dur, 1/16,
+				\amp, 0.01 * Pseq([1,0.7],inf),
+			),
+			Pbind(
+				\instrument, \phyhat4,
+				\isRest, Pseq([
+					Pseq([
+						0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+					],4),
+					Pseq([
+						1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,0,
+					],4),
+				],inf).coin.not,
+				\sustain, 0.05,
+				\fac1,0.4,
+				\dur, 1/16,
+				\amp, 0.01 * Pseq([1,0.7],inf) / 2,
+			),
+		]),
+			Pbind(
+				\instrument, \basicbass,
+				\chaos, 1.93500,
+				\note, Pseq([
+					0,1,1,
+				],inf).stutter(8)-5,
+				\rq, 0.1,
+				\trigenv, 0,
+				\shift, 1,
+				\lpf, 700,
+				\octave, 3,
+				\modamp, 0.4,
+				\legato, Pseq([
+					Pseq([
+						1,0,0, 0,0,0,  0,0,0, 0,0,0,
+						1,0,0, 1,0,0,  0,0,0, 0,0,0,
+						1,0,0, 1,0,0,  0,0,0, 1,0,0,
+						0,0,0, 1,0,0,  0,0,1, 0,0,1,
+						0,0,1, 1,0,0,  0,0,0, 0,0,1,
+					],8),
+				],inf)*0.8,
+				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+				//\out, BusDef(\fx2, \audio),
+				\dur, 1/12,
+				\amp, 0.1,
+				\out, BusDef(\mixer3, \audio),
+			),
+		Pbind(\out, BusDef(\mixer1, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \snapkickx,
+				\dur, 1/16,
+				\isRest, Pseq([
+					0,0,1,0, 0,0,1,0,
+				],inf).coin.not,
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \snapsnare,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\fac1,0.1,
+				\sustain, 0.05,
+				\dur, 1/16,
+				\amp, 0.101,
+			),
+		]),
+		Pmono( \rdncleandist_fulllight,
+			\inbus, BusDef(\sendbus1, \audio, 2),
+			'wet10', 1.0,
+			'mix', 0.35714285714286,
+			'gain', 1.0344889782792,
+			\fb, 0.00000000001,
+			'delay', 0.0010001231 * Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf).stutter(1),
+			'delay2', 0.000000543560101,
+			'shift', 0.0,
+			'shift2', 0.0,
+			'distamp', 1.361836201538,
+			'prelpf', 17000,
+			'prehpf', 17,
+			'lpf', 17000,
+			'hpf', 17,
+			'fbdistamp', 4.5388371966577,
+			'fbdistmix', 0.48176470588235,
+			'postlpf', 1700,
+			'posthpf', 17,
+			'wetamp', 0.20503372119697,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			\bpffac1, Pseq([
+				1/4
+			],inf).stutter(8*4),
+			\bpmix, 0,
+			\out, BusDef(\mixer7, \audio),
+			//\bprqfac1, 0.1,
+			\dur, 1/8,
+		),
+		Pmono( \rdncleandist_fulllight,
+			\inbus, BusDef(\sendbus2, \audio, 2),
+			\out, BusDef(\mixer9, \audio),
+			'wet10', 1.0,
+			'mix', 0.95714285714286 * Pseq([
+				1/3,1/3,1/3,1, 1,1,1/3,1,
+			],inf).stutter(1),
+			'gain', 0.644889782792,
+			'fb', 0.00101099467303085,
+			'delay', 0.0000101001231 * Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf).stutter(1),
+			'delay2', 0.501000543560101,
+			'shift', 0.0,
+			'shift2', 0.0,
+			'distamp', 15.361836201538,
+			'pitchlag', 1.0,
+			'pitchmix', 0.50924369747899,
+			'prelpf', 19000,
+			'prehpf', 17,
+			'lpf', 19000,
+			'hpf', 117,
+			'fbdistamp', 11.5388371966577,
+			'fbdistmix', 0.98176470588235,
+			'postlpf', 10000,
+			'posthpf', 117,
+			'wetamp', 0.20503372119697,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			\bpffac1, Pseq([
+				0.9
+			],inf).stutter(8*4),
+			\bpmix, 0.01,
+			//\bprqfac1, 0.1,
+			\dur, 1/8,
+		),
+	])
+)).play;
+)
+
+
+///////////////////
+
+(
 	~master_simple.();
 Pdef(\part, Pdef(\plopfx, 
 	Ppar([

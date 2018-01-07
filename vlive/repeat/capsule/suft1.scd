@@ -1,4 +1,6 @@
 ~t = 105/1/60; TempoClock.default.tempo = ~t;
+//~t = 158/4/60; TempoClock.default.tempo = ~t; // sufferer 158 // not used ? why two tempo ? wtf
+// maybe should be draft 34 instead of suft1
 
 (
 	Pdef(\part, Pdef(\plop, 

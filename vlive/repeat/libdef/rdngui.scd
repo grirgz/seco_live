@@ -85,7 +85,7 @@ ProtoTemplateDef(\rdn, (
 		RandDelayNetwork(self.fxdef);
 	},
 
-	synthDefCompileString: {
+	synthDefCompileString: { arg self;
 		~rdn_to_string.(self.rdn);
 	},
 

@@ -153,14 +153,16 @@ SynthDef(\fx_echo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = LocalIn.ar(2) * \fb.kr(0.4);
-	sig = sig + in;
+	//sig = LocalIn.ar(2) * \fb.kr(0.4);
+	//sig = sig + in;
+	sig = in;
 	sig = CombC.ar(sig, 1, \delay.kr(1),\decay.kr(1));
 	sig1 = sig;
 	sig1 = LPF.ar(sig1, \lpf.kr(15000));
 	sig1 = HPF.ar(sig1, \hpf.kr(50));
 	sig = SelectX.ar(\pfmix.kr(0.5), [sig, sig1]);
 	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
 	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
 	Out.ar(out, sig);
 }).add;
@@ -267,6 +269,20 @@ SynthDef(\chorusdistlim, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
 	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0,1,0.1) ),gate,doneAction:2);
 	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+SynthDef(\fx_compander, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var sidein = InFeedback.ar(\sideinbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = Compander.ar(sig, sidein, \cpt.kr(0.4), \cpbelow.kr(1.001), \cpabove.kr(0.9), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	sig = SelectX.ar(\mix.kr(1), [in, sig]);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
 	Out.ar(out, sig);
 }).add;
 );
@@ -418,6 +434,7 @@ Pdef(\part, Pdef(\plop,
 )
 
 /////////////////////////////////////////
+// TODO: put this crap elsewhere
 
 
 (
