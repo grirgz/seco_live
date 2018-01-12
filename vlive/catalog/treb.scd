@@ -1209,13 +1209,13 @@ SynthDef(\iron, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
 	sig = SinOsc.ar(freq * ( LFSaw.ar(freq * \fmr.kr(4) * ((0..7)/7 - 0.5 * \diff.kr(1) + 1)) * \fmamp.kr(1) + 1 ));
 	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
-	sig = sig.fold( SinOsc.ar( (1..8)/8, (1..8) ) * \foldlevel.kr(1) + \foldbias.kr(1) ).flop.mean;
+	sig = sig.fold( SinOsc.ar( (1..8)/8 * \foldfreq.kr(1), (1..8) ) * \foldlevel.kr(1) + \foldbias.kr(1) ).flop.mean;
 	sig.debug("sig");
 	env1 = EnvGen.kr(\env1.kr(Env(2.01-[1,2,1],[0.1,0.8])), \trigenv.tr(1));
 	sig = RLPF.ar(sig, \lpfr.kr(1.7) * env1 * freq, \rq.kr(0.5));
-	pan = pan + sig.collect({ arg x;
-		SinOsc.kr(1/( x+1 ));
-	});
+	pan = pan + (sig.collect({ arg x;
+		SinOsc.kr(1/( x+1 ) * \panfreq.kr(1));
+	}) * \panwidth.kr(1));
 	sig = LeakDC.ar(sig);
 	sig = HPF.ar(sig, \hpf.kr(10));
 	sig = sig * \gain.kr(18);
@@ -1245,10 +1245,151 @@ Pdef(\demo, Pdef(\xdemo,
 	])
 )).play;
 )
+(
+Pdef(\demo, Pdef(\xdemo, 
+	Ppar([
+		Pmono(\iron,
+			\note, Pseq([
+				0,2,7,0,
+			],inf),
+			\lpfr, 1,
+			\trigenv, 1,
+			\fmamp, 1.5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+Pdef(\demo).clear
+(
+Pdef(\demo, Pdef(\xdemo, 
+	Ppar([
+		Pbind(
+			\instrument, \iron,
+			\note, Pseq([
+				1,0,
+			],inf),
+			\octave, 4,
+			\dur, 1,
+			\fmr,1/8,
+			\fmamp, 00.1,
+			\lpfr, 1,
+			\diff, 1.01,
+			\foldbias, 1.5,
+			\foldlevel, 1.5,
+			\rq, 0.7,
+			\gain, 15,
+			\amp, 0.1,
+		);
+		
+	])
+)).play;
+)
+
+(
+Pdef(\demo, Pdef(\xdemo, 
+	Ppar([
+		Pmono(\plane2,
+			\note, Pseq([
+				0,2,1,0,
+			],inf),
+			\octave, 6,
+			\env1, Pseq([
+				[ Env([1,2,1],[0.1,0.8]) ]
+			],inf),
+			\gain,8,
+			\fmr, 1/8,
+			\lpfr, 1,
+			\rq, 0.1,
+			\foldbias, -1.5,
+			\foldlevel, 1.5,
+			\diff, 0.02 * Pseq([1,1/10],inf),
+			\trigenv, 1,
+			\fmamp, 1.5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+
+(
+Pdef(\demo, Pdef(\plopix, 
+	Ppar([
+		Pbind(
+			\instrument, \iron,
+			\note, Pstep(Pseq([
+				0,0,0,-1,
+			],inf),1/2) + [0,3,7],
+			\octave, Pseq([
+				5,
+			],inf),
+			\hpf, 30,
+			\env1, Pseq([
+				[ Env([1,1.5,1],[0.1,0.8]) ]
+			],inf),
+			\diff, 1/Pseq([
+				1
+			],inf),
+			\fmr, 2,
+			\lpfr,4,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.01,0.8,0.1) ],
+			],inf),
+			\lag, 0.04,
+			\legato, Pseq([
+				0,0,4,0, 10,0,2,0, 0,0,0,0, 10,0,1,0,
+				0,0,4,0, 10,0,20,0, 0,0,0,0, 10,0,10,0,
+				0,0,0,0, 10,0,20,0, 0,0,1,0, 1,0,10,0,
+			],inf)/10*2,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/16,
+			\amp,0.02,
+		),
+	])
+)).play;
+)
 
 (
 	// kind of hat
-Pdef(\demo, Pdef(\plop, 
+Pdef(\demo, Pdef(\xdemo, 
+	Ppar([
+		Pbind(
+			\instrument, \iron,
+			\note, Pstep(Pseq([
+				0,0,0,-1,
+			],inf),1/2),
+			\octave, 8,
+			\hpf, 30,
+			\env1, Pseq([
+				[ Env([1,1.5,1],[0.1,0.8]) ]
+			],inf),
+			\diff, 1.1,
+			\fmr, 1/2,
+			\lpfr,4,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.01,0.8,0.1) ],
+			],inf),
+			\lag, 0.04,
+			\legato, Pseq([
+				0,0,1,0, 1,0,8,0, 0,0,1,1, 0,0,1,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,1,0,0,
+				0,0,1,0, 0,0,0,0, 0,0,1,1, 0,0,1,0,
+				8,0,7,0, 8,0,8,0, 0,0,0,0, 0,1,0,0,
+			],inf)/10,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/16,
+			\amp,0.01,
+		),
+	])
+)).play;
+)
+
+(
+Pdef(\demo, Pdef(\plopxx, 
 	Ppar([
 		Pbind(
 			\instrument, \iron,
@@ -1269,12 +1410,42 @@ Pdef(\demo, Pdef(\plop,
 			\lag, 0.04,
 			\legato, Pseq([
 				0,0,0,0, 1,0,0,0, 0,0,0,0, 4,0,1,0,
-				0,0,0,0, 4,0,0,0, 0,0,0,0, 1,0,0,0,
+				0,0,0,0, 30,0,0,0, 0,0,0,0, 1,0,0,0,
 			],inf)/10,
 			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
 			\dur, 1/16,
+			\panwidth, 0.2,
+			\gain, 5,
 			\amp,0.05,
 		),
 	])
 )).play;
 )
+
+
+		Pbind(
+			\instrument, \iron,
+			\note, Pstep(Pseq([
+				0,0,0,-1,
+			],inf),1/2) + [0,3,7],
+			\octave, 9,
+			\hpf, 30,
+			\env1, Pseq([
+				[ Env([1,1.5,1],[0.1,0.8]) ]
+			],inf),
+			\diff, 1.1,
+			\fmr, 1/4 * Pseq([1,0.1],inf).stutter(2),
+			\lpfr,2,
+			\adsr, Pseq([
+				[ Env.adsr(0.051,0.01,0.8,0.2) ],
+				[ Env.adsr(0.051,0.01,0.8,0.1) ],
+			],inf).stutter(2),
+			\legato, Pseq([
+				1,0,1,0, 
+			],inf)/10,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/16,
+			\panwidth, 0.2,
+			\gain, 5,
+			\amp,0.05,
+		),

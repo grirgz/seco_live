@@ -531,6 +531,34 @@ Pdef(\demo, Pdef(\demome,
 
 { SinOsc.ar(700) * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.01,0.1,0.5,1,[4,-4])), Duty.kr(1/2, 0, Dseq([ 1,0],inf))) * 0.1 !2  }.play // with adsr
 
+////////////////////////////// FM Cymbal
+// the key is the multichannel LFSaw fm in SinOsc create a mettalic sound and fold tame it in noise
+// could add envs and pan to bring life
+
+(
+SynthDef(\fmcymbal, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	// cpu light
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	sig = SinOsc.ar(freq * ( LFSaw.ar(freq * \fmr.kr(4) * ((0..7)/7 - 0.5 * \diff.kr(1) + 1)) * \fmamp.kr(1) + 1 ));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1/70,0.1,0.8,0.2)),gate,doneAction:2);
+	sig = sig.fold(\fold.kr(0.23));
+	sig = sig * \gain.kr(1);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+Pdef(\plop, Pbind(
+	\instrument, \fmcymbal,
+	\freq, 5200,
+	\fmr, 1/2,
+	\diff, 0.2,
+	\fold, 0.7,
+	\gain, 1,
+	\sustain, 0.1,
+	\dur, 1,
+	\amp, 0.1,
+)).play;
+)
 
 
 //////////////////////////////////////////////////////////
