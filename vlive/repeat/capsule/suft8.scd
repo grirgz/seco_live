@@ -2609,3 +2609,530 @@ Pdef(\part, Pdef(\plop,
 	]),
 )).play;
 )
+
+
+
+////////////////////////////////
+
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\freq, Pexprand(50.0,10000).round(Pseq([10,100,1,0],inf)),
+			\dur, Pwhite(0.4,2),
+			\legato, Pwhite(0.2,0.6),
+			\amp, 0.1 * Pwhite(0.1,2),
+			\pan, Pwhite(-1,1.0),
+		)!3,
+	].flat)
+)).play;
+)
+
+(
+SynthDef(\raa, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([0.01,1,2],[0.3,2.8]), 1);
+	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * \fspread.kr(1) * env1 + 1));
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * ((0..7)/7 - 0.5 * \lpfspread.kr(1) * env1 + 1), \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	pan = pan + SinOsc.kr((1..sig.size), mul:\panwidth.kr(1));
+	sig = LeakDC.ar(sig);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pbind(
+			\instrument, \raa,
+			\fspread, 1,
+			\freq, Pexprand(50.0,10000).round(Pseq([10,100,1,0],inf)),
+			\dur, Pwhite(0.4,2)*4,
+			\legato, Pwhite(0.2,0.6),
+			\legato, 1,
+			\rq, 0.7,
+			\lpfspread, 1,
+			\amp, 0.1 * Pwhite(0.1,2),
+			\pan, Pwhite(-1,1.0),
+		)!3,
+	].flat)
+)).play;
+)
+
+
+(
+SynthDef(\raa, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([0.01,1,2],[0.3,2.8]), 1);
+	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * \fspread.kr(1) * env1 + 1));
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * ((0..7)/7 - 0.5 * \lpfspread.kr(1) * env1 + 1), \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,2.1),gate,doneAction:2);
+	pan = pan + SinOsc.kr((1..sig.size), mul:\panwidth.kr(1));
+	sig = LeakDC.ar(sig);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pbind(
+			\instrument, \raa,
+			\fspread, 1,
+			\degree, Pseq([
+				Pwalk((0..14), Pseq([
+					7,1,6,-1,
+				],inf))
+			],inf),
+			\dur, Pwhite(0.4,8),
+			\legato, Pwhite(0.2,0.6),
+			\legato, 1,
+			\rq, 0.07,
+			\lpfspread, 1,
+			\amp, 0.1 * Pwhite(0.1,2),
+			\pan, Pwhite(-1,1.0),
+		)!8,
+	].flat)
+)).play;
+)
+
+(
+SynthDef(\raa, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	env1 = EnvGen.kr(Env([0.01,1,2],[0.3,2.8]), 1);
+	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * \fspread.kr(1) * env1 + 1));
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * ((0..7)/7 - 0.5 * \lpfspread.kr(1) * env1 + 1), \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,2.1),gate,doneAction:2);
+	pan = pan + SinOsc.kr((1..sig.size), mul:\panwidth.kr(1));
+	sig1 = sig.fold(1);
+	sig = SelectX.ar(\mix.kr(0.5), [sig, sig1]);
+	sig = LeakDC.ar(sig);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+// THX
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pbind(
+			\instrument, \raa,
+			\fspread, 1,
+			\degree, Pseq([
+				Pwalk((0..14), Pseq([
+					7,1,6,-1,
+				],inf))
+			],inf),
+			\dur, Pwhite(0.4,8),
+			\legato, Pwhite(0.2,0.6),
+			\legato, 1,
+			\rq, 0.007,
+			\lpfspread, 1,
+			\amp, 0.1 * Pwhite(0.1,2)/4,
+			\pan, Pwhite(-1,1.0),
+		)!8,
+	].flat)
+)).play;
+)
+
+
+(
+SynthDef(\plastic, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	env1 = EnvGen.kr(\env1.kr( Env([0.01,1,2],[0.3,2.8]) ), 1);
+	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * \fspread.kr(1) * ( SinOsc.ar(\fmr.kr(1) * freq) * \fmamp.kr(1) + 1 ) * env1 + 1));
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * ((0..7)/7 - 0.5 * \lpfspread.kr(1) * env1 + 1), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,4.1)), gate, doneAction:2);
+	pan = pan + SinOsc.kr((1..sig.size)*\panfreq.kr(1), mul:\panwidth.kr(1));
+	sig1 = sig.fold(\fold.kr(1));
+	sig = SelectX.ar(\mix.kr(0.5), [sig, sig1]);
+	sig = sig * \gain.kr(1);
+	sig = LeakDC.ar(sig);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pbind(
+			\instrument, \plastic,
+			\fspread, 1,
+			\degree, Pseq([
+				Pwalk((0..14), Pseq([
+					7,1,6,-1,
+				],inf))
+			],inf),
+			\dur, Pwhite(0.4,8),
+			\legato, Pwhite(0.2,0.6),
+			\legato, 1,
+			\rq, 0.007,
+			\fmr, 1/8,
+			\lpfspread, 1,
+			\amp, 0.1 * Pwhite(0.1,1),
+			\pan, Pwhite(-1,1.0),
+		)!1,
+	].flat)
+)).play;
+)
+
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pbind(
+			\instrument, \plastic,
+			\fspread, 1,
+			\degree, Pseq([
+				Pwalk((0..14), Pseq([
+					7,1,6,-1,
+				],inf))
+			],inf),
+			\dur, Pwhite(0.4,1.8),
+			\legato, 1,
+			\legato, Pwhite(0.1,0.6),
+			\rq, 0.007,
+			\fmr, 1/128,
+			\lpfspread, 1,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,2.41) ],
+				[ Env.adsr(0.01,0.1,0.8,0.41) ],
+				[ Env.adsr(0.01,0.1,0.7,4.41) ],
+				[ Env.adsr(0.21,0.1,0.8,0.01) ],
+			],inf),
+			\amp, 0.1 * Pwhite(0.1,1)/2,
+			\pan, Pwhite(-1,1.0),
+		)!4,
+	].flat)
+)).play;
+)
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pbind(
+			\instrument, \plastic,
+			\fspread, 1,
+			\degree, Pseq([
+				Pwalk((0..14), Pseq([
+					7,1,6,-1,
+				],inf))
+			],inf),
+			\dur, Pwhite(0.4,1.8),
+			\legato, 1,
+			\legato, Pwhite(0.1,0.6),
+			\rq, 0.007,
+			\fmr, 8,
+			\lpfspread, 0.1,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.7,0.4,1.71) ],
+				[ Env.adsr(4.1,0.7,0.4,1.71) ],
+			],inf),
+			\amp, 0.1 * Pwhite(0.1,1)/2,
+			\pan, Pwhite(-1,1.0),
+		)!4,
+	].flat)
+)).play;
+)
+
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pmono( \plastic,
+			\fspread, Pseq([0.1,1,1],inf),
+			\degree, Pseq([
+				Pwalk((0..14), Pseq([
+					7,1,6,-1,
+				],inf))
+			],inf),
+			\octave, 3,
+
+			\dur, 4,
+			\legato, 1,
+			\fmr, ~pmodenv.(Pseq([2,1,1,1/8],inf), Pseq([0.1,1, 0.1, 1].normalizeSum*4,inf)),
+			\rq, ~pmodenv.(Pseq([2.1,0.1,0.1,0.04],inf), Pseq([0.1,1, 0.1, 1].normalizeSum*4.1,inf)),
+			\lpfspread, ~pmodenv.(Pseq([0.01,1,1,0.04],inf), Pseq([1,1, 0.1, 0.1].normalizeSum*4.2,inf)),
+			//\amp, 0.1 * Pwhite(0.1,1),
+			\amp, 0.4,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.3,0.41) ],
+				[ Env.adsr(0.21,0.1,0.3,0.01) ],
+			],inf),
+			\pan, Pwhite(-1,1.0),
+		)!1,
+		Pbind(
+			\instrument, \plastic,
+			\note, Pseq([
+				Pser([
+					0,1,5,12,11
+				],8),
+				Pser([
+					0,1,5,12,11,9,0,1,
+				],16),
+			],inf),
+			\octave, 8,
+			\rq, 0.9,
+			\fspread, 3.1,
+			\fmr, 8,
+			\legato, 0.4,
+			\fmamp, 40,
+			\env1, Pseq([
+				[ Env([1,0.02,1],[0.1,2.8]) ]
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.3,0.1) ],
+			],inf),
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		Pbind(\out, BusDef(\sendbus1, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \snapkickx,
+				\dur, 1/8,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \snaretuned,
+				\dur, 1/8,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,1,0,
+				],inf).coin.not,
+				\adsr, Pseq([
+					[ Env.adsr(0.001,0.1,0.8,0.2) ],
+				],inf),
+				\amp, 0.1/2,
+			),
+		]),
+		Pmono( \rdncleandist_fulllight,
+			\inbus, BusDef(\sendbus1, \audio, 2),
+			'wet10', 1.0,
+			'mix', 0.35714285714286,
+			'gain', 1.0344889782792,
+			'fb', 0.001099467303085,
+			'delay', 0.3600001231 * Pseq([
+				1,1/1000,
+			],inf).stutter(1),
+			'delay2', 0.000000543560101,
+			'shift', 0.0,
+			'shift2', 0.0,
+			'distamp', 1.361836201538,
+			'pitchlag', 1.0,
+			'pitchmix', 0.50924369747899,
+			'prelpf', 17000,
+			'prehpf', 17,
+			'lpf', 17000,
+			'hpf', 17,
+			'fbdistamp', 4.5388371966577,
+			'fbdistmix', 0.98176470588235,
+			'postlpf', 17000,
+			'posthpf', 17,
+			'wetamp', 0.20503372119697,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			\dur, 1/8,
+			\out, BusDef(\fx1, \audio),
+		),
+		Pmono(\filterize,
+			\inbus, BusDef(\fx1, \audio),
+			\dur, 1,
+			\bpf, ~pmodenv.(Pseq([100,2000,10000,5004],inf), 4),
+			\mix, 0.8,
+			\gain, 1.5,
+			\rq, 0.2,
+			\amp, 0.1,
+		),
+
+	].flat)
+)).play;
+)
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		
+		[0,3,7,9].collect{ arg note, idx;
+			var ii = idx/10;
+			Pmono( \plastic,
+				\fspread, Pseq([0.1,1,1],inf),
+				\degree, Pseq([
+					note
+				],inf),
+				\octave, 3,
+				\dur, 4,
+				\legato, 1,
+				\fmr, ~pmodenv.(Pseq([2,1,1,1/8],inf), Pseq([0.1,1, 0.1, 1].normalizeSum*4+ii,inf)),
+				\rq, ~pmodenv.(Pseq([2.1,0.1,0.1,0.04],inf), Pseq([0.1,1, 0.1, 1].normalizeSum*4.1+ii,inf)),
+				\lpfspread, ~pmodenv.(Pseq([0.01,1,1,0.04],inf), Pseq([1,1, 0.1, 0.1].normalizeSum*4.2+ii,inf)),
+				//\amp, 0.1 * Pwhite(0.1,1),
+				\amp, 0.4,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.3,0.41) ],
+					[ Env.adsr(0.21,0.1,0.3,0.01) ],
+				],inf),
+				\pan, Pwhite(-1,1.0),
+			);
+		},
+		Pbind(\out, BusDef(\sendbus1, \audio)) <>
+		Ppar([
+		Pbind(
+			\instrument, \plastic,
+			\note, Pseq([
+				Pser([
+					0,1,5,12,11
+				],8),
+				Pser([
+					0,1,5,12,11,9,0,1,
+				],16),
+			],inf),
+			\octave, 8,
+			\rq, 0.9,
+			\fspread, 3.1,
+			\fmr, 8,
+			\legato, 0.4,
+			\fmamp, 40,
+			\env1, Pseq([
+				[ Env([1,0.02,1],[0.1,2.8]) ]
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.3,0.1) ],
+			],inf),
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+			Pbind(
+				\instrument, \snapkickx,
+				\dur, 1/8,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \snaretuned,
+				\dur, 1/8,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,1,0,
+				],inf).coin.not,
+				\adsr, Pseq([
+					[ Env.adsr(0.001,0.1,0.8,0.2) ],
+				],inf),
+				\amp, 0.1/2,
+			),
+		]),
+		Pmono( \rdncleandist_fulllight,
+			\inbus, BusDef(\sendbus1, \audio, 2),
+			'wet10', 1.0,
+			'mix', 0.35714285714286,
+			'gain', 1.0344889782792,
+			'fb', 0.001099467303085,
+			'delay', 0.3600001231 * Pseq([
+				1,1/1000,
+			],inf).stutter(1),
+			'delay2', 0.000000543560101,
+			'shift', 0.0,
+			'shift2', 0.0,
+			'distamp', 1.361836201538 * Pstep(Pseq([1,5,10],inf),8),
+			'pitchlag', 1.0,
+			'pitchmix', 0.50924369747899,
+			'prelpf', 17000,
+			'prehpf', 17,
+			'lpf', 17000,
+			'hpf', 17,
+			'fbdistamp', 4.5388371966577,
+			'fbdistmix', 0.98176470588235,
+			'postlpf', 17000,
+			'posthpf', 17,
+			'wetamp', 0.20503372119697,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			\dur, 1/8,
+			\out, BusDef(\fx1, \audio),
+		),
+		Pmono(\filterize,
+			\inbus, BusDef(\fx1, \audio),
+			\dur, 1,
+			\bpf, Pseq([
+				9000,15000,
+				7000,12000,
+				5000,10000,
+			],inf),
+			\mix, 1,
+			\gain, 1.5,
+			\rq, 0.1,
+			\amp, 0.1,
+		),
+
+	].flat)
+)).play;
+)
+
+
+(
+SynthDef(\filterize, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = BPF.ar(sig, \bpf.kr(8000),\rq.kr(0.5));
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+	// oiseaux
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \plastic,
+			\note, Prand([
+				(0..12)
+			].flat,inf),
+			\detune, Pwhite(0,100.0),
+			\lag, Pwhite(0,0.5),
+			\octave, 9,
+			\rq, 0.01,
+			\legato, 0.4,
+			\fspread, Pwhite(0.2,2),
+			\sustain, Pwhite(0.06, 0.1),
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.3,0.1) ],
+				[ Env.adsr(0.2,0.1,0.3,0.1) ],
+			],inf),
+			\dur, Pwhite(0.4,1.8),
+			\amp, 0.1,
+		)!4,
+	].flat)
+)).play;
+)
+
+
+

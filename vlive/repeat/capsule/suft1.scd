@@ -1,6 +1,153 @@
 ~t = 105/1/60; TempoClock.default.tempo = ~t;
 //~t = 158/4/60; TempoClock.default.tempo = ~t; // sufferer 158 // not used ? why two tempo ? wtf
 // maybe should be draft 34 instead of suft1
+(
+SynthDef(\brolosc, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig1 = LFSaw.ar(freq);
+	sig2 = LFPulse.ar(freq);
+	sig3 = SinOsc.ar(freq);
+	sig = SelectX.ar(\oscmix.kr(0.5)*2, [sig1, sig2, sig3]);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+SynthDef(\fxbrol, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var in;
+	var insig;
+	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	//sig = Decimator.ar(sig, \samplerate.kr(1)*SampleRate.ir,8);
+	//insig = SelectX.ar(\inmix.kr(0.5), [DC.ar(0), in]);
+	insig = in;
+	sig = LocalIn.ar(2) * \fb.kr(0.01);
+	sig = sig + insig;
+	//sig = sig * ( SinOsc.ar(4) * 1 + 1 );
+	//sig = sig * ( SinOsc.ar(410 * ( SinOsc.kr(1/13) * 1 + 1 )) * 1 + 1 );
+	//sig = DelayC.ar(sig, 0.2, 0.10001 * ( SinOsc.kr(4.01*[1,3.23,1.342]) * 0.02 + 1 )).sum + sig;
+	//sig = DelayC.ar(sig, 0.1, 0.01 * ( SinOsc.kr(12 * ( SinOsc.kr(1/12) * 1 + 1 )) * 1 + 1 ) * ( SinOsc.kr(0.01*[1,3.23,1.342]*0.123) * 0.2 + 1 )).sum + sig;
+	//sig = AllpassC.ar(sig, 0.2, 0.1 * ( SinOsc.ar(341) * 1 + 1 ),0)+sig;
+	sig = AllpassC.ar(sig, 0.2, 0.0001 * ( SinOsc.ar(141) * 1 + 1 ),0)+sig;
+	//sig = DelayC.ar(sig, 0.3, 0.01 * ( SinOsc.kr(1/10) * 1 + 1 ) * ( SinOsc.ar(3208*[1,1.023,1.0342]) * 0.1 + 1 )).sum + sig;
+	//sig = DelayC.ar(sig, 0.3, 0.1 * ( SinOsc.ar(0.01*[1,1.023,1.0342]) * 0.8 + 1 )).sum + sig;
+	sig = ( sig*\distamp.kr(1) ).tanh * \distpostamp.kr(1/2);
+	sig = LPF.ar(sig, SinOsc.kr(1/4 * ( SinOsc.kr(1/23) * 1 + 1 )).range(30,11000));
+	sig = LPF.ar(sig, \lpf.kr(10000));
+	//sig = MidEQ.ar(sig, 200, 1, -0.2);
+	sig = sig /2;
+	sig = Limiter.ar(sig);
+	sig = LeakDC.ar(sig);
+	LocalOut.ar(sig);
+	sig.debug("sig");
+	sig = SelectX.ar(\mix.kr(0.5), [insig, sig]);
+	sig = sig * \gain.kr(0.3);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+(
+SynthDef(\brolosc2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig1 = LFSaw.ar(freq);
+	sig2 = LFPulse.ar(freq);
+	sig3 = SinOsc.ar(freq);
+	sig = SelectX.ar(\oscmix.kr(0.5)*2, [sig1, sig2, sig3]);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
+	sig = HPF.ar(sig, \hpf.kr(10));
+	sig = sig * \prelim.kr(1);
+	sig = Limiter.ar(sig);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+SynthDef(\fxbrol2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var in;
+	var insig;
+	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	//sig = Decimator.ar(sig, \samplerate.kr(1)*SampleRate.ir,8);
+	//insig = SelectX.ar(\inmix.kr(0.5), [DC.ar(0), in]);
+	insig = in;
+	sig = LocalIn.ar(2) * \fb.kr(0.01);
+	sig = sig + insig;
+	//sig = sig * ( SinOsc.ar(4) * 1 + 1 );
+	//sig = sig * ( SinOsc.ar(410 * ( SinOsc.kr(1/13) * 1 + 1 )) * 1 + 1 );
+	//sig = DelayC.ar(sig, 0.2, 0.10001 * ( SinOsc.kr(4.01*[1,3.23,1.342]) * 0.02 + 1 )).sum + sig;
+	//sig = DelayC.ar(sig, 0.1, 0.01 * ( SinOsc.kr(12 * ( SinOsc.kr(1/12) * 1 + 1 )) * 1 + 1 ) * ( SinOsc.kr(0.01*[1,3.23,1.342]*0.123) * 0.2 + 1 )).sum + sig;
+	//sig = AllpassC.ar(sig, 0.2, 0.1 * ( SinOsc.ar(341) * 1 + 1 ),0)+sig;
+	sig = AllpassC.ar(sig, 0.2, 0.0001 * \delayfac.kr(1),\decay.kr(0))+sig;
+	//sig = DelayC.ar(sig, 0.3, 0.01 * ( SinOsc.kr(1/10) * 1 + 1 ) * ( SinOsc.ar(3208*[1,1.023,1.0342]) * 0.1 + 1 )).sum + sig;
+	//sig = DelayC.ar(sig, 0.3, 0.1 * ( SinOsc.ar(0.01*[1,1.023,1.0342]) * 0.8 + 1 )).sum + sig;
+	sig = ( sig*\distamp.kr(1) ).tanh * \distpostamp.kr(1/2);
+	//sig = LPF.ar(sig, SinOsc.kr(1/4 * ( SinOsc.kr(1/23) * 1 + 1 )).range(30,11000));
+	sig = LPF.ar(sig, \lpf.kr(10000));
+	//sig = MidEQ.ar(sig, 200, 1, -0.2);
+	sig = HPF.ar(sig, \hpf.kr(10));
+	sig = sig /2;
+	sig = sig * \prelim.kr(1);
+	sig = Limiter.ar(sig);
+	sig = LeakDC.ar(sig);
+	LocalOut.ar(sig);
+	sig.debug("sig");
+	sig = sig * \wetgain.kr(1);
+	sig = SelectX.ar(\mix.kr(0.5), [insig, sig]);
+	sig = sig * \gain.kr(0.3);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+);
+(
+SynthDef(\crackle, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = Crackle.ar(\chaos.kr(1));
+	sig = Formlet.ar(sig, freq,\format.kr(0.21),\formdec.kr(0.1));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = HPF.ar(sig, 50);
+	sig = Limiter.ar(sig);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+(
+SynthDef(\crackle2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = Crackle.ar(\chaos.kr(1));
+	sig = LFSaw.ar(freq * ( sig* 10.1 + 1 )); 
+	//sig = Formlet.ar(sig, freq,\format.kr(0.21),\formdec.kr(0.1));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = HPF.ar(sig, 50);
+	sig = Limiter.ar(sig);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part2).reset;
+);
+
+(
+SynthDef(\crackle3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,4,2,1],[0.1,0.18,1]), \trigenv.tr(1));
+	sig = Crackle.ar(\chaos.kr(1));
+	sig = LFSaw.ar(freq * [1/2,1,2,1.001,2.0001] * ( sig* \modamp.kr(1.1)  + 1 )); 
+	//sig = Formlet.ar(sig, freq,\format.kr(0.21)* env1,\formdec.kr(0.1));
+	sig = LPF.ar(sig, \lpf.kr(400) * env1);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = HPF.ar(sig, \hpf.kr(50));
+	sig = Limiter.ar(sig);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+Pdef(\part2).reset;
+);
+)
 
 (
 	Pdef(\part, Pdef(\plop, 
@@ -161,54 +308,6 @@ Pdef(\part, Pdef(\plop,
 
 ////////////////
 
-(
-SynthDef(\brolosc, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	sig1 = LFSaw.ar(freq);
-	sig2 = LFPulse.ar(freq);
-	sig3 = SinOsc.ar(freq);
-	sig = SelectX.ar(\oscmix.kr(0.5)*2, [sig1, sig2, sig3]);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-(
-SynthDef(\fxbrol, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var in;
-	var insig;
-	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	//sig = Decimator.ar(sig, \samplerate.kr(1)*SampleRate.ir,8);
-	//insig = SelectX.ar(\inmix.kr(0.5), [DC.ar(0), in]);
-	insig = in;
-	sig = LocalIn.ar(2) * \fb.kr(0.01);
-	sig = sig + insig;
-	//sig = sig * ( SinOsc.ar(4) * 1 + 1 );
-	//sig = sig * ( SinOsc.ar(410 * ( SinOsc.kr(1/13) * 1 + 1 )) * 1 + 1 );
-	//sig = DelayC.ar(sig, 0.2, 0.10001 * ( SinOsc.kr(4.01*[1,3.23,1.342]) * 0.02 + 1 )).sum + sig;
-	//sig = DelayC.ar(sig, 0.1, 0.01 * ( SinOsc.kr(12 * ( SinOsc.kr(1/12) * 1 + 1 )) * 1 + 1 ) * ( SinOsc.kr(0.01*[1,3.23,1.342]*0.123) * 0.2 + 1 )).sum + sig;
-	//sig = AllpassC.ar(sig, 0.2, 0.1 * ( SinOsc.ar(341) * 1 + 1 ),0)+sig;
-	sig = AllpassC.ar(sig, 0.2, 0.0001 * ( SinOsc.ar(141) * 1 + 1 ),0)+sig;
-	//sig = DelayC.ar(sig, 0.3, 0.01 * ( SinOsc.kr(1/10) * 1 + 1 ) * ( SinOsc.ar(3208*[1,1.023,1.0342]) * 0.1 + 1 )).sum + sig;
-	//sig = DelayC.ar(sig, 0.3, 0.1 * ( SinOsc.ar(0.01*[1,1.023,1.0342]) * 0.8 + 1 )).sum + sig;
-	sig = ( sig*\distamp.kr(1) ).tanh * \distpostamp.kr(1/2);
-	sig = LPF.ar(sig, SinOsc.kr(1/4 * ( SinOsc.kr(1/23) * 1 + 1 )).range(30,11000));
-	sig = LPF.ar(sig, \lpf.kr(10000));
-	//sig = MidEQ.ar(sig, 200, 1, -0.2);
-	sig = sig /2;
-	sig = Limiter.ar(sig);
-	sig = LeakDC.ar(sig);
-	LocalOut.ar(sig);
-	sig.debug("sig");
-	sig = SelectX.ar(\mix.kr(0.5), [insig, sig]);
-	sig = sig * \gain.kr(0.3);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	Out.ar(out, sig);
-}).add;
-)
 
 (
 Pdef(\part, Pdef(\plop, 
@@ -407,61 +506,6 @@ Pdef(\part, Pdef(\plop,
 
 Pdef(\part).clear
 
-(
-SynthDef(\brolosc2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	sig1 = LFSaw.ar(freq);
-	sig2 = LFPulse.ar(freq);
-	sig3 = SinOsc.ar(freq);
-	sig = SelectX.ar(\oscmix.kr(0.5)*2, [sig1, sig2, sig3]);
-	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
-	sig = HPF.ar(sig, \hpf.kr(10));
-	sig = sig * \prelim.kr(1);
-	sig = Limiter.ar(sig);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-(
-SynthDef(\fxbrol2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var in;
-	var insig;
-	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	//sig = Decimator.ar(sig, \samplerate.kr(1)*SampleRate.ir,8);
-	//insig = SelectX.ar(\inmix.kr(0.5), [DC.ar(0), in]);
-	insig = in;
-	sig = LocalIn.ar(2) * \fb.kr(0.01);
-	sig = sig + insig;
-	//sig = sig * ( SinOsc.ar(4) * 1 + 1 );
-	//sig = sig * ( SinOsc.ar(410 * ( SinOsc.kr(1/13) * 1 + 1 )) * 1 + 1 );
-	//sig = DelayC.ar(sig, 0.2, 0.10001 * ( SinOsc.kr(4.01*[1,3.23,1.342]) * 0.02 + 1 )).sum + sig;
-	//sig = DelayC.ar(sig, 0.1, 0.01 * ( SinOsc.kr(12 * ( SinOsc.kr(1/12) * 1 + 1 )) * 1 + 1 ) * ( SinOsc.kr(0.01*[1,3.23,1.342]*0.123) * 0.2 + 1 )).sum + sig;
-	//sig = AllpassC.ar(sig, 0.2, 0.1 * ( SinOsc.ar(341) * 1 + 1 ),0)+sig;
-	sig = AllpassC.ar(sig, 0.2, 0.0001 * \delayfac.kr(1),\decay.kr(0))+sig;
-	//sig = DelayC.ar(sig, 0.3, 0.01 * ( SinOsc.kr(1/10) * 1 + 1 ) * ( SinOsc.ar(3208*[1,1.023,1.0342]) * 0.1 + 1 )).sum + sig;
-	//sig = DelayC.ar(sig, 0.3, 0.1 * ( SinOsc.ar(0.01*[1,1.023,1.0342]) * 0.8 + 1 )).sum + sig;
-	sig = ( sig*\distamp.kr(1) ).tanh * \distpostamp.kr(1/2);
-	//sig = LPF.ar(sig, SinOsc.kr(1/4 * ( SinOsc.kr(1/23) * 1 + 1 )).range(30,11000));
-	sig = LPF.ar(sig, \lpf.kr(10000));
-	//sig = MidEQ.ar(sig, 200, 1, -0.2);
-	sig = HPF.ar(sig, \hpf.kr(10));
-	sig = sig /2;
-	sig = sig * \prelim.kr(1);
-	sig = Limiter.ar(sig);
-	sig = LeakDC.ar(sig);
-	LocalOut.ar(sig);
-	sig.debug("sig");
-	sig = sig * \wetgain.kr(1);
-	sig = SelectX.ar(\mix.kr(0.5), [insig, sig]);
-	sig = sig * \gain.kr(0.3);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	Out.ar(out, sig);
-}).add;
-)
 
 
 (
@@ -684,50 +728,6 @@ Pdef(\part, Pdef(\plop,
 
 ///
 
-(
-SynthDef(\crackle, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = Crackle.ar(\chaos.kr(1));
-	sig = Formlet.ar(sig, freq,\format.kr(0.21),\formdec.kr(0.1));
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = HPF.ar(sig, 50);
-	sig = Limiter.ar(sig);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-(
-SynthDef(\crackle2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = Crackle.ar(\chaos.kr(1));
-	sig = LFSaw.ar(freq * ( sig* 10.1 + 1 )); 
-	//sig = Formlet.ar(sig, freq,\format.kr(0.21),\formdec.kr(0.1));
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = HPF.ar(sig, 50);
-	sig = Limiter.ar(sig);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-Pdef(\part2).reset;
-);
-
-(
-SynthDef(\crackle3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([1,4,2,1],[0.1,0.18,1]), \trigenv.tr(1));
-	sig = Crackle.ar(\chaos.kr(1));
-	sig = LFSaw.ar(freq * [1/2,1,2,1.001,2.0001] * ( sig* \modamp.kr(1.1)  + 1 )); 
-	//sig = Formlet.ar(sig, freq,\format.kr(0.21)* env1,\formdec.kr(0.1));
-	sig = LPF.ar(sig, \lpf.kr(400) * env1);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = HPF.ar(sig, \hpf.kr(50));
-	sig = Limiter.ar(sig);
-	sig = Pan2.ar(sig, pan, amp).mean;
-	Out.ar(out, sig);
-}).add;
-Pdef(\part2).reset;
-);
 
 Formlet
 (
