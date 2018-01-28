@@ -28,6 +28,33 @@ ProtoDef(\piano, (
 		MIDIdef(\piano_off).permanent = self.permanent;
 	},
 
+	keyboard: { arg self, target;
+		if(target.isNil) {
+			target = Pdef(\piano_player, Pbind(\instrument, \default));
+		};
+		WindowDef(\pianokeyboard).front(target);
+	},
+
 	permanent: true,
-))
+));
+
+	WindowDef(\pianokeyboard, { arg def, target;
+		var kb = MIDIKeyboardView.new;
+		if(target.notNil) {
+			var player = ~seqPlayerGroup.new(target);
+			kb.keyDownAction = { arg midinote;
+				player.elAt(midinote).play;
+			};
+			kb.keyDownAction = { arg midinote, old;
+				if(old.notNil) {
+					player.elAt(old).stop;
+				};
+				player.elAt(midinote).play;
+			};
+			kb.keyUpAction = { arg midinote;
+				player.elAt(midinote).stop;
+			};
+		};
+		kb.asView;
+	});
 );

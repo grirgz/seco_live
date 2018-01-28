@@ -1,3 +1,4 @@
+~t = 158/4/60; TempoClock.default.tempo = ~t; // sufferer 158
 
 (
 SynthDef(\snaretuned, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;

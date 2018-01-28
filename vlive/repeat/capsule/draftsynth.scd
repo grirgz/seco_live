@@ -230,16 +230,18 @@ SynthDef(\snapkickx, { |out = 0, pan = 0, amp = 0.3|
 	bodyAmp = EnvGen.ar(\bodyenv.kr(Env.linen(0.005, 0.1, 0.3)), doneAction: 2);
 	body = SinOsc.ar(bodyFreq) * bodyAmp;
 	// pop sweeps over the midrange
-	popFreq = XLine.kr(750, 261, 0.02);
-	popAmp = EnvGen.ar(\popenv.kr(Env.linen(0.001, 0.02, 0.001))) * 0.15;
+	popFreq = XLine.kr(\popfstart.kr(750), \popfend.kr(261), \popfdur.kr(0.02));
+	popAmp = EnvGen.ar(\popenv.kr(Env.linen(0.001, 0.02, 0.001))) * \popamp.kr(0.15);
 	pop = SinOsc.ar(popFreq) * popAmp;
 	// click is spectrally rich, covering the high-freq range
 	// you can use Formant, FM, noise, whatever
-	clickAmp = EnvGen.ar(Env.perc(\clickat.kr(0.001), \clickrel.kr(0.01))) * 0.15;
-	click = LPF.ar(Formant.ar(910, 4760, 2110), 3140) * clickAmp;
+	clickAmp = EnvGen.ar(Env.perc(\clickat.kr(0.001), \clickrel.kr(0.01))) * \clickamp.kr(0.15);
+	click = LPF.ar(Formant.ar(\formfund.kr(910), \formfreq.kr(4760), \formbw.kr(2110)), \lpf.kr(3140)) * clickAmp;
 
 	snd = body + pop + click;
+	snd = snd * \distpreamp.kr(1);
 	snd = snd.tanh;
+	snd = snd * \distpostamp.kr(1);
 
 	Out.ar(out, Pan2.ar(snd, pan, amp));
 }).add;
@@ -331,12 +333,30 @@ SynthDef(\fmz1, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = Pan2.ar(sig, pan + [ 0, -0.5, 0.5, 0, 0, 0], amp).sum;
 	Out.ar(out, sig);
 }).add;
-)
+
+SynthDef(\plastic, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	env1 = EnvGen.kr(\env1.kr( Env([0.01,1,2],[0.3,2.8]) ), 1);
+	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * \fspread.kr(1) * ( SinOsc.ar(\fmr.kr(1) * freq) * \fmamp.kr(1) + 1 ) * env1 + 1));
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * ((0..7)/7 - 0.5 * \lpfspread.kr(1) * env1 + 1), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,4.1)), gate, doneAction:2);
+	pan = pan + SinOsc.kr((1..sig.size)*\panfreq.kr(1), mul:\panwidth.kr(1));
+	sig1 = sig.fold(\fold.kr(1));
+	sig = SelectX.ar(\mix.kr(0.5), [sig, sig1]);
+	sig = sig * \gain.kr(1);
+	sig = LeakDC.ar(sig);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
 
 
 //////////// TOOLS
 
 
+(
 SynthDef(\sendtoarbus2, { arg out=0, out2=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -344,3 +364,25 @@ SynthDef(\sendtoarbus2, { arg out=0, out2=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(out, sig * \gain.kr(1));
 	Out.ar(out2, sig * \gain2.kr(0));
 }).add;
+
+SynthDef(\sendtoarbusdel2, { arg out=0, out2=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0,1,0.01)),gate,doneAction:2);
+	Out.ar(out, DelayL.ar(sig, 0.1, \delay.kr(0)) * \gain.kr(1));
+	Out.ar(out2, DelayL.ar(sig, 0.1, \delay2.kr(0)) * \gain2.kr(0));
+}).add;
+
+
+SynthDef(\simpletrackmixer, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0,1,0.01)),gate,doneAction:2);
+	sig = sig * \pregain.kr(1);
+	Out.ar(out, DelayL.ar(sig, 0.1, \delay.kr(0)) * \postgain.kr(1));
+	Out.ar(\sendbus0.kr(BusDef(\sendbus0, \audio)), sig * \send0.kr(0));
+	Out.ar(\sendbus1.kr(BusDef(\sendbus1, \audio)), sig * \send1.kr(0));
+	Out.ar(\sendbus2.kr(BusDef(\sendbus2, \audio)), sig * \send2.kr(0));
+	Out.ar(\sendbus3.kr(BusDef(\sendbus3, \audio)), sig * \send3.kr(0));
+}).add;
+);

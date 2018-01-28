@@ -1192,17 +1192,17 @@ SynthDef(\distbass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, d
 					\octave, 6,
 					\dur, 1/8,
 					\out, BusDef(\fx3, \audio),
-	\fmrange, Pseq([0.5,1,1.5],inf),
-	\fmfreq, Pseq([0.5,1,2,4],inf),
-	\igate, Pseq([
-		1,0,0,0,
-		0,0,0,0,
-	],inf),
-	\iadsr, Pseq([
-		[ Env.adsr(0.1,0.1,0.8,4.1) ],
-	],inf),
-	\lpf, Pkey(\freq) * Pseq([2,1,4,8],inf).stutter(8),
-	\hpf, Pkey(\freq) / 2,
+					\fmrange, Pseq([0.5,1,1.5],inf),
+					\fmfreq, Pseq([0.5,1,2,4],inf),
+					\igate, Pseq([
+						1,0,0,0,
+						0,0,0,0,
+					],inf),
+					\iadsr, Pseq([
+						[ Env.adsr(0.1,0.1,0.8,4.1) ],
+					],inf),
+					\lpf, Pkey(\freq) * Pseq([2,1,4,8],inf).stutter(8),
+					\hpf, Pkey(\freq) / 2,
 					\amp, 0.1,
 				),
 				Pmono(\fx_chorus,
@@ -1418,19 +1418,19 @@ SynthDef(\distbass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, d
 					\octave, 6,
 					\dur, 1/8,
 					\out, BusDef(\fx3, \audio),
-	\fmrange, Pseq([0.5,1,1.5],inf),
-	\fmfreq, Pseq([0.5,1,2,4],inf),
-	\igate, Pseq([
-		1,0,0,0, 0,0,0,0,
-		1,0,1,0, 0,0,0,0,
-		0,0,1,0, 1,0,0,0,
-		0,0,0,0, 0,0,0,0,
-	],inf),
-	\iadsr, Pseq([
-		[ Env.adsr(0.1,0.1,0.8,4.1) ],
-	],inf),
-	\lpf, Pkey(\freq) * Pseq([2,1,4,8],inf).stutter(8),
-	\hpf, Pkey(\freq) / 2,
+					\fmrange, Pseq([0.5,1,1.5],inf),
+					\fmfreq, Pseq([0.5,1,2,4],inf),
+					\igate, Pseq([
+						1,0,0,0, 0,0,0,0,
+						1,0,1,0, 0,0,0,0,
+						0,0,1,0, 1,0,0,0,
+						0,0,0,0, 0,0,0,0,
+					],inf),
+					\iadsr, Pseq([
+						[ Env.adsr(0.1,0.1,0.8,4.1) ],
+					],inf),
+					\lpf, Pkey(\freq) * Pseq([2,1,4,8],inf).stutter(8),
+					\hpf, Pkey(\freq) / 2,
 					\amp, 0.1,
 					\amp, Pkey(\amp) * Pseq([
 						1,0, 1,1, 0,1, 1,1,
@@ -2386,6 +2386,7 @@ SynthDef(\distbass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, d
 
 
 (
+	// cool !!!!!!!!!
 	Pdef(\part, Pdef(\plop, 
 		Pseq([
 			Pfindur(4+inf, Ppar([

@@ -1075,6 +1075,25 @@ k.showScale([0, 2, 4, 6, 8, 10], 48, Color.new(0.4, 0.6,0.8));
 )
 
 (
+	WindowDef(\pianokeyboard, { arg def, target;
+		var kb = MIDIKeyboardView.new;
+		if(target.notNil) {
+			var player = ~seqPlayerGroup.new(target);
+			kb.keyDownAction = { arg midinote;
+				player.elAt(midinote).play;
+			};
+			kb.keyDownAction = { arg midinote, old;
+				if(old.notNil) {
+					player.elAt(old).stop;
+				};
+				player.elAt(midinote).play;
+			};
+			kb.keyUpAction = { arg midinote;
+				player.elAt(midinote).stop;
+			};
+		};
+		kb.asView;
+	}).front(Pdef(\plop1));
 
 )
 
