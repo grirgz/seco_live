@@ -261,82 +261,82 @@ Pdef(\verse1,
 );
 
 (
-Pdef(\break, 
-	Ppar([
-	PmonoArtic( \glitch,
-	\degree, Pseq([2,2],inf),
-	\legato, Pseq([
-		1,1,1,0.9,
-	],inf),
-	\dur, 1,
-	\amp, ~pmodenv.(Pseq([0,0.1,0.2],inf), 8),
-),
-		PatKitDef(\sample1).asPattern(Pbind(
-			\kitIndex, 8,
-			\isRest, Pseq({[
-				1,0,0,0, 1,0,0,0,
-			].clump(8).choose}.dup(8).flat,inf).coin.not,
-			\sustain, 0.1,
-			\dur, 1/8,
-			\amp, 0.1,
-		)),
-		Pseq([
-			Pfindur(16/4, PmonoArtic( \pad,
+	Pdef(\break, 
+		Ppar([
+			PmonoArtic( \glitch,
+				\degree, Pseq([2,2],inf),
 				\legato, Pseq([
-					1,1,1,0.8,
-				],inf),
-				\degree, Pseq([
-					0,0,0,-1,
+					1,1,1,0.9,
 				],inf),
 				\dur, 1,
-				\amp, 0.2
-			)),
-			Pfindur(15/4, PmonoArtic( \pad,
-				\legato, Pseq([
-					1,1,1,0.8,
-				],inf),
-				\degree, Pseq([
-					0,0,0,-1,
-				],inf),
-				\dur, 1,
-				\amp, 0.2
-			)),
-			Pfindur(1/4, PmonoArtic( \pad,
-				\legato, Pseq([
-					0.81,
-				],inf),
-				\degree, Pseq([
-					0,
-				],inf),
-				\dur, 1/4,
-				\amp, 0.2
-			)),
-		],inf),
-		Pseq([
-			Rest(12),
-			Pbind(
-				\instrument, \piano,
-				\degree, Pseq([
-					Pser([
-						2s,
-					],12),
-					Pser([
-						-1,-1,1,1,
-					],4),
-				],inf),
-				\legato, 0.1,
-				\adsr, Pseq([
-					[ Env.adsr(0.1,0.1,0.8,0.4) ],
-				],inf),
-				\dur, 1/4,
-				\octave, 6,
-				\amp, 0.1 * Pseg(Pseq([0,1],inf),4),
-				//\isRest, true,
+				\amp, ~pmodenv.(Pseq([0,0.1,0.2],inf), 8),
 			),
-		],1),
-		
-	])
-).play;
+			PatKitDef(\sample1).asPattern(Pbind(
+				\kitIndex, 8,
+				\isRest, Pseq({[
+					1,0,0,0, 1,0,0,0,
+				].clump(8).choose}.dup(8).flat,inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			Pseq([
+				Pfindur(16/4, PmonoArtic( \pad,
+					\legato, Pseq([
+						1,1,1,0.8,
+					],inf),
+					\degree, Pseq([
+						0,0,0,-1,
+					],inf),
+					\dur, 1,
+					\amp, 0.2
+				)),
+				Pfindur(15/4, PmonoArtic( \pad,
+					\legato, Pseq([
+						1,1,1,0.8,
+					],inf),
+					\degree, Pseq([
+						0,0,0,-1,
+					],inf),
+					\dur, 1,
+					\amp, 0.2
+				)),
+				Pfindur(1/4, PmonoArtic( \pad,
+					\legato, Pseq([
+						0.81,
+					],inf),
+					\degree, Pseq([
+						0,
+					],inf),
+					\dur, 1/4,
+					\amp, 0.2
+				)),
+			],inf),
+			Pseq([
+				Rest(12),
+				Pbind(
+					\instrument, \piano,
+					\degree, Pseq([
+						Pser([
+							2s,
+						],12),
+						Pser([
+							-1,-1,1,1,
+						],4),
+					],inf),
+					\legato, 0.1,
+					\adsr, Pseq([
+						[ Env.adsr(0.1,0.1,0.8,0.4) ],
+					],inf),
+					\dur, 1/4,
+					\octave, 6,
+					\amp, 0.1 * Pseg(Pseq([0,1],inf),4),
+					//\isRest, true,
+				),
+			],1),
+
+		])
+	).play;
 );
 
 (

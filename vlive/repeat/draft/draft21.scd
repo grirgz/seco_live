@@ -1,4 +1,4 @@
-~t = 96/60; TempoClock.default.tempo = ~t; // funky drummer bpm
+~t = 96/2/60; TempoClock.default.tempo = ~t; // funky drummer bpm
 (
 SynthDef(\stickfight, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fac1=1;
 	var sig;
@@ -389,6 +389,7 @@ RandDelayNetwork.codeToSeeds(RandDelayNetwork(\deldefault).code)
 	);
 
 ~t = 126/60; TempoClock.default.tempo = ~t; // test fast tempo
+~t = 93/60; TempoClock.default.tempo = ~t; // test normal tempo
 (
 Pdef(\fxpatdrummer, 
 	Ppar([
