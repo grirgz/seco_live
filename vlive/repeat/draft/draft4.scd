@@ -315,7 +315,7 @@ Pdef(\chords, Pbind(
 	}).loop,
 	\legato, 0.9,
 	\dur, 1,
-	\amp, 0.1
+	\amp, 0.1/10,
 )).play;
 );
 
@@ -724,6 +724,117 @@ SynthDef(\partial, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, tsustain=1, gl
 				}),
 			],inf),
 			\dur, 8,
+			\tsustain, Pkey(\sustain) / ~t,
+			\amp, 0.1/10*2,
+		)
+
+	})) 
+).play;
+);
+
+(
+	Pdef(\partials, Ppar( 40.collect({
+		Pbind(
+			\instrument, \partial,
+			\degree, Pseq([0],inf),
+			\freq, 400 + Pexprand(0.0007,125),
+			\glienv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.01,1),rrand(0.01,1),0],{rrand(0.1,1)}.dup(3).normalizeSum) ]
+			}),
+			\fmfEnv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.1,1),rrand(0.1,1),0],{rrand(0.1,1)}.dup(3).normalizeSum) ]
+			}),
+			\fmfAmpEnv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.1,1),rrand(0.1,1),0],{rrand(0.1,1)}.dup(3).normalizeSum) ]
+			}),
+			\amfAmpEnv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.1,1),rrand(0.1,1),0],{rrand(0.1,1)}.dup(3).normalizeSum) ]
+			}),
+
+			\amf, Pexprand(0.01,10000),
+			\fmf, Pexprand(0.01,14000),
+			\gliamp, Pwhite(0.01,1),
+			\adsr, Pseq([
+				Pfunc({ arg ev;
+					[ Env.adsr(1.0.rand,1.0.rand,0.8.rand,1.0.rand) ];
+				}),
+			],inf),
+			\dur, 8,
+			\tsustain, Pkey(\sustain) / ~t,
+			\amp, 0.1/10*2,
+		)
+
+	})) 
+).play;
+);
+
+(
+	~ptime = {rrand(0.1,1)}.dup(3).normalizeSum;
+	Pdef(\partials, Ppar( 40.collect({
+		Pbind(
+			\instrument, \partial,
+			\degree, Pseq([0],inf),
+			\freq, 400 + Pexprand(0.0007,125),
+			\glienv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.01,1),rrand(0.01,1),0],~ptime) ]
+			}),
+			\fmfEnv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.1,1),rrand(0.1,1),0],~ptime) ]
+			}),
+			\fmfAmpEnv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.1,1),rrand(0.1,1),0],~ptime) ]
+			}),
+			\amfAmpEnv, Pfunc({ arg ev;
+				[ Env([0,rrand(0.1,1),rrand(0.1,1),0],~ptime) ]
+			}),
+
+			\amf, Pexprand(0.01,10000),
+			\fmf, Pexprand(0.01,14000),
+			\gliamp, Pwhite(0.01,1),
+			\adsr, Pseq([
+				Pfunc({ arg ev;
+					[ Env.adsr(1.0.rand,1.0.rand,0.8.rand,1.0.rand) ];
+				}),
+			],inf),
+			\dur, 8,
+			\tsustain, Pkey(\sustain) / ~t,
+			\amp, 0.1/10*2,
+		)
+
+	})) 
+).play;
+);
+
+(
+	~ptime = {rrand(0.1,1)}.dup(3).normalizeSum;
+	~penv = [ Env([0,rrand(0.01,1),rrand(0.01,1),0],~ptime) ];
+	Pdef(\partials, Ppar( 40.collect({
+		Pbind(
+			\instrument, \partial,
+			\degree, Pseq([0],inf),
+			\freq, 400 + Pexprand(0.0007,125),
+			\glienv, Pfunc({ arg ev;
+				~penv;
+			}),
+			\fmfEnv, Pfunc({ arg ev;
+				~penv;
+			}),
+			\fmfAmpEnv, Pfunc({ arg ev;
+				~penv;
+			}),
+			\amfAmpEnv, Pfunc({ arg ev;
+				~penv;
+			}),
+
+			\amf, Pexprand(0.01,10000),
+			\fmf, Pexprand(0.01,14000),
+			\gliamp, Pwhite(0.01,1),
+			\adsr, Pseq([
+				Pfunc({ arg ev;
+					[ Env.adsr(1.0.rand,1.0.rand,0.8.rand,1.0.rand) ];
+				}),
+			],inf),
+			\dur, 4,
 			\tsustain, Pkey(\sustain) / ~t,
 			\amp, 0.1/10*2,
 		)

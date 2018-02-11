@@ -54,7 +54,7 @@ SynthDef(\pluck, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, coef=0, decay=10
 	sig = sig * 2;
 	//sig = sig/2 + FreqShift.ar(sig, [{ 600.0.rand }!5]).flop.mean * 3;
 	//sig = RLPF.ar(sig, \lpfr.kr(4)*freq, \rq.kr(0.5)) * 1 + ( sig/4 );
-	sig = sig * EnvGen.ar(Env.adsr(0.01,[0.2,0.1],0.8,0.4,1,4),gate,doneAction:2);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,[0.2,0.1],0.8,0.4,1,4)),gate,doneAction:2);
 	//sig = Pan2.ar(sig, pan, amp);
 	sig = sig * amp;
 	Out.ar(out, sig);
@@ -174,11 +174,29 @@ Pdef(\plop, Pbind(
 );
 
 (
-Pdef(\bass, Pbind(
-	\instrument, \brownbass,
+Pdef(\bass, PmonoArtic(
+	\brownbass,
 	\degree, Pseq([1b,-3b,-2b, -3b],inf),
+	\legato, Pseq([
+		1,1,1,1, 0.2,0,0,0,
+	],inf)*0.9,
+	\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
 	\octave, 3,
 	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+
+(
+Pdef(\bass, PmonoArtic(
+	\brownbass,
+	\degree, Pseq([1b,-3b,-2b, -3b],inf).stutter(2),
+	\legato, Pseq([
+		1,1,1,1,1,1,1,1, 0.2,0,0,0, 0,0,0.2,0.2,
+	],inf),
+	\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+	\octave, 3,
+	\dur, 1/2,
 	\amp, 0.1
 )).play;
 );
@@ -240,67 +258,119 @@ BufDef(\amen, "vipere/amenbreak.wav");
 Pdef(\chords, 
 	Ppar([
 		
-		Pbind(
-			// chords
-			\instrument, \chordar,
-			\adsr, Pseq([
-				[ Env.adsr(0.1,0.1,0.8,0.1) ],
-			],inf),
-			\note, Pseq([
-				[1,5,8],
-				[1,6,10],
-				[3,8,12, 0],
-				[1,6,10, -2],
-			],inf).stutter(2),
-			\isRest, Pseq([
-				0,1,
-			],inf).coin.not,
-			\legato, Pseq([0.9,0.9,0.9,0.4],inf).stutter(2),
-			\legato, 0.7,
-			\dur, 1/2,
-			\mixhpf, 0,
-			\mixlpf, 1,
-			\amp, 0.1/8,
-			\isRest, Pseq([
-				0
-			],inf).coin.not,
-		),
-		Pbind(
-			// skank
-			\instrument, \fmsaw,
-			\adsr, Pseq([
-				[ Env.adsr(0.1,0.1,0.8,0.1) ],
-			],inf),
-			\note, Pseq([
-				[1,5,8],
-				[1,6,10],
-				[3,8,12, 0],
-				[1,6,10, -2],
-			],inf).stutter(8).collect({ arg x; x.choose }) + Pseq([0,1],inf),
-			\isRest, Pseq([
-				00.32,0,1,0.2, 0.51,0,0.51,0,
-				0,1,0.2,1, 0.51,0,0.51,0,
-			],inf).coin.not,
-			\isRest, Pseq([
-				1,1,0.9,1,
-				1,1,1,0.9,
-			],inf).coin.not,
-			\octave, Pseq([4,4,4,Prand([5,3],1)],inf).stutter(2) + Prand([0,1,0],inf).stutter(8),
-			\legato, Pseq([0.9,0.9,0.9,0.4],inf).stutter(2) * 0.4,
-			//\legato, 0.7,
-			\dur, PdurStutter(Pseq([2,2,2,Prand([1,4],1)],inf),Pseq([1/4],inf)).trace,
-			//\dur, 1/8,
-			\mixhpf, 0,
-			\mixlpf, 1,
-			\amp, 0.1/6,
-		),
-		Pbind(
-			\instrument, \brownbass,
-			\degree, Pseq([1b,-3b,-2b, -3b],inf),
-			\octave, 3,
-			\dur, 1,
+		
+		Ptpar([
+			8, 	Pbind(
+			   		// chords
+			   		\instrument, \chordar,
+			   		\adsr, Pseq([
+			   			[ Env.adsr(0.1,0.1,0.8,0.1) ],
+			   			[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			   			[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			   			[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			   		],inf),
+			   		\note, Pseq([
+			   			[1,5,8],
+			   			[1,6,10],
+			   			[3,8,12, 0],
+			   			[1,6,10, -2],
+			   		],inf).stutter(8),
+			   		\isRest, Pseq([
+			   			0,1,0,0,
+			   			0,0,1,0,
+			   			1,0,1,0,
+			   			0,0,1,1,
+			   		],inf).coin.not,
+			   		\legato, Pseq([0.9,0.9,0.9,0.4],inf).stutter(2),
+			   		\legato, 1.7,
+			   		\legato, Pseq([
+
+			   				0,0,0,0, 3,0,0,0,
+			   				0,0,0,0, 3,0,0,0,
+			   				0,0,0,0, 3,0,0,0,
+			   				0,0,0,0, 3,0,0,0,
+			   
+			   				0.5,0,0,0, 1,0,0.5,0,
+			   				0,0,0,0, 3,0,0,0,
+			   				0,0,0,0, 3,0,0,0,
+			   				0,0,0,0, 3,0,0,0,
+			   
+			   				0,0,0,0, 3,0,0,0,
+			   				0,0.5,0,0, 3,0,0,0,
+			   				0,0,0,0, 3,0,0,0,
+			   				0,0,0,0, 2,0,0,0.5,
+
+			   				0,0,0,0, 1,0,0,0,
+			   				0,0,0,0, 1,0,0,0,
+			   				0,0,0,0, 1,0,0,0,
+			   				0,0,0,0, 1,0,0,0,
+
+			   				0,0,0,0, 1,0,0.5,0,
+			   				0,0,0,0, 0.5,0,0,0.5,
+			   				0,0,0.5,0, 1,0,0,0,
+			   				0,0,0,0, 1,0,0,0,
+
+			   		],inf),
+			   		\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			   		\dur, 1/8,
+			   		\mixhpf, 0,
+			   		\mixlpf, 1,
+			   		\amp, 0.1/8,
+			   	),
+			   
+			   12,Pbind(
+			   	// scratching!
+			   	\instrument, \fmsaw,
+			   	\adsr, Pseq([
+			   		[ Env.adsr(0.1,0.1,0.8,0.1) ],
+			   	],inf),
+			   	\note, Pseq([
+			   		[1,5,8],
+			   		[1,6,10],
+			   		[3,8,12, 0],
+			   		[1,6,10, -2],
+			   	],inf).stutter(8).collect({ arg x; x.choose }) + Pseq([0,1],inf),
+			   	\isRest, Pseq([
+			   		00.32,0,1,0.2, 0.51,0,0.51,0,
+			   		0,1,0.2,1, 0.51,0,0.51,0,
+			   	],inf).coin.not,
+			   	\isRest, Pseq([
+			   		1,1,0.9,1,
+			   		1,1,1,0.9,
+			   	],inf).coin.not,
+			   	\octave, Pseq([4,4,4,Prand([5,3],1)],inf).stutter(2) + Prand([0,1,0],inf).stutter(8),
+			   	\legato, Pseq([0.9,0.9,0.9,0.4],inf).stutter(2) * 0.4,
+			   	//\legato, 0.7,
+			   	\dur, PdurStutter(Pseq([2,2,2,Prand([1,4],1)],inf),Pseq([1/4],inf)).trace,
+			   	//\dur, 1/8,
+			   	\mixhpf, 0,
+			   	\mixlpf, 1,
+			   	\amp, 0.1/6,
+			   ),
+		4,Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef(\amen),
+			\degree, Pseq([0],inf),
+			\speed, 4*~t/(137/60),
+			\speed, 2*~t/(137/60),
+			\pos, Pseq([0,0,0,2],inf)*( 137/60 ),
+			\legato, 1,
+			\gain, 1/5,
+			\dur, 2,
 			\amp, 0.1
 		),
+		]),
+PmonoArtic(
+	\brownbass,
+	\degree, Pseq([1b,-3b,-2b, -3b],inf),
+	\legato, Pseq([
+		1,1,1,1, 0.2,0,0,0,
+	],inf)*0.9,
+	\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+	\octave, 3,
+	\dur, 1,
+	\amp, 0.1
+),
 		//PatKitDef(\sample1).asPattern(Pbind(
 		//	\kitIndex, 0,
 		//	\isRest, Pseq([
@@ -318,18 +388,6 @@ Pdef(\chords,
 		//	\dur, 1/8,
 		//	\amp, 0.1,
 		//)),
-		Pbind(
-			\instrument, \playersec,
-			\bufnum, BufDef(\amen),
-			\degree, Pseq([0],inf),
-			\speed, 4*~t/(137/60),
-			\speed, 2*~t/(137/60),
-			\pos, Pseq([0,0,0,2],inf)*( 137/60 ),
-			\legato, 1,
-			\gain, 1/5,
-			\dur, 2,
-			\amp, 0.1
-		),
 		//PatKitDef(\sample1).asPattern(Pbind(
 		//	\kitIndex, 4,
 		//	\isRest, Pseq({[
@@ -789,6 +847,7 @@ Pdef(\gomain).clear
 	ProtoDef(\rdn).play;
 	)
 
+	ProtoDef(\simpleMixer).edit
 (
 	ProtoDef(\rdn).play;
 Pdef(\acid, 

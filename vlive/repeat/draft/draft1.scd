@@ -203,6 +203,7 @@ Pdef(\main,
 Pdef.defaultQuant = 4
 
 ////////////////////////////////////
+// see algokit/synthdef.scd for guitar synthdef
 (
 	// lead
 	Pdef(\guitar3, 

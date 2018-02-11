@@ -509,6 +509,7 @@ Pdef(\melead1, Pbind(
 )).play;
 );
 
+Pdef(\melead1).stop;
 
 (
 SynthDef(\sale, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, speed=1, pos=0, doneAction=2, loop=1, bufnum;
@@ -760,3 +761,6 @@ Pdef(\amen, Pbind(
 	\amp, 0.1
 )).play;
 )
+
+Pdef(\sale).stop
+Pdef(\test).stop

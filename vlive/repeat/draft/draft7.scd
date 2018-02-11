@@ -17,7 +17,10 @@ PatKitDef('hardcore').targets = [
 );
 
 
+(
 ~t = 180/2/60; TempoClock.default.tempo = ~t;
+Pdef.defaultQuant = 8;
+)
 
 Pdef(\drums).set(\out, nil)
 (
@@ -273,6 +276,7 @@ Pdef(\cadrums,
 				1,0,0,0, 1,0,0,0,
 			].clump(8).choose}.dup(8).flat,inf).coin.not,
 			\sustain, 0.5,
+			\hasGate, false,
 			\dur, 1/8,
 			\amp, 0.1,
 		)),
@@ -282,11 +286,43 @@ Pdef(\cadrums,
 				1,0,0,0, 1,0,0,0,
 			],inf).coin.not,
 			\sustain, 0.5,
+			\hasGate, false,
 			\pos, 1/4,
 			\speed, -1,
 			\dur, 1/8,
 			\amp, 0.1,
 		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 0,
+			\isRest, Pseq([
+				1,0,1,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,1,0,
+				1,0,0,1, 0,0,0,0,
+			],inf).coin.not,
+			\hasGate, false,
+			\sustain, 0.1,
+			\dur, 1/8,
+			\amp, 0.1,
+		)),
+		Pbind(
+			\instrument, \snarebpf2,
+			\freq, 200,
+			\legato, Pseq([
+				8,0,0,4, 0,1,0,0,
+				8,0,0,4, 0,4,0,1,
+				8,0,0,1, 0,4,0,0,
+				2,0,0,4, 0,1,0,1,
+			],inf)/10,
+			\hasGate, false,
+			\legato, Pseq([
+				4,0,1,0,
+				4,0,16,0,
+			],inf)/8,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\amp, 0.1
+		);
 	]),
 
 ).play;

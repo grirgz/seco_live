@@ -145,3 +145,44 @@ Ndef(\chord, { arg freq=800, pan=0, amp=0.1;
 	sig.debug("sig");
 }).play;
 );
+
+///////////////////
+(
+SynthDef(\tredrone, { arg lagf=0, freq=200, pan=0, amp=0.1, out=0;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freq = freq.lag(lagf);
+	freq = freq * [1, 5/3];
+	sig = LFPulse.ar(freq * ( 1 + ( CuspL.ar(\cusfreq.kr(10) + [1,2,3],\cus2.kr(1.1),\cus3.kr(1)).lag(0.1) * ( CuspL.ar(0.1)/3 + 0.1+[ [0,0.01] ] ) * \fma.kr(1) ))).mean;
+	sig.debug("kjkj");
+	sig = sig /13;
+	sig1 = sig;
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq.lag(1) * SinOsc.kr(1*~t * [1,3/5]).range(0,1), \rq.kr(0.5));
+	sig = sig + BPF.ar(sig1, freq.lag(1) * 8);
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+(
+Pdef(\demo, PmonoArtic(\tredrone,
+	\legato, 1,
+	\cus3, { rrand(0.01,10) }.dup(3),
+	\fma, 0.01,
+	\cus2, [1,2,3]*10,
+	\cusfreq, [1,2,3]/3,
+	\lpfr, 2,
+	\lagf, Pseq([1,0,0,1]/2,inf).stutter(8),
+	\degree, Pseq([
+		[0,2,4],
+		[0,2,4]+2,
+		[0,2,4],
+		[0,2,4]+2-12,
+		[0,2,4],
+		[0,2,4]+2,
+		[0,2,4],
+		[-20,-20,-20],
+	],inf).stutter(8),
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+);

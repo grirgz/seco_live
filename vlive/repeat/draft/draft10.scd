@@ -1,8 +1,10 @@
 
 
 
+	ProtoDef(\simpleMixer).edit
 
 (
+	ProtoDef(\simpleMixer).play;
 Pdef(\ixo,
 	Pbind(\octave, Pseq([5,4,5,5,5],inf)) <>
 	Ppar([

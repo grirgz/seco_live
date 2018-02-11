@@ -1,3 +1,4 @@
+~t = 145/3/60; TempoClock.default.tempo = ~t; // dont know original
 (
 SynthDef(\playersec_fxpan, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, trigger=1, velamp=1;
 	// pos in seconds

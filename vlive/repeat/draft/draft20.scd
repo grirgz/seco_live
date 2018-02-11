@@ -1,6 +1,8 @@
 
 	~rdn_to_fbstring.(RandDelayNetwork(\deldefault)).editorInsert;
 
+	~t = 185/4/60; TempoClock.default.tempo = ~t;
+
 ////////////////
 p
 RandDelayNetwork(\deldefault).make(\fx1, "4--", BusDef(\fx1)).edit
@@ -690,7 +692,7 @@ SynthDef(\silead, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	).play;
 	)
 
-
+Pdef(\drumz).clear;
 	(
 	Pdef(\drumz, 
 		Ppar([

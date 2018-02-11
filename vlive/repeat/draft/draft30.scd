@@ -1,5 +1,6 @@
 ~t = 135/4/60; TempoClock.default.tempo = ~t;
 
+ProtoDef(\simpleMixer).play
 (
 	~master.();
 Pdef(\capdrums, 

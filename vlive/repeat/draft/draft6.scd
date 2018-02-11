@@ -159,7 +159,7 @@ Pdef(\testdrums).set(\out, BusDef(\sendbus3))
 Pdef(\testdrums).set(\out, nil)
 Pdef(\kit_workspace, Pdef(\testdrums))
 (
-Pdef(\testdrums, 
+Pdef(\part, Pdef(\testdrums, 
 	Ppar([
 		Pbind(
 			\instrument, \snapkick,
@@ -228,7 +228,7 @@ Pdef(\testdrums,
 
 		
 	])
-).play;
+)).play;
 )
 
 Pdef(\testdrums).set(\out, BusDef(\sendbus2, \audio))
@@ -303,7 +303,7 @@ Pdef(\testdrums3).set(\out, nil)
 Pdef(\testdrums3).set(\out, BusDef(\sendbus2))
 (
 	// var 2
-Pdef(\testdrums2, 
+Pdef(\part, Pdef(\testdrums2, 
 	Ppar([
 		Pbind(
 			\instrument, \snapkick,
@@ -389,11 +389,11 @@ Pdef(\testdrums2,
 
 		
 	])
-).play;
+)).play;
 )
 
 (
-Pdef(\testdrums3, 
+Pdef(\part, Pdef(\testdrums3, 
 	Ppar([
 		Pbind(
 			\instrument, \snapkick,
@@ -529,13 +529,13 @@ Pdef(\testdrums3,
 
 		
 	])
-).play;
+)).play;
 )
 
 
 (
 	// var 4
-Pdef(\testdrums2, 
+Pdef(\part, Pdef(\testdrums2, 
 	Ppar([
 		Pbind(
 			\instrument, \snapkick,
@@ -621,7 +621,7 @@ Pdef(\testdrums2,
 
 		
 	])
-).play;
+)).play;
 )
 
 
@@ -776,10 +776,10 @@ Pdef(\resamp,
 
 				],inf),
 				\isRest, Pseq([
-					1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,
+					1,0,0,0, 1,0,0,0,
 				],inf).coin.not,
 				\isRest, Pseq([
-					1,0,0,0, 1,0,0,0,
+					1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,
 				],inf).coin.not,
 				\speed, Pseq([
 					1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,
@@ -1343,15 +1343,15 @@ Pdef(\trans1,
 			),
 		])),
 			Pbind(
-				\instrument, \sampleosc,
+				\instrument, \playersec,
 				\pos, 1/~t+0.04,
 				\bufnum, BufDef('loop/funky1_96bpm.flac'),
 				\freq, 200,
-				\speed, 3,
+				\speed, 1,
 				\isRest, Pser([
 					1,
-				],1).coin.not,
-				\dur, 1/8,
+				],inf).coin.not,
+				\dur, 1,
 				\amp, 0.1
 			),
 		Pbind(
@@ -1519,6 +1519,7 @@ Pdef(\trans1,
 ///////////////////// slow motion
 ~t = 96/2/60; TempoClock.default.tempo = ~t;
 (
+	Pdef(\part).stop;
 Pdef(\resamp, 
 	// rand part in order
 	Pseq([

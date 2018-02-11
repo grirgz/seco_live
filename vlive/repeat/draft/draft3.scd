@@ -4,23 +4,6 @@
 // TODO
 
 
-(
-Pdef(\plop, Pbind(
-	\instrument, \,
-	\degree, Pseq([0],inf),
-	\dur, 1,
-	\amp, 0.1
-)).play;
-);
-
-(
-Pdef(\plop, Pbind(
-	\instrument, \default,
-	\degree, Pseq([0],inf),
-	\dur, 1,
-	\amp, 0.1
-)).play;
-);
 
 Pdef(\main, 
 	Ppar([
@@ -133,7 +116,7 @@ Pdef(\chords, Pbind(
 		[1,4,6],
 	],inf),
 	\dur, PdurStutter(Pseq([1,1,1,2],inf),2),
-	\amp, 0.1/3,
+	\amp, 0.1/1,
 )).play;
 );
 

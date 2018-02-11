@@ -123,7 +123,7 @@ Pdef(\part, Pdef(\plop,
 			\freq, 200,
 			\distamp, 50,
 			\delay, 0.0001,
-			\gain, 0.3,
+			\gain, 0.3/3,
 			\dur, 1,
 			\amp, 0.1,
 		),
@@ -138,7 +138,7 @@ Pdef(\part, Pdef(\plop,
 			\modfreq, 4*~t,
 			\modamp, 0.0001,
 			\hpf, 500,
-			\gain, 0.9,
+			\gain, 0.9/4,
 			\dur, 1,
 			\amp, 0.1,
 		),
@@ -544,6 +544,7 @@ Pdef(\part_drum, Pdef(\drumsplop,
 )).play;
 )
 
+Pdef(\part).stop;
 
 
 /////////////////////////////////////////////////////////

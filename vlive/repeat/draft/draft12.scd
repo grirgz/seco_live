@@ -60,6 +60,8 @@ SynthDef(\pico, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 		).play
 		)
 
+		PatKitDef(\sample1).edit
+
 (
 // tyler yonker
 r = \r;

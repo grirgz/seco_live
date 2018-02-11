@@ -969,3 +969,76 @@ Pdef(\demo, Pdef(\plopdemo,
 )).play;
 )
 
+//////////////////
+
+
+
+(
+SynthDef(\bigbass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([2,1.2,1/2],[0.011,1.7]), 1);
+	sig = LFSaw.ar(freq * env1 * [1,1/2,1.005]) * [1,1,1];
+	//sig = RLPF.ar(sig, \lpfr.kr(1.1) * env1 * freq, \rq.kr(0.5));
+	//sig = BPF.ar(sig, freq/2, 0.1) * 3 + sig;
+	sig = sig + SinOsc.ar(freq); 
+	sig = LPF.ar(sig, \lpfr.kr(2.1) * env1 * freq);
+	sig = ( sig*2 ).tanh * 3;
+	sig = HPF.ar(sig, 30);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.4,1.4)),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+	Pdef(\demo, 
+		Pbind(
+			\instrument, \bigbass,
+			\degree, Pseq([0],inf),
+			\octave, 3,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\legato, 4,
+			\dur, 1/4,
+			\amp, 0.1
+		),
+	).play
+);
+
+//////////////////////
+(
+SynthDef(\emergency, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	freq = freq.lag(1);
+	lfo1 = LFPulse.kr(4, 0, 0.84).range(-1,1) * 0.9;
+	lfo1 = LPF.kr(lfo1, 10);
+	env1 = EnvGen.kr(\adsr.kr(Env.dadsr(0.2,0.4,0.0,1,0.1,1,4)), gate, doneAction:0);
+	sig = LFPulse.ar(freq * ( 1 + ( LFSaw.ar(freq/2) * 1.4 )) * ( 1 + ( SinOsc.ar(freq*2 * [1,1.0001]) * 0.4 )));
+	sig1 = sig;
+	sig1 = BPF.ar(sig1, ( freq/4  + ( env1 * freq ) * ( lfo1.lag(0.1) + 1 )), 0.8);
+	sig1 = ( sig1 * 1000 ).clip2(1)/2;
+	sig = sig1 + sig;
+	sig = LPF.ar(sig, ( freq*2+100  + ( env1 * freq ) * ( lfo1 + 1 )).clip(80,20000));
+	sig = LPF.ar(sig, 10000);
+	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.5),gate,doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\emergency, Pbind(
+	\instrument, \emergency,
+	\degree, Pseq([0,2,4,2],inf),
+	\octave, 3,
+	\dur, 2,
+	\amp, 0.1
+)).play;
+);

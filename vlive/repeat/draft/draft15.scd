@@ -349,6 +349,7 @@ Pdef(\deldel, Pbind(
 );
 
 
+(
 Pdef(\fadrum, 
 	Pseq([
 		Pfindur(6,
@@ -479,6 +480,7 @@ Pdef(\fadrum,
 		),
 	],inf),
 ).play;
+)
 
 
 (

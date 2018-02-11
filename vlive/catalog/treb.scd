@@ -1449,3 +1449,166 @@ Pdef(\demo, Pdef(\plopxx,
 			\gain, 5,
 			\amp,0.05,
 		),
+
+
+////////////////
+// simple acid
+
+(
+	// aka silead
+SynthDef(\simpleacid, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\env1.kr(Env([1,2,1],[0.01,0.8])), 1);
+	sig = LFSaw.ar(freq + [ [0,0.0001] ] * [1,1/2,2]).sum;
+	sig.debug("sig");
+	sig = RLPF.ar(sig, \lpfr.kr(2.1) * freq * env1, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+)
+
+
+(
+Pdef(\demo, 
+	Ppar([
+				Pbind(
+					\instrument, \simpleacid,
+					//\out, BusDef(\fx2),
+					\env1, Pseq([
+						Pseq([
+							[ Env([1,2,1],[0.01,0.8]) ],
+							[ Env([1,2,1],[0.1,0.8]) ],
+						],8),
+						Pseq([
+							[ Env([1,2,1],[0.01,0.8]) ],
+							[ Env([1,2,1],[0.01,0.2]) ],
+						],4),
+						Pseq([
+							[ Env([1,2,1],[0.01,0.6]) ],
+							[ Env([1,2,1],[0.1,0.8]) ],
+							[ Env([1,2,1],[0.01,0.8]) ],
+						],8),
+					],inf),
+					\lpfr, ~pmodenv.(Pseq([1,2,1,4]/2,inf), Pseq([4],inf)),
+					\rq, ~pmodenv.(Pseq([0.1,0.2,0.1,0.4]/2,inf), Pseq([4],inf)),
+					\note, Pseq([
+						[1+12, 7], 
+					],inf),
+					\octave, 6,
+					\legato, Pseq([
+						Pser([
+							0.2,0.7,
+						],12),
+						Pser([
+							2,1,1,1,
+						],4),
+					],inf) * Pseg(Pseq([0.4,1,0.2,0.8],inf),8),
+					\dur, 1/8,
+					\amp, 0.011,
+				),
+	])
+).play;
+)
+
+(
+Pdef(\demo, 
+	Ppar([
+				Pbind(
+					\instrument, \simpleacid,
+					//\out, BusDef(\fx2),
+					\env1, Pseq([
+						Pseq([
+							[ Env([1,2,1],[0.01,0.8]) ],
+							[ Env([1,2,1],[0.1,0.8]) ],
+						],8),
+						Pseq([
+							[ Env([1,2,1],[0.01,0.8]) ],
+							[ Env([1,2,1],[0.01,0.2]) ],
+						],4),
+						Pseq([
+							[ Env([1,2,1],[0.01,0.6]) ],
+							[ Env([1,2,1],[0.1,0.8]) ],
+							[ Env([1,2,1],[0.01,0.8]) ],
+						],8),
+					],inf),
+					\lpfr, ~pmodenv.(Pseq([1,2,1,4]/2,inf), Pseq([4],inf)),
+					\rq, ~pmodenv.(Pseq([0.1,0.2,0.1,0.4]/2,inf), Pseq([4],inf)),
+					\note, Pseq([
+						Pseq([
+							[2-12, 5, 10],
+							[5, 10, 2-12],
+							\r,
+							[10-12, 5, 10],
+
+							\r,
+							[5, 10, 2-12],
+							Prand([ \r, [5, 10], ],1),
+							[5-12, 5, 10],
+
+							Prand([ \r, [5, 10, 2-12], ],1),
+							[5, 10],
+							\r,
+							\r
+						],1),
+						[1+12, 7], \r,\r,\r,
+					],8),
+					\octave, 6,
+					\legato, Pseq([
+						Pser([
+							0.2,0.7,
+						],12),
+						Pser([
+							2,1,1,1,
+						],4),
+					],inf) * Pseg(Pseq([0.4,1,0.2,0.8],inf),8),
+					\dur, 1/8,
+					\amp, 0.011,
+				),
+	])
+).play;
+)
+
+
+///////////////////
+(
+SynthDef(\tredrone, { arg lagf=0, freq=200, pan=0, amp=0.1, out=0;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freq = freq.lag(lagf);
+	freq = freq * [1, 5/3];
+	sig = LFPulse.ar(freq * ( 1 + ( CuspL.ar(\cusfreq.kr(10) + [1,2,3],\cus2.kr(1.1),\cus3.kr(1)).lag(0.1) * ( CuspL.ar(0.1)/3 + 0.1+[ [0,0.01] ] ) * \fma.kr(1) ))).mean;
+	sig.debug("kjkj");
+	sig = sig /13;
+	sig1 = sig;
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq.lag(1) * SinOsc.kr(1*~t * [1,3/5]).range(0,1), \rq.kr(0.5));
+	sig = sig + BPF.ar(sig1, freq.lag(1) * 8);
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+(
+Pdef(\demo, PmonoArtic(\tredrone,
+	\legato, 1,
+	\cus3, { rrand(0.01,10) }.dup(3),
+	\fma, 0.01,
+	\cus2, [1,2,3]*10,
+	\cusfreq, [1,2,3]/3,
+	\lpfr, 2,
+	\lagf, Pseq([1,0,0,1]/2,inf).stutter(8),
+	\degree, Pseq([
+		[0,2,4],
+		[0,2,4]+2,
+		[0,2,4],
+		[0,2,4]+2-12,
+		[0,2,4],
+		[0,2,4]+2,
+		[0,2,4],
+		[-20,-20,-20],
+	],inf).stutter(8),
+	\dur, 1,
+	\amp, 0.1
+)).play;
+);
+);
