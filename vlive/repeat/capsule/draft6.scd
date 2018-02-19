@@ -871,7 +871,7 @@ Pdef(\part, Pdef(\perc_verse2,
 			),
 		Pbind(
 			\instrument, Pseq([\playersec_zix],inf).stutter(8*4),
-			\out, BusDef(\mixer5, \audio),
+			//\out, BusDef(\mixer5, \audio),
 			\bufnum, BufDef('voices/feynman.flac'),
 			\pos, Pseq([
 				0,
@@ -890,7 +890,6 @@ Pdef(\part, Pdef(\perc_verse2,
 			],inf),
 			\gain, 0.6,
 			\dur, 1/16,
-			\amp, 0.1,
 		),
 		
 	])

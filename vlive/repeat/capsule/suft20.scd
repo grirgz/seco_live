@@ -87,12 +87,15 @@ Pdef(\part, Pdef(\plop,
 				\amp, 0.1,
 			),
 			// no unlimit, no lowlatency kernel
-			// 10: no xrun
+			// 13: no xrun
 			// 14: first xrun
 			// 15: 1 xrun/s
 			// with ulimit, lowlatency
 			// same :(
-			14.collect({ arg idx;
+			// with old computer
+			// 6: no xrun
+			// 7: unusable, 20 Xrun/s
+			5.collect({ arg idx;
 				Pbind(
 					\instrument, \milsin,
 					\freqfac, 1+(idx/4),

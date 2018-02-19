@@ -1,10 +1,11 @@
 FileSystemProject.load("capsule/track1.scd");
 FileSystemProject.load("capsule/draftsynth.scd");
 (
+	ProtoDef(\simpleMixer).play;
 
 	~master.();
 	Pdef(\drems1, 
-		Pbind(\out, BusDef(\sendbus1))<>
+		Pbind(\out, BusDef(\mixer0))<>
 		Ppar([
 			Pbind(
 				\instrument, \snapkick,
