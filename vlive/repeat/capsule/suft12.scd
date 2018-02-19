@@ -2150,7 +2150,7 @@ SynthDef(\fxringer, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 					\att, ~pmodenv.(Pseq([0.002,0.18,0.04],inf), 5),
 					\out, BusDef(\fx3, \audio),
 					\dur, 1/8,
-					\amp, 0.1,
+					\amp, 0.1/2,
 				),
 
 				// fx

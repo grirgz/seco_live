@@ -1,3 +1,4 @@
+(
 SynthDef(\pluck, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, coef=0, decay=10;
 	var sig;
 	var ex;
@@ -141,6 +142,11 @@ SynthDef(\rdnampdel, { arg out=0, gate=1;
 	Out.ar(out, sig);
 
 }).add;
+)
+
+AudioSpec
+PatKitDef(\ksh2b).edit
+PatKitDef(\ksh2b).elAt(0).play
 
 (
 Pdef(\part, Pdef(\plop, 
@@ -638,3 +644,7 @@ Pdef(\part, Pdef(\plop,
 	])
 )).play;
 )
+
+
+
+

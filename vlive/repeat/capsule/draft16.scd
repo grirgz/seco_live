@@ -134,3 +134,33 @@ Pdef(\plopx, Pbind(
 	\amp, 0.1,
 )).play;
 );
+
+{ SinOsc.ar(700) ! 2 * 0.1}.play;
+
+(
+Pdef(\demo, Pbind(
+	\instrument, \default,
+	\isRest, Pseq([
+		0,0,1,0, 1,0,1,0,
+	],inf).coin.not,
+	\isRest, true,
+	\freq, 200,
+	\dur, 1,
+	\amp, 0.1,
+)).play;
+)
+
+(
+Pdef(\demo, Pbind(
+	\instrument, \default,
+	\legato, Pseq([
+		1,0,0,0, 0,0,0,0,
+	],inf),
+	\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+	\isRest, true,
+	\freq, 200,
+	\dur, 1,
+	\amp, 0.1,
+	//\isRest, true, // mute the pattern
+)).play;
+)
