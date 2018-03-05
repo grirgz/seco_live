@@ -293,19 +293,7 @@ Ndef(\shifttreb).put(0, { arg pan=0, amp=0.1;
 	]*~t,inf));
 	seq2 = Duty.ar(1*dscale, 0, Dseq([80,50],inf)).lag(0.1);
 	seq3 = Duty.ar(1/4*dscale, 0, Dseq([
-		Dseq(~cdegcps.(
-			(
-				Pseq([
-						0,
-						7,
-						-4,
-						7,
-				],inf).stutter(2)  + 12
-				+ Pseq([
-					0,5,1,6,
-				]).stutter(16)
-			).asStream.nextN(4*16)
-		, 3, 60.midicps, Scale.minor))
+		Dseq([0,1,3,4].midiratio * 400)
 	],inf)).lag(0.1);
 	seq4 = Duty.ar(1/4*dscale, 0, Dseq([
 		1,2,1,4,

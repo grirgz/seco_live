@@ -1582,3 +1582,13 @@ Pdef(\part, Pdef(\plop,
 		])
 	)).play;
 );
+
+
+(
+Pdef(\part, Pdef(\plik, 
+	Ppar([
+		Pdef(\ronoswing4),
+		Pdef(\ronoswingtreb),
+	])
+)).play;
+)

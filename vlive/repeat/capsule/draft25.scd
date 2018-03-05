@@ -429,6 +429,7 @@ Pdef(\part, Pdef(\plop,
 	])
 )).play;
 )
+Pdef(\part).stop
 
 (
 	~master.();

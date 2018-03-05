@@ -2,6 +2,22 @@
 
 
 (
+SynthDef(\ulu, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fspread =1;
+	var sig;
+	var fmt = CuspN.ar((1..8)/30) * \fmtamp.kr(0.2) + 1; 
+	sig = SinOsc.ar(freq * [1,1/2,3/5,2] * ((0..7)/7 - 0.5 * fspread + 1) * ( SinOsc.ar(freq*\fmr.kr(1) * fmt) * \fmamp.kr(1) + 1 ));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	pan = pan + SinOsc.ar((1..8)/20, (1..8)); 
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\ulu2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\cymnoise, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fac1=1;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;

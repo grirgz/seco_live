@@ -207,6 +207,7 @@ Pdef(\part, Pdef(\plop,
 )
 
 (
+// transition master
 Pdef(\part, Pdef(\plop, 
 	Ppar([
 		//Pmono(\echh,
@@ -997,7 +998,7 @@ Pdef(\part, Pdef(\serpent1,
 
 			\legato, 1,
 			\dur, 2,
-			\amp, 0.1,
+			\amp, 0.2,
 		),
 			PatKitDef(\ksh2b).asPattern(Pbind(
 				\kitIndex, 5,
@@ -1099,7 +1100,7 @@ Pdef(\part, Pdef(\serpent2,
 
 			\legato, 1,
 			\dur, 2,
-			\amp, 0.1,
+			\amp, 0.2,
 		),
 			PatKitDef(\ksh2b).asPattern(Pbind(
 				\kitIndex, 5,

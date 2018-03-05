@@ -1,6 +1,14 @@
 
 
 (
+SynthDef(\bluk, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * 0.01 + 1)).mean;
+	sig = RLPF.ar(sig, \lpfr.kr(2.1) * ((0..7)/7 - 0.5 * 2 + 1) * freq, \rq.kr(0.5)* ((0..7)/7 - 0.5 * 0.01 + 1)).mean;
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\source1, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	sig = SinOsc.ar(freq);
@@ -114,14 +122,6 @@ Pdef(\plop, Pbind(
 4.partition
 
 (
-SynthDef(\bluk, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * 0.01 + 1)).mean;
-	sig = RLPF.ar(sig, \lpfr.kr(2.1) * ((0..7)/7 - 0.5 * 2 + 1) * freq, \rq.kr(0.5)* ((0..7)/7 - 0.5 * 0.01 + 1)).mean;
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
 );
 
 (

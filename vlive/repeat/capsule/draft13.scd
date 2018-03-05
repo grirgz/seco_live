@@ -344,7 +344,7 @@ Pdef(\part, Pdef(\ronopart1,
 				\isRest, Pseq([
 					1,1,
 				],inf).coin.not,
-				\isRest, Pstep(Pseq([0,1,1,1],inf),1/2),
+				\isRest, Pstep(Pseq([0,1,1,1],inf),1/2).coin.not,
 				\sustain, Pseq([0.08,0.02],inf),
 				\dur, Pseg(Pseq([1/2,1/16,1/2,1/8],inf),1/2,4),
 				\amp, 0.2,
@@ -417,6 +417,7 @@ Pdef(\part, Pdef(\ronopart1,
 )).play;
 );
 
+Pdef(\part).clear;
 (
 	~master.();
 Pdef(\part, Pdef(\ronopart1,
@@ -497,7 +498,7 @@ Pdef(\part, Pdef(\ronopart1,
 					Pseq([
 						0,0,0,0
 					],1),
-				],inf),1/2),
+				],inf),1/2).coin,
 				\sustain, Pseq([0.08,0.02],inf),
 				\dur, Pseg(Pseq([1/2,1/16,1/2,1/8],inf),1/2,4),
 				\amp, 0.2,

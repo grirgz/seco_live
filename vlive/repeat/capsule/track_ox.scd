@@ -1,3 +1,4 @@
+FileSystemProject.load("lib/synth.scd")
 (
 SynthDef(\playersec_osc, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
 	// pos in seconds
@@ -107,6 +108,8 @@ SynthDef(\droblipbass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 Pdefn(\fxgroup, Pfunc({ GroupDef(\fx, 1, \addAfter)  }));
 ProtoDef(\simpleMixer).tracks[0].proxy.set(\send3, 1);
 );
+	ProtoDef(\simpleMixer).edit
+	ProtoDef(\simpleMixer).tracks[0].proxy.send
 
 (
 	~mymaster.();
@@ -883,8 +886,8 @@ Pdef(\testox, Pdef(\oxfast2,
 		),
 
 				Pbind(
-					\out, BusDef(\mixer2),
 					\instrument, \phyhat3,
+					\out, BusDef(\mixer2),
 					\isRest, Pseq([
 						1,0,0, 1,0,0, 1,0,0, 1,0,0,
 						1,0,0, 1,0,0, 1,0,0, 1,0,0,
@@ -907,8 +910,8 @@ Pdef(\testox, Pdef(\oxfast2,
 					\amp, 0.0132,
 				),
 				Pbind(
-					\out, BusDef(\mixer0),
 					\instrument, \snapkick,
+					\out, BusDef(\mixer0),
 					\isRest, Pseq([
 
 						1,0,0, 1,0,0,  0,0,0, 0,0,1,

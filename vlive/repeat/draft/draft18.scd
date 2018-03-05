@@ -1,5 +1,76 @@
 
 (
+SynthDef(\sibass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq);
+	sig = RLPF.ar(sig, \lpfr.kr(2.1) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\leadz, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	freq = freq.lag(0.02);
+	sig = LFSaw.ar(freq * [1,1.001,2,1/2] * ( 1 + ( SinOsc.ar(freq * [1,2,3]) * 1 ))).mean*2;
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = HPF.ar(sig, 400);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\leadz2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	freq = freq.lag(0.02) * 4;
+	sig = LFPulse.ar(freq * [1,1.001,2,1/2] * ( 1 + ( SinOsc.ar(freq * 1/[1,2,3]) * 1 ))).mean*2;
+	sig = BPF.ar(sig, freq*1,0.1) + sig;
+	sig = HPF.ar(sig, freq*1/4);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.4),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\stick, { |out = 0, amp = 0.5, pan = 0, dur = 1|
+    var env1, env2, snd, noise1, noise2;
+
+    // noise 1 - 4 short repeats
+    env1 = EnvGen.ar(
+        Env.new(
+            [0, 1, 0.9, 0.9, 0.9, 0.7, 0, 0.7, 0],
+            [0.001, 0.001, 0, 0.008, 0, 0.01, 0, 0.01],
+            [0, 0, 0, 00, 0, -3, 0, -4]
+        )
+    );
+
+    noise1 = WhiteNoise.ar(env1);
+    noise1 = HPF.ar(noise1, 600);
+    noise1 = LPF.ar(noise1, XLine.kr(7200, 7000, 0.03)/2);
+    noise1 = BPF.ar(noise1, 1620, 3);
+
+    // noise 2 - 1 longer single
+    env2 = EnvGen.ar(Env.new([0, 1, 0], [0.02, 0.18], [0, -4]), doneAction:2);
+
+    noise2 = WhiteNoise.ar(env2);
+    noise2 = HPF.ar(noise2, 1000);
+    noise2 = LPF.ar(noise2, 7600);
+    noise2 = BPF.ar(noise2, 1230, 0.7, 0.7);
+
+    snd = noise1 + noise2;
+    snd = snd * 2;
+    snd = snd.softclip;
+
+    Out.ar(out, Pan2.ar(snd,pan,amp));
+}).add;
+SynthDef(\noisybass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freq = freq.lag(0.4);
+	env1 = EnvGen.kr(Env([0,0,7000,0],[0.01,0.4,1.8]), \trigx.tr(1));
+	sig = SinOsc.ar(freq * [1,1.0001]);
+	sig = sig.tanh;
+	sig = LPF.ar(sig, \lpfr.kr(4.1) * freq + env1);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
 	SynthDef(\rdnfx, { arg out=0, gate=1;
 		var sig;
 		var si, env = ();
@@ -92,122 +163,122 @@ SynthDef(\chord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 
 
 (
-Pdef(\rdndrums, 
-	Ppar([
-		Pmono( \rdnfx,
-			\inbus, BusDef(\fx1, \audio),
-			[\delay1, \delay2, \delay3, \delay4], Pseq([
-[ 0.00086844078036751, 0.00027572244550975, 0.00060387408080565, 0.00064495210183222 ]
-			],inf).stutter(8),
-			[\delay5, \delay6, \delay7, \delay8], Pseq([
-//				exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
-[ 0.0033127010079837, 0.0018962804466777, 0.0014975064715848, 8.7199981151866e-05 ],
-[ 0.0033127010079837, 0.0038962804466777, 0.0054975064715848, 8.7199981151866e-05 ],
-//				[ 1.4776361881311e-05, 0.00021369755079883, 0.0021610913869225, 0.00065371045821454 ]
-				//rrand(0.01,0.08!4).asCompileString.editorInsert
-			],inf).stutter(1)*1 * Pseq([1,1,1,1/8],inf),
-			\mideq1b, 100,
-			\middb1b, -94,
-			\mideq2b, 110,
-			\middb2b, -94,
-			\midrq2b, 0.4,
-			\ehpf, 150,
-			\gain, 0.4,
-			\distamp, Pseq([
-				1,10,10,10,
-				100,100,1,1,
-			],inf),
-			\fb, Pseq([
-				0.01, 0.01,0.02,0.04,
-				0.01, 0.01,0.1,0.1,
-			],inf),
-			\dur, 1/4,
-		),
-		Pmono( \rdnfx,
-			\inbus, BusDef(\fx2, \audio),
-			[\delay1, \delay2, \delay3, \delay4], Pseq([
-[ 0.0010934792433603, 3.6772602228283e-05, 0.00059252833428699, 0.007612796284198 ]
-			],inf).stutter(8),
-			[\delay5, \delay6, \delay7, \delay8], Pseq([
-//				exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
-[ 0.0004953161768388, 3.2359682764214e-05, 1.4364910591105e-05, 3.2158973656053e-05 ],
-[ 0.00049008475438402, 9.6585073207509e-05, 0.0011638308203766, 0.00039246305281146 ],
-			],inf).stutter(1)*1 ,
-			\mideq1b, 100,
-			\middb1b, -94,
-			\mideq2b, 110,
-			\middb2b, -94,
-			\midrq2b, 0.4,
-			\ehpf, 200,
-			\gain, 0.4,
-			\distamp, Pseq([
-				0,0,0,0,
-				1,1,1,10,
-			],inf),
-			\fb, Pseq([
-				0.01, 0.01,0.02,0.01,
-			],inf),
-			\dur, 1/2,
-		),
-		Pbind(
-			\instrument, \chord,
-			\out, BusDef(\fx2, \audio),
-			\octave, 6,
-			\degree, Pseq([
-				\r,\r,\r,\r,
-				[0,2,4],
-				[0,2,4],
-				[0,2,4],
-				[-1,2,4],
-			],inf),
-			\legato, Pseq([
-				0.3,0.3,0.3,0.9,
-			],inf),
-			\dur, 1/8,
-			\amp, 0.1
-		),
-		PatKitDef(\sample1).asPattern(Pbind(
-			\out, BusDef(\fx1, \audio),
-			\kitIndex, 0,
-			\isRest, Pseq({[
-				1,0,1,0, 0,0,0,0,
-				1,0,0,1, 0,0,0,0,
-				1,0,0,0, 0,0,0,0,
-				1,0,0,0, 0,0,1,0,
-			].clump(8).choose}.dup(8).flat,inf).coin.not,
-			\sustain, 0.1,
-			\dur, 1/8,
-			\amp, 0.1,
-		)),
-		PatKitDef(\sample1).asPattern(Pbind(
-			\out, BusDef(\fx1, \audio),
-			\kitIndex, 4,
-			\isRest, Pseq({[
-				0,0,0,0, 1,0,0,0,
-			].clump(8).choose}.dup(8).flat,inf).coin.not,
-			\sustain, 0.1,
-			\dur, 1/8,
-			\amp, 0.1,
-		)),
-		PatKitDef(\sample1).asPattern(Pbind(
-			\out, BusDef(\fx1, \audio),
-			\kitIndex, 8,
-			\isRest, Pseq({[
-				1,1,1,1, 1,1,1,1,
-				1,0,1,0, 1,0,1,0,
-				1,0,0,0, 1,0,0,0,
-				0,0,1,0, 0,0,1,0,
-			].clump(8).choose}.dup(8).flat,inf).coin.not,
-			\sustain, 0.1,
-			\adsr, Pseq([
-				[ Env.adsr(0.01,0.1,0.4,0.4) ],
-			],inf),
-			\dur, 1/8,
-			\gain, 1/2,
-			\amp, 0.1,
-		)),
-	])
-).play;
+	Pdef(\rdndrums, 
+		Ppar([
+			Pmono( \rdnfx,
+				\inbus, BusDef(\fx1, \audio),
+				[\delay1, \delay2, \delay3, \delay4], Pseq([
+					[ 0.00086844078036751, 0.00027572244550975, 0.00060387408080565, 0.00064495210183222 ]
+				],inf).stutter(8),
+				[\delay5, \delay6, \delay7, \delay8], Pseq([
+					//				exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
+					[ 0.0033127010079837, 0.0018962804466777, 0.0014975064715848, 8.7199981151866e-05 ],
+					[ 0.0033127010079837, 0.0038962804466777, 0.0054975064715848, 8.7199981151866e-05 ],
+					//				[ 1.4776361881311e-05, 0.00021369755079883, 0.0021610913869225, 0.00065371045821454 ]
+					//rrand(0.01,0.08!4).asCompileString.editorInsert
+				],inf).stutter(1)*1 * Pseq([1,1,1,1/8],inf),
+				\mideq1b, 100,
+				\middb1b, -94,
+				\mideq2b, 110,
+				\middb2b, -94,
+				\midrq2b, 0.4,
+				\ehpf, 150,
+				\gain, 0.4,
+				\distamp, Pseq([
+					1,10,10,10,
+					100,100,1,1,
+				],inf),
+				\fb, Pseq([
+					0.01, 0.01,0.02,0.04,
+					0.01, 0.01,0.1,0.1,
+				],inf),
+				\dur, 1/4,
+			),
+			Pmono( \rdnfx,
+				\inbus, BusDef(\fx2, \audio),
+				[\delay1, \delay2, \delay3, \delay4], Pseq([
+					[ 0.0010934792433603, 3.6772602228283e-05, 0.00059252833428699, 0.007612796284198 ]
+				],inf).stutter(8),
+				[\delay5, \delay6, \delay7, \delay8], Pseq([
+					//				exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
+					[ 0.0004953161768388, 3.2359682764214e-05, 1.4364910591105e-05, 3.2158973656053e-05 ],
+					[ 0.00049008475438402, 9.6585073207509e-05, 0.0011638308203766, 0.00039246305281146 ],
+				],inf).stutter(1)*1 ,
+				\mideq1b, 100,
+				\middb1b, -94,
+				\mideq2b, 110,
+				\middb2b, -94,
+				\midrq2b, 0.4,
+				\ehpf, 200,
+				\gain, 0.4,
+				\distamp, Pseq([
+					0,0,0,0,
+					1,1,1,10,
+				],inf),
+				\fb, Pseq([
+					0.01, 0.01,0.02,0.01,
+				],inf),
+				\dur, 1/2,
+			),
+			Pbind(
+				\instrument, \chord,
+				\out, BusDef(\fx2, \audio),
+				\octave, 6,
+				\degree, Pseq([
+					\r,\r,\r,\r,
+					[0,2,4],
+					[0,2,4],
+					[0,2,4],
+					[-1,2,4],
+				],inf),
+				\legato, Pseq([
+					0.3,0.3,0.3,0.9,
+				],inf),
+				\dur, 1/8,
+				\amp, 0.1
+			),
+			PatKitDef(\sample1).asPattern(Pbind(
+				\out, BusDef(\fx1, \audio),
+				\kitIndex, 0,
+				\isRest, Pseq({[
+					1,0,1,0, 0,0,0,0,
+					1,0,0,1, 0,0,0,0,
+					1,0,0,0, 0,0,0,0,
+					1,0,0,0, 0,0,1,0,
+				].clump(8).choose}.dup(8).flat,inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\sample1).asPattern(Pbind(
+				\out, BusDef(\fx1, \audio),
+				\kitIndex, 4,
+				\isRest, Pseq({[
+					0,0,0,0, 1,0,0,0,
+				].clump(8).choose}.dup(8).flat,inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+				\amp, 0.1,
+			)),
+			PatKitDef(\sample1).asPattern(Pbind(
+				\out, BusDef(\fx1, \audio),
+				\kitIndex, 8,
+				\isRest, Pseq({[
+					1,1,1,1, 1,1,1,1,
+					1,0,1,0, 1,0,1,0,
+					1,0,0,0, 1,0,0,0,
+					0,0,1,0, 0,0,1,0,
+				].clump(8).choose}.dup(8).flat,inf).coin.not,
+				\sustain, 0.1,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.4,0.4) ],
+				],inf),
+				\dur, 1/8,
+				\gain, 1/2,
+				\amp, 0.1,
+			)),
+		])
+	).play;
 )
 
 
@@ -1076,16 +1147,6 @@ Pdef(\drumz,
 ).play;
 )
 
-(
-SynthDef(\sibass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = LFSaw.ar(freq);
-	sig = RLPF.ar(sig, \lpfr.kr(2.1) * freq, \rq.kr(0.5));
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
 
 (
 Pdef(\drumz, 
@@ -1252,27 +1313,6 @@ Pdef(\drumz,
 ).play;
 )
 
-(
-SynthDef(\leadz, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	freq = freq.lag(0.02);
-	sig = LFSaw.ar(freq * [1,1.001,2,1/2] * ( 1 + ( SinOsc.ar(freq * [1,2,3]) * 1 ))).mean*2;
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = HPF.ar(sig, 400);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-SynthDef(\leadz2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	freq = freq.lag(0.02) * 4;
-	sig = LFPulse.ar(freq * [1,1.001,2,1/2] * ( 1 + ( SinOsc.ar(freq * 1/[1,2,3]) * 1 ))).mean*2;
-	sig = BPF.ar(sig, freq*1,0.1) + sig;
-	sig = HPF.ar(sig, freq*1/4);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.4),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
 
 
 

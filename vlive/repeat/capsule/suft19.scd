@@ -32,7 +32,7 @@ SynthDef(\rdnamp, { arg out=0, gate=1;
 
 	in = LPF.ar(in, \prelpf.kr(17000));
 	in = HPF.ar(in, \prehpf.kr(17));
-	ampfol = LagUD.ar( ( Amplitude.ar(in)+\ampbias.kr(0.01)*\ampfac.kr(1) )**( 2*\ampexp.kr(1) ),\amplagu.kr(0),\amplagd.kr(0) ).poll;
+	ampfol = LagUD.ar( ( Amplitude.ar(in)+\ampbias.kr(0.01)*\ampfac.kr(1) )**( 2*\ampexp.kr(1) ),\amplagu.kr(0),\amplagd.kr(0) );
 	sig = LocalIn.ar(2) * \fb.kr(0.1) * ampfol + in;
 	sig = LPF.ar(sig, \lpf.kr(17000));
 	sig = HPF.ar(sig, \hpf.kr(17));
@@ -96,7 +96,7 @@ SynthDef(\rdnampdel, { arg out=0, gate=1;
 
 	in = LPF.ar(in, \prelpf.kr(17000));
 	in = HPF.ar(in, \prehpf.kr(17));
-	ampfol = LagUD.ar( ( Amplitude.ar(in)+\ampbias.kr(0.01)*\ampfac.kr(1) )**( 2*\ampexp.kr(1) ),\amplagu.kr(0),\amplagd.kr(0) ).poll;
+	ampfol = LagUD.ar( ( Amplitude.ar(in)+\ampbias.kr(0.01)*\ampfac.kr(1) )**( 2*\ampexp.kr(1) ),\amplagu.kr(0),\amplagd.kr(0) );
 	sig = LocalIn.ar(2) * \fb.kr(0.1)  + in;
 	sig = LPF.ar(sig, \lpf.kr(17000));
 	sig = HPF.ar(sig, \hpf.kr(17));

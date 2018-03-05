@@ -33,14 +33,18 @@ Pdef(\part, Pdef(\power,
 			\bufnum, BufDef.mono(\amen),
 			\pos, 2,
 			\dur, 1/8,
-			\amp, 0.1,
+			\amp, Pseq([
+				0.1
+			],inf).mutezero,
 		),
 		Pbind(
 			\instrument, \granozor,
 			\bufnum, BufDef.mono(\amen),
 			\pos, 4,
 			\dur, 1/2,
-			\amp, 0.1,
+			\amp, Pmute(Pseq([
+				0.1,
+			],inf)),
 		),
 		
 	])
@@ -74,38 +78,69 @@ SynthDef(\verby, { arg out=0, gate=1;
 );
 
 
+////////////////////////////////
+
+
+(
+SynthDef(\audioin, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = SoundIn.ar([0,1], 2); 
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+Synth(\audioin, [\out, BusDef(\sendbus1)])
+
+Pbind(
+	\instrument, \default,
+	\freq, 200,
+	\dur, 1,
+	\amp, 0.1,
+);
+
+ProtoDef(\rdn).edit
+
 (
 Pdef(\part, Pdef(\plop, 
 	Ppar([
-		Ppar([
-			Pbind(
-				\instrument, \default,
-				\note, Pseq([
-					0,2,3,4,
-				],inf),
-				\dur, 1/4,
-				\amp, 0.1,
-			),
-			// no unlimit, no lowlatency kernel
-			// 13: no xrun
-			// 14: first xrun
-			// 15: 1 xrun/s
-			// with ulimit, lowlatency
-			// same :(
-			// with old computer
-			// 6: no xrun
-			// 7: unusable, 20 Xrun/s
-			5.collect({ arg idx;
-				Pbind(
-					\instrument, \milsin,
-					\freqfac, 1+(idx/4),
-					\dur, 1,
-					\amp, 0.1/8,
-					\out, BusDef(\sendbus3),
-				);
-				
-			})
-		].flat),
+		Pmono(\audioin,
+			\inbus, BusDef(\sendbus1),
+			\dur, 1,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		Pmono( \rdncleandist_fulllight,
+			\inbus, BusDef(\sendbus1, \audio, 2),
+			\addAction, \addToTail,
+			'wet10', 1.0,
+			'mix', 0.15714285714286,
+			'gain', 0.9344889782792,
+			\mix, 0,
+			'gain', 1.9344889782792,
+			'fb', 0.000099467303085,
+			'delay', 0.00000600001231 * Pseq([
+				1,199,1000,
+			],inf).stutter(1),
+			'delay2', 0.30000210000543560101,
+			'distamp', 8.361836201538,
+			'prelpf', 17000,
+			'prehpf', 17,
+			'lpf', 17000,
+			'hpf', 17,
+			'fbdistamp', 34.5388371966577,
+			'fbdistmix', 0.98176470588235,
+			'postlpf', 17000,
+			'posthpf', 17,
+			\bpmix, 0,
+			'wetamp', 0.20503372119697,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			\dur, 1/2,
+			\isRest, true,
+		),
+		
 	])
 )).play;
 )

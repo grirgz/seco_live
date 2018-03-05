@@ -1,5 +1,21 @@
 
 (
+SynthDef(\pigeon, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,1/2,1,1/4],[0.1,0.8,2]), 1);
+	env2 = EnvGen.kr(Env([1,1/2,1,1/4],[1.1,1.8,2]), 1);
+	env3 = EnvGen.kr(Env([1,1/2,1,1/4],[0.4,1.8,2]), 1);
+	sig = LFSaw.ar(freq);
+	sig = sig.fold2(env3);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * [env1, env2], \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,1.1,0.2,0.1),gate,doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);
+(
 SynthDef(\niark, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
@@ -124,22 +140,6 @@ Ndef(\crystal, { arg freq=200, pan=0, amp=0.1;
  40.pow(1.1)/100
 
 
-(
-SynthDef(\pigeon, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([1,1/2,1,1/4],[0.1,0.8,2]), 1);
-	env2 = EnvGen.kr(Env([1,1/2,1,1/4],[1.1,1.8,2]), 1);
-	env3 = EnvGen.kr(Env([1,1/2,1,1/4],[0.4,1.8,2]), 1);
-	sig = LFSaw.ar(freq);
-	sig = sig.fold2(env3);
-	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * [env1, env2], \rq.kr(0.5));
-	sig = sig * EnvGen.ar(Env.adsr(0.01,1.1,0.2,0.1),gate,doneAction:2);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = sig * amp;
-	Out.ar(out, sig);
-}).add;
-);
 
 
 (

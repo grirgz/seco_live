@@ -1,4 +1,34 @@
 (
+	SynthDef(\perctone, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+		var sig;
+		var pop, popFreq, popAmp;
+		var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+		var env1, env2, env3, env4, env5, env6, env7, env8;
+		env1 = EnvGen.kr(Env([2,1,1/4],[0.13,0.04],-1), 1);
+		sig = LFPulse.ar(freq) + LFSaw.ar(freq+[0,10.101*env1]).mean /2;
+		sig = sig + SinOsc.ar(freq * [1,2,1/2], mul:env1.lag(1)).mean / 2; 
+		sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * env1, \rq.kr(0.5));
+		sig = ( sig * env1 ).distort;
+
+		popFreq = XLine.kr(350, 61, 0.02);
+		popAmp = EnvGen.ar(Env.linen(0.001, 0.02, 0.001)) * 0.15;
+		pop = SinOsc.ar(popFreq) * popAmp;
+		sig = sig + pop;
+
+		sig1 = SinOsc.ar(freq*2);
+		sig1 = LPF.ar(sig1, freq * EnvGen.kr(Env([1,1/2,1/4],[0.01,0.8]), 1));
+		sig = sig + sig1;
+
+		sig1 = WhiteNoise.ar;
+		sig1 = LPF.ar(sig1, EnvGen.kr(Env([10000,710,100],[0.01,0.8], -4), 1));
+		sig1 = HPF.ar(sig1, Rand(700,800.0));
+		sig1 = Ringz.ar(sig1, freq, 0.1)/6;
+		sig = sig + sig1;
+
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.001,0.1,0.8,0.1)), gate, doneAction:2);
+		sig = Pan2.ar(sig, pan, amp);
+		Out.ar(out, sig);
+	}).add;
 SynthDef(\fmbellz1, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -614,52 +644,55 @@ Pdef(\part, Pdef(\drums1,
 	~master.();
 Pdef(\part, Pdef(\drums1, 
 	Ppar([
-		Pbind(
-			\instrument, \fmz1,
-			\note, Pseq([
-				0,4,3,4,
-				3,4,7,7,
-				2,4,3,4,
-				3,4,9,9,
-			],inf),
-			\legato, Pseq([
-				2,0,0,0, 0,0,1,0,
-				2,0,0,0, 0,0,1,0,
-				2,0,0,0, 0,0,1,0,
-				2,0,1,0, 2,0,1,0,
-			],inf)*0.8,
-			\adsr, Pseq([
-				[ Env.adsr(0.01,0.1,1,0.5) ],
-			],inf),
-			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-			\hpfr, ~pmodenv.(Pseq([1,2,1/2,1/4],inf), 8),
-			\octave, 4,
-			\dur, 1/16,
-			\amp, 0.1,
-		),
-		Pbind(
-			\instrument, \basicbass,
-			\note, Pseq([
-				0,4,3,4,
-				3,4,7,7,
-				2,4,3,4,
-				3,4,9,9,
-			],inf),
-			\legato, Pseq([
-				2,0,0,0, 0,0,1,0,
-				2,0,0,0, 0,0,1,0,
-				2,0,0,0, 0,0,1,0,
-				2,0,1,0, 2,0,1,0,
-			],inf)*0.8,
-			\adsr, Pseq([
-				[ Env.adsr(0.01,0.1,1,0.5) ],
-			],inf),
-			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-			\hpfr, ~pmodenv.(Pseq([1,2,1/2,1/4],inf), 8),
-			\octave, 3,
-			\dur, 1/8,
-			\amp, 0.1,
-		),
+		Pbind(\out, BusDef(\mixer3, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \fmz1,
+				\note, Pseq([
+					0,4,3,4,
+					3,4,7,7,
+					2,4,3,4,
+					3,4,9,9,
+				],inf),
+				\legato, Pseq([
+					2,0,0,0, 0,0,1,0,
+					2,0,0,0, 0,0,1,0,
+					2,0,0,0, 0,0,1,0,
+					2,0,1,0, 2,0,1,0,
+				],inf)*0.8,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,1,0.5) ],
+				],inf),
+				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+				\hpfr, ~pmodenv.(Pseq([1,2,1/2,1/4],inf), 8),
+				\octave, 4,
+				\dur, 1/16,
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \basicbass,
+				\note, Pseq([
+					0,4,3,4,
+					3,4,7,7,
+					2,4,3,4,
+					3,4,9,9,
+				],inf),
+				\legato, Pseq([
+					2,0,0,0, 0,0,1,0,
+					2,0,0,0, 0,0,1,0,
+					2,0,0,0, 0,0,1,0,
+					2,0,1,0, 2,0,1,0,
+				],inf)*0.8,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,1,0.5) ],
+				],inf),
+				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+				\hpfr, ~pmodenv.(Pseq([1,2,1/2,1/4],inf), 8),
+				\octave, 3,
+				\dur, 1/8,
+				\amp, 0.1,
+			),
+		]),
 		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
 			PatKitDef(\ksh2b).asPattern(Pbind(
