@@ -2,6 +2,17 @@
 ~t = 158/4/60; TempoClock.default.tempo = ~t; // sufferer 158
 
 (
+SynthDef(\toto, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,2,1],[0.1,0.8]), 1);
+	sig = Saw.ar(freq * ( SinOsc.ar(freq/7*5*2) * 0.2 + 1 ));
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * env1, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.5,0.2),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	sig = sig * 0.5;
+	Out.ar(out, sig);
+}).add;
 SynthDef(\fmbellz1, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -2547,17 +2558,6 @@ Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
 
 
 (
-SynthDef(\toto, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([1,2,1],[0.1,0.8]), 1);
-	sig = Saw.ar(freq * ( SinOsc.ar(freq/7*5*2) * 0.2 + 1 ));
-	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * env1, \rq.kr(0.5));
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.5,0.2),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	sig = sig * 0.5;
-	Out.ar(out, sig);
-}).add;
 );
 
 

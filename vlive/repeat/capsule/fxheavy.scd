@@ -622,7 +622,8 @@ SynthDef(\rdncleandist_fulllight, { arg out=0, gate=1;
 	sig1 = sig.tanh * \fbdistamp.kr(1/2.1);
 	sig = SelectX.ar(\fbdistmix.kr(1), [sig, sig1]);
 
-	sig = Limiter.ar(sig);
+	sig = Limiter.ar(sig, 1, \limdelay.kr(0.01));
+	//sig = Limiter.ar(sig);
 	LocalOut.ar(sig);
 
 	//sig = MidEQ.ar(sig, \eqmid1b.kr(12000), \eqrq1b.kr(1), \eqdb1b.kr(0));
@@ -631,7 +632,7 @@ SynthDef(\rdncleandist_fulllight, { arg out=0, gate=1;
 	//sig = LPF.ar(sig, \elpf.kr(10000), \elprq.kr(1));
 	sig = LPF.ar(sig, \postlpf.kr(17000));
 	sig = HPF.ar(sig, \posthpf.kr(17));
-	sig = Limiter.ar(sig);
+	sig = Limiter.ar(sig,1, \endlimdelay.kr(0.01));
 	sig = sig * \wetamp.kr(1);
 	sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
 	//	sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0));
@@ -640,6 +641,71 @@ SynthDef(\rdncleandist_fulllight, { arg out=0, gate=1;
 	Out.ar(out, sig);
 
 }).add;
+
+(
+SynthDef(\rdncleandist_lilim, { arg out=0, gate=1;
+	// no Pitch UGen, less cpu heavy
+	// mix bpf instead of cutting everything
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var si2;
+	var si, env = ();
+	var in = InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio)), 2); 
+	var hasFreq, afreq;
+	var pitchlag = \pitchlag.kr(1/8) / TempoClock.default.tempo;
+	var pitchmix = \pitchmix.kr(0.5);
+
+	thisThread.randSeed = 16266;
+	thisThread.randSeed = 16262;
+
+	in = LPF.ar(in, \prelpf.kr(17000));
+	in = HPF.ar(in, \prehpf.kr(17));
+	sig = LocalIn.ar(2) * \fb.kr(0.1) + in;
+	sig = LPF.ar(sig, \lpf.kr(17000));
+	sig = HPF.ar(sig, \hpf.kr(17));
+	si = sig;
+	sig = { arg si, env;
+		si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+		si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+		si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+		si = [
+			{ arg si, env;
+				si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+			}.value(si, env);
+			,
+			{ arg si, env;
+				si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+			}.value(si, env);
+
+		].mean;
+		si = (si * 10.rand * \distamp.kr).tanh / 2;
+		si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+		si2 = BPF.ar(si, exprand(100,10000) * \bpffac1.kr(1), 0.5.rand* \bprqfac1.kr(1) + 0.01);
+		si = SelectX.ar(\bpmix.kr(0.5), [si, si2]);
+	}.value(si, env);
+
+	sig1 = sig.tanh * \fbdistamp.kr(1/2.1);
+	sig = SelectX.ar(\fbdistmix.kr(1), [sig, sig1]);
+
+	sig = Limiter.ar(sig,1,0.0001);
+	LocalOut.ar(sig);
+
+	//sig = MidEQ.ar(sig, \eqmid1b.kr(12000), \eqrq1b.kr(1), \eqdb1b.kr(0));
+	//sig = MidEQ.ar(sig, \eqmid2b.kr(7000), \eqrq2b.kr(1), \eqdb2b.kr(0));
+	//sig = HPF.ar(sig, \ehpf.kr(140), \ehprq.kr(1));
+	//sig = LPF.ar(sig, \elpf.kr(10000), \elprq.kr(1));
+	sig = LPF.ar(sig, \postlpf.kr(17000));
+	sig = HPF.ar(sig, \posthpf.kr(17));
+	sig = Limiter.ar(sig1,1,0.0001);
+	sig = sig * \wetamp.kr(1);
+	sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
+	//	sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0));
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:2);
+	Out.ar(out, sig);
+
+}).add;
+);
 
 // END
 

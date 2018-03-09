@@ -149,6 +149,16 @@ SynthDef(\fx_ring, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\fx_freqshift, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = FreqShift.ar(sig, \shift.kr(0));
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+
 SynthDef(\fx_echo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;

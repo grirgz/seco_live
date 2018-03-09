@@ -1,3 +1,5 @@
+// TODO: fix multichannel ndefs! need to be stereo
+
 // simple custom noise generation: fm + am
 (
 	// no, error: .kr instead of .ar 

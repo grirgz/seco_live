@@ -1,0 +1,139 @@
+
+(
+// reversed snare
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\speed, -1 * 1.0,
+			\pos, 1/2/~t,
+			\sustain, 1.9,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.1,0.8,0.1) ],
+			],inf),
+			\dur, 1/8,
+			\amp, 0.1,
+		)),
+		
+	])
+)).play;
+)
+
+/////// pitch based
+
+(
+SynthDef(\islurp, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,2,1],[0.1,0.9]*4,[ 1,-1 ]), 1).round(0.1);
+	env2 = EnvGen.kr(Env([1,20,1,1/2],[0.1,0.9,1]*4), 1).round(0.1);
+	env3 = EnvGen.kr(Env([1,1.20,0.1],[0.1,0.9]*4), 1).round(0.1);
+	sig = SinOsc.ar(freq * env1 * ( SinOsc.ar(freq * env3) * env2 + 1 ));
+	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.01),gate,doneAction:2);
+	sig = sig * EnvGen.kr(Env([0,1,0],[1.0,0.08], [4,-1]), 1);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\plop, 
+	Pbind(
+		\instrument, \islurp,
+		\freq, 200,
+		\legato, 4,
+		\isRest, Pseq([
+			1,0, 0,0, 0,0, 0,0,
+			0,0, 0,0, 1,0, 0,0,
+		],inf).coin.not,
+		\dur, 1/8,
+		\amp, 0.1,
+	),
+).play;
+)
+
+(
+SynthDef(\nidi, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([0.1,10,40,1],[4,4.1,0.8]), 1);
+	sig = SinOsc.ar([234,234.43] * ( SinOsc.ar(freq) * env1 + 1 )).mean;
+	sig1 = ( sig*\distamp.kr(1)*env1 ).tanh * \distpostamp.kr(1/2);
+	sig = SelectX.ar(\mix.kr(1), [sig, sig1]);
+	sig = sig * EnvGen.ar(Env.adsr(2.01,0.1,0.8,0.01),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		Pbind(
+			\instrument, \nidi,
+			\freq, 200,
+			\dur, 4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+
+(
+SynthDef(\echh, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([10,12000,182],[4,0.1]/~t,[1,1]),1);
+	env2 = EnvGen.kr(Env([10,1000,152],[4,0.1]/~t,[1,1]), 1);
+	env3 = EnvGen.kr(Env([10,7100,1000],[4,0.1]/~t,[1,1]), 1);
+	env4 = EnvGen.kr(Env([0.1,2,0.1],[4.0,0.08]/~t), 1);
+	sig = WhiteNoise.ar;
+	sig = Ringz.ar(sig, rrand(70.0!8,1000),0.01).mean;
+	sig = sig * ( SinOsc.ar(1700) * env4 + 1 );
+	//sig = RLPF.ar(sig, env2, \rq2.kr(0.8));
+	sig = RLPF.ar(sig,  [env3, env2, env1 ], \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,2.4),gate,doneAction:2);
+	sig = Pan2.ar(sig, [-1,0,1]*0.1, amp).mean;
+	Out.ar(out, sig);
+}).add;
+Pdef(\demo, 
+	Pbind(
+		\instrument, \echh,
+		\freq, 200,
+		\legato, 1,
+		\dur, Pn(4,1),
+		\amp, 0.1,
+	),
+).play;
+)
+
+
+
+(
+SynthDef(\echhlow, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([10,420,182],[4,0.1]/~t,[1,1]),1);
+	env2 = EnvGen.kr(Env([10,100,152],[4,0.1]/~t,[1,1]), 1);
+	env3 = EnvGen.kr(Env([10,710,1000],[4,0.1]/~t,[1,1]), 1);
+	env4 = EnvGen.kr(Env([0.1,2,0.1],[4.0,0.08]/~t), 1);
+	sig = WhiteNoise.ar;
+	sig = Ringz.ar(sig, rrand(70.0!8,1000),0.01).mean;
+	sig = sig * ( SinOsc.ar(1700) * env4 + 1 );
+	//sig = RLPF.ar(sig, env2, \rq2.kr(0.8));
+	sig = RLPF.ar(sig,  [env3, env2, env1 ], \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,2.4),gate,doneAction:2);
+	sig = Pan2.ar(sig, [-1,0,1]*0.1, amp).mean;
+	Out.ar(out, sig);
+}).add;
+Pdef(\demo, 
+	Pbind(
+		\instrument, \echhlow,
+		\freq, 200,
+		\legato, 1,
+		\dur, Pn(4,1),
+		\amp, 0.1,
+	),
+).play;
+)

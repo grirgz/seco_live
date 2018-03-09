@@ -523,7 +523,7 @@ SynthDef(\sale, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, speed=1, pos=0, d
 	//speed = LFTri.ar(1/4).lag(0.2)+1*4;
 	//sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufFrames.kr(bufnum)), doneAction:doneAction, loop: loop);
 	//phase = Phasor.ar(1, 1,0,BufFrames.kr(bufnum));
-	phase = EnvGen.ar(Env([0,1/25,0],[1,1]/8), \trigger.tr(1), timeScale:1, levelBias:pos) * BufFrames.kr(bufnum);
+	phase = EnvGen.ar(Env([0,1/25,0],[1,1]/1), \trigger.tr(1), timeScale:1, levelBias:pos) * BufFrames.kr(bufnum);
 	sig = BufRd.ar(2, bufnum, phase+[0,5000]);
 	sig = CombL.ar(sig, 0.1,1/40*[1,1.1] * ( 1 + ( SinOsc.ar(5 * ( 1 + ( SinOsc.kr(1/2) * 1 ))) * 1 )),1)+sig;
 	sig = ( sig*100 ).tanh/13;

@@ -249,6 +249,37 @@ SynthDef(\snapkickx, { |out = 0, pan = 0, amp = 0.3|
 );
 
 
+///////////// bass
+
+(
+SynthDef(\brownbass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = LFPulse.ar(freq);
+	sig = RLPF.ar(sig, ( \lpfr.kr(16) * freq ).clip(20,20000), \rq.kr(0.6)) + ( sig / 5 );
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+///////////// RAMP
+
+
+(
+SynthDef(\rise, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, time=4;
+	var sig;
+	var fspread = XLine.kr(\spstart.kr(0.01),\spend.kr(10),time);
+	freq= freq* XLine.kr(\start.kr(1),\end.kr(2),time);
+	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * fspread + 1) * [ [1,1.01] ]);
+	sig = sig.debug("sig").mean.debug("sig2");
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * (1+ fspread ) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
 ///////////// OTHER
 
 
@@ -372,6 +403,52 @@ SynthDef(\iron, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }, metadata:(specs:(
 	env1: XEnvSpec(),
 ))).add;
+SynthDef(\pluck, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, coef=0, decay=10;
+	var sig;
+	var ex;
+	ex = WhiteNoise.ar(1);
+	//ex = LFSaw.ar(freq);
+	//freq = freq * ( 1 + ( SinOsc.ar(17006) * 1 ));
+	sig = Pluck.ar(ex, DelayC.ar(gate, 0.1, [0.01,0.032,0.0123] * \dstrum.kr(1)), 20.reciprocal, 1/freq * [1,1/2.2142,1/3.52354], 1, coef:coef).sum;
+	sig = sig * 2;
+	//sig = sig/2 + FreqShift.ar(sig, [{ 600.0.rand }!5]).flop.mean * 3;
+	//sig = RLPF.ar(sig, \lpfr.kr(4)*freq, \rq.kr(0.5)) * 1 + ( sig/4 );
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,[0.2,0.1],0.8,0.4,1,4)),gate,doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\star, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	var env1;
+	var fspread;
+	env1 = EnvGen.kr(Env([1,2,1],[1.7,0.8]), 1);
+	fspread = 0.0007 + Rand(0,0.007);
+	sig = SinOsc.ar(freq * ((0..7)/7 - 0.5 * fspread + 1));
+	sig = sig * ( sig/(sig+1.1)*50 * env1 ).clip(0.5);
+	sig1 = sig * (sig.abs > Rand(0.1,0.7));
+	sig = SelectX.ar( EnvGen.kr(Env([0,1,0],[0.1+Rand(0,2.0),0.1+Rand(0,2.0)]), 1), [sig, sig1]);
+	sig = sig * 2;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1.01,0.1,1,1.1)),gate,doneAction:doneAction);
+	sig = sig /10;
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\starlet, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	var env1;
+	var fspread;
+	env1 = EnvGen.kr(Env([1,20,1],[1.7,0.8]), 1);
+	fspread = 0.0007 + Rand(0,0.007)* env1;
+	sig = SinOsc.ar(freq * ((0..7)/7 - 0.5 * fspread + 1) );
+	sig1 = sig * ( sig/(sig+1.1)*50 * env1 ).clip(0.5);
+	sig = SelectX.ar(\mix.kr(0.5), [sig, sig1]);
+	sig = sig * 2;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1.01,0.1,1,1.1)),gate,doneAction:doneAction);
+	sig = sig /10;
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
 );
 
 
@@ -406,5 +483,40 @@ SynthDef(\simpletrackmixer, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(\sendbus1.kr(BusDef(\sendbus1, \audio)), sig * \send1.kr(0));
 	Out.ar(\sendbus2.kr(BusDef(\sendbus2, \audio)), sig * \send2.kr(0));
 	Out.ar(\sendbus3.kr(BusDef(\sendbus3, \audio)), sig * \send3.kr(0));
+}).add;
+);
+
+////////////// SAMPLING
+
+
+(
+SynthDef(\playersec_looper, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
+	// pos in seconds
+	var sig;
+	var sig1;
+	var trigger = Impulse.ar(\trigfreq.kr(0));
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
+	//sig = Pan2.ar(sig, pan, 1).sum;
+	Out.ar(out, sig * \gain.kr(1) * velamp);
+}).add;
+);
+
+
+/////////////// FX
+
+
+(
+SynthDef(\ringz, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = Ringz.ar(sig, \ringtab.kr(exprand(50,12000.0!8)) * \ringfac.kr(1),\decaytab.kr(0.01+rrand(0,0.1!8)) * \decayfac.kr(1));
+	sig = sig.mean;
+	sig = sig * \wetgain.kr(0.1);
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	Out.ar(out, sig);
 }).add;
 );

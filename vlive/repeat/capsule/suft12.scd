@@ -2,6 +2,15 @@
 ~t = 153/4/60; TempoClock.default.tempo = ~t;
 
 (
+SynthDef(\fxringer, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = RHPF.ar(sig, \lpf.kr(1000), \rq.kr(0.5));
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\clochete, { arg out=0, gate=1, freq=200, pan=0, amp=0.1;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -54,15 +63,6 @@ Pdef(\part, Pdef(\blitz,
 )).play;
 
 (
-SynthDef(\fxringer, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = in;
-	sig = RHPF.ar(sig, \lpf.kr(1000), \rq.kr(0.5));
-	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	Out.ar(out, sig);
-}).add;
 );
 
 ///////////////////////////////////////////
