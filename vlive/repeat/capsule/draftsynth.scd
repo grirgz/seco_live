@@ -10,7 +10,7 @@ SynthDef(\bass_drum_batter_click, { arg out=0, gate=1;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
 	adsr_freq = EnvGen.kr(\adsr_freq.kr( Env.adsr(0.001,0.01,0.1,0.1) ), gate, doneAction:0);
 	adsr_amp = EnvGen.kr(\adsr_amp.kr( Env.adsr(0.01,0.01,0.8,1.3) ), gate, doneAction:2);
-	osc = SinOsc.ar(adsr_freq * \freq.kr(500));
+	osc = SinOsc.ar(adsr_freq * \freq.kr(503));
 	vca = osc * adsr_amp;
 	filter = LPF.ar(vca) ! 2;
 	sig1 = filter;

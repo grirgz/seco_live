@@ -635,3 +635,60 @@ SynthDef(\playersec_zix2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum,
 	Out.ar(out, sig * \gain.kr(1) * velamp);
 }).add;
 )
+
+
+////////////////////////////::
+/////// granulation
+
+
+(
+SynthDef(\simplegran, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, pos=0, gdur=0.1, pan;
+	var sig;
+	var clk;
+	var phase;
+	clk = Impulse.ar(\gfreq.kr(40));
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = pos;
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, phase % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig * EnvGen.ar(\asr.kr(Env.asr(0.01,1,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\doublegran, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, pos=0, gdur=0.1, pan;
+	var sig;
+	var clk;
+	var phase;
+	clk = Impulse.ar(\gfreq.kr(40));
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = pos;
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, phase + [0,\dephase.kr(0)] % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig.mean * 0.6;
+	sig.debug("sig");
+	sig = sig * EnvGen.ar(\asr.kr(Env.asr(0.01,1,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+)
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pmono(\simplegran,
+			\freq, 200,
+			\mbufnum, BufDef.mono('loop/loop3b_185bpm.flac'),
+			\mbufnum, BufDef.mono('voices/kaspi.flac'),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\pos, Pseq([
+				~pmodenv.(Pseq([1,1.4]+0.4,1), 1/2),
+				~pmodenv.(Pseq([1.4,1]+0.4,1), 1/2),
+			],inf),
+			\dephase, ~pmodenv.(Pseq([0,0.02,0.1,1],inf), 8),
+			\gdur, ~pmodenv.(Pseq([0.1,0.02],inf), 4),
+			\pitch_stretch, 2,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)

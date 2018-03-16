@@ -1,4 +1,5 @@
 
+Pdef(\demo).stop
 (
 // reversed snare
 Pdef(\demo, Pdef(\demomo, 
@@ -38,7 +39,7 @@ SynthDef(\islurp, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
-Pdef(\plop, 
+Pdef(\demo, 
 	Pbind(
 		\instrument, \islurp,
 		\freq, 200,
@@ -123,7 +124,7 @@ SynthDef(\echhlow, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig * ( SinOsc.ar(1700) * env4 + 1 );
 	//sig = RLPF.ar(sig, env2, \rq2.kr(0.8));
 	sig = RLPF.ar(sig,  [env3, env2, env1 ], \rq.kr(0.5));
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,2.4),gate,doneAction:2);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,2.4)),gate,doneAction:2);
 	sig = Pan2.ar(sig, [-1,0,1]*0.1, amp).mean;
 	Out.ar(out, sig);
 }).add;
@@ -134,6 +135,38 @@ Pdef(\demo,
 		\legato, 1,
 		\dur, Pn(4,1),
 		\amp, 0.1,
+	),
+).play;
+)
+
+(
+SynthDef(\echhhi, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([10,10420,182],[0.04,5.1]/~t,[1,1]),1);
+	env2 = EnvGen.kr(Env([10,10100,152],[0.04,4.1]/~t,[1,1]), 1);
+	env3 = EnvGen.kr(Env([10,710,1000],[4,0.1]/~t,[1,1]), 1);
+	env4 = EnvGen.kr(Env([0.1,2,0.1],[4.0,0.08]/~t), 1);
+	sig = WhiteNoise.ar;
+	sig = Ringz.ar(sig, rrand(70.0!8,1000),0.01).mean;
+	sig = sig * ( SinOsc.ar(7700) * env4 + 1 );
+	//sig = RLPF.ar(sig, env2, \rq2.kr(0.8));
+	sig = RHPF.ar(sig,  [env3, env2, env1 ], \rq.kr(0.5));
+	sig = LPF.ar(sig,  15000, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,2.4)),gate,doneAction:2);
+	sig = Pan2.ar(sig, [-1,0,1]*0.1, amp).mean;
+	Out.ar(out, sig);
+}).add;
+Pdef(\demo, 
+	Pbind(
+		\instrument, \echhhi,
+		\freq, 200,
+		\legato, 1,
+		\dur, Pn(1,1),
+		\adsr, Pseq([
+			[ Env.adsr(0.1,0.1,0.8,0.1) ],
+		],inf),
+		\amp, 0.1/2,
 	),
 ).play;
 )

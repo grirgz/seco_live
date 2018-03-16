@@ -1034,7 +1034,7 @@ SynthDef(\emergency, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 );
 
 (
-Pdef(\emergency, Pbind(
+Pdef(\demo, Pbind(
 	\instrument, \emergency,
 	\degree, Pseq([0,2,4,2],inf),
 	\octave, 3,
@@ -1042,3 +1042,95 @@ Pdef(\emergency, Pbind(
 	\amp, 0.1
 )).play;
 );
+
+//////////////////////////
+
+(
+SynthDef(\rawbass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var spread = ((0..7)/7 - 0.5 * \fspread.kr(0.1) + 1);
+	sig2 = SinOsc.ar(freq *[1,2]* ( SinOsc.ar(freq * ( 3/2 )) * 1 + 1 )).sum;
+	sig1 = LFPulse.ar(freq*[1,2]).sum;
+	sig3 = LFSaw.ar(freq *1* ( SinOsc.ar(freq * ( 6/4 )) * 1 + 1 ));
+	sig = LocalIn.ar(8) * \fb.kr(0.7);
+	sig = SelectX.ar(sig.range(0,2) * \selectffac.kr(1) * spread, [sig1, sig2, sig3]) + sig /2;
+	LocalOut.ar(sig);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	pan = pan + LFNoise1.kr((1..8)/45);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+
+(
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		Pmono(\rawbass,
+			\note, Pstep(Pseq([
+				0,3,2,1,
+			],inf),1/1),
+			\octave, 3,
+			\dur, 1/8,
+			\fb, Pseq([
+				1,0.9, 1,0.5,
+				1,1.1, 0.51,0.5,
+			],inf),
+			\fspread, ~pmodenv.(Pseq([0.000001,2,1/21,4],inf), 1),
+			\selectffac, ~pmodenv.(Pseq([1,2,1,4,0.1],inf), 1/2),
+			\selectffac, Pseq([
+				1,2,2,2,
+				1,1,1,2,
+				1,2,2,2,
+				5,45,4,5,
+			],inf),
+			\fspread, Pseq([
+				1/11112,
+				1/21112,
+			],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+///////////////////////////////////:
+(
+SynthDef(\basscorde, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fspread=0.01, spread=1;
+	var sig;
+	sig = SinOsc.ar(freq * ((0..7)/7 - 0.5 * fspread + 1) * ( SinOsc.ar(freq*\fmr.kr(1.2)) * \fmamp.kr(1) + 1 )) * ( SinOsc.ar(freq * \amr.kr(0.2)) * \amamp.kr(1) + 1 );
+	sig = sig * 0.8;
+	sig = SelectX.ar( LFNoise1.ar((1..8)/12).range(0,1), sig  );
+	sig = Splay.ar(sig, spread, amp, pan);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,2.1),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		Pbind(
+			\instrument, \basscorde,
+			\note, Pseq([
+				0,
+			],inf),
+			\detune, Pseq([
+				0,20,10,30,
+			],inf),
+			\octave, 3,
+			\fspread, 1/Pkey(\freq) * Pseq([1,1.2,4,8],inf).stutter(8),
+			\amr, 1.01,
+			\fmr, 1.1,
+			\fmr, ~pmodenv.(Pseq([1,1.002,1.01,0.97,1.04],inf), 3),
+			\ampamp,1,
+			\dur, 2,
+			\legato, 1/2,
+			\amp, 0.1/4,
+		),
+	])
+)).play;
+)

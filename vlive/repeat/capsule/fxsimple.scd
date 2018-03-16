@@ -158,6 +158,49 @@ SynthDef(\fx_freqshift, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\fx_eqhi, { arg out=0, mix=1, gain=1, gate=1;
+	var in, sig;
+	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2);
+	sig = in;
+	sig = BHiPass.ar(sig, \freq.kr(400), \rq.kr(1));
+	sig = SelectX.ar(mix, [in, sig]);
+	sig = sig * EnvGen.ar(\asr.kr(Env.asr(0.01,1,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fx_eqlow, { arg out=0, mix=1, gain=1, gate=1;
+	var in, sig;
+	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2);
+	sig = in;
+	sig = BLowPass.ar(sig, \freq.kr(400), \rq.kr(1));
+	sig = SelectX.ar(mix, [in, sig]);
+	sig = sig * EnvGen.ar(\asr.kr(Env.asr(0.01,1,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+
+SynthDef(\fx_hishelf, { arg out=0, mix=1, gain=1, gate=1;
+	var in, sig;
+	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2);
+	sig = in;
+	// rs = reciprocal of shelf boot/cut Slope
+	sig = BHiShelf.ar(sig, \freq.kr(400), \rs.kr(1), \db.kr(0));
+	sig = SelectX.ar(mix, [in, sig]);
+	sig = sig * EnvGen.ar(\asr.kr(Env.asr(0.01,1,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+
+SynthDef(\fx_lowshelf, { arg out=0, mix=1, gain=1, gate=1;
+	var in, sig;
+	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2);
+	sig = in;
+	sig = BLowShelf.ar(sig, \freq.kr(400), \rs.kr(1), \db.kr(0));
+	sig = SelectX.ar(mix, [in, sig]);
+	sig = sig * EnvGen.ar(\asr.kr(Env.asr(0.01,1,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
 
 SynthDef(\fx_echo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -228,7 +271,7 @@ SynthDef(\chorus, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = LocalIn.ar(2) * \fb.kr(0.4);
 	sig = sig + in;
-	sig = DelayC.ar(sig, \maxdelay.ir(0.2), \delay.kr(0.0101) * ((0..7)/7 - 0.5 * \diff.kr(0.4001) + 1) * ( SinOsc.kr(\modfreq.kr(8.1)) * \modamp.kr(0.48) + 1 )).mean;
+	sig = DelayC.ar(sig, \maxdelay.ir(0.2), \delay.kr(0.0101) * ((0..7)/7 - 0.5 * \diff.kr(0.4001) + 1) * ( SinOsc.ar(\modfreq.kr(8.1)) * \modamp.kr(0.48) + 1 )).mean;
 	//sig = LPF.ar(sig, \dif.kr(7500));
 	LocalOut.ar(sig);
 
@@ -247,7 +290,7 @@ SynthDef(\chorusdist, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = LocalIn.ar(2) * \fb.kr(0.4);
 	sig = sig + in;
-	sig = DelayC.ar(sig, \maxdelay.ir(0.2), \delay.kr(0.0101) * ((0..7)/7 - 0.5 * \diff.kr(0.4001) + 1) * ( SinOsc.kr(\modfreq.kr(8.1)) * \modamp.kr(0.48) + 1 )).mean;
+	sig = DelayC.ar(sig, \maxdelay.ir(0.2), \delay.kr(0.0101) * ((0..7)/7 - 0.5 * \diff.kr(0.4001) + 1) * ( SinOsc.ar(\modfreq.kr(8.1)) * \modamp.kr(0.48) + 1 )).mean;
 	//sig = LPF.ar(sig, \dif.kr(7500));
 	sig1 = ( sig*\distamp.kr(10) ).tanh * \distpostamp.kr(1/2);
 	sig = SelectX.ar(\distmix.kr(0.5), [sig, sig1]);
@@ -285,13 +328,16 @@ SynthDef(\chorusdistlim, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 
 
 (
-SynthDef(\fx_compander, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+SynthDef(\fx_compander, { arg out=0, gate=1, sidemode=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	var sidein = InFeedback.ar(\sideinbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = in;
+	sig = sig * \pregain.kr(1);
+	sidein = SelectX.ar(sidemode, [sig, sidein]);
 	sig = Compander.ar(sig, sidein, \cpt.kr(0.4), \cpbelow.kr(1.001), \cpabove.kr(0.9), \cpclamp.kr(0.01), \cprelax.kr(0.1));
 	sig = SelectX.ar(\mix.kr(1), [in, sig]);
+	sig = sig * \gain.kr(1);
 	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
 	Out.ar(out, sig);
 }).add;
