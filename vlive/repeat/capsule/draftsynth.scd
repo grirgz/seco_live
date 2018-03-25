@@ -260,6 +260,21 @@ SynthDef(\brownbass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\mouais, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var spread = ((0..7)/7 - 0.5 * \fspread.kr(0.1) + 1);
+	sig2 = SinOsc.ar(freq *[1,2]* ( SinOsc.ar(freq * ( 3/2 )) * 1 + 1 )).sum;
+	sig1 = LFPulse.ar(freq*[1,2]).sum;
+	sig3 = LFSaw.ar(freq *1* ( SinOsc.ar(freq * ( 6/4 )) * 1 + 1 ));
+	sig = LocalIn.ar(8) * \fb.kr(0.7);
+	sig = SelectX.ar(sig.range(0,2) * \selectffac.kr(1) * spread, [sig1, sig2, sig3]) + sig /2;
+	LocalOut.ar(sig);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	pan = pan + LFNoise1.kr((1..8)/45);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
 );
 
 
@@ -499,6 +514,22 @@ SynthDef(\playersec_looper, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnu
 	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
 	//sig = Pan2.ar(sig, pan, 1).sum;
 	Out.ar(out, sig * \gain.kr(1) * velamp);
+}).add;
+SynthDef(\envgrain, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, pitch_stretch=1, gdur=0.1, mbufnum=0, pos=0;
+	var sig;
+	var gtrig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\gfreqenv.kr(Env([1,1.02,1],[0.1,0.8])), 1);
+	env2 = EnvGen.kr( \pitchenv.kr(Env([1,1,1.1],[0.1,0.8])), 1);
+	env3 = EnvGen.kr( \posenv.kr(Env([0,0.1,0],[2.1,2.8])), 1);
+	env4 = EnvGen.kr( \gdurenv.kr(Env([1,0.72,1],[0.1,0.8])), 1);
+	gtrig = Impulse.ar(\gfreq.kr(40) * env1);
+	pos = pos + LFNoise1.ar( \posrandfreq.kr(1/10), mul:\posrandamp.kr(0.001));
+	sig = TGrains.ar(2, gtrig, mbufnum, pitch_stretch * env2, pos + env3 % BufDur.kr(mbufnum), gdur * env4, pan, 1);
+	sig.debug("sig");
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
 }).add;
 );
 

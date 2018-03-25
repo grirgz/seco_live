@@ -863,6 +863,35 @@ Pdef(\part, Pdef(\plop,
 )
 
 (
+SynthDef(\sawpad, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq * [1/2,1,2,3,4] * ( SinOsc.ar( freq * (1..8).midiratio * SinOsc.kr(1/3).range(0,1) ) * 1 + 1 ));
+	sig = SinOsc.ar(freq * XLine.kr(2,1.9,1) * ( sig * 0.1 + 1 )) + sig;
+	//sig = RLPF.ar(sig, ( \lpfr.kr(7.1) * freq ).clip(20,19900), \rq.kr(0.5));
+
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+Pdef(\plop, 
+	Ppar([
+		
+			Pbind(
+				\instrument, \sawpad,
+				\note, Pseq([
+					Pseq((1..8))
+				],inf),
+				\legato, 1/2,
+				\dur, 2,
+				\amp, 0.1,
+			),
+	])
+).play;
+
+
+(
 Pdef(\part, Pdef(\plop, 
 	Ppar([
 		Pbind(\out, BusDef(\basssendbus1, \audio)) <>
@@ -1093,34 +1122,6 @@ Pdef(\part, Pdef(\plop,
 	])
 )).play;
 )
-
-(
-SynthDef(\sawpad, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = LFSaw.ar(freq * [1/2,1,2,3,4] * ( SinOsc.ar( freq * (1..8).midiratio * SinOsc.kr(1/3).range(0,1) ) * 1 + 1 ));
-	sig = SinOsc.ar(freq * XLine.kr(2,1.9,1) * ( sig * 0.1 + 1 )) + sig;
-	//sig = RLPF.ar(sig, ( \lpfr.kr(7.1) * freq ).clip(20,19900), \rq.kr(0.5));
-
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp).mean;
-	Out.ar(out, sig);
-}).add;
-);
-
-Pdef(\plop, 
-	Ppar([
-		
-			Pbind(
-				\instrument, \sawpad,
-				\note, Pseq([
-					Pseq((1..8))
-				],inf),
-				\legato, 1/2,
-				\dur, 2,
-				\amp, 0.1,
-			),
-	])
-).play;
 
 
 
@@ -1463,6 +1464,14 @@ Pdef(\part, Pdef(\longway,
 	])
 )).play;
 )
+
+
+
+
+
+//////////////////////////////////////////////
+
+
 (
 SynthDef(\simplegran, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, pos=0, gdur=0.1, pan;
 	var sig;

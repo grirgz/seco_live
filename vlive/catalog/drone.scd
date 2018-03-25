@@ -623,7 +623,8 @@ Ndef(\drone, { arg amp=0.8, pan=0, freq=200, mbufnum,
 
 ///////////////////
 
-Ndef(\dodrone, { arg freq=200, pan=0, amp=0.1;
+(
+Ndef(\drone, { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	sig = Dust.ar(100 * LFNoise1.kr(1).range(1/100,2));
 	sig = Ringz.ar(sig, LFNoise0.kr(10).exprange(40.0,16000),0.1)/1;
@@ -631,9 +632,10 @@ Ndef(\dodrone, { arg freq=200, pan=0, amp=0.1;
 	sig = AllpassL.ar(sig, 0.3,0.221,2)+sig;
 	sig = Pan2.ar(sig, pan, amp);
 }).play;
+)
 
 (
-Ndef(\dodrone, { arg freq=200, pan=0, amp=0.1;
+Ndef(\drone, { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	sig = Dust.ar(100!2 * LFNoise1.kr(1/21).range(1/100,2));
 	sig = Ringz.ar(sig, LFNoise0.kr(1).exprange(40.0,16000) * SinOsc.kr(1/43).range(1/10,1),0.1)/1;
@@ -647,7 +649,8 @@ Ndef(\dodrone, { arg freq=200, pan=0, amp=0.1;
 //////////////
 
 (
-Ndef(\winter, { arg freq=180, pan=0, amp=0.1;
+	// winter
+Ndef(\drone, { arg freq=180, pan=0, amp=0.1;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -667,7 +670,8 @@ Ndef(\winter, { arg freq=180, pan=0, amp=0.1;
 );
 
 (
-Ndef(\wind, { arg freq=180, pan=0, amp=0.1;
+	// wind
+Ndef(\drone, { arg freq=180, pan=0, amp=0.1;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -691,20 +695,20 @@ Ndef(\wind, { arg freq=180, pan=0, amp=0.1;
 /////////// dusty noise
 
 (
-Ndef(\grat, { arg freq=200, pan=0, amp=0.1;
+Ndef(\drone, { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	sig = Dust.ar(freq*4);
 	sig = Ringz.ar(sig, SinOsc.ar((1..10)) * freq, 0.001);
 	sig = (sig + 0.05) * (SinOsc.ar(freq));
 	//sig = BPF.ar(sig, freq * SinOsc.kr((1..10)).range(1,1.02));
-	sig = sig * 1.7;
+	sig = sig * 1/2;
 	sig = Pan2.ar(sig, SinOsc.kr((1..10)) * 0.1, amp).flop;
 	sig = LeakDC.ar(sig);
 }).play;
 );
 
 (
-Ndef(\grat, { arg freq=200, pan=0, amp=0.1;
+Ndef(\drone, { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	var in;
 	freq = freq * Duty.kr(1/~t, 0, Dseq([
@@ -722,7 +726,8 @@ Ndef(\grat, { arg freq=200, pan=0, amp=0.1;
 	sig = FreqShift.ar(sig, [0.01,0]) + sig;
 	LocalOut.ar(sig);
 
-	//sig = sig/ 4;
+	sig = sig/ 2;
+
 	sig = Pan2.ar(sig, SinOsc.kr((1..10)) * 0.1, amp).flop;
 	sig = LeakDC.ar(sig);
 }).play;

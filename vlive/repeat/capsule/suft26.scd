@@ -1,4 +1,5 @@
 (
+~t = 135/4/60; TempoClock.default.tempo = ~t;
 // parametrized
 SynthDef(\envgrain, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, pitch_stretch=1, gdur=0.1, mbufnum=0, pos=0;
 	var sig;
