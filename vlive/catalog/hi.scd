@@ -1134,6 +1134,26 @@ SynthDef(\crackle2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 Pdef(\part2).reset;
 );
 
+(
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		Pmono(\crackle2,
+			\chaos, 1.93500,
+			\note, Pseq([
+				1,3,12,4,
+			],inf),
+			\octave, 5,
+			\format, Pseq([
+				1,2,3,4,5
+			],inf)/4,
+			\formdec, 0.03,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
 
 (
 SynthDef(\cracksoft, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
@@ -1144,7 +1164,7 @@ SynthDef(\cracksoft, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = LFSaw.ar(freq * [1/2,1,2,1.001,2.0001] * ( sig* \modamp.kr(1.1)  + 1 )); 
 	//sig = Formlet.ar(sig, freq,\format.kr(0.21)* env1,\formdec.kr(0.1));
 	sig = LPF.ar(sig, \lpf.kr(300) * env1);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,1.4),gate,doneAction:2);
 	sig = HPF.ar(sig, \hpf.kr(50));
 	sig = Limiter.ar(sig);
 	sig = Pan2.ar(sig, pan, amp).mean;
@@ -1159,18 +1179,15 @@ Pdef(\demo, Pdef(\plop2,
 			\instrument, \cracksoft,
 			\chaos, 1.93500,
 			\note, Pseq([
-				1,3,12,4,
+				[1,3,9],
+				//[1,3,9],
+				//[1,3,9],
+				//[1,3,9]+4,
 			],inf),
-			\note, Pseq(6
-				[1,3,9],
-				[1,3,9],
-				[1,3,9],
-				[1,3,9]+4,
-			],inf),
-			\lpf, Pseg(Pseq([300,4000],inf),8),
+			\lpf, ~pmodenv.(Pseq([100,2000,4001],inf), 8),
 			\legato, Pseq([
 					7,0,0,0, 0,0,0,1,
-			],inf),
+			],inf)*0.7,
 			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
 			\octave, 5,
 			\format, Pseq([
@@ -1279,7 +1296,7 @@ Pdef(\demo, Pdef(\xdemo,
 (
 Pdef(\demo, Pdef(\xdemo, 
 	Ppar([
-		Pmono(\plane2,
+		Pmono(\iron,
 			\note, Pseq([
 				0,2,1,0,
 			],inf),

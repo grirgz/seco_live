@@ -392,8 +392,21 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 	})
 };
 
-
 );
+
+// tools
+(
+~pmodline = { arg start, end, time;
+	~pmodenv.(Pseq([start,end,Pn(end,inf)],inf), time);
+};
+~pmodrise = { arg start, end, time, repeats=inf;
+	Pseq([
+		~pmodenv.(Pseq([start,end],1), time)
+	],repeats)
+};
+)
+
+
 
 // END
 

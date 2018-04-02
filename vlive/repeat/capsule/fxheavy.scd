@@ -637,6 +637,7 @@ SynthDef(\rdncleandist_fulllight, { arg out=0, gate=1;
 	sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
 	//	sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0));
 	sig = sig * \gain.kr(1);
+	sig = sig * \modgain.kr(1);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:2);
 	Out.ar(out, sig);
 

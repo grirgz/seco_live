@@ -1,6 +1,100 @@
 ~t = 102/60; TempoClock.default.tempo = ~t;
 
 (
+SynthDef(\echhhi, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([10,10420,182],[0.04,5.1]/~t,[1,1]),1);
+	env2 = EnvGen.kr(Env([10,10100,152],[0.04,4.1]/~t,[1,1]), 1);
+	env3 = EnvGen.kr(Env([10,710,1000],[4,0.1]/~t,[1,1]), 1);
+	env4 = EnvGen.kr(Env([0.1,2,0.1],[4.0,0.08]/~t), 1);
+	sig = WhiteNoise.ar;
+	sig = Ringz.ar(sig, rrand(70.0!8,1000),0.01).mean;
+	sig = sig * ( SinOsc.ar(7700) * env4 + 1 );
+	//sig = RLPF.ar(sig, env2, \rq2.kr(0.8));
+	sig = RHPF.ar(sig,  [env3, env2, env1 ], \rq.kr(0.5));
+	sig = LPF.ar(sig,  15000, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,2.4)),gate,doneAction:2);
+	sig = Pan2.ar(sig, [-1,0,1]*0.1, amp).mean;
+	Out.ar(out, sig);
+}).add;
+Pdef(\demo, 
+	Pbind(
+		\instrument, \echhhi,
+		\freq, 200,
+		\legato, 1,
+		\dur, Pn(2,1),
+		\adsr, Pseq([
+			[ Env.adsr(0.1,0.1,0.8,0.1) ],
+		],inf),
+		\amp, 0.1/2,
+	),
+).play;
+)
+
+
+(
+SynthDef(\hardnoise, { arg out=0, gate=1, freq=200, pan=0, amp=0.1;
+	var sig;
+	var in;
+	freq = freq * Duty.kr(1/~t, 0, Dseq([
+		1,0,0,0,
+		4,4,3,3,
+	],inf)).midiratio;
+	in = LocalIn.ar(10);
+	sig = Dust.ar(freq * \dustfac.kr(1));
+	sig = Ringz.ar(sig, freq, \ringz.kr(0.1));
+	//sig = (sig + 0.05) * (SinOsc.ar(freq));
+	sig = sig + (in * \fbfac.kr(1.4));
+	sig = LPF.ar(sig, freq * SinOsc.ar((1..10)*freq).range(1,8.02));
+	//sig = sig * 0.7;
+	sig = sig.tanh;
+	sig = FreqShift.ar(sig, [0.01,0]) + sig;
+	LocalOut.ar(sig);
+
+	sig = sig/ 2;
+
+	sig = Pan2.ar(sig, SinOsc.kr((1..10)) * 0.1, amp).flop;
+	sig = LeakDC.ar(sig);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+SynthDef(\tich, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1000,10000,10420],[0.04,5.1]/~t,[1,1]),1);
+	env2 = EnvGen.kr(Env([1520,1000,1000],[0.04,4.1]/~t,[1,1]), 1);
+	env3 = EnvGen.kr(Env([1010,1710,1000],[0.04,4.1]/~t,[1,1]), 1);
+	env4 = EnvGen.kr(Env([0.1,2,0.1],[4.0,1.08]/~t), 1);
+	sig = WhiteNoise.ar;
+	sig = Ringz.ar(sig, rrand(70.0!8,1000),0.01).mean;
+	sig = sig * ( SinOsc.ar(7700) * env4 + 1 );
+	//sig = RLPF.ar(sig, env2, \rq2.kr(0.8));
+	sig = RHPF.ar(sig,  [env3, env2, env1 ], \rq.kr(0.5));
+	sig = LPF.ar(sig,  15000, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0.1,0.8,2.4)),gate,doneAction:2);
+	sig = Pan2.ar(sig, [-1,0,1]*0.1, amp).mean;
+	Out.ar(out, sig);
+}).add;
+Pdef(\demo, 
+	Pbind(
+		\instrument, \tich,
+		\freq, 200,
+		\legato, 1/8,
+		\dur, Pn(2,1),
+		\adsr, Pseq([
+			[ Env.adsr(0.001,0.1,0.8,4.1) ],
+		],inf),
+		\amp, 0.1/2,
+	),
+).play;
+)
+
+
+(
 Pdef(\part, Pdef(\kij_part1, 
 	Ppar([
 		Pbind(
@@ -379,98 +473,5 @@ Pdef(\part, Pdef(\kij_part2,
 		),
 	])
 )).play;
-)
-
-(
-SynthDef(\echhhi, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([10,10420,182],[0.04,5.1]/~t,[1,1]),1);
-	env2 = EnvGen.kr(Env([10,10100,152],[0.04,4.1]/~t,[1,1]), 1);
-	env3 = EnvGen.kr(Env([10,710,1000],[4,0.1]/~t,[1,1]), 1);
-	env4 = EnvGen.kr(Env([0.1,2,0.1],[4.0,0.08]/~t), 1);
-	sig = WhiteNoise.ar;
-	sig = Ringz.ar(sig, rrand(70.0!8,1000),0.01).mean;
-	sig = sig * ( SinOsc.ar(7700) * env4 + 1 );
-	//sig = RLPF.ar(sig, env2, \rq2.kr(0.8));
-	sig = RHPF.ar(sig,  [env3, env2, env1 ], \rq.kr(0.5));
-	sig = LPF.ar(sig,  15000, \rq.kr(0.5));
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,2.4)),gate,doneAction:2);
-	sig = Pan2.ar(sig, [-1,0,1]*0.1, amp).mean;
-	Out.ar(out, sig);
-}).add;
-Pdef(\demo, 
-	Pbind(
-		\instrument, \echhhi,
-		\freq, 200,
-		\legato, 1,
-		\dur, Pn(2,1),
-		\adsr, Pseq([
-			[ Env.adsr(0.1,0.1,0.8,0.1) ],
-		],inf),
-		\amp, 0.1/2,
-	),
-).play;
-)
-
-
-(
-SynthDef(\hardnoise, { arg out=0, gate=1, freq=200, pan=0, amp=0.1;
-	var sig;
-	var in;
-	freq = freq * Duty.kr(1/~t, 0, Dseq([
-		1,0,0,0,
-		4,4,3,3,
-	],inf)).midiratio;
-	in = LocalIn.ar(10);
-	sig = Dust.ar(freq * \dustfac.kr(1));
-	sig = Ringz.ar(sig, freq, \ringz.kr(0.1));
-	//sig = (sig + 0.05) * (SinOsc.ar(freq));
-	sig = sig + (in * \fbfac.kr(1.4));
-	sig = LPF.ar(sig, freq * SinOsc.ar((1..10)*freq).range(1,8.02));
-	//sig = sig * 0.7;
-	sig = sig.tanh;
-	sig = FreqShift.ar(sig, [0.01,0]) + sig;
-	LocalOut.ar(sig);
-
-	sig = sig/ 2;
-
-	sig = Pan2.ar(sig, SinOsc.kr((1..10)) * 0.1, amp).flop;
-	sig = LeakDC.ar(sig);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	Out.ar(out, sig);
-}).add;
-)
-
-(
-SynthDef(\tich, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([1000,10000,10420],[0.04,5.1]/~t,[1,1]),1);
-	env2 = EnvGen.kr(Env([1520,1000,1000],[0.04,4.1]/~t,[1,1]), 1);
-	env3 = EnvGen.kr(Env([1010,1710,1000],[0.04,4.1]/~t,[1,1]), 1);
-	env4 = EnvGen.kr(Env([0.1,2,0.1],[4.0,1.08]/~t), 1);
-	sig = WhiteNoise.ar;
-	sig = Ringz.ar(sig, rrand(70.0!8,1000),0.01).mean;
-	sig = sig * ( SinOsc.ar(7700) * env4 + 1 );
-	//sig = RLPF.ar(sig, env2, \rq2.kr(0.8));
-	sig = RHPF.ar(sig,  [env3, env2, env1 ], \rq.kr(0.5));
-	sig = LPF.ar(sig,  15000, \rq.kr(0.5));
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0.1,0.8,2.4)),gate,doneAction:2);
-	sig = Pan2.ar(sig, [-1,0,1]*0.1, amp).mean;
-	Out.ar(out, sig);
-}).add;
-Pdef(\demo, 
-	Pbind(
-		\instrument, \tich,
-		\freq, 200,
-		\legato, 1/8,
-		\dur, Pn(2,1),
-		\adsr, Pseq([
-			[ Env.adsr(0.001,0.1,0.8,4.1) ],
-		],inf),
-		\amp, 0.1/2,
-	),
-).play;
 )
 

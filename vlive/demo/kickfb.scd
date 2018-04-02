@@ -63,10 +63,12 @@ Ndef(~name+++\fx, {
 	},\delay.kr(0.1));
 	sig.postln;
 	sig = Normalizer.ar(sig, 0.99,0.01);
-	sig = sig / 2;
+	sig = sig * \gain.kr(1);
+	sig = sig / 8;
 	
 	sig;
 }).play;
+Ndef(~name+++\fx).quant=2;
 );
 
 Ndef(~name+++\fx).edit

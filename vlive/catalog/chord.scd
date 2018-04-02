@@ -160,6 +160,8 @@ SynthDef(\tredrone, { arg lagf=0, freq=200, pan=0, amp=0.1, out=0;
 	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq.lag(1) * SinOsc.kr(1*~t * [1,3/5]).range(0,1), \rq.kr(0.5));
 	sig = sig + BPF.ar(sig1, freq.lag(1) * 8);
 	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * amp;
 	Out.ar(out, sig);
 }).add;
 (
