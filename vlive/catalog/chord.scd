@@ -188,3 +188,32 @@ Pdef(\demo, PmonoArtic(\tredrone,
 )).play;
 );
 );
+
+////////////////////////////////////
+(
+SynthDef(\sinchord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	freq = freq * [1/2,1,2];
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,8.1,0.2,2.1,1,-1)), gate, doneAction:2);
+	pan = pan + LFNoise1.ar(1/2!sig.size); 
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		Pbind(
+			\instrument, \sinchord,
+			\legato, 0.91,
+			\note, Pseq([
+				[0,1,3,7],
+			],inf),
+			\dur, 8,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)

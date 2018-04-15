@@ -692,3 +692,95 @@ Pdef(\part, Pdef(\plop,
 	])
 )).play;
 )
+
+///////////////////////////////////
+
+
+(
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/loop2_185bpm.flac'),
+			\bufnum, BufDef('voices/feynman.flac'),
+			\bufnum, BufDef('fix4/snare1.flac'),
+			\bufnum, BufDef(\ukraine, "bruit1/07_ukraine.flac"),
+			\speed, 1.031 * Pseq([
+				1,
+			],inf),
+			\pos, Pseq([
+				4,2,5
+			],inf),
+			\isRest, Pseq([
+				1,1,1,1,
+			],inf).coin.not,
+			\dur, Pn(1/2,inf),
+			\gain, 2,
+			\out, BusDef(\smpbus3, \audio),
+		),
+		Pmono(\fx_stutter,
+			\inbus, BusDef(\smpbus3),
+			\time, 1/16/~t * Pseq([1],inf).stutter(2),
+			\mix, Pseq([
+				0,1,0,1, 1,0,1,1,
+				1,0,1,0, 1,1,0,1,
+			],inf),
+			\dur, 1/8,
+		),
+
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/loop2_185bpm.flac'),
+			\bufnum, BufDef('voices/feynman.flac'),
+			\speed, 2.031 * Pseq([
+				1,0.7,1.2,0.5,
+			],inf),
+			\pos, Pseq([
+				0,1,2,2,
+				0.1,1,2,2.4,
+				0,1,2,2,
+				0,1/2,5,3,
+			],inf),
+			\isRest, Pseq([
+				1,0,1,0,
+				1,1,1,1,
+			],inf).coin.not,
+			\dur, Pn(1/2,inf),
+			\gain, 1/2,
+			\out, BusDef(\smpbus2, \audio),
+		),
+		Pmono(\fx_stutter,
+			\inbus, BusDef(\smpbus2),
+			\time, 1/16/~t,
+			\mix, Pseq([
+				0,1,0,1,
+				0,1,1,1,
+			],inf),
+			\dur, 1/8,
+		),
+
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('voices/feynman.flac'),
+			\bufnum, BufDef('loop/loop2_185bpm.flac'),
+			\speed, 1.031,
+			\pos, Pseq([
+				0,1,2,2,
+				0.1,1,2,2.4,
+			],inf),
+			\dur, Pn(1/2,inf),
+			\gain, 1/2,
+			\out, BusDef(\smpbus, \audio),
+		),
+		Pmono(\fx_stutter,
+			\inbus, BusDef(\smpbus),
+			\time, 1/16/~t,
+			\mix, Pseq([
+				0,0,1,1,
+				0,1,0,1,
+			],inf),
+			\dur, 1/8,
+		),
+	])
+)).play;
+)

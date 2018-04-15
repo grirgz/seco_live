@@ -3,31 +3,31 @@
 
 (
 SynthDef(\cymnoise, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fac1=1;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	sig = SinOsc.ar(freq);
-	sig = WhiteNoise.ar;
-	env1 = EnvGen.kr(Env([8210,4100,4051],[0.1,0.8]), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
-	env2 = EnvGen.kr(Env([18210,200,451],[0.1,0.8],-4), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
-	sig = BPF.ar(sig, env1, LFNoise1.kr((1..8)/8).range(0.1,0.9));
-	sig = HPF.ar(sig, 20000-env2);
-	sig1 = sig;
-	//sig = RLPF.ar(sig, env2, \rq.kr(0.5));
-	sig = WhiteNoise.ar;
-	env3 = EnvGen.kr(Env([1,0.9,1]*Rand(0.91,1.1),[0.01+Rand(0,0.1),0.8]), 1);
-	sig = sig + Ringz.ar(sig, [9400,17030,16410,8000.14,15000] * env3, 0.001).mean/10;
-	env1 = EnvGen.kr(Env([14821,14810,14251,1100],[0.01,0.1*fac1,0.1], 4), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
-	env2 = EnvGen.kr(Env([4820,4000,3151],[0.07,0.8*fac1],4), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
-	sig = HPF.ar(sig, env1);
-	sig = LPF.ar(sig, env2);
-	sig2 = sig*1.3;
+var sig;
+var env1, env2, env3, env4, env5, env6, env7, env8;
+var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+sig = SinOsc.ar(freq);
+sig = WhiteNoise.ar;
+env1 = EnvGen.kr(Env([8210,4100,4051],[0.1,0.8]), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
+env2 = EnvGen.kr(Env([18210,200,451],[0.1,0.8],-4), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
+sig = BPF.ar(sig, env1, LFNoise1.kr((1..8)/8).range(0.1,0.9));
+sig = HPF.ar(sig, 20000-env2);
+sig1 = sig;
+//sig = RLPF.ar(sig, env2, \rq.kr(0.5));
+sig = WhiteNoise.ar;
+env3 = EnvGen.kr(Env([1,0.9,1]*Rand(0.91,1.1),[0.01+Rand(0,0.1),0.8]), 1);
+sig = sig + Ringz.ar(sig, [9400,17030,16410,8000.14,15000] * env3, 0.001).mean/10;
+env1 = EnvGen.kr(Env([14821,14810,14251,1100],[0.01,0.1*fac1,0.1], 4), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
+env2 = EnvGen.kr(Env([4820,4000,3151],[0.07,0.8*fac1],4), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
+sig = HPF.ar(sig, env1);
+sig = LPF.ar(sig, env2);
+sig2 = sig*1.3;
 
-	sig = sig1+sig2;
+sig = sig1+sig2;
 
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.08,1,-4),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp).sum;
-	Out.ar(out, sig);
+sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.08,1,-4),gate,doneAction:2);
+sig = Pan2.ar(sig, pan, amp).sum;
+Out.ar(out, sig);
 }).add;
 )
 
@@ -36,1014 +36,1014 @@ SynthDef(\cymnoise, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fac1=1;
 // from suft17
 (
 Pdef(\part, Pdef(\plop, 
-	Ppar([
-			Pbind(
-				\instrument, \iron,
-				\note, Pseq([
-					0,-1,0,13,
-				],inf),
-				\octave, 8,
-				\diff, 0.0001 * Pseq([
-					1,1,1,
-					1,10,2,
-				],inf),
-				\fmr, 1*8 * Pseq([1,1/2,1/4,1/8],inf),
-				\isRest, Pseq([
-					Pseq([
-						0,0, 1,0, 0,1,0,1,
-						0,0, 1,0, 0,0,1,0,
-						0,0, 1,0, 0,0,0,1,
-						0,0, 1,0, 0,1,0,0,
-					],4),
-				],inf).coin.not,
-				\legato, 2,
-				\legato, Pseq([
-					Pseq([
-						Pwhite(1/8,3,1),0,0,
-					],2 * 4),
-					Pseq([
-						Pser([1/8],9),
-						Pwhite(1/8,3,1),0,0,
-					],6),
-					Pseq([
-						Pwhite(1/8,3,1),0,0,
-						Pwhite(1/8,1,1),1,0,
-					],2 * 4),
-					Pseq([
-						Pser([1/2],9),
-						Pwhite(1/8,3,1),0,0,
-					],6),
-				],inf),
-				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-				//\lag, 0.08,
-				\lag, 0.04,
-
-				\dur, 1/8,
-				\amp, 0.1/8,
-				\out, BusDef(\isendbus1, \audio),
-			),
-
-			Pmono(\rdnroom,
-				\inbus, BusDef(\isendbus1),
-				\dur, 1/2,
-				'wet10', 1.0,
-				'mix', 0.5,
-				'gain', 1/8,
-				'fb', 0.0000031,
-				'delay', 0.00000001,
-				'delay2', 0.0000001,
-				'delay3', 0.0008010394574653723 * Pseq([
-					1,2,10,100,
-				],inf).stutter(2),
-				'distamp', 5.60466190090704,
-				'distamp2', 4.23886430789846,
-				'distamp3', 2.8985772146511 * Pseq([
-					1
-				],inf),
-				'shift', -5.0,
-				'shift2', -1.1344537815126,
-				'shift3', -2.4789915966387,
-				'shiftmix', 0.0,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19000,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 4.9234346672443,
-				'fbdistmix', 0.91176470588235,
-				'postlpf', 19000,
-				'posthpf', 77,
-				'wetamp', 0.18504562572587,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37940593233798,
-				'brffac', 0.60195390291997,
-				//\out, BusDef(\fx1, \audio),
-			),
-
-
-
-		Pbind(\out, BusDef(\sendbus1, \audio)) <>
-		Ppar([
-				Pbind(
-					\instrument, \snapkickx,
-					\dur, 1/8,
-					\isRest, Pseq([
-						1,0,0,0, 0,0,0,0,
-						0,0,1,0, 0,0,0,0,
-					],inf).coin.not,
-					\amp, 0.1,
-				),
-				Pbind(
-					\instrument, \snapkickx,
-					\dur, 1/16,
-					\bodyenv, Pseq([
-						[ Env.linen(0.01,0.04,0.1,0.2) ],
-					],inf),
-					\isRest, Pseq([
-						0,0,0,0, 1,0,1,0, 0,0,1,0, 1,0,0,0,
-						0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
-					],inf).coin.not,
-					\amp, 0.1,
-				),
-				PatKitDef(\ksh2b).asPattern(Pbind(
-					\kitIndex, 5,
-					\isRest, Pseq([
-						0,0,0,0, 1,0,0,0,
-						0,0,0,0, 1,0,0,0,
-					],inf).coin.not,
-					\sustain, 0.1,
-					\gain, 0.2,
-					\dur, 1/8,
-				)),
-				PatKitDef(\ksh2b).asPattern(Pbind(
-					\kitIndex, 5,
-					\isRest, Pseq([
-						0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
-						0,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
-						0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
-						0,0,1,0, 0,0,0,0, 0,0,0,0, 1,0,0,1,
-						//0,0,0,1, 0,0,1,0, 0,0,0,1, 0,0,1,0,
-						//0,0,0,0, 0,0,0,0, 0,0,0,1, 0,1,1,0,
-						//0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,1,
-					],inf).coin.not,
-					\sustain, 0.071,
-					\adsr, Pseq([
-						[ Env.adsr(0.01,0.1,0.8,0.1) ],
-					],inf),
-					\gain, 0.15,
-					\dur, 1/16,
-				)),
-				Pbind(
-					\instrument, \phyhat3,
-					\isRest, Pseq([
-						1,1, 1,1, 1,1, 1,1,
-						1,1, 1,1, 0,0, 0,0,
-						1,0, 1,0, 1,0, 1,0,
-					],inf).coin.not,
-					\sustain, 0.05,
-					\fac1,0.1,
-					\dur, 1/8,
-					\amp, 0.01 * Pseq([1,0.7],inf),
-				),
-			Pbind(
-				\instrument, \cymnoise,
-				\freq, 200,
-				\isRest, Pseq([
-					0,0,1,0, 0,0,0,0,
-					1,0,0,0, 0,0,1,0,
-					1,0,1,0, 0,0,1,0,
-					0,0,0,0, 0,0,1,0,
-					1,0,0,0, 0,0,0,0,
-				],inf).coin.not,
-				\legato, 1.0,
-				\fac1,1.0,
-				\dur, 1/8,
-				\amp, 0.1/4,
-			),
-		]),
-		Pmono( \rdncleandist_fulllight,
-			\addAction, \addToTail,
-			\inbus, BusDef(\sendbus1, \audio, 2),
-			'wet10', 1.0,
-			'mix', 0.25714285714286,
-			'gain', 0.744889782792 * Pseq([
-				1
+Ppar([
+		Pbind(
+			\instrument, \iron,
+			\note, Pseq([
+				0,-1,0,13,
 			],inf),
-			'fb', 0.00001099467303085,
-			'delay', 0.000301231 * Pseq([
-				1,1,1/1.3,
-			],inf).stutter(1),
-			'delay2', 0.000000210000543560101,
-			//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
-			//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
-			'distamp', 01.061836201538,
-			'prelpf', 17000,
-			'prehpf', 17,
-			'lpf', 17000,
-			'hpf', 17,
-			'fbdistamp', 0.5388371966577,
-			'fbdistmix', 0.98176470588235,
-			'postlpf', 17000,
-			'posthpf', 17,
-			\bpmix, 0,
-			\bpfac, 3,
-			'wetamp', 0.20503372119697,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			\dur, 1/4,
-			\out, BusDef(\sendbus2, \audio),
-		),
-		Pmono(\fx_stutter,
-			\inbus, BusDef(\sendbus2, \audio, 2),
-			\mix, Pseq([
-
-				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,1,
-				
-				0,0,0,0, 0,0,0,0,
-				0,1,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,1,0,
-
-				0,0,0,1, 0,0,1,0,
-				0,1,1,0, 0,1,0,1,
-				0,1,0,0, 0,1,1,0,
-				0,0,0,0, 0,0,0,1,
+			\octave, 8,
+			\diff, 0.0001 * Pseq([
+				1,1,1,
+				1,10,2,
 			],inf),
-			\time, 1/16/~t,
+			\fmr, 1*8 * Pseq([1,1/2,1/4,1/8],inf),
+			\isRest, Pseq([
+				Pseq([
+					0,0, 1,0, 0,1,0,1,
+					0,0, 1,0, 0,0,1,0,
+					0,0, 1,0, 0,0,0,1,
+					0,0, 1,0, 0,1,0,0,
+				],4),
+			],inf).coin.not,
+			\legato, 2,
+			\legato, Pseq([
+				Pseq([
+					Pwhite(1/8,3,1),0,0,
+				],2 * 4),
+				Pseq([
+					Pser([1/8],9),
+					Pwhite(1/8,3,1),0,0,
+				],6),
+				Pseq([
+					Pwhite(1/8,3,1),0,0,
+					Pwhite(1/8,1,1),1,0,
+				],2 * 4),
+				Pseq([
+					Pser([1/2],9),
+					Pwhite(1/8,3,1),0,0,
+				],6),
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			//\lag, 0.08,
+			\lag, 0.04,
+
 			\dur, 1/8,
-			\amp, 0.1,
-			\out, BusDef(\sendbus3, \audio),
+			\amp, 0.1/8,
+			\out, BusDef(\isendbus1, \audio),
 		),
-		Pmono( \rdncleandist_fulllight,
-			\addAction, \addToTail,
-			\inbus, BusDef(\sendbus3, \audio, 2),
+
+		Pmono(\rdnroom,
+			\inbus, BusDef(\isendbus1),
+			\dur, 1/2,
 			'wet10', 1.0,
-			'mix', 0.15714285714286,
-			'gain', 0.744889782792 * Pseq([
+			'mix', 0.5,
+			'gain', 1/8,
+			'fb', 0.0000031,
+			'delay', 0.00000001,
+			'delay2', 0.0000001,
+			'delay3', 0.0008010394574653723 * Pseq([
+				1,2,10,100,
+			],inf).stutter(2),
+			'distamp', 5.60466190090704,
+			'distamp2', 4.23886430789846,
+			'distamp3', 2.8985772146511 * Pseq([
 				1
 			],inf),
-			'fb', 0.00001099467303085,
-			'delay', 0.10301231 * Pseq([
-				1,
-			],inf).stutter(1),
-			'delay2', 0.00700000210000543560101 * Pseq([
-				3,3,3,
-				3,3,3,
-				1,2,3,
-			],inf),
-			//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
-			//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
-			'distamp', 41.361836201538,
-			'prelpf', 17000,
+			'shift', -5.0,
+			'shift2', -1.1344537815126,
+			'shift3', -2.4789915966387,
+			'shiftmix', 0.0,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 19000,
 			'prehpf', 17,
-			'lpf', 17000,
+			'lpf', 19000,
 			'hpf', 17,
-			'fbdistamp', 0.5388371966577,
-			'fbdistmix', 0.98176470588235,
-			'postlpf', 17000,
-			'posthpf', 17,
-			\bpmix, 0,
-			\bpfac, 3,
-			'wetamp', 0.20503372119697,
+			'stereo', 1.0,
+			'fbdistamp', 4.9234346672443,
+			'fbdistmix', 0.91176470588235,
+			'postlpf', 19000,
+			'posthpf', 77,
+			'wetamp', 0.18504562572587,
 			'indelay', 0.04,
 			'wet20', 1.0,
 			'mamp', 1,
-			\dur, 1/4,
+			'brfrqfac', 0.37940593233798,
+			'brffac', 0.60195390291997,
+			//\out, BusDef(\fx1, \audio),
 		),
-	])
-)).play;
-)
 
-(
-Pdef(\part, Pdef(\plop, 
+
+
+	Pbind(\out, BusDef(\sendbus1, \audio)) <>
 	Ppar([
-
-		// hi drums
-
-		Pbind(\lag, 0.04, \out, BusDef(\hidrumbus, \audio)) <>
-		Ppar([
+			Pbind(
+				\instrument, \snapkickx,
+				\dur, 1/8,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+					0,0,1,0, 0,0,0,0,
+				],inf).coin.not,
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \snapkickx,
+				\dur, 1/16,
+				\bodyenv, Pseq([
+					[ Env.linen(0.01,0.04,0.1,0.2) ],
+				],inf),
+				\isRest, Pseq([
+					0,0,0,0, 1,0,1,0, 0,0,1,0, 1,0,0,0,
+					0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
+				],inf).coin.not,
+				\amp, 0.1,
+			),
 			PatKitDef(\ksh2b).asPattern(Pbind(
 				\kitIndex, 5,
 				\isRest, Pseq([
-					0,0,1,0,
-					1,0,1,0,
-					0,0,1,1,
-					0,0,1,0,
-					1,0,1,0,
-					0,0,1,1,
-					0,0,0,0,
-					0,0,0,0,
-					0,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
 				],inf).coin.not,
 				\sustain, 0.1,
 				\gain, 0.2,
+				\dur, 1/8,
+			)),
+			PatKitDef(\ksh2b).asPattern(Pbind(
+				\kitIndex, 5,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
+					0,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
+					0,0,1,0, 0,0,0,0, 0,0,0,0, 1,0,0,1,
+					//0,0,0,1, 0,0,1,0, 0,0,0,1, 0,0,1,0,
+					//0,0,0,0, 0,0,0,0, 0,0,0,1, 0,1,1,0,
+					//0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,1,
+				],inf).coin.not,
+				\sustain, 0.071,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				],inf),
+				\gain, 0.15,
 				\dur, 1/16,
 			)),
 			Pbind(
 				\instrument, \phyhat3,
 				\isRest, Pseq([
-					1,1,
+					1,1, 1,1, 1,1, 1,1,
+					1,1, 1,1, 0,0, 0,0,
+					1,0, 1,0, 1,0, 1,0,
 				],inf).coin.not,
 				\sustain, 0.05,
 				\fac1,0.1,
-				\dur, 1/16,
+				\dur, 1/8,
 				\amp, 0.01 * Pseq([1,0.7],inf),
 			),
-			
-		]),
-		Pmono( \rdncleandist_fulllight,
-			\inbus, BusDef(\hidrumbus, \audio, 2),
-			\addAction, \addToTail,
-			'wet10', 1.0,
-			'mix', 0.95714285714286,
-			'gain', 0.1344889782792,
-			'fb', 0.0002099467303085,
-			'delay', 0.000000001231 * Pseq([
-				1,100,10000,
-			],inf).stutter(1),
-			'delay2', 0.000000543560101,
-			'distamp', 10.361836201538,
-			'prelpf', 19900,
-			'prehpf', 17,
-			'lpf', 19900,
-			'hpf', 17,
-			'fbdistamp', 4.5388371966577,
-			'fbdistmix', 0.98176470588235,
-			'postlpf', 19900,
-			'posthpf', 17,
-			\bpmix, 0,
-			'wetamp', 0.20503372119697,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			\dur, 1,
-			\out, BusDef(\hidrumbus2, \audio),
-		),
-		Pmono(\fx_rhpf,
-			\inbus, BusDef(\hidrumbus2),
-			\hpf, 6000 * Pseg(Pseq([1,2,1/2],inf),1/6),
-			\dur, 1/8,
-			\out, BusDef(\hidrumbus3, \audio),
-		),
-		Pmono(\fx_rlpf,
-			\inbus, BusDef(\hidrumbus3),
-			\lpf, 14000 * Pseg(Pseq([1,2,1/2],inf),1/8),
-			\dur, 1/8,
-		),
-
-
-		// hi
-			Pbind(
-				\instrument, \iron,
-				\note, Pseq([
-					0,-1,0,13,
-				],inf),
-				\octave, 8,
-				\diff, 0.0001 * Pseq([
-					1,1,1,
-					1,10,2,
-				],inf),
-				\fmr, 1*8 * Pseq([1,1/2,1/4,1/8],inf),
-				\isRest, Pseq([
-					Pseq([
-						0,0, 1,0, 0,1,0,1,
-						0,0, 1,0, 0,0,1,0,
-						0,0, 1,0, 0,0,0,1,
-						0,0, 1,0, 0,1,0,0,
-					],4),
-				],inf).coin.not,
-				\legato, 2,
-				\legato, Pseq([
-					Pseq([
-						Pser([0],9),
-						Pwhite(1/8,3,1),0,0,
-
-						Pser([0],9),
-						Pwhite(1/8,3,1),0,0,
-
-						Pseq([
-							Pwhite(1/8,3,1),0,0,
-							Pwhite(1/8,3,1),0,0,
-						], 2),
-
-						Pser([1/8],9),
-						Pwhite(1/8,3,1),0,0,
-					],1),
-
-
-
-					Pseq([
-						Pwhite(1/8,3,1),0,0,
-					],2 * 4),
-					Pseq([
-						Pser([1/8],9),
-						Pwhite(1/8,3,1),0,0,
-					],6),
-
-					Pseq([
-						Pwhite(1/8,3,1),0,0,
-						Pwhite(1/8,1,1),1,0,
-					],2 * 2),
-					Pseq([
-						Pser([0],9),
-						Pwhite(1/8,3,1),0,0,
-						Pser([1/2],9),
-						Pwhite(1/8,3,1),0,0,
-					],3),
-
-
-					Pseq([
-						Pwhite(1/8,3,1),0,0,
-					],2 * 4),
-					Pseq([
-						Pser([1/8,0],9),
-						Pwhite(1/8,3,1),0,0,
-					],6),
-
-					Pseq([
-						Pwhite(1/8,3,1),0,0,
-						Pwhite(1/8,1,1),1,0,
-					],2 * 2),
-					Pseq([
-						Pser([0,0,1/2],9),
-						Pwhite(1/8,3,1),0,0,
-					],6),
-				],inf),
-				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-				//\lag, 0.08,
-				\lag, 0.04,
-
-				\dur, 1/8,
-				\amp, 0.1/8,
-				\out, BusDef(\isendbus1, \audio),
-			),
-
-			Pmono(\rdnroom,
-				\inbus, BusDef(\isendbus1),
-				\dur, 1/2,
-				'wet10', 1.0,
-				'mix', 0.5,
-				'gain', 1/9,
-				'fb', 0.0000031,
-				'delay', 0.00000001,
-				'delay2', 0.0000001,
-				'delay3', 0.0008010394574653723 * Pseq([
-					1,2,10,100,
-				],inf).stutter(2),
-				'distamp', 5.60466190090704,
-				'distamp2', 4.23886430789846,
-				'distamp3', 2.8985772146511 * Pseq([
-					1
-				],inf),
-				'shift', -5.0,
-				'shift2', -1.1344537815126,
-				'shift3', -2.4789915966387,
-				'shiftmix', 0.0,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19000,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 4.9234346672443,
-				'fbdistmix', 0.91176470588235,
-				'postlpf', 19000,
-				'posthpf', 77,
-				'wetamp', 0.18504562572587,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37940593233798,
-				'brffac', 0.60195390291997,
-				//\out, BusDef(\fx1, \audio),
-			),
-
-
-
-		Pbind(\out, BusDef(\sendbus1, \audio)) <>
-		Ppar([
-				Pbind(
-					\instrument, \snapkickx,
-					\dur, 1/8,
-					\isRest, Pseq([
-						1,0,0,0, 0,0,0,0,
-						0,0,1,0, 0,0,0,0,
-					],inf).coin.not,
-					\amp, 0.1,
-				),
-				Pbind(
-					\instrument, \snapkickx,
-					\dur, 1/16,
-					\bodyenv, Pseq([
-						[ Env.linen(0.01,0.04,0.1,0.2) ],
-					],inf),
-					\isRest, Pseq([
-						0,0,0,0, 1,0,1,0, 0,0,1,0, 1,0,0,0,
-						0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
-					],inf).coin.not,
-					\amp, 0.1,
-				),
-				PatKitDef(\ksh2b).asPattern(Pbind(
-					\kitIndex, 5,
-					\isRest, Pseq([
-						0,0,0,0, 1,0,0,0,
-						0,0,0,0, 1,0,0,0,
-					],inf).coin.not,
-					\speed, Pwhite(0.99,1.01,inf),
-					\sustain, 0.1,
-					\gain, 0.2,
-					\dur, 1/8,
-				)),
-				PatKitDef(\ksh2b).asPattern(Pbind(
-					\kitIndex, 5,
-					\isRest, Pseq([
-						0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
-						0,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
-						0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
-						0,0,1,0, 0,0,0,0, 0,0,0,0, 1,0,0,1,
-						//0,0,0,1, 0,0,1,0, 0,0,0,1, 0,0,1,0,
-						//0,0,0,0, 0,0,0,0, 0,0,0,1, 0,1,1,0,
-						//0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,1,
-					],inf).coin.not,
-					\sustain, 0.071,
-					\adsr, Pseq([
-						[ Env.adsr(0.01,0.1,0.8,0.1) ],
-					],inf),
-					\gain, 0.15,
-					\dur, 1/16,
-				)),
-				Pbind(
-					\instrument, \phyhat3,
-					\isRest, Pseq([
-						1,1, 1,1, 1,1, 1,1,
-						1,1, 1,1, 0,0, 0,0,
-						1,0, 1,0, 1,0, 1,0,
-					],inf).coin.not,
-					\sustain, 0.05,
-					\fac1,0.1,
-					\dur, 1/8,
-					\amp, 0.01 * Pseq([1,0.7],inf),
-				),
-			Pbind(
-				\instrument, \cymnoise,
-				\freq, 200,
-				\isRest, Pseq([
-					0,0,1,0, 0,0,0,0,
-					1,0,0,0, 0,0,1,0,
-					1,0,1,0, 0,0,1,0,
-					0,0,0,0, 0,0,1,0,
-					1,0,0,0, 0,0,0,0,
-				],inf).coin.not,
-				\legato, 1.0,
-				\fac1,1.0,
-				\dur, 1/8,
-				\amp, 0.1/4,
-			),
-		]),
-		Pmono( \rdncleandist_fulllight,
-			\addAction, \addToTail,
-			\inbus, BusDef(\sendbus1, \audio, 2),
-			'wet10', 1.0,
-			'mix', 0.25714285714286,
-			'gain', 0.744889782792 * Pseq([
-				1
-			],inf),
-			'fb', 0.00001099467303085,
-			'delay', 0.000301231 * Pseq([
-				1,1,1/1.3,
-			],inf).stutter(1),
-			'delay2', 0.000000210000543560101,
-			//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
-			//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
-			'distamp', 01.061836201538,
-			'prelpf', 17000,
-			'prehpf', 17,
-			'lpf', 17000,
-			'hpf', 17,
-			'fbdistamp', 0.5388371966577,
-			'fbdistmix', 0.98176470588235,
-			'postlpf', 17000,
-			'posthpf', 17,
-			\bpmix, 0,
-			\bpfac, 3,
-			'wetamp', 0.20503372119697,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			\dur, 1/4,
-			\out, BusDef(\sendbus2, \audio),
-		),
-		Pmono(\fx_stutter,
-			\inbus, BusDef(\sendbus2, \audio, 2),
-			\mix, Pseq([
-
-				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,1,
-				
-				0,0,0,0, 0,0,0,0,
-				0,1,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
+		Pbind(
+			\instrument, \cymnoise,
+			\freq, 200,
+			\isRest, Pseq([
+				0,0,1,0, 0,0,0,0,
+				1,0,0,0, 0,0,1,0,
+				1,0,1,0, 0,0,1,0,
 				0,0,0,0, 0,0,1,0,
-
-				0,0,0,1, 0,0,1,0,
-				0,1,1,0, 0,1,0,1,
-				0,1,0,0, 0,1,1,0,
-				0,0,0,0, 0,0,0,1,
-			],inf),
-			\time, 1/16/~t,
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\legato, 1.0,
+			\fac1,1.0,
 			\dur, 1/8,
-			\amp, 0.1,
-			\out, BusDef(\sendbus3, \audio),
+			\amp, 0.1/4,
 		),
-		Pmono( \rdncleandist_fulllight,
-			\addAction, \addToTail,
-			\inbus, BusDef(\sendbus3, \audio, 2),
+	]),
+	Pmono( \rdncleandist_fulllight,
+		\addAction, \addToTail,
+		\inbus, BusDef(\sendbus1, \audio, 2),
+		'wet10', 1.0,
+		'mix', 0.25714285714286,
+		'gain', 0.744889782792 * Pseq([
+			1
+		],inf),
+		'fb', 0.00001099467303085,
+		'delay', 0.000301231 * Pseq([
+			1,1,1/1.3,
+		],inf).stutter(1),
+		'delay2', 0.000000210000543560101,
+		//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
+		//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
+		'distamp', 01.061836201538,
+		'prelpf', 17000,
+		'prehpf', 17,
+		'lpf', 17000,
+		'hpf', 17,
+		'fbdistamp', 0.5388371966577,
+		'fbdistmix', 0.98176470588235,
+		'postlpf', 17000,
+		'posthpf', 17,
+		\bpmix, 0,
+		\bpfac, 3,
+		'wetamp', 0.20503372119697,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		\dur, 1/4,
+		\out, BusDef(\sendbus2, \audio),
+	),
+	Pmono(\fx_stutter,
+		\inbus, BusDef(\sendbus2, \audio, 2),
+		\mix, Pseq([
+
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,1,
+			
+			0,0,0,0, 0,0,0,0,
+			0,1,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,1,0,
+
+			0,0,0,1, 0,0,1,0,
+			0,1,1,0, 0,1,0,1,
+			0,1,0,0, 0,1,1,0,
+			0,0,0,0, 0,0,0,1,
+		],inf),
+		\time, 1/16/~t,
+		\dur, 1/8,
+		\amp, 0.1,
+		\out, BusDef(\sendbus3, \audio),
+	),
+	Pmono( \rdncleandist_fulllight,
+		\addAction, \addToTail,
+		\inbus, BusDef(\sendbus3, \audio, 2),
+		'wet10', 1.0,
+		'mix', 0.15714285714286,
+		'gain', 0.744889782792 * Pseq([
+			1
+		],inf),
+		'fb', 0.00001099467303085,
+		'delay', 0.10301231 * Pseq([
+			1,
+		],inf).stutter(1),
+		'delay2', 0.00700000210000543560101 * Pseq([
+			3,3,3,
+			3,3,3,
+			1,2,3,
+		],inf),
+		//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
+		//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
+		'distamp', 41.361836201538,
+		'prelpf', 17000,
+		'prehpf', 17,
+		'lpf', 17000,
+		'hpf', 17,
+		'fbdistamp', 0.5388371966577,
+		'fbdistmix', 0.98176470588235,
+		'postlpf', 17000,
+		'posthpf', 17,
+		\bpmix, 0,
+		\bpfac, 3,
+		'wetamp', 0.20503372119697,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		\dur, 1/4,
+	),
+])
+)).play;
+)
+
+(
+Pdef(\part, Pdef(\plop, 
+Ppar([
+
+	// hi drums
+
+	Pbind(\lag, 0.04, \out, BusDef(\hidrumbus, \audio)) <>
+	Ppar([
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,1,0,
+				1,0,1,0,
+				0,0,1,1,
+				0,0,1,0,
+				1,0,1,0,
+				0,0,1,1,
+				0,0,0,0,
+				0,0,0,0,
+				0,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
+			\dur, 1/16,
+		)),
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				1,1,
+			],inf).coin.not,
+			\sustain, 0.05,
+			\fac1,0.1,
+			\dur, 1/16,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+		),
+		
+	]),
+	Pmono( \rdncleandist_fulllight,
+		\inbus, BusDef(\hidrumbus, \audio, 2),
+		\addAction, \addToTail,
+		'wet10', 1.0,
+		'mix', 0.95714285714286,
+		'gain', 0.1344889782792,
+		'fb', 0.0002099467303085,
+		'delay', 0.000000001231 * Pseq([
+			1,100,10000,
+		],inf).stutter(1),
+		'delay2', 0.000000543560101,
+		'distamp', 10.361836201538,
+		'prelpf', 19900,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'fbdistamp', 4.5388371966577,
+		'fbdistmix', 0.98176470588235,
+		'postlpf', 19900,
+		'posthpf', 17,
+		\bpmix, 0,
+		'wetamp', 0.20503372119697,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		\dur, 1,
+		\out, BusDef(\hidrumbus2, \audio),
+	),
+	Pmono(\fx_rhpf,
+		\inbus, BusDef(\hidrumbus2),
+		\hpf, 6000 * Pseg(Pseq([1,2,1/2],inf),1/6),
+		\dur, 1/8,
+		\out, BusDef(\hidrumbus3, \audio),
+	),
+	Pmono(\fx_rlpf,
+		\inbus, BusDef(\hidrumbus3),
+		\lpf, 14000 * Pseg(Pseq([1,2,1/2],inf),1/8),
+		\dur, 1/8,
+	),
+
+
+	// hi
+		Pbind(
+			\instrument, \iron,
+			\note, Pseq([
+				0,-1,0,13,
+			],inf),
+			\octave, 8,
+			\diff, 0.0001 * Pseq([
+				1,1,1,
+				1,10,2,
+			],inf),
+			\fmr, 1*8 * Pseq([1,1/2,1/4,1/8],inf),
+			\isRest, Pseq([
+				Pseq([
+					0,0, 1,0, 0,1,0,1,
+					0,0, 1,0, 0,0,1,0,
+					0,0, 1,0, 0,0,0,1,
+					0,0, 1,0, 0,1,0,0,
+				],4),
+			],inf).coin.not,
+			\legato, 2,
+			\legato, Pseq([
+				Pseq([
+					Pser([0],9),
+					Pwhite(1/8,3,1),0,0,
+
+					Pser([0],9),
+					Pwhite(1/8,3,1),0,0,
+
+					Pseq([
+						Pwhite(1/8,3,1),0,0,
+						Pwhite(1/8,3,1),0,0,
+					], 2),
+
+					Pser([1/8],9),
+					Pwhite(1/8,3,1),0,0,
+				],1),
+
+
+
+				Pseq([
+					Pwhite(1/8,3,1),0,0,
+				],2 * 4),
+				Pseq([
+					Pser([1/8],9),
+					Pwhite(1/8,3,1),0,0,
+				],6),
+
+				Pseq([
+					Pwhite(1/8,3,1),0,0,
+					Pwhite(1/8,1,1),1,0,
+				],2 * 2),
+				Pseq([
+					Pser([0],9),
+					Pwhite(1/8,3,1),0,0,
+					Pser([1/2],9),
+					Pwhite(1/8,3,1),0,0,
+				],3),
+
+
+				Pseq([
+					Pwhite(1/8,3,1),0,0,
+				],2 * 4),
+				Pseq([
+					Pser([1/8,0],9),
+					Pwhite(1/8,3,1),0,0,
+				],6),
+
+				Pseq([
+					Pwhite(1/8,3,1),0,0,
+					Pwhite(1/8,1,1),1,0,
+				],2 * 2),
+				Pseq([
+					Pser([0,0,1/2],9),
+					Pwhite(1/8,3,1),0,0,
+				],6),
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			//\lag, 0.08,
+			\lag, 0.04,
+
+			\dur, 1/8,
+			\amp, 0.1/8,
+			\out, BusDef(\isendbus1, \audio),
+		),
+
+		Pmono(\rdnroom,
+			\inbus, BusDef(\isendbus1),
+			\dur, 1/2,
 			'wet10', 1.0,
-			'mix', 0.15714285714286,
-			'gain', 0.744889782792 * Pseq([
+			'mix', 0.5,
+			'gain', 1/9,
+			'fb', 0.0000031,
+			'delay', 0.00000001,
+			'delay2', 0.0000001,
+			'delay3', 0.0008010394574653723 * Pseq([
+				1,2,10,100,
+			],inf).stutter(2),
+			'distamp', 5.60466190090704,
+			'distamp2', 4.23886430789846,
+			'distamp3', 2.8985772146511 * Pseq([
 				1
 			],inf),
-			'fb', 0.00001099467303085,
-			'delay', 0.10301231 * Pseq([
-				1,
-			],inf).stutter(1),
-			'delay2', 0.00700000210000543560101 * Pseq([
-				3,3,3,
-				3,3,3,
-				1,2,3,
-			],inf),
-			//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
-			//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
-			'distamp', 41.361836201538,
-			'prelpf', 17000,
+			'shift', -5.0,
+			'shift2', -1.1344537815126,
+			'shift3', -2.4789915966387,
+			'shiftmix', 0.0,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 19000,
 			'prehpf', 17,
-			'lpf', 17000,
+			'lpf', 19000,
 			'hpf', 17,
-			'fbdistamp', 0.5388371966577,
-			'fbdistmix', 0.98176470588235,
-			'postlpf', 17000,
-			'posthpf', 17,
-			\bpmix, 0,
-			\bpfac, 3,
-			'wetamp', 0.20503372119697,
+			'stereo', 1.0,
+			'fbdistamp', 4.9234346672443,
+			'fbdistmix', 0.91176470588235,
+			'postlpf', 19000,
+			'posthpf', 77,
+			'wetamp', 0.18504562572587,
 			'indelay', 0.04,
 			'wet20', 1.0,
 			'mamp', 1,
-			\dur, 1/4,
+			'brfrqfac', 0.37940593233798,
+			'brffac', 0.60195390291997,
+			//\out, BusDef(\fx1, \audio),
 		),
-	])
+
+
+
+	Pbind(\out, BusDef(\sendbus1, \audio)) <>
+	Ppar([
+			Pbind(
+				\instrument, \snapkickx,
+				\dur, 1/8,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+					0,0,1,0, 0,0,0,0,
+				],inf).coin.not,
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \snapkickx,
+				\dur, 1/16,
+				\bodyenv, Pseq([
+					[ Env.linen(0.01,0.04,0.1,0.2) ],
+				],inf),
+				\isRest, Pseq([
+					0,0,0,0, 1,0,1,0, 0,0,1,0, 1,0,0,0,
+					0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
+				],inf).coin.not,
+				\amp, 0.1,
+			),
+			PatKitDef(\ksh2b).asPattern(Pbind(
+				\kitIndex, 5,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+				],inf).coin.not,
+				\speed, Pwhite(0.99,1.01,inf),
+				\sustain, 0.1,
+				\gain, 0.2,
+				\dur, 1/8,
+			)),
+			PatKitDef(\ksh2b).asPattern(Pbind(
+				\kitIndex, 5,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
+					0,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
+					0,0,1,0, 0,0,0,0, 0,0,0,0, 1,0,0,1,
+					//0,0,0,1, 0,0,1,0, 0,0,0,1, 0,0,1,0,
+					//0,0,0,0, 0,0,0,0, 0,0,0,1, 0,1,1,0,
+					//0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,1,
+				],inf).coin.not,
+				\sustain, 0.071,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				],inf),
+				\gain, 0.15,
+				\dur, 1/16,
+			)),
+			Pbind(
+				\instrument, \phyhat3,
+				\isRest, Pseq([
+					1,1, 1,1, 1,1, 1,1,
+					1,1, 1,1, 0,0, 0,0,
+					1,0, 1,0, 1,0, 1,0,
+				],inf).coin.not,
+				\sustain, 0.05,
+				\fac1,0.1,
+				\dur, 1/8,
+				\amp, 0.01 * Pseq([1,0.7],inf),
+			),
+		Pbind(
+			\instrument, \cymnoise,
+			\freq, 200,
+			\isRest, Pseq([
+				0,0,1,0, 0,0,0,0,
+				1,0,0,0, 0,0,1,0,
+				1,0,1,0, 0,0,1,0,
+				0,0,0,0, 0,0,1,0,
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\legato, 1.0,
+			\fac1,1.0,
+			\dur, 1/8,
+			\amp, 0.1/4,
+		),
+	]),
+	Pmono( \rdncleandist_fulllight,
+		\addAction, \addToTail,
+		\inbus, BusDef(\sendbus1, \audio, 2),
+		'wet10', 1.0,
+		'mix', 0.25714285714286,
+		'gain', 0.744889782792 * Pseq([
+			1
+		],inf),
+		'fb', 0.00001099467303085,
+		'delay', 0.000301231 * Pseq([
+			1,1,1/1.3,
+		],inf).stutter(1),
+		'delay2', 0.000000210000543560101,
+		//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
+		//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
+		'distamp', 01.061836201538,
+		'prelpf', 17000,
+		'prehpf', 17,
+		'lpf', 17000,
+		'hpf', 17,
+		'fbdistamp', 0.5388371966577,
+		'fbdistmix', 0.98176470588235,
+		'postlpf', 17000,
+		'posthpf', 17,
+		\bpmix, 0,
+		\bpfac, 3,
+		'wetamp', 0.20503372119697,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		\dur, 1/4,
+		\out, BusDef(\sendbus2, \audio),
+	),
+	Pmono(\fx_stutter,
+		\inbus, BusDef(\sendbus2, \audio, 2),
+		\mix, Pseq([
+
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,1,
+			
+			0,0,0,0, 0,0,0,0,
+			0,1,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,1,0,
+
+			0,0,0,1, 0,0,1,0,
+			0,1,1,0, 0,1,0,1,
+			0,1,0,0, 0,1,1,0,
+			0,0,0,0, 0,0,0,1,
+		],inf),
+		\time, 1/16/~t,
+		\dur, 1/8,
+		\amp, 0.1,
+		\out, BusDef(\sendbus3, \audio),
+	),
+	Pmono( \rdncleandist_fulllight,
+		\addAction, \addToTail,
+		\inbus, BusDef(\sendbus3, \audio, 2),
+		'wet10', 1.0,
+		'mix', 0.15714285714286,
+		'gain', 0.744889782792 * Pseq([
+			1
+		],inf),
+		'fb', 0.00001099467303085,
+		'delay', 0.10301231 * Pseq([
+			1,
+		],inf).stutter(1),
+		'delay2', 0.00700000210000543560101 * Pseq([
+			3,3,3,
+			3,3,3,
+			1,2,3,
+		],inf),
+		//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
+		//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
+		'distamp', 41.361836201538,
+		'prelpf', 17000,
+		'prehpf', 17,
+		'lpf', 17000,
+		'hpf', 17,
+		'fbdistamp', 0.5388371966577,
+		'fbdistmix', 0.98176470588235,
+		'postlpf', 17000,
+		'posthpf', 17,
+		\bpmix, 0,
+		\bpfac, 3,
+		'wetamp', 0.20503372119697,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		\dur, 1/4,
+	),
+])
 )).play;
 )
 
 
 (
 Pdef(\part, Pdef(\plop, 
+Ppar([
+
+	// hi drums
+
+	Pbind(\lag, 0.00, \out, BusDef(\hidrumbus, \audio)) <>
 	Ppar([
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,1,0,
+				1,0,1,0,
+				0,0,1,1,
+				0,0,1,0,
 
-		// hi drums
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
+			\dur, 1/16,
+		)),
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				1,1,
+			],inf).coin.not,
+			\sustain, 0.05,
+			\fac1,0.1,
+			\dur, 1/16,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+		),
+		
+	]),
+	Pmono( \rdncleandist_fulllight,
+		\inbus, BusDef(\hidrumbus, \audio, 2),
+		\addAction, \addToTail,
+		'wet10', 1.0,
+		'mix', 0.95714285714286,
+		'gain', 0.1344889782792,
+		'fb', 0.0002099467303085,
+		'delay', 0.000000001231 * Pseq([
+			1,100,10000,
+		],inf).stutter(1),
+		'delay2', 0.000000543560101,
+		'distamp', 10.361836201538,
+		'prelpf', 19900,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'fbdistamp', 4.5388371966577,
+		'fbdistmix', 0.98176470588235,
+		'postlpf', 19900,
+		'posthpf', 17,
+		\bpmix, 0,
+		'wetamp', 0.20503372119697,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		\dur, 1,
+		\out, BusDef(\hidrumbus2, \audio),
+	),
+	Pmono(\fx_rhpf,
+		\inbus, BusDef(\hidrumbus2),
+		\hpf, 6000 * Pseg(Pseq([1,2,1/2],inf),1/6),
+		\dur, 1/8,
+		\mix, 0,
+		\out, BusDef(\hidrumbus3, \audio),
+	),
+	Pmono(\fx_rlpf,
+		\inbus, BusDef(\hidrumbus3),
+		\lpf, 1400 * Pseg(Pseq([1,2,1/2],inf),1/8),
+		\dur, 1/8,
+		\out, BusDef(\hidrumbus4, \audio),
+	),
+		Pmono(\rdnroom,
+			\inbus, BusDef(\hidrumbus4),
+			\dur, 1/2,
+			'wet10', 1.0,
+			'mix', 0.5,
+			'gain', 1/9,
+			'fb', 0.0000031,
+			'delay', 0.10000001,
+			'delay2', 0.0000001,
+			\delay3, Pseq([
+				~pmodenv.(Pseq(1/[1,1,1,1,10] * 0.003,1), 1/2),
+			],inf),
+			'distamp', 0.60466190090704,
+			'distamp2', 0.23886430789846,
+			'distamp3', 0.8985772146511 * Pseq([
+				1
+			],inf),
+			'shift', -5.0,
+			'shift2', -1.1344537815126,
+			'shift3', -2.4789915966387,
+			'shiftmix', 0.4,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 19000,
+			'prehpf', 17,
+			'lpf', 19000,
+			'hpf', 17,
+			'stereo', 1.0,
+			'fbdistamp', 4.9234346672443,
+			'fbdistmix', 0.91176470588235,
+			'postlpf', 1900,
+			'posthpf', 77,
+			'wetamp', 0.18504562572587,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			'brfrqfac', 0.37940593233798,
+			'brffac', 0.60195390291997,
+			//\out, BusDef(\fx1, \audio),
+		),
 
-		Pbind(\lag, 0.00, \out, BusDef(\hidrumbus, \audio)) <>
-		Ppar([
+
+	// hi
+		Pbind(
+			\instrument, \iron,
+			\note, Pseq([
+				0,0,0,12,
+			],inf),
+			\octave, 3,
+			\diff, 0.000001 * Pseq([
+				1,1,1,
+			],inf),
+			\fmr, 1,
+			\legato, 2,
+			\legato, Pseq([
+				0,0,1,0, 1,0,0,0,
+			],inf)/4,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			//\lag, 0.08,
+			\lag, 0.04,
+
+			\dur, 1/8,
+			\amp, 0.1/8,
+			\out, BusDef(\isendbus1, \audio),
+		),
+
+		Pmono(\rdnroom,
+			\inbus, BusDef(\isendbus1),
+			\dur, 1/2,
+			'wet10', 1.0,
+			'mix', 0.9,
+			'gain', 1/8,
+			'fb', 0.00000031,
+			'delay', 0.00000001,
+			'delay2', 0.0010001,
+			'delay3', 0.0000008010394574653723 * Pseq([
+				1,1, 1,10,
+			],inf).stutter(2),
+			'distamp', 5.60466190090704,
+			'distamp2', 44.23886430789846,
+			'distamp3', 48.8985772146511 * Pseq([
+				1
+			],inf),
+			'shift', -5.0,
+			'shift2', -1.1344537815126,
+			'shift3', -2.4789915966387,
+			'shiftmix', 0.0,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 19000,
+			'prehpf', 17,
+			'lpf', 1900,
+			'hpf', 17,
+			'stereo', 1.0,
+			'fbdistamp', 4.9234346672443,
+			'fbdistmix', 0.91176470588235,
+			'postlpf', 19000,
+			'posthpf', 17,
+			'wetamp', 0.18504562572587,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			'brfrqfac', 0.37940593233798,
+			'brffac', 0.60195390291997,
+			//\out, BusDef(\fx1, \audio),
+		),
+
+
+
+	Pbind(\out, BusDef(\sendbus1, \audio)) <>
+	Ppar([
+			Pbind(
+				\instrument, \snapkickx,
+				\dur, 1/8,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+					0,0,1,0, 0,0,0,0,
+				],inf).coin.not,
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \snapkickx,
+				\dur, 1/16,
+				\bodyenv, Pseq([
+					[ Env.linen(0.01,0.04,0.1,0.2) ],
+				],inf),
+				\isRest, Pseq([
+					0,0,0,0, 1,0,1,0, 0,0,1,0, 1,0,0,0,
+					0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
+				],inf).coin.not,
+				\amp, 0.1,
+			),
 			PatKitDef(\ksh2b).asPattern(Pbind(
 				\kitIndex, 5,
 				\isRest, Pseq([
-					0,0,1,0,
-					1,0,1,0,
-					0,0,1,1,
-					0,0,1,0,
-
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
 				],inf).coin.not,
+				\speed, Pwhite(0.99,1.01,inf),
 				\sustain, 0.1,
 				\gain, 0.2,
+				\dur, 1/8,
+			)),
+			PatKitDef(\ksh2b).asPattern(Pbind(
+				\kitIndex, 5,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
+					0,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
+					0,0,1,0, 0,0,0,0, 0,0,0,0, 1,0,0,1,
+					//0,0,0,1, 0,0,1,0, 0,0,0,1, 0,0,1,0,
+					//0,0,0,0, 0,0,0,0, 0,0,0,1, 0,1,1,0,
+					//0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,1,
+				],inf).coin.not,
+				\sustain, 0.071,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				],inf),
+				\gain, 0.15,
 				\dur, 1/16,
 			)),
 			Pbind(
 				\instrument, \phyhat3,
 				\isRest, Pseq([
-					1,1,
+					1,1, 1,1, 1,1, 1,1,
+					1,1, 1,1, 0,0, 0,0,
+					1,0, 1,0, 1,0, 1,0,
 				],inf).coin.not,
 				\sustain, 0.05,
 				\fac1,0.1,
-				\dur, 1/16,
+				\dur, 1/8,
 				\amp, 0.01 * Pseq([1,0.7],inf),
 			),
-			
-		]),
-		Pmono( \rdncleandist_fulllight,
-			\inbus, BusDef(\hidrumbus, \audio, 2),
-			\addAction, \addToTail,
-			'wet10', 1.0,
-			'mix', 0.95714285714286,
-			'gain', 0.1344889782792,
-			'fb', 0.0002099467303085,
-			'delay', 0.000000001231 * Pseq([
-				1,100,10000,
-			],inf).stutter(1),
-			'delay2', 0.000000543560101,
-			'distamp', 10.361836201538,
-			'prelpf', 19900,
-			'prehpf', 17,
-			'lpf', 19900,
-			'hpf', 17,
-			'fbdistamp', 4.5388371966577,
-			'fbdistmix', 0.98176470588235,
-			'postlpf', 19900,
-			'posthpf', 17,
-			\bpmix, 0,
-			'wetamp', 0.20503372119697,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			\dur, 1,
-			\out, BusDef(\hidrumbus2, \audio),
-		),
-		Pmono(\fx_rhpf,
-			\inbus, BusDef(\hidrumbus2),
-			\hpf, 6000 * Pseg(Pseq([1,2,1/2],inf),1/6),
-			\dur, 1/8,
-			\mix, 0,
-			\out, BusDef(\hidrumbus3, \audio),
-		),
-		Pmono(\fx_rlpf,
-			\inbus, BusDef(\hidrumbus3),
-			\lpf, 1400 * Pseg(Pseq([1,2,1/2],inf),1/8),
-			\dur, 1/8,
-			\out, BusDef(\hidrumbus4, \audio),
-		),
-			Pmono(\rdnroom,
-				\inbus, BusDef(\hidrumbus4),
-				\dur, 1/2,
-				'wet10', 1.0,
-				'mix', 0.5,
-				'gain', 1/9,
-				'fb', 0.0000031,
-				'delay', 0.10000001,
-				'delay2', 0.0000001,
-				\delay3, Pseq([
-					~pmodenv.(Pseq(1/[1,1,1,1,10] * 0.003,1), 1/2),
-				],inf),
-				'distamp', 0.60466190090704,
-				'distamp2', 0.23886430789846,
-				'distamp3', 0.8985772146511 * Pseq([
-					1
-				],inf),
-				'shift', -5.0,
-				'shift2', -1.1344537815126,
-				'shift3', -2.4789915966387,
-				'shiftmix', 0.4,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19000,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 4.9234346672443,
-				'fbdistmix', 0.91176470588235,
-				'postlpf', 1900,
-				'posthpf', 77,
-				'wetamp', 0.18504562572587,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37940593233798,
-				'brffac', 0.60195390291997,
-				//\out, BusDef(\fx1, \audio),
-			),
-
-
-		// hi
-			Pbind(
-				\instrument, \iron,
-				\note, Pseq([
-					0,0,0,12,
-				],inf),
-				\octave, 3,
-				\diff, 0.000001 * Pseq([
-					1,1,1,
-				],inf),
-				\fmr, 1,
-				\legato, 2,
-				\legato, Pseq([
-					0,0,1,0, 1,0,0,0,
-				],inf)/4,
-				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-				//\lag, 0.08,
-				\lag, 0.04,
-
-				\dur, 1/8,
-				\amp, 0.1/8,
-				\out, BusDef(\isendbus1, \audio),
-			),
-
-			Pmono(\rdnroom,
-				\inbus, BusDef(\isendbus1),
-				\dur, 1/2,
-				'wet10', 1.0,
-				'mix', 0.9,
-				'gain', 1/8,
-				'fb', 0.00000031,
-				'delay', 0.00000001,
-				'delay2', 0.0010001,
-				'delay3', 0.0000008010394574653723 * Pseq([
-					1,1, 1,10,
-				],inf).stutter(2),
-				'distamp', 5.60466190090704,
-				'distamp2', 44.23886430789846,
-				'distamp3', 48.8985772146511 * Pseq([
-					1
-				],inf),
-				'shift', -5.0,
-				'shift2', -1.1344537815126,
-				'shift3', -2.4789915966387,
-				'shiftmix', 0.0,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 1900,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 4.9234346672443,
-				'fbdistmix', 0.91176470588235,
-				'postlpf', 19000,
-				'posthpf', 17,
-				'wetamp', 0.18504562572587,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37940593233798,
-				'brffac', 0.60195390291997,
-				//\out, BusDef(\fx1, \audio),
-			),
-
-
-
-		Pbind(\out, BusDef(\sendbus1, \audio)) <>
-		Ppar([
-				Pbind(
-					\instrument, \snapkickx,
-					\dur, 1/8,
-					\isRest, Pseq([
-						1,0,0,0, 0,0,0,0,
-						0,0,1,0, 0,0,0,0,
-					],inf).coin.not,
-					\amp, 0.1,
-				),
-				Pbind(
-					\instrument, \snapkickx,
-					\dur, 1/16,
-					\bodyenv, Pseq([
-						[ Env.linen(0.01,0.04,0.1,0.2) ],
-					],inf),
-					\isRest, Pseq([
-						0,0,0,0, 1,0,1,0, 0,0,1,0, 1,0,0,0,
-						0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
-					],inf).coin.not,
-					\amp, 0.1,
-				),
-				PatKitDef(\ksh2b).asPattern(Pbind(
-					\kitIndex, 5,
-					\isRest, Pseq([
-						0,0,0,0, 1,0,0,0,
-						0,0,0,0, 1,0,0,0,
-					],inf).coin.not,
-					\speed, Pwhite(0.99,1.01,inf),
-					\sustain, 0.1,
-					\gain, 0.2,
-					\dur, 1/8,
-				)),
-				PatKitDef(\ksh2b).asPattern(Pbind(
-					\kitIndex, 5,
-					\isRest, Pseq([
-						0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
-						0,0,0,0, 0,0,0,0, 0,0,1,0, 0,0,1,0,
-						0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
-						0,0,1,0, 0,0,0,0, 0,0,0,0, 1,0,0,1,
-						//0,0,0,1, 0,0,1,0, 0,0,0,1, 0,0,1,0,
-						//0,0,0,0, 0,0,0,0, 0,0,0,1, 0,1,1,0,
-						//0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,1,
-					],inf).coin.not,
-					\sustain, 0.071,
-					\adsr, Pseq([
-						[ Env.adsr(0.01,0.1,0.8,0.1) ],
-					],inf),
-					\gain, 0.15,
-					\dur, 1/16,
-				)),
-				Pbind(
-					\instrument, \phyhat3,
-					\isRest, Pseq([
-						1,1, 1,1, 1,1, 1,1,
-						1,1, 1,1, 0,0, 0,0,
-						1,0, 1,0, 1,0, 1,0,
-					],inf).coin.not,
-					\sustain, 0.05,
-					\fac1,0.1,
-					\dur, 1/8,
-					\amp, 0.01 * Pseq([1,0.7],inf),
-				),
-			Pbind(
-				\instrument, \cymnoise,
-				\freq, 200,
-				\isRest, Pseq([
-					0,0,1,0, 0,0,0,0,
-					1,0,0,0, 0,0,1,0,
-					1,0,1,0, 0,0,1,0,
-					0,0,0,0, 0,0,1,0,
-					1,0,0,0, 0,0,0,0,
-				],inf).coin.not,
-				\legato, 1.0,
-				\fac1,1.0,
-				\dur, 1/8,
-				\amp, 0.1/4,
-			),
-		]),
-		Pmono( \rdncleandist_fulllight,
-			\addAction, \addToTail,
-			\inbus, BusDef(\sendbus1, \audio, 2),
-			'wet10', 1.0,
-			'mix', 0.25714285714286,
-			'gain', 0.744889782792 * Pseq([
-				1
-			],inf),
-			'fb', 0.00001099467303085,
-			'delay', 0.000301231 * Pseq([
-				1,1,1/1.3,
-			],inf).stutter(1),
-			'delay2', 0.000000210000543560101,
-			//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
-			//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
-			'distamp', 01.061836201538,
-			'prelpf', 17000,
-			'prehpf', 17,
-			'lpf', 17000,
-			'hpf', 17,
-			'fbdistamp', 0.5388371966577,
-			'fbdistmix', 0.98176470588235,
-			'postlpf', 17000,
-			'posthpf', 17,
-			\bpmix, 0,
-			\bpfac, 3,
-			'wetamp', 0.20503372119697,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			\dur, 1/4,
-			\out, BusDef(\sendbus2, \audio),
-		),
-		Pmono(\fx_stutter,
-			\inbus, BusDef(\sendbus2, \audio, 2),
-			\mix, Pseq([
-
-				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,1,
-				
-				0,0,0,0, 0,0,0,0,
-				0,1,0,0, 0,0,0,0,
-				0,0,0,0, 0,0,0,0,
+		Pbind(
+			\instrument, \cymnoise,
+			\freq, 200,
+			\isRest, Pseq([
+				0,0,1,0, 0,0,0,0,
+				1,0,0,0, 0,0,1,0,
+				1,0,1,0, 0,0,1,0,
 				0,0,0,0, 0,0,1,0,
-
-				0,0,0,1, 0,0,1,0,
-				0,1,1,0, 0,1,0,1,
-				0,1,0,0, 0,1,1,0,
-				0,0,0,0, 0,0,0,1,
-			],inf),
-			\time, 1/16/~t,
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\legato, 1.0,
+			\fac1,1.0,
 			\dur, 1/8,
-			\amp, 0.1,
-			\out, BusDef(\sendbus3, \audio),
+			\amp, 0.1/4,
 		),
-		Pmono( \rdncleandist_fulllight,
-			\addAction, \addToTail,
-			\inbus, BusDef(\sendbus3, \audio, 2),
-			'wet10', 1.0,
-			'mix', 0.15714285714286,
-			'gain', 0.744889782792 * Pseq([
-				1
-			],inf),
-			'fb', 0.00001099467303085,
-			'delay', 0.10301231 * Pseq([
-				1,
-			],inf).stutter(1),
-			'delay2', 0.00700000210000543560101 * Pseq([
-				3,3,3,
-				3,3,3,
-				1,2,3,
-			],inf),
-			//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
-			//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
-			'distamp', 41.361836201538,
-			'prelpf', 17000,
-			'prehpf', 17,
-			'lpf', 17000,
-			'hpf', 17,
-			'fbdistamp', 0.5388371966577,
-			'fbdistmix', 0.98176470588235,
-			'postlpf', 17000,
-			'posthpf', 17,
-			\bpmix, 0,
-			\bpfac, 3,
-			'wetamp', 0.20503372119697,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			\dur, 1/4,
-		),
-	])
+	]),
+	Pmono( \rdncleandist_fulllight,
+		\addAction, \addToTail,
+		\inbus, BusDef(\sendbus1, \audio, 2),
+		'wet10', 1.0,
+		'mix', 0.25714285714286,
+		'gain', 0.744889782792 * Pseq([
+			1
+		],inf),
+		'fb', 0.00001099467303085,
+		'delay', 0.000301231 * Pseq([
+			1,1,1/1.3,
+		],inf).stutter(1),
+		'delay2', 0.000000210000543560101,
+		//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
+		//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
+		'distamp', 01.061836201538,
+		'prelpf', 17000,
+		'prehpf', 17,
+		'lpf', 17000,
+		'hpf', 17,
+		'fbdistamp', 0.5388371966577,
+		'fbdistmix', 0.98176470588235,
+		'postlpf', 17000,
+		'posthpf', 17,
+		\bpmix, 0,
+		\bpfac, 3,
+		'wetamp', 0.20503372119697,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		\dur, 1/4,
+		\out, BusDef(\sendbus2, \audio),
+	),
+	Pmono(\fx_stutter,
+		\inbus, BusDef(\sendbus2, \audio, 2),
+		\mix, Pseq([
+
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,1,
+			
+			0,0,0,0, 0,0,0,0,
+			0,1,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,0,0,
+			0,0,0,0, 0,0,1,0,
+
+			0,0,0,1, 0,0,1,0,
+			0,1,1,0, 0,1,0,1,
+			0,1,0,0, 0,1,1,0,
+			0,0,0,0, 0,0,0,1,
+		],inf),
+		\time, 1/16/~t,
+		\dur, 1/8,
+		\amp, 0.1,
+		\out, BusDef(\sendbus3, \audio),
+	),
+	Pmono( \rdncleandist_fulllight,
+		\addAction, \addToTail,
+		\inbus, BusDef(\sendbus3, \audio, 2),
+		'wet10', 1.0,
+		'mix', 0.15714285714286,
+		'gain', 0.744889782792 * Pseq([
+			1
+		],inf),
+		'fb', 0.00001099467303085,
+		'delay', 0.10301231 * Pseq([
+			1,
+		],inf).stutter(1),
+		'delay2', 0.00700000210000543560101 * Pseq([
+			3,3,3,
+			3,3,3,
+			1,2,3,
+		],inf),
+		//\delay, ~pmodenv.(Pseq([0.00001,0.002,0.002,1,0.0004],inf), 8),
+		//\delay2, ~pmodenv.(Pseq([0.30001,0.002,0.002,1,0.0004],inf), 7.123),
+		'distamp', 41.361836201538,
+		'prelpf', 17000,
+		'prehpf', 17,
+		'lpf', 17000,
+		'hpf', 17,
+		'fbdistamp', 0.5388371966577,
+		'fbdistmix', 0.98176470588235,
+		'postlpf', 17000,
+		'posthpf', 17,
+		\bpmix, 0,
+		\bpfac, 3,
+		'wetamp', 0.20503372119697,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		\dur, 1/4,
+	),
+])
 )).play;
 )
 
@@ -1052,377 +1052,147 @@ Pdef(\part, Pdef(\plop,
 // minimal hard kick snare
 (
 Pdef(\part, Pdef(\plop, 
-	Ppar([
-		
-			Pbind(
-				\instrument, \iron,
-				\note, Pseq([
-					0,0,0,
-				],inf),
-				\octave, 3,
-				\diff, 0.000001 * Pseq([
-					1,1,1,
-				],inf),
-				\fmr, 1/2,
-				\legato, 2,
-				\legato, Pseq([
-					0,0,0,0, 0,0,0,0,
-					0,0,0,0, 0,1,0,0,
-				],inf)/4,
-				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-				//\lag, 0.08,
-				//\lag, 0.04,
+Ppar([
+	
+		Pbind(
+			\instrument, \iron,
+			\note, Pseq([
+				0,0,0,
+			],inf),
+			\octave, 3,
+			\diff, 0.000001 * Pseq([
+				1,1,1,
+			],inf),
+			\fmr, 1/2,
+			\legato, 2,
+			\legato, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,1,0,0,
+			],inf)/4,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			//\lag, 0.08,
+			//\lag, 0.04,
 
-				\dur, 1/8,
-				\amp, 0.1/80,
-				\out, BusDef(\sendbus1, \audio),
-			),
-			Pbind(
-				\instrument, \snapkickx,
-				\dur, 1/8,
-				\isRest, Pseq([
-					1,0,0,0, 0,0,0,0,
-					1,0,1,0, 0,0,0,0,
-				],inf).coin.not,
-				\amp, 0.1/10000,
-				\out, BusDef(\sendbus1, \audio),
-			),
-
-
-			Pmono(\rdnroom,
-				\inbus, BusDef(\sendbus1),
-				\dur, 1/8,
-				'wet10', 1.0,
-				'mix', 0.9,
-				'gain', 1/8,
-				'fb', 0.00000031,
-				'delay', 0.00000001,
-				'delay2', 0.0010001,
-				'delay2', 0.001008010394574653723 * Pseq([
-					1,1,1,1,
-					1,1,1,1,
-					1,1/10,2,2,
-					1,1,1,1,
-				],inf).stutter(1),
-				\delay3, Pseq([
-					~pmodenv.(Pseq([0.0001,0.41],4), 8),
-					~pmodenv.(Pseq([0.0001,0.01],1), 8),
-				],inf),
-				'distamp', 5.60466190090704,
-				'distamp2', 4.23886430789846,
-				'distamp3', 48.8985772146511 * Pseq([
-					1
-				],inf),
-				'shift', -5.0,
-				'shift2', -1.1344537815126,
-				'shift3', -2.4789915966387,
-				'shiftmix', 0.01,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 1900,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 4.9234346672443,
-				'fbdistmix', 0.91176470588235,
-				'postlpf', 19000,
-				'posthpf', 77,
-				'wetamp', 0.18504562572587,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37940593233798,
-				'brffac', 0.60195390291997,
-				\out, BusDef(\sendbus2, \audio),
-			),
-			Pmono(\fx_bpf,
-				\inbus, BusDef(\sendbus2),
-				\bpf, 420,
-				\dur, 1,
-				\out, BusDef(\sendbus3, \audio),
-			),
-			Pmono(\fx_bpf,
-				\inbus, BusDef(\sendbus2),
-				\bpf, 220,
-				\dur, 1,
-				\out, BusDef(\sendbus3, \audio),
-			),
-			Pmono(\fx_compander,
-				\inbus, BusDef(\sendbus3),
-				\sidemode, 0,
-				\pregain, 40,
-				\cpt, 0.1,
-				\cpabove, 0.1,
-				\cpbelow, 1.0,
-				\cpclamp, 0,
-				\mix, 1,
-				\dur, 1,
-				\amp, 0.1,
-			),
-
-			// snare
-
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					0,0,0,0, 1,0,0,0,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2,
-				\dur, 1/8,
-				\out, BusDef(\snarebus1, \audio),
-			)),
-			Pmono(\rdnroom,
-				\inbus, BusDef(\snarebus1),
-				\dur, 1/8,
-				'wet10', 1.0,
-				'mix', 0.4,
-				'gain', 1/8,
-				'fb', 0.001000031 * Pseq([1,1,1/100000,1],inf).stutter(4),
-				'delay', 0.00000001,
-				'delay2', 0.0000001,
-				'delay3', 0.400008010394574653723 * Pseq([
-					1
-				],inf).stutter(1),
-				'distamp', 5.60466190090704,
-				'distamp2', 0.23886430789846,
-				'distamp3', 0.8985772146511 * Pseq([
-					1
-				],inf),
-				'shift', -5.0,
-				'shift2', -1.1344537815126,
-				'shift3', -2.4789915966387,
-				'shiftmix', 0.0,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19900,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 0.9234346672443,
-				'fbdistmix', 0.91176470588235,
-				'postlpf', 19000,
-				'posthpf', 497,
-				'wetamp', 0.18504562572587,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37940593233798,
-				'brffac', 0.60195390291997,
-			),
-
-
-	])
-)).play;
-)
-
-// hip hop
-(
-Pdef(\part, Pdef(\plop, 
-	Ppar([
-		Pbind(\out, BusDef(\sendbus1, \audio)) <>
-		Ppar([
-			Pbind(
-				\instrument, \snapkickx,
-				\dur, 1/8,
-				\isRest, Pseq([
-					1,0,0,1, 0,0,0,0,
-					0,0,1,0, 0,0,0,1,
-					1,0,0,0, 0,1,0,0,
-					0,0,1,0, 0,0,1,0,
-				],inf).coin.not,
-				\amp, 0.1,
-			),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					0,0,0,0, 1,0,0,0,
-					0,0,0,0, 1,0,0,0,
-					0,0,0,0, 1,0,0,0,
-					0,1,0,0, 1,0,0,0,
-					0,0,0,0, 1,0,0,1,
-					0,0,0,0, 1,0,0,0,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2,
-				\dur, 1/8,
-			)),
-		]),
-		Pmono(\rdnroom,
-			\inbus, BusDef(\sendbus1),
 			\dur, 1/8,
-			'wet10', 1.0,
-			'mix', 0.01,
-			'gain', 2,
-			'fb', 0.000000031,
-			'delay', 0.00000001,
-			'delay2', 0.00001001,
-			'delay3', 0.2000080,
-			'distamp', 0.604,
-			'distamp2', 0.23,
-			'distamp3', 0.89,
-			'shift', -5.0,
-			'shift2', -1.13,
-			'shift3', -2.478,
-			'shiftmix', 0.0,
-			'pitchlag', 1.0,
-			'pitchmix', 0.0,
-			'prelpf', 19000,
-			'prehpf', 17,
-			'lpf', 19900,
-			'hpf', 17,
-			'stereo', 1.0,
-			'fbdistamp', 0.923,
-			'fbdistmix', 0.911,
-			'postlpf', 19000,
-			'posthpf', 17,
-			'wetamp', 0.18,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			'brfrqfac', 0.37,
-			'brffac', 0.60,
+			\amp, 0.1/80,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		Pbind(
+			\instrument, \snapkickx,
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				1,0,1,0, 0,0,0,0,
+			],inf).coin.not,
+			\amp, 0.1/10000,
+			\out, BusDef(\sendbus1, \audio),
 		),
 
-			Pbind(
-				\instrument, \phyhat3,
-				\isRest, Pseq([
-					1,1,1,1, 1,0,1,1,
-					1,1,1,0, 0,0,1,0,
-				],inf).coin.not,
-				\sustain, 0.01,
-				\fac1,0.01,
-				\dur, 1/8,
-				\amp, 0.01 * Pseq([1,0.7],inf),
-				\out, BusDef(\hatbus, \audio),
-			),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					0,0,1,0, 0,1,0,1,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2 * Pseq([
-					1,1/2,1/4,1/2
-				],inf),
-				\out, BusDef(\hatbus, \audio),
-				\dur, 1/8,
-			)),
-			PatKitDef(\sample1).asPattern(Pbind(
-				\kitIndex, 8,
-				\isRest, Pseq([
-					1,0,1,0, 1,0,1,0,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2 * Pseq([
-					1,1/2,1/4,1/2, 1/4,1,2,1/2,
-					1,1/2,1/4,1/2, 4,1,1/2,1/2,
-				],inf).stutter(1),
-				\out, BusDef(\hatbus, \audio),
-				\dur, 1/8,
-			)),
-			Pmono(\rdnroom,
-				\inbus, BusDef(\hatbus, \audio, 2),
-				\dur, 1/8,
-				'wet10', 1.0,
-				'mix', 0.11,
-				'gain', 0.18,
-				'fb', 0.000000031,
-				'delay', 0.00000001,
-				'delay2', 0.00001001 * Pseq([
-					1,1,100,
-					1,1,10,
-					3,3,3,
-				],inf),
-				'delay3', 0.0000080,
-				'distamp', 0.604,
-				'distamp2', 0.23,
-				'distamp3', 8.89,
-				'shift', -5.0,
-				'shift2', -1.13,
-				'shift3', -2.478,
-				'shiftmix', 0.1,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19900,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 0.923,
-				'fbdistmix', 0.911,
-				'postlpf', 19000,
-				'posthpf', 17,
-				'wetamp', 0.18,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37,
-				'brffac', 0.60,
-				\out, BusDef(\hatbus2, \audio),
-			),
-			Pmono(\fx_rlpfrhpf,
-				\inbus, BusDef(\hatbus2),
-				\lpf, 18000,
-				\hpf, 1500,
-				\dur, 1,
-			),
-		
-	])
-)).play;
-)
-
-// long bass 
-(
-Pdef(\part, Pdef(\plop, 
-	Ppar([
-		Pbind(\out, BusDef(\sendbus1, \audio)) <>
-		Ppar([
-			Pbind(
-				\instrument, \snapkickx,
-				\dur, 1/8,
-				\isRest, Pseq([
-					1,0,0,1, 0,0,0,0,
-					0,0,1,0, 0,0,0,1,
-					1,0,0,0, 0,1,0,0,
-					0,0,1,0, 0,0,1,0,
-				],inf).coin.not,
-				\amp, 0.1,
-			),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					0,0,0,0, 1,0,0,0,
-					0,0,0,0, 1,0,0,0,
-					0,0,0,0, 1,0,0,0,
-					0,1,0,0, 1,0,0,0,
-					0,0,0,0, 1,0,0,1,
-					0,0,0,0, 1,0,0,0,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2,
-				\dur, 1/8,
-			)),
-		]),
 
 		Pmono(\rdnroom,
 			\inbus, BusDef(\sendbus1),
 			\dur, 1/8,
 			'wet10', 1.0,
 			'mix', 0.9,
-			'gain', 0.1,
-			'fb', 0.000100031,
+			'gain', 1/8,
+			'fb', 0.00000031,
 			'delay', 0.00000001,
-			'delay2', 0.00101001,
-			'delay3', 0.0001080,
-			'distamp', 0.604,
-			'distamp2', 0.23,
-			'distamp3', 22.89,
+			'delay2', 0.0010001,
+			'delay2', 0.001008010394574653723 * Pseq([
+				1,1,1,1,
+				1,1,1,1,
+				1,1/10,2,2,
+				1,1,1,1,
+			],inf).stutter(1),
+			\delay3, Pseq([
+				~pmodenv.(Pseq([0.0001,0.41],4), 8),
+				~pmodenv.(Pseq([0.0001,0.01],1), 8),
+			],inf),
+			'distamp', 5.60466190090704,
+			'distamp2', 4.23886430789846,
+			'distamp3', 48.8985772146511 * Pseq([
+				1
+			],inf),
 			'shift', -5.0,
-			'shift2', -1.13,
-			'shift3', -2.478,
+			'shift2', -1.1344537815126,
+			'shift3', -2.4789915966387,
+			'shiftmix', 0.01,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 19000,
+			'prehpf', 17,
+			'lpf', 1900,
+			'hpf', 17,
+			'stereo', 1.0,
+			'fbdistamp', 4.9234346672443,
+			'fbdistmix', 0.91176470588235,
+			'postlpf', 19000,
+			'posthpf', 77,
+			'wetamp', 0.18504562572587,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			'brfrqfac', 0.37940593233798,
+			'brffac', 0.60195390291997,
+			\out, BusDef(\sendbus2, \audio),
+		),
+		Pmono(\fx_bpf,
+			\inbus, BusDef(\sendbus2),
+			\bpf, 420,
+			\dur, 1,
+			\out, BusDef(\sendbus3, \audio),
+		),
+		Pmono(\fx_bpf,
+			\inbus, BusDef(\sendbus2),
+			\bpf, 220,
+			\dur, 1,
+			\out, BusDef(\sendbus3, \audio),
+		),
+		Pmono(\fx_compander,
+			\inbus, BusDef(\sendbus3),
+			\sidemode, 0,
+			\pregain, 40,
+			\cpt, 0.1,
+			\cpabove, 0.1,
+			\cpbelow, 1.0,
+			\cpclamp, 0,
+			\mix, 1,
+			\dur, 1,
+			\amp, 0.1,
+		),
+
+		// snare
+
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
+			\dur, 1/8,
+			\out, BusDef(\snarebus1, \audio),
+		)),
+		Pmono(\rdnroom,
+			\inbus, BusDef(\snarebus1),
+			\dur, 1/8,
+			'wet10', 1.0,
+			'mix', 0.4,
+			'gain', 1/8,
+			'fb', 0.001000031 * Pseq([1,1,1/100000,1],inf).stutter(4),
+			'delay', 0.00000001,
+			'delay2', 0.0000001,
+			'delay3', 0.400008010394574653723 * Pseq([
+				1
+			],inf).stutter(1),
+			'distamp', 5.60466190090704,
+			'distamp2', 0.23886430789846,
+			'distamp3', 0.8985772146511 * Pseq([
+				1
+			],inf),
+			'shift', -5.0,
+			'shift2', -1.1344537815126,
+			'shift3', -2.4789915966387,
 			'shiftmix', 0.0,
 			'pitchlag', 1.0,
 			'pitchmix', 0.0,
@@ -1431,7 +1201,157 @@ Pdef(\part, Pdef(\plop,
 			'lpf', 19900,
 			'hpf', 17,
 			'stereo', 1.0,
-			'fbdistamp', 10.923,
+			'fbdistamp', 0.9234346672443,
+			'fbdistmix', 0.91176470588235,
+			'postlpf', 19000,
+			'posthpf', 497,
+			'wetamp', 0.18504562572587,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			'brfrqfac', 0.37940593233798,
+			'brffac', 0.60195390291997,
+		),
+
+
+])
+)).play;
+)
+
+// hip hop
+(
+Pdef(\part, Pdef(\plop, 
+Ppar([
+	Pbind(\out, BusDef(\sendbus1, \audio)) <>
+	Ppar([
+		Pbind(
+			\instrument, \snapkickx,
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,0,1, 0,0,0,0,
+				0,0,1,0, 0,0,0,1,
+				1,0,0,0, 0,1,0,0,
+				0,0,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\amp, 0.1,
+		),
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,1,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,1,
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
+			\dur, 1/8,
+		)),
+	]),
+	Pmono(\rdnroom,
+		\inbus, BusDef(\sendbus1),
+		\dur, 1/8,
+		'wet10', 1.0,
+		'mix', 0.01,
+		'gain', 2,
+		'fb', 0.000000031,
+		'delay', 0.00000001,
+		'delay2', 0.00001001,
+		'delay3', 0.2000080,
+		'distamp', 0.604,
+		'distamp2', 0.23,
+		'distamp3', 0.89,
+		'shift', -5.0,
+		'shift2', -1.13,
+		'shift3', -2.478,
+		'shiftmix', 0.0,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 19000,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'stereo', 1.0,
+		'fbdistamp', 0.923,
+		'fbdistmix', 0.911,
+		'postlpf', 19000,
+		'posthpf', 17,
+		'wetamp', 0.18,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		'brfrqfac', 0.37,
+		'brffac', 0.60,
+	),
+
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				1,1,1,1, 1,0,1,1,
+				1,1,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\sustain, 0.01,
+			\fac1,0.01,
+			\dur, 1/8,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+			\out, BusDef(\hatbus, \audio),
+		),
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,1,0, 0,1,0,1,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2 * Pseq([
+				1,1/2,1/4,1/2
+			],inf),
+			\out, BusDef(\hatbus, \audio),
+			\dur, 1/8,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 8,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2 * Pseq([
+				1,1/2,1/4,1/2, 1/4,1,2,1/2,
+				1,1/2,1/4,1/2, 4,1,1/2,1/2,
+			],inf).stutter(1),
+			\out, BusDef(\hatbus, \audio),
+			\dur, 1/8,
+		)),
+		Pmono(\rdnroom,
+			\inbus, BusDef(\hatbus, \audio, 2),
+			\dur, 1/8,
+			'wet10', 1.0,
+			'mix', 0.11,
+			'gain', 0.18,
+			'fb', 0.000000031,
+			'delay', 0.00000001,
+			'delay2', 0.00001001 * Pseq([
+				1,1,100,
+				1,1,10,
+				3,3,3,
+			],inf),
+			'delay3', 0.0000080,
+			'distamp', 0.604,
+			'distamp2', 0.23,
+			'distamp3', 8.89,
+			'shift', -5.0,
+			'shift2', -1.13,
+			'shift3', -2.478,
+			'shiftmix', 0.1,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 19000,
+			'prehpf', 17,
+			'lpf', 19900,
+			'hpf', 17,
+			'stereo', 1.0,
+			'fbdistamp', 0.923,
 			'fbdistmix', 0.911,
 			'postlpf', 19000,
 			'posthpf', 17,
@@ -1441,20 +1361,221 @@ Pdef(\part, Pdef(\plop,
 			'mamp', 1,
 			'brfrqfac', 0.37,
 			'brffac', 0.60,
+			\out, BusDef(\hatbus2, \audio),
 		),
+		Pmono(\fx_rlpfrhpf,
+			\inbus, BusDef(\hatbus2),
+			\lpf, 18000,
+			\hpf, 1500,
+			\dur, 1,
+		),
+	
+])
+)).play;
+)
+
+// long bass 
+(
+Pdef(\part, Pdef(\plop, 
+Ppar([
+	Pbind(\out, BusDef(\sendbus1, \audio)) <>
+	Ppar([
+		Pbind(
+			\instrument, \snapkickx,
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,0,1, 0,0,0,0,
+				0,0,1,0, 0,0,0,1,
+				1,0,0,0, 0,1,0,0,
+				0,0,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\amp, 0.1,
+		),
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,1,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,1,
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
+			\dur, 1/8,
+		)),
+	]),
+
+	Pmono(\rdnroom,
+		\inbus, BusDef(\sendbus1),
+		\dur, 1/8,
+		'wet10', 1.0,
+		'mix', 0.9,
+		'gain', 0.1,
+		'fb', 0.000100031,
+		'delay', 0.00000001,
+		'delay2', 0.00101001,
+		'delay3', 0.0001080,
+		'distamp', 0.604,
+		'distamp2', 0.23,
+		'distamp3', 22.89,
+		'shift', -5.0,
+		'shift2', -1.13,
+		'shift3', -2.478,
+		'shiftmix', 0.0,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 19000,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'stereo', 1.0,
+		'fbdistamp', 10.923,
+		'fbdistmix', 0.911,
+		'postlpf', 19000,
+		'posthpf', 17,
+		'wetamp', 0.18,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		'brfrqfac', 0.37,
+		'brffac', 0.60,
+	),
+	Pmono(\rdnroom,
+		\inbus, BusDef(\sendbus1),
+		\dur, 1/8,
+		'wet10', 1.0,
+		'mix', 0.01,
+		'gain', 2,
+		'fb', 0.000000031,
+		'delay', 0.00000001,
+		'delay2', 0.00001001,
+		'delay3', 0.2000080,
+		'distamp', 0.604,
+		'distamp2', 0.23,
+		'distamp3', 0.89,
+		'shift', -5.0,
+		'shift2', -1.13,
+		'shift3', -2.478,
+		'shiftmix', 0.0,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 19000,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'stereo', 1.0,
+		'fbdistamp', 0.923,
+		'fbdistmix', 0.911,
+		'postlpf', 19000,
+		'posthpf', 17,
+		'wetamp', 0.18,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		'brfrqfac', 0.37,
+		'brffac', 0.60,
+	),
+
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				1,1,1,1, 1,0,1,1,
+				1,1,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\sustain, 0.01,
+			\fac1,0.01,
+			\dur, 1/8,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+			\out, BusDef(\hatbus, \audio),
+		),
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,1,0, 0,1,0,1,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2 * Pseq([
+				1,1/2,1/4,1/2
+			],inf),
+			\out, BusDef(\hatbus, \audio),
+			\dur, 1/8,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 8,
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,0,
+				1,0,1,0, 1,0,1,0,
+				0,0,0,0, 1,1,1,1,
+				0,1,1,0, 1,1,0,0,
+			],inf).coin.not,
+			\sustain, 0.021,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.1,0.8,0.05) ],
+			],inf),
+			\gain, 0.2 * Pseq([
+				1,1/2,1/4,1/2, 1/4,1,2,1/2,
+				1,1/2,1/4,1/2, 4,1,1/2,1/2,
+			],inf).stutter(1),
+			\out, BusDef(\hatbus, \audio),
+			\dur, 1/16,
+		)),
 		Pmono(\rdnroom,
-			\inbus, BusDef(\sendbus1),
+			\inbus, BusDef(\hatbus, \audio, 2),
 			\dur, 1/8,
 			'wet10', 1.0,
-			'mix', 0.01,
-			'gain', 2,
+			'mix', 0.11,
+			'gain', 0.18,
 			'fb', 0.000000031,
 			'delay', 0.00000001,
-			'delay2', 0.00001001,
-			'delay3', 0.2000080,
+			'delay2', 0.00001001 * Pseq([
+				1,1,100,
+				1,1,10,
+				3,3,3,
+			],inf),
+			'delay3', 0.0000080,
 			'distamp', 0.604,
 			'distamp2', 0.23,
 			'distamp3', 0.89,
+			'shift', -5.0,
+			'shift2', -1.13,
+			'shift3', -2.478,
+			'shiftmix', 0.1,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 19000,
+			'prehpf', 17,
+			'lpf', 19900,
+			'hpf', 17,
+			'stereo', 1.0,
+			'fbdistamp', 0.923,
+			'fbdistmix', 0.911,
+			'postlpf', 19000,
+			'posthpf', 17,
+			'wetamp', 0.18,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			'brfrqfac', 0.37,
+			'brffac', 0.60,
+			\out, BusDef(\hatbus2, \audio),
+		),
+		Pmono(\rdnroom,
+			\inbus, BusDef(\hatbus, \audio, 2),
+			\out, BusDef(\hatbus2, \audio),
+			\dur, 1/8,
+			'wet10', 1.0,
+			'mix', 0.04,
+			'gain', 1,
+			'fb', 0.000000031,
+			'delay', 0.00000001,
+			'delay2', 0.00001001,
+			'delay3', 0.0010080,
+			'distamp', 0.604,
+			'distamp2', 0.23,
+			'distamp3', 8.89,
 			'shift', -5.0,
 			'shift2', -1.13,
 			'shift3', -2.478,
@@ -1477,135 +1598,14 @@ Pdef(\part, Pdef(\plop,
 			'brfrqfac', 0.37,
 			'brffac', 0.60,
 		),
-
-			Pbind(
-				\instrument, \phyhat3,
-				\isRest, Pseq([
-					1,1,1,1, 1,0,1,1,
-					1,1,1,0, 0,0,1,0,
-				],inf).coin.not,
-				\sustain, 0.01,
-				\fac1,0.01,
-				\dur, 1/8,
-				\amp, 0.01 * Pseq([1,0.7],inf),
-				\out, BusDef(\hatbus, \audio),
-			),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					0,0,0,0, 0,0,0,0,
-					0,0,1,0, 0,1,0,1,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2 * Pseq([
-					1,1/2,1/4,1/2
-				],inf),
-				\out, BusDef(\hatbus, \audio),
-				\dur, 1/8,
-			)),
-			PatKitDef(\sample1).asPattern(Pbind(
-				\kitIndex, 8,
-				\isRest, Pseq([
-					1,1,1,1, 1,1,1,0,
-					1,0,1,0, 1,0,1,0,
-					0,0,0,0, 1,1,1,1,
-					0,1,1,0, 1,1,0,0,
-				],inf).coin.not,
-				\sustain, 0.021,
-				\adsr, Pseq([
-					[ Env.adsr(0.001,0.1,0.8,0.05) ],
-				],inf),
-				\gain, 0.2 * Pseq([
-					1,1/2,1/4,1/2, 1/4,1,2,1/2,
-					1,1/2,1/4,1/2, 4,1,1/2,1/2,
-				],inf).stutter(1),
-				\out, BusDef(\hatbus, \audio),
-				\dur, 1/16,
-			)),
-			Pmono(\rdnroom,
-				\inbus, BusDef(\hatbus, \audio, 2),
-				\dur, 1/8,
-				'wet10', 1.0,
-				'mix', 0.11,
-				'gain', 0.18,
-				'fb', 0.000000031,
-				'delay', 0.00000001,
-				'delay2', 0.00001001 * Pseq([
-					1,1,100,
-					1,1,10,
-					3,3,3,
-				],inf),
-				'delay3', 0.0000080,
-				'distamp', 0.604,
-				'distamp2', 0.23,
-				'distamp3', 0.89,
-				'shift', -5.0,
-				'shift2', -1.13,
-				'shift3', -2.478,
-				'shiftmix', 0.1,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19900,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 0.923,
-				'fbdistmix', 0.911,
-				'postlpf', 19000,
-				'posthpf', 17,
-				'wetamp', 0.18,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37,
-				'brffac', 0.60,
-				\out, BusDef(\hatbus2, \audio),
-			),
-			Pmono(\rdnroom,
-				\inbus, BusDef(\hatbus, \audio, 2),
-				\out, BusDef(\hatbus2, \audio),
-				\dur, 1/8,
-				'wet10', 1.0,
-				'mix', 0.04,
-				'gain', 1,
-				'fb', 0.000000031,
-				'delay', 0.00000001,
-				'delay2', 0.00001001,
-				'delay3', 0.0010080,
-				'distamp', 0.604,
-				'distamp2', 0.23,
-				'distamp3', 8.89,
-				'shift', -5.0,
-				'shift2', -1.13,
-				'shift3', -2.478,
-				'shiftmix', 0.0,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19900,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 0.923,
-				'fbdistmix', 0.911,
-				'postlpf', 19000,
-				'posthpf', 17,
-				'wetamp', 0.18,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37,
-				'brffac', 0.60,
-			),
-			Pmono(\fx_rlpfrhpf,
-				\inbus, BusDef(\hatbus2),
-				\lpf, 18000,
-				\hpf, 1500,
-				\dur, 1,
-			),
-		
-	])
+		Pmono(\fx_rlpfrhpf,
+			\inbus, BusDef(\hatbus2),
+			\lpf, 18000,
+			\hpf, 1500,
+			\dur, 1,
+		),
+	
+])
 )).play;
 )
 
@@ -1613,155 +1613,331 @@ Pdef(\part, Pdef(\plop,
 // hard bass + hard snare
 (
 Pdef(\part, Pdef(\plop, 
+Ppar([
+
+
+	Pbind(\out, BusDef(\sendbus1, \audio)) <>
 	Ppar([
-
-
-		Pbind(\out, BusDef(\sendbus1, \audio)) <>
-		Ppar([
-			Pbind(
-				\instrument, \snapkickx,
-				\bodyampenv, Pseq([
-					[ Env([0,1,0],[0.1,0.8]) ]
-				],inf),
-				\dur, 1/16,
-				\isRest, Pseq([
-
-					1,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,0,0,
-					0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,
-					1,0,0,0, 0,1,0,0, 0,0,0,0, 1,0,0,1,
-					0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,
-					//0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,0,0,
-
-					//1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
-					//0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,1,1,
-				],inf).coin.not,
-				\dur, Pkey(\dur) *(1 + (0.06 * Pseq([1,-1],inf))),
-				\amp, 0.1,
-			),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					0,0,0,0, 1,0,0,0,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2,
-				\dur, 1/8,
-			)),
-			Pbind(
-				\instrument, \phyhat3,
-				\isRest, Pseq([
-					0,0,0,1, 0,0,1,0,
-					0,1,0,0, 0,0,0,1,
-				],inf).coin.not,
-				\sustain, 0.05,
-				\fac1,0.1,
-				\dur, 1/8,
-				\amp, 0.01 * Pseq([1,0.7],inf),
-			),
-		]),
-
-		// hard 1
-		Pmono(\rdnroom,
-			\inbus, BusDef(\sendbus1),
-			\dur, 1/8,
-			'wet10', 1.0,
-			'mix', 0.9,
-			'gain', 0.091,
-			'fb', 0.000100031,
-			'delay', 0.00000001,
-			'delay2', 0.00001001 * Pseq([
-				1,1,100,
-				1,1,100,
-				1,100,
+		Pbind(
+			\instrument, \snapkickx,
+			\bodyampenv, Pseq([
+				[ Env([0,1,0],[0.1,0.8]) ]
 			],inf),
-			'delay3', 0.0001080 ,
-			'distamp', 0.604* Pseq([
-				1,10,
-			],inf).stutter(8),
-			'distamp2', 0.23,
-			'distamp3', 22.89 * Pseq([
-				1,1,1,1, 1,1,1,1,
-				1,1,1,1, 0.6,0.1,0.1,0.1,
-			],inf),
-			'shift', -5.0,
-			'shift2', -1.13,
-			'shift3', -2.478,
-			'shiftmix', 0.0,
-			'pitchlag', 1.0,
-			'pitchmix', 0.0,
-			'prelpf', 19000,
-			'prehpf', 17,
-			'lpf', 19900,
-			'hpf', 17,
-			'stereo', 1.0,
-			'fbdistamp', 10.923,
-			'fbdistmix', 0.911,
-			'postlpf', 19000,
-			'posthpf', 17,
-			'wetamp', 0.18,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			'brfrqfac', 0.37,
-			'brffac', 0.60,
+			\dur, 1/16,
+			\isRest, Pseq([
+
+				1,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,0,0,
+				0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,
+				1,0,0,0, 0,1,0,0, 0,0,0,0, 1,0,0,1,
+				0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,
+				//0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,0,0,
+
+				//1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				//0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,1,1,
+			],inf).coin.not,
+			\dur, Pkey(\dur) *(1 + (0.06 * Pseq([1,-1],inf))),
+			\amp, 0.1,
 		),
-		// hard 2
-		Pmono(\rdnroom,
-			\inbus, BusDef(\sendbus1),
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
 			\dur, 1/8,
-			'wet10', 1.0,
-			'mix', 0.9,
-			'gain', 0.1,
-			'fb', 0.000100031,
-			'delay', 0.00010001,
-			'delay2', 0.00001001 * Pseq([
-				1
-			],inf),
-			'delay3', 0.0400080 ,
-			'distamp', 0.604* Pseq([
-				1,10,
-			],inf).stutter(8),
-			'distamp2', 0.23,
-			'distamp3', 2.89 * Pseq([
-				1,1,1,1, 1,1,1,1,
-				1,1,1,1, 0.6,0.1,0.1,0.1,
-			],inf),
-			'shift', -5.0,
-			'shift2', -1.13,
-			'shift3', -2.478,
-			'shiftmix', 0.0,
-			'pitchlag', 1.0,
-			'pitchmix', 0.0,
-			'prelpf', 19000,
-			'prehpf', 17,
-			'lpf', 19900,
-			'hpf', 17,
-			'stereo', 1.0,
-			'fbdistamp', 10.923,
-			'fbdistmix', 0.911,
-			'postlpf', 19000,
-			'posthpf', 17,
-			'wetamp', 0.18,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			'brfrqfac', 0.37,
-			'brffac', 0.60,
+		)),
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				0,0,0,1, 0,0,1,0,
+				0,1,0,0, 0,0,0,1,
+			],inf).coin.not,
+			\sustain, 0.05,
+			\fac1,0.1,
+			\dur, 1/8,
+			\amp, 0.01 * Pseq([1,0.7],inf),
 		),
-		//clean
+	]),
+
+	// hard 1
+	Pmono(\rdnroom,
+		\inbus, BusDef(\sendbus1),
+		\dur, 1/8,
+		'wet10', 1.0,
+		'mix', 0.9,
+		'gain', 0.091,
+		'fb', 0.000100031,
+		'delay', 0.00000001,
+		'delay2', 0.00001001 * Pseq([
+			1,1,100,
+			1,1,100,
+			1,100,
+		],inf),
+		'delay3', 0.0001080 ,
+		'distamp', 0.604* Pseq([
+			1,10,
+		],inf).stutter(8),
+		'distamp2', 0.23,
+		'distamp3', 22.89 * Pseq([
+			1,1,1,1, 1,1,1,1,
+			1,1,1,1, 0.6,0.1,0.1,0.1,
+		],inf),
+		'shift', -5.0,
+		'shift2', -1.13,
+		'shift3', -2.478,
+		'shiftmix', 0.0,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 19000,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'stereo', 1.0,
+		'fbdistamp', 10.923,
+		'fbdistmix', 0.911,
+		'postlpf', 19000,
+		'posthpf', 17,
+		'wetamp', 0.18,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		'brfrqfac', 0.37,
+		'brffac', 0.60,
+	),
+	// hard 2
+	Pmono(\rdnroom,
+		\inbus, BusDef(\sendbus1),
+		\dur, 1/8,
+		'wet10', 1.0,
+		'mix', 0.9,
+		'gain', 0.1,
+		'fb', 0.000100031,
+		'delay', 0.00010001,
+		'delay2', 0.00001001 * Pseq([
+			1
+		],inf),
+		'delay3', 0.0400080 ,
+		'distamp', 0.604* Pseq([
+			1,10,
+		],inf).stutter(8),
+		'distamp2', 0.23,
+		'distamp3', 2.89 * Pseq([
+			1,1,1,1, 1,1,1,1,
+			1,1,1,1, 0.6,0.1,0.1,0.1,
+		],inf),
+		'shift', -5.0,
+		'shift2', -1.13,
+		'shift3', -2.478,
+		'shiftmix', 0.0,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 19000,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'stereo', 1.0,
+		'fbdistamp', 10.923,
+		'fbdistmix', 0.911,
+		'postlpf', 19000,
+		'posthpf', 17,
+		'wetamp', 0.18,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		'brfrqfac', 0.37,
+		'brffac', 0.60,
+	),
+	//clean
+	Pmono(\rdnroom,
+		\inbus, BusDef(\sendbus1),
+		\dur, 1/8,
+		'wet10', 1.0,
+		'mix', 0.01,
+		'gain', 2,
+		'fb', 0.000000031,
+		'delay', 0.00000001,
+		'delay2', 0.00001001,
+		'delay3', 0.2000080,
+		'distamp', 0.604,
+		'distamp2', 0.23,
+		'distamp3', 0.89,
+		'shift', -5.0,
+		'shift2', -1.13,
+		'shift3', -2.478,
+		'shiftmix', 0.0,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 19000,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'stereo', 1.0,
+		'fbdistamp', 0.923,
+		'fbdistmix', 0.911,
+		'postlpf', 19000,
+		'posthpf', 17,
+		'wetamp', 0.18,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		'brfrqfac', 0.37,
+		'brffac', 0.60,
+	),
+
+	// snare
+
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
+			\dur, 1/8,
+			\out, BusDef(\snarebus, \audio),
+		)),
+	Pmono(\rdnroom,
+		\inbus, BusDef(\snarebus),
+		\dur, 1/8,
+		'wet10', 1.0,
+		'mix', 0.9,
+		'gain', 0.1/2,
+		'fb', 0.000100031,
+		'delay', 0.00010001,
+		'delay2', 0.00001001 * Pseq([
+			1
+		],inf),
+		'delay3', 0.0000080 ,
+		'distamp', 0.604* Pseq([
+			1,10,1/10
+		],inf).stutter(4),
+		'distamp2', 0.23,
+		'distamp3', 2.89 * Pseq([
+			1,1,1,1, 1,1,1,1,
+			1,1,1,1, 0.6,0.1,0.1,0.1,
+		],inf),
+		'shift', -5.0,
+		'shift2', -1.13,
+		'shift3', -2.478,
+		'shiftmix', 0.0,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 19000,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'stereo', 1.0,
+		'fbdistamp', 10.923,
+		'fbdistmix', 0.911,
+		'postlpf', 19000,
+		'posthpf', 17,
+		'wetamp', 0.18,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		'brfrqfac', 0.37,
+		'brffac', 0.60,
+	),
+
+	// hats
+
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				0,0,1,1, 0,0,1,0,
+				1,0,1,0, 0,1,1,0,
+			],inf).coin.not,
+			\sustain, 0.01,
+			\fac1,0.01,
+			\dur, 1/8,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+			\out, BusDef(\hatbus, \audio),
+		),
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				1,0,1,1, 0,1,0,1,
+				0,1,1,1, 0,1,1,1,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2 * Pseq([
+				1,1/2,1/4,1/2
+			],inf),
+			\out, BusDef(\hatbus, \audio),
+			\dur, 1/8,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 8,
+			\isRest, Pseq([
+				1,1,1,1, 0,0,1,1,
+				0,1,1,1, 0,0,1,1,
+			],inf).coin.not,
+			\sustain, 0.021,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.1,0.8,0.05) ],
+			],inf),
+			\gain, 0.2 * Pseq([
+				1,1/2,1/4,1/2, 1/4,1,2,1/2,
+				1,1/2,1/4,1/2, 4,1,1/2,1/2,
+			],inf).stutter(1),
+			\out, BusDef(\hatbus, \audio),
+			\dur, 1/16,
+		)),
 		Pmono(\rdnroom,
-			\inbus, BusDef(\sendbus1),
+			\inbus, BusDef(\hatbus, \audio, 2),
 			\dur, 1/8,
 			'wet10', 1.0,
-			'mix', 0.01,
-			'gain', 2,
+			'mix', 0.11,
+			'gain', 0.18,
 			'fb', 0.000000031,
 			'delay', 0.00000001,
-			'delay2', 0.00001001,
-			'delay3', 0.2000080,
+			'delay2', 0.00001001 * Pseq([
+				1,1,100,
+				1,1,10,
+				3,3,3,
+			],inf),
+			'delay3', 0.0000080,
 			'distamp', 0.604,
 			'distamp2', 0.23,
 			'distamp3', 0.89,
+			'shift', -5.0,
+			'shift2', -1.13,
+			'shift3', -2.478,
+			'shiftmix', 0.1,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 19000,
+			'prehpf', 17,
+			'lpf', 19900,
+			'hpf', 17,
+			'stereo', 1.0,
+			'fbdistamp', 0.923,
+			'fbdistmix', 0.911,
+			'postlpf', 19000,
+			'posthpf', 17,
+			'wetamp', 0.18,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			'brfrqfac', 0.37,
+			'brffac', 0.60,
+			\out, BusDef(\hatbus2, \audio),
+		),
+		Pmono(\rdnroom,
+			\inbus, BusDef(\hatbus, \audio, 2),
+			\out, BusDef(\hatbus2, \audio),
+			\dur, 1/8,
+			'wet10', 1.0,
+			'mix', 0.04,
+			'gain', 1,
+			'fb', 0.000000031,
+			'delay', 0.00000001,
+			'delay2', 0.00001001,
+			'delay3', 0.0010080,
+			'distamp', 0.604,
+			'distamp2', 0.23,
+			'distamp3', 8.89,
 			'shift', -5.0,
 			'shift2', -1.13,
 			'shift3', -2.478,
@@ -1784,190 +1960,14 @@ Pdef(\part, Pdef(\plop,
 			'brfrqfac', 0.37,
 			'brffac', 0.60,
 		),
-
-		// snare
-
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					0,0,0,0, 1,0,0,0,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2,
-				\dur, 1/8,
-				\out, BusDef(\snarebus, \audio),
-			)),
-		Pmono(\rdnroom,
-			\inbus, BusDef(\snarebus),
-			\dur, 1/8,
-			'wet10', 1.0,
-			'mix', 0.9,
-			'gain', 0.1/2,
-			'fb', 0.000100031,
-			'delay', 0.00010001,
-			'delay2', 0.00001001 * Pseq([
-				1
-			],inf),
-			'delay3', 0.0000080 ,
-			'distamp', 0.604* Pseq([
-				1,10,1/10
-			],inf).stutter(4),
-			'distamp2', 0.23,
-			'distamp3', 2.89 * Pseq([
-				1,1,1,1, 1,1,1,1,
-				1,1,1,1, 0.6,0.1,0.1,0.1,
-			],inf),
-			'shift', -5.0,
-			'shift2', -1.13,
-			'shift3', -2.478,
-			'shiftmix', 0.0,
-			'pitchlag', 1.0,
-			'pitchmix', 0.0,
-			'prelpf', 19000,
-			'prehpf', 17,
-			'lpf', 19900,
-			'hpf', 17,
-			'stereo', 1.0,
-			'fbdistamp', 10.923,
-			'fbdistmix', 0.911,
-			'postlpf', 19000,
-			'posthpf', 17,
-			'wetamp', 0.18,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			'brfrqfac', 0.37,
-			'brffac', 0.60,
+		Pmono(\fx_rlpfrhpf,
+			\inbus, BusDef(\hatbus2),
+			\lpf, 18000,
+			\hpf, 1500,
+			\dur, 1,
 		),
-
-		// hats
-
-			Pbind(
-				\instrument, \phyhat3,
-				\isRest, Pseq([
-					0,0,1,1, 0,0,1,0,
-					1,0,1,0, 0,1,1,0,
-				],inf).coin.not,
-				\sustain, 0.01,
-				\fac1,0.01,
-				\dur, 1/8,
-				\amp, 0.01 * Pseq([1,0.7],inf),
-				\out, BusDef(\hatbus, \audio),
-			),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					1,0,1,1, 0,1,0,1,
-					0,1,1,1, 0,1,1,1,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2 * Pseq([
-					1,1/2,1/4,1/2
-				],inf),
-				\out, BusDef(\hatbus, \audio),
-				\dur, 1/8,
-			)),
-			PatKitDef(\sample1).asPattern(Pbind(
-				\kitIndex, 8,
-				\isRest, Pseq([
-					1,1,1,1, 0,0,1,1,
-					0,1,1,1, 0,0,1,1,
-				],inf).coin.not,
-				\sustain, 0.021,
-				\adsr, Pseq([
-					[ Env.adsr(0.001,0.1,0.8,0.05) ],
-				],inf),
-				\gain, 0.2 * Pseq([
-					1,1/2,1/4,1/2, 1/4,1,2,1/2,
-					1,1/2,1/4,1/2, 4,1,1/2,1/2,
-				],inf).stutter(1),
-				\out, BusDef(\hatbus, \audio),
-				\dur, 1/16,
-			)),
-			Pmono(\rdnroom,
-				\inbus, BusDef(\hatbus, \audio, 2),
-				\dur, 1/8,
-				'wet10', 1.0,
-				'mix', 0.11,
-				'gain', 0.18,
-				'fb', 0.000000031,
-				'delay', 0.00000001,
-				'delay2', 0.00001001 * Pseq([
-					1,1,100,
-					1,1,10,
-					3,3,3,
-				],inf),
-				'delay3', 0.0000080,
-				'distamp', 0.604,
-				'distamp2', 0.23,
-				'distamp3', 0.89,
-				'shift', -5.0,
-				'shift2', -1.13,
-				'shift3', -2.478,
-				'shiftmix', 0.1,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19900,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 0.923,
-				'fbdistmix', 0.911,
-				'postlpf', 19000,
-				'posthpf', 17,
-				'wetamp', 0.18,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37,
-				'brffac', 0.60,
-				\out, BusDef(\hatbus2, \audio),
-			),
-			Pmono(\rdnroom,
-				\inbus, BusDef(\hatbus, \audio, 2),
-				\out, BusDef(\hatbus2, \audio),
-				\dur, 1/8,
-				'wet10', 1.0,
-				'mix', 0.04,
-				'gain', 1,
-				'fb', 0.000000031,
-				'delay', 0.00000001,
-				'delay2', 0.00001001,
-				'delay3', 0.0010080,
-				'distamp', 0.604,
-				'distamp2', 0.23,
-				'distamp3', 8.89,
-				'shift', -5.0,
-				'shift2', -1.13,
-				'shift3', -2.478,
-				'shiftmix', 0.0,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19900,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 0.923,
-				'fbdistmix', 0.911,
-				'postlpf', 19000,
-				'posthpf', 17,
-				'wetamp', 0.18,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37,
-				'brffac', 0.60,
-			),
-			Pmono(\fx_rlpfrhpf,
-				\inbus, BusDef(\hatbus2),
-				\lpf, 18000,
-				\hpf, 1500,
-				\dur, 1,
-			),
-		
-	])
+	
+])
 )).play;
 )
 
@@ -1977,82 +1977,337 @@ Pdef(\part, Pdef(\plop,
 // + hi
 (
 Pdef(\part, Pdef(\plop, 
+Ppar([
+
+
+	Pbind(\out, BusDef(\sendbus1, \audio)) <>
 	Ppar([
+		Pbind(
+			\instrument, \snapkickx,
+			\bodyampenv, Pseq([
+				[ Env([0,1,0],[0.1,0.8]) ]
+			],inf),
+			\dur, 1/16,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,0,0,
+				0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,
+				1,0,0,0, 0,1,0,0, 0,0,0,0, 1,0,0,1,
+				0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,
+
+				1,0,0,0, 0,0,1,0, 0,0,1,1, 0,0,1,0,
+				0,0,1,0, 1,0,0,0, 0,0,1,0, 0,0,0,0,
+				1,0,0,0, 0,0,1,0, 0,0,1,0, 0,0,0,0,
+				0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,
 
 
-		Pbind(\out, BusDef(\sendbus1, \audio)) <>
-		Ppar([
-			Pbind(
-				\instrument, \snapkickx,
-				\bodyampenv, Pseq([
-					[ Env([0,1,0],[0.1,0.8]) ]
-				],inf),
-				\dur, 1/16,
-				\isRest, Pseq([
-					1,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,0,0,
-					0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,
-					1,0,0,0, 0,1,0,0, 0,0,0,0, 1,0,0,1,
-					0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,
+				//0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,0,0,
 
-					1,0,0,0, 0,0,1,0, 0,0,1,1, 0,0,1,0,
-					0,0,1,0, 1,0,0,0, 0,0,1,0, 0,0,0,0,
-					1,0,0,0, 0,0,1,0, 0,0,1,0, 0,0,0,0,
-					0,0,1,0, 0,0,0,0, 0,0,1,0, 0,0,0,0,
+				//1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				//0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,1,1,
+			],inf).coin.not,
+			\dur, Pkey(\dur) *(1 + (0.06 * Pseq([1,-1],inf))),
+			\amp, 0.1,
+		),
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
+			\dur, 1/8,
+		)),
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				0,0,0,1, 0,0,1,0,
+				0,1,0,0, 0,0,0,1,
+			],inf).coin.not,
+			\sustain, 0.05,
+			\fac1,0.1,
+			\dur, 1/8,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+		),
+	]),
 
+	// hard 1
+	Pmono(\rdnroom,
+		\inbus, BusDef(\sendbus1),
+		\dur, 1/8,
+		'wet10', 1.0,
+		'mix', 0.9,
+		'gain', 0.1,
+		'fb', 0.000100031,
+		'delay', 0.00000001,
+		'delay2', 0.00001001 * Pseq([
+			1,1,100,
+			1,1,100,
+			1,100,
+		],inf),
+		'delay3', 0.0001080 ,
+		'distamp', 0.604* Pseq([
+			1,10,
+		],inf).stutter(8),
+		'distamp2', 0.23,
+		'distamp3', 22.89 * Pseq([
+			1,1,1,1, 1,1,1,1,
+			1,1,1,1, 0.6,0.1,0.1,0.1,
+		],inf),
+		'shift', -5.0,
+		'shift2', -1.13,
+		'shift3', -2.478,
+		'shiftmix', 0.0,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 19000,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'stereo', 1.0,
+		'fbdistamp', 10.923,
+		'fbdistmix', 0.911,
+		'postlpf', 19000,
+		'posthpf', 17,
+		'wetamp', 0.18,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		'brfrqfac', 0.37,
+		'brffac', 0.60,
+	),
+	// hard 2
+	Pmono(\rdnroom,
+		\inbus, BusDef(\sendbus1),
+		\dur, 1/8,
+		'wet10', 1.0,
+		'mix', 0.9,
+		'gain', 0.1,
+		'fb', 0.000100031,
+		'delay', 0.00010001,
+		'delay2', 0.00001001 * Pseq([
+			1
+		],inf),
+		'delay3', 0.0400080 ,
+		'distamp', 0.604* Pseq([
+			1,10,
+		],inf).stutter(8),
+		'distamp2', 0.23,
+		'distamp3', 2.89 * Pseq([
+			1,1,1,1, 1,1,1,1,
+			1,1,1,1, 0.6,0.1,0.1,0.1,
+		],inf),
+		'shift', -5.0,
+		'shift2', -1.13,
+		'shift3', -2.478,
+		'shiftmix', 0.0,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 19000,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'stereo', 1.0,
+		'fbdistamp', 10.923,
+		'fbdistmix', 0.911,
+		'postlpf', 19000,
+		'posthpf', 17,
+		'wetamp', 0.18,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		'brfrqfac', 0.37,
+		'brffac', 0.60,
+	),
+	//clean
+	Pmono(\rdnroom,
+		\inbus, BusDef(\sendbus1),
+		\dur, 1/8,
+		'wet10', 1.0,
+		'mix', 0.01,
+		'gain', 2,
+		'fb', 0.000000031,
+		'delay', 0.00000001,
+		'delay2', 0.00001001,
+		'delay3', 0.2000080,
+		'distamp', 0.604,
+		'distamp2', 0.23,
+		'distamp3', 0.89,
+		'shift', -5.0,
+		'shift2', -1.13,
+		'shift3', -2.478,
+		'shiftmix', 0.0,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 19000,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'stereo', 1.0,
+		'fbdistamp', 0.923,
+		'fbdistmix', 0.911,
+		'postlpf', 19000,
+		'posthpf', 17,
+		'wetamp', 0.18,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		'brfrqfac', 0.37,
+		'brffac', 0.60,
+	),
 
-					//0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,0,0,
+	// snare
 
-					//1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
-					//0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,1,1,
-				],inf).coin.not,
-				\dur, Pkey(\dur) *(1 + (0.06 * Pseq([1,-1],inf))),
-				\amp, 0.1,
-			),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					0,0,0,0, 1,0,0,0,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2,
-				\dur, 1/8,
-			)),
-			Pbind(
-				\instrument, \phyhat3,
-				\isRest, Pseq([
-					0,0,0,1, 0,0,1,0,
-					0,1,0,0, 0,0,0,1,
-				],inf).coin.not,
-				\sustain, 0.05,
-				\fac1,0.1,
-				\dur, 1/8,
-				\amp, 0.01 * Pseq([1,0.7],inf),
-			),
-		]),
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
+			\dur, 1/8,
+			\out, BusDef(\snarebus, \audio),
+		)),
+	Pmono(\rdnroom,
+		\inbus, BusDef(\snarebus),
+		\dur, 1/8,
+		'wet10', 1.0,
+		'mix', 0.9,
+		'gain', 0.1,
+		'fb', 0.000100031,
+		'delay', 0.00010001,
+		'delay2', 0.00001001 * Pseq([
+			1
+		],inf),
+		'delay3', 0.0000080 ,
+		'distamp', 0.604* Pseq([
+			1,10,1/10
+		],inf).stutter(4),
+		'distamp2', 0.23,
+		'distamp3', 2.89 * Pseq([
+			1,1,1,1, 1,1,1,1,
+			1,1,1,1, 0.6,0.1,0.1,0.1,
+		],inf),
+		'shift', -5.0,
+		'shift2', -1.13,
+		'shift3', -2.478,
+		'shiftmix', 0.0,
+		'pitchlag', 1.0,
+		'pitchmix', 0.0,
+		'prelpf', 19000,
+		'prehpf', 17,
+		'lpf', 19900,
+		'hpf', 17,
+		'stereo', 1.0,
+		'fbdistamp', 10.923,
+		'fbdistmix', 0.911,
+		'postlpf', 19000,
+		'posthpf', 17,
+		'wetamp', 0.18,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+		'brfrqfac', 0.37,
+		'brffac', 0.60,
+	),
 
-		// hard 1
+	// hats
+
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				0,0,1,1, 0,0,1,0,
+				1,0,1,0, 0,1,1,0,
+			],inf).coin.not,
+			\sustain, 0.01,
+			\fac1,0.01,
+			\dur, 1/8,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+			\out, BusDef(\hatbus, \audio),
+		),
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 5,
+			\isRest, Pseq([
+				1,0,1,1, 0,1,0,1,
+				0,1,1,1, 0,1,1,1,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2 * Pseq([
+				1,1/2,1/4,1/2
+			],inf),
+			\out, BusDef(\hatbus, \audio),
+			\dur, 1/8,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 8,
+			\isRest, Pseq([
+				1,1,1,1, 0,0,1,1,
+				0,1,1,1, 0,0,1,1,
+			],inf).coin.not,
+			\sustain, 0.021,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.1,0.8,0.05) ],
+			],inf),
+			\gain, 0.2 * Pseq([
+				1,1/2,1/4,1/2, 1/4,1,2,1/2,
+				1,1/2,1/4,1/2, 4,1,1/2,1/2,
+			],inf).stutter(1),
+			\out, BusDef(\hatbus, \audio),
+			\dur, 1/16,
+		)),
 		Pmono(\rdnroom,
-			\inbus, BusDef(\sendbus1),
+			\inbus, BusDef(\hatbus, \audio, 2),
 			\dur, 1/8,
 			'wet10', 1.0,
-			'mix', 0.9,
-			'gain', 0.1,
-			'fb', 0.000100031,
+			'mix', 0.11,
+			'gain', 0.18,
+			'fb', 0.000000031,
 			'delay', 0.00000001,
 			'delay2', 0.00001001 * Pseq([
 				1,1,100,
-				1,1,100,
-				1,100,
+				1,1,10,
+				3,3,3,
 			],inf),
-			'delay3', 0.0001080 ,
-			'distamp', 0.604* Pseq([
-				1,10,
-			],inf).stutter(8),
+			'delay3', 0.0000080,
+			'distamp', 0.604,
 			'distamp2', 0.23,
-			'distamp3', 22.89 * Pseq([
-				1,1,1,1, 1,1,1,1,
-				1,1,1,1, 0.6,0.1,0.1,0.1,
-			],inf),
+			'distamp3', 0.89,
+			'shift', -5.0,
+			'shift2', -1.13,
+			'shift3', -2.478,
+			'shiftmix', 0.1,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 19000,
+			'prehpf', 17,
+			'lpf', 19900,
+			'hpf', 17,
+			'stereo', 1.0,
+			'fbdistamp', 0.923,
+			'fbdistmix', 0.911,
+			'postlpf', 19000,
+			'posthpf', 17,
+			'wetamp', 0.18,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			'brfrqfac', 0.37,
+			'brffac', 0.60,
+			\out, BusDef(\hatbus2, \audio),
+		),
+		Pmono(\rdnroom,
+			\inbus, BusDef(\hatbus, \audio, 2),
+			\out, BusDef(\hatbus2, \audio),
+			\dur, 1/8,
+			'wet10', 1.0,
+			'mix', 0.04,
+			'gain', 1,
+			'fb', 0.000000031,
+			'delay', 0.00000001,
+			'delay2', 0.00001001,
+			'delay3', 0.0010080,
+			'distamp', 0.604,
+			'distamp2', 0.23,
+			'distamp3', 8.89,
 			'shift', -5.0,
 			'shift2', -1.13,
 			'shift3', -2.478,
@@ -2064,7 +2319,7 @@ Pdef(\part, Pdef(\plop,
 			'lpf', 19900,
 			'hpf', 17,
 			'stereo', 1.0,
-			'fbdistamp', 10.923,
+			'fbdistamp', 0.923,
 			'fbdistmix', 0.911,
 			'postlpf', 19000,
 			'posthpf', 17,
@@ -2075,63 +2330,41 @@ Pdef(\part, Pdef(\plop,
 			'brfrqfac', 0.37,
 			'brffac', 0.60,
 		),
-		// hard 2
-		Pmono(\rdnroom,
-			\inbus, BusDef(\sendbus1),
-			\dur, 1/8,
-			'wet10', 1.0,
-			'mix', 0.9,
-			'gain', 0.1,
-			'fb', 0.000100031,
-			'delay', 0.00010001,
-			'delay2', 0.00001001 * Pseq([
-				1
-			],inf),
-			'delay3', 0.0400080 ,
-			'distamp', 0.604* Pseq([
-				1,10,
-			],inf).stutter(8),
-			'distamp2', 0.23,
-			'distamp3', 2.89 * Pseq([
-				1,1,1,1, 1,1,1,1,
-				1,1,1,1, 0.6,0.1,0.1,0.1,
-			],inf),
-			'shift', -5.0,
-			'shift2', -1.13,
-			'shift3', -2.478,
-			'shiftmix', 0.0,
-			'pitchlag', 1.0,
-			'pitchmix', 0.0,
-			'prelpf', 19000,
-			'prehpf', 17,
-			'lpf', 19900,
-			'hpf', 17,
-			'stereo', 1.0,
-			'fbdistamp', 10.923,
-			'fbdistmix', 0.911,
-			'postlpf', 19000,
-			'posthpf', 17,
-			'wetamp', 0.18,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			'brfrqfac', 0.37,
-			'brffac', 0.60,
+		Pmono(\fx_rlpfrhpf,
+			\inbus, BusDef(\hatbus2),
+			\lpf, 18000,
+			\hpf, 1500,
+			\dur, 1,
 		),
-		//clean
+	
+
+		// hi
+
+		Pbind(
+			\instrument, \iron,
+			\note, Pseq([
+				0,0,1,
+				\r,\r,\r,
+			],inf),
+			\octave, 7,
+			\lag, 0.04,
+			\dur, 1/1,
+			\amp, 0.1,
+			\out, BusDef(\hibus, \audio),
+		),
 		Pmono(\rdnroom,
-			\inbus, BusDef(\sendbus1),
+			\inbus, BusDef(\hibus, \audio, 2),
 			\dur, 1/8,
 			'wet10', 1.0,
-			'mix', 0.01,
-			'gain', 2,
+			'mix', 0.31,
+			'gain', 1/4,
 			'fb', 0.000000031,
 			'delay', 0.00000001,
 			'delay2', 0.00001001,
 			'delay3', 0.2000080,
 			'distamp', 0.604,
 			'distamp2', 0.23,
-			'distamp3', 0.89,
+			'distamp3', 2.89,
 			'shift', -5.0,
 			'shift2', -1.13,
 			'shift3', -2.478,
@@ -2155,240 +2388,7 @@ Pdef(\part, Pdef(\plop,
 			'brffac', 0.60,
 		),
 
-		// snare
-
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					0,0,0,0, 1,0,0,0,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2,
-				\dur, 1/8,
-				\out, BusDef(\snarebus, \audio),
-			)),
-		Pmono(\rdnroom,
-			\inbus, BusDef(\snarebus),
-			\dur, 1/8,
-			'wet10', 1.0,
-			'mix', 0.9,
-			'gain', 0.1,
-			'fb', 0.000100031,
-			'delay', 0.00010001,
-			'delay2', 0.00001001 * Pseq([
-				1
-			],inf),
-			'delay3', 0.0000080 ,
-			'distamp', 0.604* Pseq([
-				1,10,1/10
-			],inf).stutter(4),
-			'distamp2', 0.23,
-			'distamp3', 2.89 * Pseq([
-				1,1,1,1, 1,1,1,1,
-				1,1,1,1, 0.6,0.1,0.1,0.1,
-			],inf),
-			'shift', -5.0,
-			'shift2', -1.13,
-			'shift3', -2.478,
-			'shiftmix', 0.0,
-			'pitchlag', 1.0,
-			'pitchmix', 0.0,
-			'prelpf', 19000,
-			'prehpf', 17,
-			'lpf', 19900,
-			'hpf', 17,
-			'stereo', 1.0,
-			'fbdistamp', 10.923,
-			'fbdistmix', 0.911,
-			'postlpf', 19000,
-			'posthpf', 17,
-			'wetamp', 0.18,
-			'indelay', 0.04,
-			'wet20', 1.0,
-			'mamp', 1,
-			'brfrqfac', 0.37,
-			'brffac', 0.60,
-		),
-
-		// hats
-
-			Pbind(
-				\instrument, \phyhat3,
-				\isRest, Pseq([
-					0,0,1,1, 0,0,1,0,
-					1,0,1,0, 0,1,1,0,
-				],inf).coin.not,
-				\sustain, 0.01,
-				\fac1,0.01,
-				\dur, 1/8,
-				\amp, 0.01 * Pseq([1,0.7],inf),
-				\out, BusDef(\hatbus, \audio),
-			),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					1,0,1,1, 0,1,0,1,
-					0,1,1,1, 0,1,1,1,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\gain, 0.2 * Pseq([
-					1,1/2,1/4,1/2
-				],inf),
-				\out, BusDef(\hatbus, \audio),
-				\dur, 1/8,
-			)),
-			PatKitDef(\sample1).asPattern(Pbind(
-				\kitIndex, 8,
-				\isRest, Pseq([
-					1,1,1,1, 0,0,1,1,
-					0,1,1,1, 0,0,1,1,
-				],inf).coin.not,
-				\sustain, 0.021,
-				\adsr, Pseq([
-					[ Env.adsr(0.001,0.1,0.8,0.05) ],
-				],inf),
-				\gain, 0.2 * Pseq([
-					1,1/2,1/4,1/2, 1/4,1,2,1/2,
-					1,1/2,1/4,1/2, 4,1,1/2,1/2,
-				],inf).stutter(1),
-				\out, BusDef(\hatbus, \audio),
-				\dur, 1/16,
-			)),
-			Pmono(\rdnroom,
-				\inbus, BusDef(\hatbus, \audio, 2),
-				\dur, 1/8,
-				'wet10', 1.0,
-				'mix', 0.11,
-				'gain', 0.18,
-				'fb', 0.000000031,
-				'delay', 0.00000001,
-				'delay2', 0.00001001 * Pseq([
-					1,1,100,
-					1,1,10,
-					3,3,3,
-				],inf),
-				'delay3', 0.0000080,
-				'distamp', 0.604,
-				'distamp2', 0.23,
-				'distamp3', 0.89,
-				'shift', -5.0,
-				'shift2', -1.13,
-				'shift3', -2.478,
-				'shiftmix', 0.1,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19900,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 0.923,
-				'fbdistmix', 0.911,
-				'postlpf', 19000,
-				'posthpf', 17,
-				'wetamp', 0.18,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37,
-				'brffac', 0.60,
-				\out, BusDef(\hatbus2, \audio),
-			),
-			Pmono(\rdnroom,
-				\inbus, BusDef(\hatbus, \audio, 2),
-				\out, BusDef(\hatbus2, \audio),
-				\dur, 1/8,
-				'wet10', 1.0,
-				'mix', 0.04,
-				'gain', 1,
-				'fb', 0.000000031,
-				'delay', 0.00000001,
-				'delay2', 0.00001001,
-				'delay3', 0.0010080,
-				'distamp', 0.604,
-				'distamp2', 0.23,
-				'distamp3', 8.89,
-				'shift', -5.0,
-				'shift2', -1.13,
-				'shift3', -2.478,
-				'shiftmix', 0.0,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19900,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 0.923,
-				'fbdistmix', 0.911,
-				'postlpf', 19000,
-				'posthpf', 17,
-				'wetamp', 0.18,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37,
-				'brffac', 0.60,
-			),
-			Pmono(\fx_rlpfrhpf,
-				\inbus, BusDef(\hatbus2),
-				\lpf, 18000,
-				\hpf, 1500,
-				\dur, 1,
-			),
-		
-
-			// hi
-
-			Pbind(
-				\instrument, \iron,
-				\note, Pseq([
-					0,0,1,
-					\r,\r,\r,
-				],inf),
-				\octave, 7,
-				\lag, 0.04,
-				\dur, 1/1,
-				\amp, 0.1,
-				\out, BusDef(\hibus, \audio),
-			),
-			Pmono(\rdnroom,
-				\inbus, BusDef(\hibus, \audio, 2),
-				\dur, 1/8,
-				'wet10', 1.0,
-				'mix', 0.31,
-				'gain', 1/4,
-				'fb', 0.000000031,
-				'delay', 0.00000001,
-				'delay2', 0.00001001,
-				'delay3', 0.2000080,
-				'distamp', 0.604,
-				'distamp2', 0.23,
-				'distamp3', 2.89,
-				'shift', -5.0,
-				'shift2', -1.13,
-				'shift3', -2.478,
-				'shiftmix', 0.0,
-				'pitchlag', 1.0,
-				'pitchmix', 0.0,
-				'prelpf', 19000,
-				'prehpf', 17,
-				'lpf', 19900,
-				'hpf', 17,
-				'stereo', 1.0,
-				'fbdistamp', 0.923,
-				'fbdistmix', 0.911,
-				'postlpf', 19000,
-				'posthpf', 17,
-				'wetamp', 0.18,
-				'indelay', 0.04,
-				'wet20', 1.0,
-				'mamp', 1,
-				'brfrqfac', 0.37,
-				'brffac', 0.60,
-			),
-
-	])
+])
 )).play;
 )
 ////////////////////////// ////////////////////////// ////////////////////////// //////////////////////////
@@ -2396,64 +2396,65 @@ Pdef(\part, Pdef(\plop,
 
 (
 SynthDef(\record0, { arg out=0, mix=0.5, gain=1, gate=1;
-	var in, sig;
-	in = InFeedback.ar(\inbus.kr(0), 2);
-	sig = in;
-	sig = sig * EnvGen.ar(\asr.kr(Env.asr(0.01,1,0.01)),gate,doneAction:2);
-	sig = sig * gain;
-	RecordBuf.ar(sig, \bufnum.kr);
-	//Out.ar(out, sig);
+var in, sig;
+in = InFeedback.ar(\inbus.kr(0), 2);
+sig = in;
+sig = sig * EnvGen.ar(\asr.kr(Env.asr(0.01,1,0.01)),gate,doneAction:2);
+sig = sig * gain;
+RecordBuf.ar(sig, \bufnum.kr);
+//Out.ar(out, sig);
 }).add;
 )
 
 (
 Pdef(\recordthis, Pseq(
 
-	[
-		\min_part1,
-		\min_part2,
-		\min_part3,
-		\min_part4,
-		\min_part5,
-		\min_part6,
-		\min_trans1,
-		\min_trans2,
-		\min_exp1,
-		\min_exp2,
-		\min_exp2,
-	].collect({ arg name, idx;
-		Ppar([
-			Pfindur(8,Pdef(name)),
-			Pmono(\record0,
-				\inbus, 0,
-				\bufnum, BufDef(\smp+++idx, s.sampleRate*8/~t),
-				\dur, Pn(8,1),
-			),
-		]);
+[
+	\min_part1,
+	\min_part2,
+	\min_part3,
+	\min_part4,
+	\min_part5,
+	\min_part6,
+	\min_trans1,
+	\min_trans2,
+	\min_exp1,
+	\min_exp2,
+	\min_exp2,
+].collect({ arg name, idx;
+	Ppar([
+		Pfindur(8,Pdef(name)),
+		Pmono(\record0,
+			\inbus, 0,
+			\bufnum, BufDef(\smp+++idx, s.sampleRate*8/~t),
+			\dur, Pn(8,1),
+		),
+	]);
 
-	})
+})
 ,1),
 ).play;
 )
 
 (
-	// save
-	11.do { arg idx;
-		BufDef(\smp+++idx).write("~/Musique/sc/reckit/loop/min%_135bpm.flac".format(idx).standardizePath, "flac")
-	};
+// save
+11.do { arg idx;
+	BufDef(\smp+++idx).write("~/Musique/sc/reckit/loop/min%_135bpm.flac".format(idx).standardizePath, "flac")
+};
 )
 (
-	// load
-	11.do { arg idx;
-		BufDef(\smp+++idx, "~/Musique/sc/reckit/loop/min%_135bpm.flac".format(idx).standardizePath)
-	};
+// load
+11.do { arg idx;
+	BufDef(\smp+++idx, "~/Musique/sc/reckit/loop/min%_135bpm.flac".format(idx).standardizePath)
+};
 )
 
 
 Pdef(\part).clear;
+1+1
 
 (
-	Pdef(\part, Pdef(\plop, 
+	Pdef(\part, Pdef(\minsmp_part1, 
 		Pseq([
 			Plazy({ arg ev;
 				var acc = 0;
@@ -2479,7 +2480,8 @@ Pdef(\part).clear;
 )
 
 (
-	Pdef(\part, Pdef(\plop, 
+	// rdnroom
+	Pdef(\part, Pdef(\minsmp_part2, 
 		Ppar([
 			Pseq([
 				Plazy({ arg ev;
@@ -2534,6 +2536,36 @@ Pdef(\part).clear;
 				'mamp', 1,
 				\dur, Prand([1/2,1,1/4,2],inf),
 			),
+			Pmono( \rdncleandist_fulllight,
+				\inbus, BusDef(\fx1, \audio, 2),
+				\addAction, \addToTail,
+				'wet10', 1.0,
+				'mix', 1,
+				'gain', 0.3344889782792,
+				'fb', 0.0002099467303085,
+				'delay', 0.000000001231 * Pseq([
+					Pwhite(0.01,1000),
+				],inf).stutter(1),
+				'delay2', 0.000000543560101,
+				'delay2', 0.000000001231 * Pseq([
+					Pwhite(0.01,100),
+				],inf).stutter(1),
+				'distamp', 1.361836201538,
+				'prelpf', 19900,
+				'prehpf', 17,
+				'lpf', 19900,
+				'hpf', 470,
+				'fbdistamp', 4.5388371966577,
+				'fbdistmix', 0.98176470588235,
+				'postlpf', 19900,
+				'posthpf', 1717,
+				\bpmix, 0,
+				'wetamp', 0.20503372119697,
+				'indelay', 0.04,
+				'wet20', 1.0,
+				'mamp', 1,
+				\dur, Prand([1/2,1,1/4,2],inf),
+			),
 			Pmono(\rdnroom,
 				\inbus, BusDef(\fx1, \audio, 2),
 				\dur, 1/8,
@@ -2543,7 +2575,7 @@ Pdef(\part).clear;
 				'fb', 0.000000031,
 				'delay', 0.00000001,
 				'delay2', 0.00001001,
-				'delay3', 0.2000080,
+				'delay3', 0.0000080,
 				'distamp', 0.604,
 				'distamp2', 0.23,
 				'distamp3', 0.89,
@@ -2574,7 +2606,8 @@ Pdef(\part).clear;
 )
 
 (
-	Pdef(\part, Pdef(\plop, 
+	// split by band
+	Pdef(\part, Pdef(\minsmp_part3, 
 		Pseq([
 			Plazy({ arg ev;
 				var acc = 0;
@@ -2626,7 +2659,8 @@ Pdef(\part).clear;
 )
 
 (
-	Pdef(\part, Pdef(\plop, 
+	// split by band
+	Pdef(\part, Pdef(\minsmp_part4, 
 		Plazy({ arg ev;
 			var cut = exprand(80.0,18000);
 			cut.debug("cut");
@@ -2695,7 +2729,8 @@ Pdef(\part).clear;
 )
 
 (
-	Pdef(\part, Pdef(\plop, 
+	// split by band
+	Pdef(\part, Pdef(\minsmp_part5, 
 		Plazy({ arg ev;
 			var cut = exprand(80.0,18000);
 			cut.debug("cut");
@@ -2764,7 +2799,7 @@ Pdef(\part).clear;
 )
 
 (
-	Pdef(\part, Pdef(\plop, 
+	Pdef(\part, Pdef(\minsmp_part6, 
 		Plazy({ arg ev;
 			var cut = exprand(80.0,18000);
 			cut.debug("cut");
@@ -2889,7 +2924,7 @@ Pdef(\part).clear;
 )
 
 (
-	Pdef(\part, Pdef(\plop, 
+	Pdef(\part, Pdef(\minsmp_part6, 
 		Plazy({ arg ev;
 			var cut = exprand(80.0,18000);
 			cut.debug("cut");
@@ -3029,7 +3064,8 @@ Pdef(\part).clear;
 )
 
 (
-	Pdef(\part, Pdef(\plop, 
+	// sample beats
+	Pdef(\part, Pdef(\minsmp_part7, 
 		
 		Pseq([
 			Pfindur(2,
@@ -3130,7 +3166,7 @@ Pdef(\part).clear;
 )
 
 (
-	Pdef(\part, Pdef(\plop, 
+	Pdef(\part, Pdef(\minsmp_part8, 
 		
 		Pseq([
 			Pfindur(8,
@@ -3198,7 +3234,7 @@ Pdef(\part).clear;
 )
 
 (
-	Pdef(\part, Pdef(\plop, 
+	Pdef(\part, Pdef(\minsmp_part9, 
 		
 		Pseq([
 			Pfindur(8,
@@ -3272,7 +3308,7 @@ Pdef(\part).clear;
 )
 
 (
-	Pdef(\part, Pdef(\plop, 
+	Pdef(\part, Pdef(\minsmp_part10, 
 		
 		Pseq([
 			Pfindur(8,
@@ -3313,7 +3349,7 @@ Pdef(\part).clear;
 )
 
 (
-	Pdef(\part, Pdef(\plop, 
+	Pdef(\part, Pdef(\minsmp_part11, 
 		
 		Pseq([
 			Pfindur(8,
@@ -3360,6 +3396,7 @@ Pdef(\part).clear;
 Pdef(\part).clear;
 
 (
+	// simple main
 Pdef(\part, Pdef(\main, 
 	Pseq([
 		////
@@ -3374,6 +3411,29 @@ Pdef(\part, Pdef(\main,
 		Pfindur(4, Pdef(\min_trans1)),
 		Pfindur(4, Pdef(\min_part2)),
 		Pfindur(4, Pdef(\min_part4)),
+		Pfindur(4, Pdef(\min_exp2)),
+
+
+
+	],1)
+)).play;
+)
+(
+Pdef(\part, Pdef(\main, 
+	Pseq([
+		////
+
+		Pfindur(8, Pdef(\min_part1)),
+		Pfindur(4, Pdef(\min_part3)),
+		Pfindur(4, Pdef(\min_part6)),
+		Pfindur(4, Pdef(\min_part3)),
+		Pfindur(4, Pdef(\min_part5)),
+		Pfindur(4, Pdef(\min_trans2)),
+		Pfindur(4, Pdef(\min_exp1)),
+		Pfindur(4, Pdef(\min_trans1)),
+		Pfindur(4, Pdef(\min_part2)),
+		Pfindur(4, Pdef(\min_part4)),
+		Pfindur(4, Pdef(\min_exp2)),
 
 		////
 

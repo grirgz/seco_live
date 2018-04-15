@@ -398,7 +398,7 @@ Pdef(\part, Pdef(\plop,
 				\addAction, \addToTail,
 				'wet10', 1.0,
 				'mix', 0.15714285714286,
-				'gain', 0.7344889782792,
+				'gain', 0.9344889782792,
 				'fb', 0.0002099467303085,
 				'delay', 0.200600001231 * Pseq([
 					1,
@@ -427,7 +427,7 @@ Pdef(\part, Pdef(\plop,
 				\addAction, \addToTail,
 				'wet10', 1.0,
 				'mix', 0.15714285714286,
-				'gain', 0.4344889782792,
+				'gain', 0.8344889782792,
 				'fb', 0.0002099467303085,
 				'delay', 0.000600001231 * Pseq([
 					1,
@@ -1123,7 +1123,7 @@ Pdef(\part, Pdef(\plop,
 )).play;
 )
 
-
+/////////////////////////////////////////// feynman trance
 
 (
 SynthDef(\longway, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fspread=0.01;

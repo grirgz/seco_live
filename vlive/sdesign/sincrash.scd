@@ -37,7 +37,7 @@ Pdef(\part).reset;
 );
 
 	(
-	Pdef(\part, Pdef(\plop, 
+	Pdef(\demo, Pdef(\demomo, 
 		Ppar([
 			Pbind(\out, BusDef(\sendbus1, \audio)) <>
 			Ppar([
@@ -94,7 +94,7 @@ Pdef(\part).reset;
 	)).play;
 	)
 	(
-	Pdef(\part, Pdef(\plop, 
+	Pdef(\demo, Pdef(\demomo, 
 		Ppar([
 			Pbind(\out, BusDef(\sendbus1, \audio)) <>
 			Ppar([
@@ -185,6 +185,7 @@ Pdef(\part).reset;
 
 // make a cool echo/wind fx
 
+(
 SynthDef(\lfoshifter, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -199,10 +200,11 @@ SynthDef(\lfoshifter, { arg out=0, gate=1;
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
+)
 
 
 (
-Pdef(\part, Pdef(\plop, 
+Pdef(\demo, Pdef(\demomo, 
 	Ppar([
 		Pbind(\out, BusDef(\sendbus1, \audio)) <>
 		Ppar([
@@ -212,7 +214,7 @@ Pdef(\part, Pdef(\plop,
 				\amp, 0.1,
 			).loop,
 		]),
-		Pmono(\madshifter,
+		Pmono(\lfoshifter,
 			\inbus, BusDef(\sendbus1),
 			\mix, 1,
 			\dur, 1,
@@ -221,20 +223,6 @@ Pdef(\part, Pdef(\plop,
 )).play;
 )
 
-(
-Pdef(\part, Pdef(\plop, 
-	Ppar([
-		Pbind(\out, BusDef(\sendbus1, \audio)) <>
-		Ppar([
-		]),
-		Pmono(\madshifter,
-			\inbus, BusDef(\sendbus1),
-			\mix, 1,
-			\dur, 1,
-		),
-	])
-)).play;
-)
 
 
 
@@ -274,11 +262,11 @@ SynthDef(\delayband, { arg out=0, gate=1;
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
-Pdef(\part).reset;
+Pdef(\demo).reset;
 );
 
 	(
-	Pdef(\part, Pdef(\plop, 
+	Pdef(\demo, Pdef(\demomo, 
 		Ppar([
 			Pbind(\out, BusDef(\sendbus1, \audio)) <>
 			Ppar([

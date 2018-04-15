@@ -977,21 +977,23 @@ SynthDef(\clochete, { arg out=0, gate=1, freq=200, pan=0, amp=0.1;
 // bits
 
 
+(
 Ndef(\bitshift, {
-    var t = PulseCount.ar(Impulse.ar(8e3));
-    var sig = HPF.ar(
-        (  
-            ((t * 15) & (t >> 5)) |
-            ((t * 5) & (t >> [3, 4])) |
-            ((t * 2) & (t >> 9)) |
-            ((t * 8) & (t >> 11))
-            - 3 % 256
-        ) / 127-1 * 3
-        , 20
-    ).distort * 0.2; 
+	var t = PulseCount.ar(Impulse.ar(8e3));
+	var sig = HPF.ar(
+		(  
+			((t * 15) & (t >> 5)) |
+			((t * 5) & (t >> [3, 4])) |
+			((t * 2) & (t >> 9)) |
+			((t * 8) & (t >> 11))
+			- 3 % 256
+		) / 127-1 * 3
+		, 20
+	).distort * 0.2; 
 	sig/4;
-    //sig = Greyhole.ar(sig, sig, 0.5, sig).flop.mean/4;
+	//sig = Greyhole.ar(sig, sig, 0.5, sig).flop.mean/4;
 }).play;
+)
 
 
 //////////////////////////////////////////
@@ -1106,13 +1108,15 @@ Pdef(\demo, Pdef(\demomo,
 			\chaos, 1.93500,
 			\note, Pseq([
 				1,3,12,4,
-			],inf),
+			],inf).stutter(2),
 			\octave, 5,
 			\format, Pseq([
 				1,2,3,4,5
 			],inf)/4,
-			\formdec, 0.03,
-			\dur, 1,
+			\formdec, 0.03 * Pseq([
+				1,1,1,2,2,20,3
+			],inf),
+			\dur, 1/2,
 			\amp, 0.1,
 		),
 	])
@@ -1322,6 +1326,7 @@ Pdef(\demo, Pdef(\xdemo,
 
 
 (
+	//skank
 Pdef(\demo, Pdef(\plopix, 
 	Ppar([
 		Pbind(
@@ -1354,6 +1359,98 @@ Pdef(\demo, Pdef(\plopix,
 			\dur, 1/16,
 			\amp,0.02,
 		),
+	])
+)).play;
+)
+// skank2
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pbind(
+			\instrument, \iron,
+			\note, Pstep(Pseq([
+				0,0,0,-1,
+			],inf),1/2),
+			\octave, 8,
+			\hpf, 30,
+			\env1, Pseq([
+				[ Env([1,1.5,1],[0.1,0.8]) ]
+			],inf),
+			\diff, 1.1,
+			\fmr, 1/2,
+			\lpfr,4,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.01,0.8,0.1) ],
+			],inf),
+			\lag, 0.04,
+			\legato, Pseq([
+				0,0,1,0, 1,0,8,0, 0,0,1,1, 0,0,1,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,1,0,0,
+				0,0,1,0, 0,0,0,0, 0,0,1,1, 0,0,1,0,
+				8,0,7,0, 8,0,8,0, 0,0,0,0, 0,1,0,0,
+			],inf)/10,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/16,
+			\amp,0.01,
+		),
+		Pbind(
+			\instrument, \iron,
+			\note, Pstep(Pseq([
+				0,0,0,-1,
+			],inf),1/2) + [0,3,7],
+			\octave, Pseq([
+				6,5,7,8,6,
+			],inf),
+			\hpf, 30,
+			\env1, Pseq([
+				[ Env([1,1.5,1],[0.1,0.8]) ]
+			],inf),
+			\diff, 1/Pseq([
+				1,8,5,10,0.5
+			],inf),
+			\fmr, 2,
+			\lpfr,4,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.01,0.8,0.1) ],
+			],inf),
+			\lag, 0.04,
+			\legato, Pseq([
+				0,0,6,0, 1,0,1,0, 0,0,0,0, 4,0,1,0,
+				0,0,0,0, 4,0,0,0, 0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0, 0,0,0,0, 4,0,1,0,
+				0,0,0,0, 10,0,0,0, 0,0,1,0, 1,0,0,0,
+			],inf)/10*2,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/16,
+			\amp,0.02,
+		),
+		Pbind(
+			\instrument, \default,
+			\note, Pstep(Pseq([
+				0,0,0,-1,
+			],inf),1/2) + [0,3,7],
+			\octave, 7,
+			\hpf, 30,
+			\env1, Pseq([
+				[ Env([1,1.5,1],[0.1,0.8]) ]
+			],inf),
+			\diff, 1/Pseq([
+				20,
+			],inf),
+			\fmr, 2,
+			\lpfr,4,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.01,0.8,0.1) ],
+			],inf),
+			\lag, 0.04,
+			\legato, Pseq([
+				0,1,
+			],inf)/10*2,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/4,
+			\amp,0.051,
+		),
+		
 	])
 )).play;
 )
@@ -1394,6 +1491,7 @@ Pdef(\demo, Pdef(\xdemo,
 )
 
 (
+	// hard cymbal
 Pdef(\demo, Pdef(\plopxx, 
 	Ppar([
 		Pbind(
@@ -1428,32 +1526,37 @@ Pdef(\demo, Pdef(\plopxx,
 )
 
 
-		Pbind(
-			\instrument, \iron,
-			\note, Pstep(Pseq([
-				0,0,0,-1,
-			],inf),1/2) + [0,3,7],
-			\octave, 9,
-			\hpf, 30,
-			\env1, Pseq([
-				[ Env([1,1.5,1],[0.1,0.8]) ]
-			],inf),
-			\diff, 1.1,
-			\fmr, 1/4 * Pseq([1,0.1],inf).stutter(2),
-			\lpfr,2,
-			\adsr, Pseq([
-				[ Env.adsr(0.051,0.01,0.8,0.2) ],
-				[ Env.adsr(0.051,0.01,0.8,0.1) ],
-			],inf).stutter(2),
-			\legato, Pseq([
-				1,0,1,0, 
-			],inf)/10,
-			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-			\dur, 1/16,
-			\panwidth, 0.2,
-			\gain, 5,
-			\amp,0.05,
-		),
+(
+	// hat
+Pdef(\demo, 
+	Pbind(
+		\instrument, \iron,
+		\note, Pstep(Pseq([
+			0,0,0,-1,
+		],inf),1/2) + [0,3,7],
+		\octave, 9,
+		\hpf, 30,
+		\env1, Pseq([
+			[ Env([1,1.5,1],[0.1,0.8]) ]
+		],inf),
+		\diff, 1.1,
+		\fmr, 1/4 * Pseq([1,0.1],inf).stutter(2),
+		\lpfr,2,
+		\adsr, Pseq([
+			[ Env.adsr(0.051,0.01,0.8,0.2) ],
+			[ Env.adsr(0.051,0.01,0.8,0.1) ],
+		],inf).stutter(2),
+		\legato, Pseq([
+			1,0,1,0, 
+		],inf)/10,
+		\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+		\dur, 1/16,
+		\panwidth, 0.2,
+		\gain, 5,
+		\amp,0.05,
+	),
+).play;
+)
 
 
 ////////////////
@@ -1685,3 +1788,6 @@ Pdef(\demo, Pdef(\demomo,
 	])
 )).play;
 )
+
+
+//////////////////////////////:

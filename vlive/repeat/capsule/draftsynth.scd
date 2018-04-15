@@ -295,6 +295,24 @@ SynthDef(\rise, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, time=4;
 }).add;
 );
 
+////////////// HI
+
+
+(
+SynthDef(\simpleacid, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\env1.kr(Env([1,2,1],[0.01,0.8])), 1);
+	sig = LFSaw.ar(freq + [ [0,0.0001] ] * [1,1/2,2]).sum;
+	sig.debug("sig");
+	sig = RLPF.ar(sig, \lpfr.kr(2.1) * freq * env1, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);
+
 ///////////// OTHER
 
 
@@ -498,6 +516,19 @@ SynthDef(\simpletrackmixer, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(\sendbus1.kr(BusDef(\sendbus1, \audio)), sig * \send1.kr(0));
 	Out.ar(\sendbus2.kr(BusDef(\sendbus2, \audio)), sig * \send2.kr(0));
 	Out.ar(\sendbus3.kr(BusDef(\sendbus3, \audio)), sig * \send3.kr(0));
+}).add;
+
+SynthDef(\kr_amplitude, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = sig.sum;
+	sig = DelayN.ar(sig, 0.1, \indelay.kr(0));
+	sig = Amplitude.kr(sig) * \ampscale.kr(1) + \ampbias.kr(0);
+	sig = sig.lag(\amplag.kr(0.01));
+	sig = sig * EnvGen.kr(Env.asr(0.01,1,0.01), gate, doneAction:2);
+	sig = sig.clip(\clipmin.kr(-inf), \clipmax.kr(inf));
+	sig.poll(Impulse.kr(\poll.kr(0)));
+	Out.kr(out, sig);
 }).add;
 );
 

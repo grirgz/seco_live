@@ -83,13 +83,13 @@ s.waitForBoot {
 	ProtoDef(\simpleMixer).tracks[0].proxy.set(\send0, 1);
 	ProtoDef(\simpleMixer).tracks[1].proxy.set(\send0, 1);
 	ProtoDef(\simpleMixer).tracks[2].proxy.set(\send0, 1);
-	ProtoDef(\rdn).outBus = BusDef(\mixer7);
-	ProtoDef(\rdn).inBus = BusDef(\sendbus1);
+	ProtoDef(\rdn).outBus = BusDef(\mixer7, \audio);
+	ProtoDef(\rdn).inBus = BusDef(\sendbus1, \audio);
 	ProtoDef(\rdn).fxdef = \del3;
 
 	ProtoDef(\rdn2, ProtoTemplateDef(\rdn));
-	ProtoDef(\rdn2).outBus = BusDef(\mixer8);
-	ProtoDef(\rdn2).inBus = BusDef(\sendbus2);
+	ProtoDef(\rdn2).outBus = BusDef(\mixer8, \audio);
+	ProtoDef(\rdn2).inBus = BusDef(\sendbus2, \audio);
 	ProtoDef(\rdn2).fxdef = \del3full;
 	ProtoDef(\rdn2).genfx;
 	ProtoDef(\rdn2).proxy.set(\indelay, 0.04);

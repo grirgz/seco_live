@@ -13,6 +13,16 @@
 // ring
 
 (
+SynthDef(\fx_freeverb2, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = FreeVerb2.ar(sig[0],sig[1], \verbmix.kr(1), \room.kr(0.5), \damp.kr(0.5));
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0,1,0.01),gate,doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\fx_gain, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 

@@ -175,6 +175,7 @@ Pdef(\part, Pdef(\nine_part1,
 
 
 (
+// score 1
 
 	Pdef(\score_kick, Pbind(
 		\isRest, Pseq([
@@ -273,6 +274,7 @@ Pdef(\part, Pdef(\nine_part1,
 )
 
 (
+// score 2
 
 	Pdef(\score_kick, Pbind(
 		\isRest, Pseq([
@@ -342,6 +344,7 @@ Pdef(\part, Pdef(\nine_part1,
 Pdef(\part).clear;
 
 (
+// player
 Pdef(\part, Pdef(\nine_part2, 
 	Ppar([
 		/// drums

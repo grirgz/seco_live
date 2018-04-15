@@ -1,3 +1,4 @@
+~t = 138/4/60; TempoClock.default.tempo = ~t; // freedom fighter
 
 (
 	// copied from suft22
@@ -3185,6 +3186,7 @@ Pdef(\part, Pdef(\plop,
 
 
 (
+// cut bass at bar 2
 	// copied from suft22
 	~swing = -1/6;
 	Pdef(\part, Pdef(\part_base, 
@@ -4109,6 +4111,7 @@ Pdef(\part, Pdef(\plop,
 
 
 (
+// scratch
 	// copied from suft22
 	~swing = -1/6;
 	Pdef(\part, Pdef(\part_base, 
