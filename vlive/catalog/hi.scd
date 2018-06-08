@@ -972,6 +972,17 @@ SynthDef(\clochete, { arg out=0, gate=1, freq=200, pan=0, amp=0.1;
 }).add;
 );
 
+(
+Pdef(\treb, 
+	Pbind(
+		\instrument, \clochete,
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
 
 //////////////////////////////////////////
 // bits

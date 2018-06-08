@@ -34,7 +34,7 @@ SynthDef(\snapkickx, { |out = 0, pan = 0, amp = 0.3|
 
 	Out.ar(out, Pan2.ar(snd, pan, amp));
 }).add;
-SynthDef(\fm_grain_test, {arg out=0, gate = 1, amp = 1, freq=200, fratio=2, pan=0;
+SynthDef(\fm_grain_test, {arg out=1, gate = 1, amp = 1, freq=200, fratio=2, pan=0;
 	var sig = FMGrain.ar(
 		Impulse.ar(200), 0.14, freq, freq*fratio,
 		LFNoise1.ar(500!2).range(1, 10),

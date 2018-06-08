@@ -26,7 +26,7 @@ SynthDef(\fx_freeverb2, { arg out=0, gate=1;
 SynthDef(\fx_gain, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.1),gate,doneAction:2);
+	sig = sig * EnvGen.ar(Env.adsr(0.1,0,1,0.1),gate,doneAction:2);
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
@@ -380,6 +380,19 @@ SynthDef(\chorusdistlim, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 
 
 (
+SynthDef(\simplecomp, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var sidein = InFeedback.ar(\sideinbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = sig * \pregain.kr(1);
+	sig = Compander.ar(sig, sig, \cpt.kr(0.4), \cpbelow.kr(1.001), \cpabove.kr(0.9), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	sig = SelectX.ar(\mix.kr(1), [in, sig]);
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+
 SynthDef(\fx_compander, { arg out=0, gate=1, sidemode=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 

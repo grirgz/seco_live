@@ -239,6 +239,11 @@ TrackTemplateDef(\playertrack, (
 		ret;
 	},
 
+	// mimic modality
+	elAt: { arg self ...args;
+		self.childAt(*args)
+	},
+
 	gridPosToAbsPos: { arg self, pos;
 		pos + self.parentTrack.gridOffset.y;
 	},
@@ -388,6 +393,12 @@ TrackTemplateDef(\playergrid, (
 		}
 	},
 
+	// mimic modality
+	elAt: { arg self ...args;
+		self.childAt(*args)
+	},
+
+
 	gridPosToAbsPos: { arg self, pos;
 		pos + self.gridOffset;
 	},
@@ -430,7 +441,7 @@ TrackTemplateDef(\playergrid, (
 	},
 
 	activate: { arg self;
-		~lauchpad_playergrid.new(self).activate
+		~launchpad_playergrid.new(self).activate
 	},
 
 	linePlayerAt: { arg parent, idx;
@@ -745,7 +756,7 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 		self['property_'+++name] = val
 	};
 };
-~lauchpad_playergrid = ProtoClass((
+~launchpad_playergrid = ProtoClass((
 	new: { arg self, grid;
 		self = self.deepCopy;
 	
@@ -973,7 +984,7 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 	},
 ));
 ProtoDef(\lauchpad_offsetgrid, (
-	parent: ~lauchpad_playergrid,
+	parent: ~launchpad_playergrid,
 	render_cell: { arg self, pos, isPlaying, mode;
 		// playerWrapper to pad
 		var color;
@@ -1125,7 +1136,7 @@ TrackDef(\main).linePlayerAt(0).stop
 
 
 (
-~lauchpad_playergrid.new(TrackDef(\main)).activate
+~launchpad_playergrid.new(TrackDef(\main)).activate
 )
 MKtl(\lp).postElements
 MKtl(\lp).elAt(\pad, 0, \on).value = 0.2

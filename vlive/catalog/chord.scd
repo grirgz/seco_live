@@ -148,7 +148,7 @@ Ndef(\chord, { arg freq=800, pan=0, amp=0.1;
 
 ///////////////////
 (
-SynthDef(\tredrone, { arg lagf=0, freq=200, pan=0, amp=0.1, out=0;
+SynthDef(\tredrone, { arg lagf=0, freq=200, pan=0, amp=0.1, out=0, gate=1;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
 	freq = freq.lag(lagf);
@@ -173,6 +173,7 @@ Pdef(\demo, PmonoArtic(\tredrone,
 	\cusfreq, [1,2,3]/3,
 	\lpfr, 2,
 	\lagf, Pseq([1,0,0,1]/2,inf).stutter(8),
+	\octave, 6,
 	\degree, Pseq([
 		[0,2,4],
 		[0,2,4]+2,
@@ -184,7 +185,7 @@ Pdef(\demo, PmonoArtic(\tredrone,
 		[-20,-20,-20],
 	],inf).stutter(8),
 	\dur, 1,
-	\amp, 0.1
+	\amp, 0.4
 )).play;
 );
 );

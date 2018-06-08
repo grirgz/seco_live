@@ -98,26 +98,39 @@ Pdef(\part, Pdef(\plop,
 				\isRest, Pseq([
 					0,0,0, 0,0,0,  1,0,0, 0,0,0,
 				],inf).coin.not,
-				\sustain, 0.1,
+				\sustain, 0.1/4,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.4) ],
+				],inf),
 				\dur, 1/12,
-				\amp, 0.1,
+				\gain, 0.4 * Pseq([
+					1,0.8,1,1,0.9,
+				],inf),
 				\out, BusDef(\fx1, \audio),
 			)),
 			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 9,
+				\kitIndex, 5,
 				\isRest, Pseq([
-					1,0,0, 0,0,0, 1,0, 0,0, 1,0, 
-					0,0,1, 1,0,1, 1,0, 0,0, 0,0, 
+					0,0,0, 0,0,0,  0,0,0, 0,0,0,
+					0,0,0, 0,0,0,  0,0,0, 0,0,1,
+					0,0,0, 0,0,0,  0,0,0, 0,0,0,
+					0,0,0, 0,0,0,  0,0,1, 0,0,0,
+					0,0,0, 0,0,0,  0,0,0, 0,0,0,
+					0,0,1, 0,0,0,  0,0,0, 0,0,0,
+					0,0,0, 0,0,0,  0,0,0, 0,0,0,
+					1,0,1, 0,0,0,  0,0,0, 0,0,0,
+					0,0,0, 0,0,0,  0,0,1, 0,0,1,
+					0,0,0, 0,0,0,  0,0,0, 0,0,0,
 				],inf).coin.not,
-				\sustain, 0.1,
-				\dur, 1/24,
-				\gain, 0.2 * Pseq([
-					1,1,1,
-					1,0.2,0.2,
+				\sustain, 0.1/4,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.2) ],
 				],inf),
-				\amp, 0.1,
+				\dur, 1/12,
+				\gain, 0.2 * Pseq([
+					1,0.8,1,1,0.9,
+				],inf),
 				\out, BusDef(\fx1, \audio),
-				\isRest, true,
 			)),
 			PatKitDef(\ksh2b).asPattern(Pbind(
 				\kitIndex, 9,
@@ -132,10 +145,26 @@ Pdef(\part, Pdef(\plop,
 					1,0.7,0.2, 1,0.7,0.2, 1,0.7,0.2, 1,0.7,0.9,
 					1,0.7,0.2, 1,0.7,0.2, 1,0.7,0.8, 1,0.7,0.2,
 				],inf),
-				\amp, 0.1,
 				\out, BusDef(\fx1, \audio),
 			)),
 			PatKitDef(\ksh2b).asPattern(Pbind(
+				// not convincing so muted
+				\kitIndex, 9,
+				\isRest, Pseq([
+					1,0,0, 0,0,0, 1,0, 0,0, 1,0, 
+					0,0,1, 1,0,1, 1,0, 0,0, 0,0, 
+				],inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/24,
+				\gain, 0.2 * Pseq([
+					1,1,1,
+					1,0.2,0.2,
+				],inf),
+				\out, BusDef(\fx1, \audio),
+				\isRest, true,
+			)),
+			PatKitDef(\ksh2b).asPattern(Pbind(
+				// not convincing so muted
 				\kitIndex, 9,
 				\isRest, Pseq([
 					1,0,1,0,
@@ -148,7 +177,6 @@ Pdef(\part, Pdef(\plop,
 				\gain, 0.2 * Pseq([
 					1,1,1, 0.2,
 				],inf),
-				\amp, 0.1,
 				\out, BusDef(\fx1, \audio),
 				\isRest, true,
 			)),

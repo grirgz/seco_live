@@ -13,7 +13,9 @@
 		"
 		SynthDef(\\rdnfx, { arg out=0, gate=1;
 			var sig;
+			var sig2;
 			var si, env = ();
+			var si2;
 			var in = InFeedback.ar(\\inbus.kr(BusDef(\\fx1, \\audio)), 2); 
 
 			thisThread.randSeed = %;
@@ -21,13 +23,17 @@
 			sig = LocalIn.ar(2) * \\fb.kr(0.1) + in;
 			si = sig;
 			sig = %
+			//sig2 = HPF.ar(sig, \\hpf.kr(14), \\hprq.kr(0.1));
+			//sig2 = LPF.ar(sig2, \\lpf.kr(19900), \\lprq.kr(1));
+			//sig = SelectX.ar(\\pfmix.kr(0.0), [sig, sig2]);
 			sig = Limiter.ar(sig);
 			LocalOut.ar(sig);
 
 			//sig = MidEQ.ar(sig, \\eqmid1b.kr(12000), \\eqrq1b.kr(1), \\eqdb1b.kr(0));
 			//sig = MidEQ.ar(sig, \\eqmid2b.kr(7000), \\eqrq2b.kr(1), \\eqdb2b.kr(0));
-			//sig = HPF.ar(sig, \\ehpf.kr(140), \\ehprq.kr(1));
-			//sig = LPF.ar(sig, \\elpf.kr(10000), \\elprq.kr(1));
+			//sig2 = HPF.ar(sig, \\posthpf.kr(14), \\posthprq.kr(0.1));
+			//sig2 = LPF.ar(sig2, \\postlpf.kr(19900), \\postlprq.kr(1));
+			//sig = SelectX.ar(\\postpfmix.kr(0.0), [sig, sig2]);
 			sig = SelectX.ar(\\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
 			sig = Splay.ar(sig, \\spread.kr(1), 1, \\pan.kr(0));
 			sig = sig * \\gain.kr(1);

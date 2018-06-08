@@ -52,3 +52,34 @@ Pdef(\bigkick, Pbind(
 	\amp, 0.1
 )).play;
 );
+
+///
+
+// stolen from sccode
+(
+SynthDef (\sc303 , {  arg  out=0, freq=440, wave=0, ctf=100, res=0.2,
+		sus=0, dec=1.0, env=1000, gate=1, vol=0.1;
+		var  filEnv, volEnv, waves;
+		volEnv =  EnvGen .ar( Env .new([10e-10, 1, 1, 10e-10], [0.01, sus, dec],  'exp' ), gate, doneAction:2)-10e-10;
+		filEnv =  EnvGen .ar( Env .new([10e-10, 1, 10e-10], [0.01, dec],  'exp' ), gate)-10e-10;
+		waves = [ Saw .ar(freq),  Pulse .ar(freq, 0.5)];
+		Out .ar(out,  RLPF .ar(  SelectX .ar(wave, waves), ctf + (filEnv * env), res).dup * vol * volEnv);
+}).add;
+)
+
+(
+Pdef(\demo, Pdef(\zed, 
+	Ppar([
+		Pdef(\303, 
+			Pbind(
+				\instrument, \sc303,
+				\dur, 1,
+				\amp, 0.1,
+			),
+		),
+		
+	])
+)).play;
+)
+
+WindowDef(\PdefEditor).front(Pdef(\303))

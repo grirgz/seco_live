@@ -87,7 +87,7 @@
 			FreqShift.ar(si, 100.0.rand * [1, 1+0.01.rand] * [1,-1].choose * \shift2.kr) + si / 1.2;
 		},
 		\dist, { arg si;
-			(si * 10.rand * \distamp.kr).tanh / 2;
+			(si * 10.0.rand * \distamp.kr).tanh / 2;
 		},
 		\end, { arg si;
 			//[
@@ -562,13 +562,13 @@
 			BRF.ar(si, exprand(100,10000)* \brffac.kr(1), ( 0.5.rand * \brfrqfac.kr(1) ) + 0.01) + ( si / 4 );
 		},
 		\dist, { arg si;
-			(si * 10.rand * \distamp.kr).tanh / 2;
+			(si * 10.0.rand * \distamp.kr).tanh / 2;
 		},
 		\dist2, { arg si;
-			(si * 10.rand * \distamp2.kr).tanh / 2;
+			(si * 10.0.rand * \distamp2.kr).tanh / 2;
 		},
 		\dist3, { arg si;
-			(si * 10.rand * \distamp3.kr).tanh / 2;
+			(si * 10.0.rand * \distamp3.kr).tanh / 2;
 		},
 		\end, { arg si;
 			si;
@@ -712,13 +712,13 @@
 			]);
 		},
 		\dist, { arg si;
-			(si * 10.rand * \distamp.kr).tanh / 2;
+			(si * 10.0.rand * \distamp.kr).tanh / 2;
 		},
 		\dist2, { arg si;
-			(si * 10.rand * \distamp2.kr).tanh / 2;
+			(si * 10.0.rand * \distamp2.kr).tanh / 2;
 		},
 		\dist3, { arg si;
-			(si * 10.rand * \distamp3.kr).tanh / 2;
+			(si * 10.0.rand * \distamp3.kr).tanh / 2;
 		},
 		\end, { arg si;
 			si;

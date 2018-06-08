@@ -1455,7 +1455,7 @@ Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
 			LFPulse.ar(freq),
 			LFCub.ar(freq),
 			SinOsc.ar(freq),
-			WhiteNoise.ar,
+			BPF.ar(WhiteNoise.ar, freq, 1),
 		].choose * EnvGen.kr(
 			Env([0, 1.0.rand, 2.0.rand, 1.0.rand, 0],[0.1.rand, 4.0.rand, 4.0.rand, 0.1.rand], {rrand(-5,5)}.dup(4), loopNode:0, releaseNode:3)
 			, gate);
@@ -1467,7 +1467,7 @@ Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
 
 	sig = op.(exprand(200, 14000) );
 
-	rrand(5,20).do { arg idx;
+	rrand(5,20).debug("numpart").do { arg idx;
 		var algos = [
 			{ op.(sig * exprand(0.01,2) + 1 * randfreq.value); }, // fm
 			{ op.(sig * exprand(0.01,2) + 1 * randfreq.value) + sig; }, // fm + sig
@@ -1475,7 +1475,9 @@ Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
 			{ sig * op.(randfreq.value); }, // ring
 			{ sig + op.(randfreq.value); }, // sum
 		];
-		sig = algos.choose.value;
+		var index = algos.size.rand;
+		index.asCompileString.postln;
+		sig = algos[index].value;
 	};
 
 	sig = LPF.ar(sig, \lpf.kr(14000));
@@ -1491,6 +1493,7 @@ SynthDef(\algofmenv_t1, { arg out=0;
 }).add;
 Pdef(\part).reset;
 )
+// 10810: bruit menancant sur la mer
 
 (
 SynthDef(\algofmenv_t2, { arg out=0; 
@@ -1501,11 +1504,35 @@ SynthDef(\algofmenv_t2, { arg out=0;
 }).add;
 )
 
+
+(
+Pdef(\part, Pdef(\algofmenv, 
+		Pmono(\algofmenv_t1,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1,
+		);
+)).play;
+)
+WindowDef(\PdefEditor).front(Pdef(\algofmenv))
+
+Pdef(\algofmenv).addHalo(\instrument, \algofmenv_t1)
+
+(
+// papillon
+SynthDef(\papillon, { arg out=0; 
+	var sig;
+	thisThread.randSeed = 10451;
+	sig = SynthDef.wrap(~algofmenv);
+	Out.ar(out, sig);
+}).add;
+)
 (
 Pdef(\part, Pdef(\plop, 
 	Ppar([
-		Pmono(\algofmenv_t1,
+		Pmono(\papillon,
 			\freq, 200,
+			\freqfac1, 1.1,
 			\dur, 1,
 			\amp, 0.1,
 		);
@@ -1513,8 +1540,81 @@ Pdef(\part, Pdef(\plop,
 )).play;
 )
 
+Ndef(\papillon, \papillon).edit
+
 //////////////////////////////////////
 
 [2,3] * [20,30] // ->  [ 10, 40 ]
 [2,3] *.t [20,30] // -> [ [ 40, 60  ], [ 60, 90  ]  ]
 [2,3] *.x [20,30] // -> [ 40, 60, 60, 90  ]
+
+(
+~algofmenv2 = { arg freq=3200, pan=0, amp=0.1, gate=1;
+	var sig;
+	var op;
+	var randfreq;
+	var freqfac1 = \freqfac1.kr(1);
+	var freqfac2 = \freqfac2.kr(1);
+	var freqfacstr = Pseq([
+		freqfac1, freqfac2
+	],inf).asStream;
+
+	op = { arg freq;
+		[
+			LFSaw.ar(freq),
+			LFPulse.ar(freq),
+			LFCub.ar(freq),
+			SinOsc.ar(freq),
+			BPF.ar(WhiteNoise.ar, freq, 1),
+		].choose * EnvGen.kr(
+			Env([0, 1.0.rand, 2.0.rand, 1.0.rand, 0],[0.1.rand, 4.0.rand, 4.0.rand, 0.1.rand], {rrand(-5,5)}.dup(4), loopNode:0, releaseNode:3)
+			, gate);
+	};
+
+	randfreq = {
+		exprand(1/20,14000)* freqfacstr.next;
+	};
+
+
+	sig = 4.collect {
+		sig = op.(exprand(200, 14000) );
+		rrand(5,10).debug("numpart").do { arg idx;
+			var algos = [
+				{ op.(sig * exprand(0.01,2) + 1 * randfreq.value); }, // fm
+				{ op.(sig * exprand(0.01,2) + 1 * randfreq.value) + sig; }, // fm + sig
+				{ sig * exprand(0.01,2) + 1 * op.(randfreq.value); }, // am
+				{ sig * op.(randfreq.value); }, // ring
+				{ sig + op.(randfreq.value); }, // sum
+			];
+			var index = algos.size.rand;
+			index.asCompileString.postln;
+			sig = algos[index].value;
+		};
+		sig;
+	};
+
+	sig = LPF.ar(sig, \lpf.kr(14000));
+	sig = HPF.ar(sig, \hpf.kr(140));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	pan = pan + SinOsc.ar((1..sig.size)/50); 
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig;
+};
+SynthDef(\algofmenv2_t1, { arg out=0; 
+	var sig;
+	thisThread.randSeed = 26142.rand.postln;
+	sig = SynthDef.wrap(~algofmenv2);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+)
+
+(
+Pdef(\part, Pdef(\algofmenv2, 
+		Pmono(\algofmenv2_t1,
+		);
+)).play;
+)
+WindowDef(\PdefEditor).front(Pdef(\algofmenv2))
+
+Pdef(\algofmenv2).addHalo(\instrument, \algofmenv2_t1)

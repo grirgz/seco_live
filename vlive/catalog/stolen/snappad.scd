@@ -68,37 +68,37 @@ Pfx(
         scale: Scale.dorian,
         root: 6,
     ]) <> Ppar([
-        Pbind(*[
-            instrument: \pad,
-            amp: -30.dbamp,
-            octave: 4,
-            dur: 5,
-            legato: 1,
-            ffreq: Pseq([1500, 1000], inf),
-            degree: Pseq([
-                [0, 2, 4, 6, 8],
-                [0, 3, 4, 5, 8],
-                [2, 4, 6, 10],
-                [1, 4, 6, 9],
-            ], inf)
-        ]),
-        Pbind(*[
-            instrument: \pluck,
-            amp: -33.dbamp,
-            degree: Pxrand([0, 1, 4], inf),
-            octave: Prand([3, 4, 5], inf),
-            dur: Pwhite(0.1, 0.3, inf),
-            ffreq: Pexprand(400, 1500, inf),
-            pan: Pwhite(-0.6, 0.6)
-        ]),
-        PmonoArtic(*[
-            \sigh,
-            amp: -43.dbamp,
-            degree: Pseq([0, -1, Rest()], inf) + [0, -3],
-            legato: Pseq([1.0, 0.9, 1.0], inf),
-            octave: 6,
-            dur: Pseq([Pwhite(3.0, 0.5, 1), Pwhite(0.2, 0.4, 1), Pwhite(5.0, 10.0, 1)], inf)
-        ]),
+        //Pbind(*[
+            //instrument: \pad,
+            //amp: -30.dbamp,
+            //octave: 4,
+            //dur: 5,
+            //legato: 1,
+            //ffreq: Pseq([1500, 1000], inf),
+            //degree: Pseq([
+                //[0, 2, 4, 6, 8],
+                //[0, 3, 4, 5, 8],
+                //[2, 4, 6, 10],
+                //[1, 4, 6, 9],
+            //], inf)
+        //]),
+        //Pbind(*[
+            //instrument: \pluck,
+            //amp: -33.dbamp,
+            //degree: Pxrand([0, 1, 4], inf),
+            //octave: Prand([3, 4, 5], inf),
+            //dur: Pwhite(0.1, 0.3, inf),
+            //ffreq: Pexprand(400, 1500, inf),
+            //pan: Pwhite(-0.6, 0.6)
+        //]),
+        //PmonoArtic(*[
+            //\sigh,
+            //amp: -43.dbamp,
+            //degree: Pseq([0, -1, Rest()], inf) + [0, -3],
+            //legato: Pseq([1.0, 0.9, 1.0], inf),
+            //octave: 6,
+            //dur: Pseq([Pwhite(3.0, 0.5, 1), Pwhite(0.2, 0.4, 1), Pwhite(5.0, 10.0, 1)], inf)
+        //]),
         Pbind(*[
             instrument: \bow,
             amp: -25.dbamp,

@@ -476,6 +476,74 @@ Pdef(\sample,
 ).play;
 )
 
+(
+Pdef(\sample, Pdef(\zed, 
+	Ppar([
+		
+	Pbind(
+		\instrument, \oscsampler3,
+		\pos, 1.208,
+		\freq, 187,
+		\range, 0.0000001,
+		\posenv, Pseq([
+			[ Env([0.00,0.01001,0].integrate.postln,[0.41,8.1]) ],
+		],inf),
+		\finepos, 4/400,
+		\legato, Pseq([
+			2,0,
+		],inf),
+		\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+		\dur, 1/8,
+		\fshift, 40,
+		\lpmix, 1,
+		\rq, 0.4,
+		\hpmix, 0,
+		\hpfreq, 100,
+		\ffreq, Pseq([
+			1020,5240,450,700,
+		],inf) * Pseq([1,2,1/2],inf).stutter(4),
+		\amp, 0.1,
+			\bufnum, BufDef('voices/feynman.flac'),
+
+	) 
+	])
+)).play;
+)
+
+(
+Pdef(\sample, Pdef(\zed, 
+	Ppar([
+		
+	Pbind(
+		\instrument, \oscsampler3,
+		\pos, 1.208,
+		\freq, 187,
+		\range, 0.0000001,
+		\posenv, Pseq([
+			[ Env([0.00,0.01001,0].integrate.postln,[0.41,8.1]) ],
+		],inf),
+		\finepos, 1/400,
+		\legato, Pseq([
+			4,0,0,0, 1,0,0,1,
+		   	0,0,2,0, 1,0,1,1,
+		],inf),
+		\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+		\dur, 1/8,
+		\fshift, 40,
+		\lpmix, 1,
+		\rq, 0.4,
+		\hpmix, 0,
+		\hpfreq, 100,
+		\ffreq, Pseq([
+			1020,5240,450,700,
+		],inf) * Pseq([1,2,1/2],inf).stutter(4),
+		\amp, 0.1,
+			\bufnum, BufDef('voices/feynman.flac'),
+
+	) 
+	])
+)).play;
+)
 //////////////////////////////////////////
 
 

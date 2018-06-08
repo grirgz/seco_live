@@ -1,8 +1,30 @@
 MKtl.find;
 MKtl.find(\midi)
 
+//=== refresh cache when adding desc to directory
+MKtlDesc.loadDescs; 
+
+//=== reload modified desc file
+MKtlDesc.loadDescs; // no this only do when something is not init yet
+k = MKtl(\apc, "akai-apc40mkii"); // no this only do when something is not init yet
+k = MKtl(\apc, "akai-apc40mkii", true); // no this only do when something is not init yet
+
+//=== set button color
+k.elAt(\bt, \clip, 0,0, \on).value = 123/127 // works!
+
+//////////////////////
+/////// BUGS
+
+// execively long or inf loop when the first line run after starting SC
+k = MKtl(\apc, "akai-apc40mkii", true); // it's the true which does that
+
+
+///////////
+
 MKtl('midi_2_launch', 'midi_2_launchpad_s');
 MKtl('icon', "icon-icontrols");
+MIDIClient.disposeClient
+MIDIdef.cc(\bla, {}).learn
 k = MKtl('icon')
 k.gui;
 k[\sl][0].action { arg kn; ~param.normSet(kn.value) } // map first slider to a param
@@ -14,6 +36,9 @@ k[\knobs]
 k[\kn].collect({ arg k; k })
 k[\kn][0]
 
+k.elAt(\bt, \clip, 0,0)
+k.elAt(\bt)
+k.elAt(*\bt)
 
 k = MKtl(\lp, "novation-launchpad-s");
 k.elAt(\bt).action = { "blalla".postln }
@@ -47,9 +72,29 @@ MKtl(\lp).sendSpecialMessage(\existnot)
 //=== refresh description file:
 MKtlDesc.loadDescs; // first do this!
 MKtl(\lp).rebuild("novation-launchpad-s"); 
+MKtl(\apc).rebuild("akai-apc40mkii");  // error
+MKtl(\apc).rebuild;  // error
+MKtl(\apc).free;  // error
+MKtl(\apc).reload // error Primitive '_DisconnectMIDIOut' failed.
 //MKtl(\lp).rebuild;  // doesnt work
+MKtl.find
 
 k.elAt(\pad).elAt(2).elAt(0).value = 0x0f/127 - 0x0c // substract 0x0c to make it flash
+
+/////////////////////
+// problem: created MKtl icon before connecting it by usb, how to fix it without restarting SC ?
+// even if MIDIdef receive messages, MKtl no
+
+MKtl('icon', "icon-icontrols");
+MKtl('icon').free; // can't recreate after free: Meta_MKtlDevice:open: can not open - no device candidates found.
+MKtl('icon').rebuild // ERROR: Message 'not' not understood.
+MKtl('icon').closeDevice // do nothing because device is virtual
+MKtl('icon').hasDevice // false
+MKtl('icon').reset // reset only actions
+MKtl('icon').reload // 
+MKtl('icon').trace // 
+
+MKtl.find // works!!!!!!!
 
 
 ////////////////////////::

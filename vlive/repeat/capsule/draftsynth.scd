@@ -546,6 +546,55 @@ SynthDef(\playersec_looper, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnu
 	//sig = Pan2.ar(sig, pan, 1).sum;
 	Out.ar(out, sig * \gain.kr(1) * velamp);
 }).add;
+
+SynthDef(\playersec_osc, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
+	// pos in seconds
+	var sig;
+	var sig1;
+	var trigger = Impulse.ar(\trigfreq.kr(0));
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig1 = RLPF.ar(sig, \lpfr.kr(1) * \trigfreq.kr, \rq.kr(0.5));
+	sig = SelectX.ar(\lpmix.kr(0.5), [sig, sig1]);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
+	//sig = Pan2.ar(sig, pan, 1).sum;
+	Out.ar(out, sig * \gain.kr(1) * velamp);
+}).add;
+SynthDef(\playersec_osczig, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
+	// pos in seconds
+	var sig;
+	var sig1;
+	var trigger = Impulse.ar(\trigfreq.kr(0));
+	var speedtrigger = Impulse.ar(\trigfreq.kr*2);
+	speed = speed * Demand.ar(speedtrigger, 0, Dseq([
+		1,-1,
+	],inf));
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig1 = RLPF.ar(sig, \lpfr.kr(1) * \trigfreq.kr, \rq.kr(0.5));
+	sig = SelectX.ar(\lpmix.kr(0.5), [sig, sig1]);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
+	//sig = Pan2.ar(sig, pan, 1).sum;
+	Out.ar(out, sig * \gain.kr(1) * velamp);
+}).add;
+SynthDef(\playersec_osczig_stereo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
+	// pos in seconds
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var trigger = Impulse.ar(\trigfreq.kr(0));
+	var speedtrigger = Impulse.ar(\trigfreq.kr*2);
+	speed = speed * Demand.ar(speedtrigger, 0, Dseq([
+		1,-1,
+	],inf));
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos+[0,0.01]*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
+	sig1 = RLPF.ar(sig, \lpfr.kr(1) * \trigfreq.kr, \rq.kr(0.5));
+	sig = SelectX.ar(\lpmix.kr(0.5), [sig, sig1]);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
+	sig.debug("sig");
+	sig = sig.flop.sum.debug("sig");
+	//sig = Pan2.ar(sig, pan, 1).sum;
+	Out.ar(out, sig * \gain.kr(1) * velamp);
+}).add;
+
+
 SynthDef(\envgrain, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, pitch_stretch=1, gdur=0.1, mbufnum=0, pos=0;
 	var sig;
 	var gtrig;
@@ -563,7 +612,6 @@ SynthDef(\envgrain, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, pitch_stretch
 	Out.ar(out, sig);
 }).add;
 );
-
 
 /////////////// FX
 

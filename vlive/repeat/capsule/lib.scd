@@ -41,6 +41,9 @@ MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\playersec_hlpf);
 
 ParamProto.init;
 
+	FileSystemProject.load("capsule/draftsynth.scd");
+	FileSystemProject.load("capsule/PatKitDef_ksh.scd");
+
 FileSystemProject.load("libdef/drumkit.scd");
 FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
 
@@ -77,6 +80,16 @@ FileSystemProject.load("capsule/fxheavy.scd");
 		input.action = { arg kn, val; 
 			param.normSet(kn.value);
 		} 
+	};
+	~icon_map_button_param = { arg input, param;
+		input[0].action = { arg kn, val; 
+		"kjk1j".debug;
+			param.normSet(1);
+		};
+		input[1].action = { arg kn, val; 
+		"kjk2j".debug;
+			param.normSet(0);
+		};
 	};
 
 	~startControl_mixer = {
