@@ -167,10 +167,15 @@ ProtoDef(\apc40, (
 
 	mapParam: { arg self, ktlpath, param;
 		[ktlpath, param].debug("mapParam");
-		self.ktl.elAt(*ktlpath).action = { arg me;
-			param.normSet(me.value)
+		if(param.isNil) {
+			self.ktl.elAt(*ktlpath).action = { arg me; };
+			self.ktl.elAt(*ktlpath).value = 0;
+		} {
+			self.ktl.elAt(*ktlpath).action = { arg me;
+				param.normSet(me.value)
+			};
+			self.ktl.elAt(*ktlpath).value = param.normGet;
 		};
-		self.ktl.elAt(*ktlpath).value = param.normGet;
 	},
 
 	activate: { arg self, grid;
@@ -245,7 +250,8 @@ ProtoDef(\apc40, (
 				}.defer;
 			}{
 				~master.()
-			}
+			};
+			self.render_grid;
 		};
 
 		self.ktl.elAt(\bt, \stopAll, \on).action = { arg me;
@@ -255,8 +261,8 @@ ProtoDef(\apc40, (
 				//}.defer;
 			}{
 				CmdPeriod.run;
-				self.render_grid;
-			}
+			};
+			self.render_grid;
 		};
 
 		// debug
@@ -279,7 +285,9 @@ ProtoDef(\apc40, (
 		self.activate_bank_selector;
 		self.activate_simplemixer;
 		self.map_rdn;
-		self.render_grid;
+		if(self.grid.notNil) {
+			self.render_grid;
+		}
 	},
 
 	///// custom
@@ -311,12 +319,19 @@ ProtoDef(\apc40, (
 				ProtoDef(\rdn).edit;
 				}.defer;
 			} {
+				[
+					Param(Ndef(\rdn), \delay),
+					Param(Ndef(\rdn), \delay2),
+					nil,
+					Param(Ndef(\rdn), \fb),
 
-				self.mapParam([ \kn, \d, 0 ], Param(Ndef(\rdn), \delay));
-				self.mapParam([ \kn, \d, 1 ], Param(Ndef(\rdn), \delay2));
-				self.mapParam([ \kn, \d, 3 ], Param(Ndef(\rdn), \fb));
-				self.mapParam([ \kn, \d, 4 ], Param(Ndef(\rdn), \distamp));
-				self.mapParam([ \kn, \d, 7 ], Param(Ndef(\rdn), \gain));
+					Param(Ndef(\rdn), \distamp),
+					nil,
+					nil,
+					Param(Ndef(\rdn), \gain),
+				].collect({ arg param, idx;
+					self.mapParam([ \kn, \d, idx ], param);
+				})
 			}
 		};
 		self.bank_actions[1] = {
@@ -325,16 +340,19 @@ ProtoDef(\apc40, (
 				ProtoDef(\rdn2).edit;
 				}.defer;
 			} {
+				[
+					Param(Ndef(\rdn2), \delay),
+					Param(Ndef(\rdn2), \delay2),
+					Param(Ndef(\rdn2), \delay3),
+					Param(Ndef(\rdn2), \fb),
 
-				self.mapParam([ \kn, \d, 0 ], Param(Ndef(\rdn2), \delay));
-				self.mapParam([ \kn, \d, 1 ], Param(Ndef(\rdn2), \delay2));
-				self.mapParam([ \kn, \d, 2 ], Param(Ndef(\rdn2), \delay3));
-				self.mapParam([ \kn, \d, 3 ], Param(Ndef(\rdn2), \fb));
-				self.mapParam([ \kn, \d, 4 ], Param(Ndef(\rdn2), \distamp));
-				self.mapParam([ \kn, \d, 5 ], Param(Ndef(\rdn2), \distamp2));
-				self.mapParam([ \kn, \d, 6 ], Param(Ndef(\rdn2), \distamp3));
-				self.mapParam([ \kn, \d, 7 ], Param(Ndef(\rdn2), \gain));
-
+					Param(Ndef(\rdn2), \distamp),
+					Param(Ndef(\rdn2), \distamp2),
+					Param(Ndef(\rdn2), \distamp3),
+					Param(Ndef(\rdn2), \gain),
+				].collect({ arg param, idx;
+					self.mapParam([ \kn, \d, idx ], param); 
+				});
 			};
 		};
 	},
@@ -360,8 +378,9 @@ ProtoDef(\apc40, (
 
 ));
 
-ProtoDef(\apc40).activate(TrackDef(\mygrid)); // debug
 )
+ProtoDef(\apc40).activate(TrackDef(\mygrid)); // debug
+ProtoDef(\apc40).activate; // debug
 
 // END
 

@@ -218,3 +218,258 @@ Pdef(\demo, Pdef(\demomo,
 	])
 )).play;
 )
+
+
+////////////////////////////
+
+// sum of a list of oscillators with special tricks on each (fm, filter, shaping, ..)
+
+
+SynthDef(\chordo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,0.2,1],[0.1,0.8]), 1);
+	env2 = SinOsc.ar(8/1.5*~t * ( SinOsc.kr(1*~t,Rand(0,2)) * 1 + 1 )).range(0.1,1);
+	sig1 = SinOsc.ar(freq* [1,1.0001,1/2,1/4] * [0,4,7].midiratio/4)* EnvGen.kr(Env([0,0.41,0],[0.01,0.2]), 1);
+	sig2 = SinOsc.ar(freq/2 * [1,2,1/2] * 4.midiratio).fold(env1) * 0.4;
+	sig3 = LFSaw.ar(freq * [1,1.01,1.006,1/2,1/4] * 7.midiratio) * EnvGen.kr(Env([0,0.51,0],[1.1,2.8], 4), 1);
+	sig3 = RLPF.ar(sig3, \lpfr.kr(2.1) * EnvGen.kr(Env([1,1/2,2,1],[2,2.1,2.8]), 1) * freq, \rq.kr(0.5));
+	sig4 = SinOsc.ar(freq * [3/4,5/4]) * EnvGen.kr(Env([0,0.41,0],[0.01,0.2]), 1);
+	sig5 = SinOsc.ar(freq+0.1 * [0+12,4,7,7-12,4-24].midiratio/2 * ( LFSaw.ar(freq/2) * 0.4 + 1 )) * EnvGen.kr(Env([0,0.41,0],[0.1,1.5]), 1);
+	sig6 = SinOsc.ar(freq*1.001 * [1,1/2,2,1/8]  * ( SinOsc.ar(freq* [0+12,4,7,7-12].midiratio/2) * 1.4 + 1 )) * EnvGen.kr(Env([0,0,0.41,0],[0.3,0.8,6.5]), 1);
+	sig6 = HPF.ar(sig6, 1000 * EnvGen.kr(Env([1,2,1],[4.1,0.8]), 1)) + BPF.ar(sig6, 70);
+	sig = sig1 + sig2 + sig3 + sig4 + sig5 + sig6;
+	sig = RLPF.ar(sig, env2 * 1000, 0.5 / (1+ env2 ));
+	sig = AllpassL.ar(sig, 0.4,0.01 * [1,0.6,0.7,1.1],4.5) + ( sig * 2 );
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,5.8)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+
+
+////////////////////
+// basic pad : sin + (saw with delayed filter env)
+// widening by detune
+
+(
+SynthDef(\basicpad, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\lpenv.kr(Env([1,2,1],[4.1,0.8])), 1);
+	sig1 = SinOsc.ar(freq * [1,1+\det.kr(0.00001)]);
+	sig2 = LFSaw.ar(freq * [1,1+\det.kr]);
+	sig2 = sig2 * EnvGen.kr(\sawenv.kr(Env([0,1,0],[1.1,1.8])), 1);
+	sig2 = LPF.ar(sig2, \lpf.kr(8000) * env1);
+	sig = [sig1, sig2].sum / 2;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, [1,-1], amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\xdemo, 
+	Ppar([
+		Pbind(
+			\instrument, \basicpad,
+			\note, Pseq([
+				[0,4,7],
+				[0,4,7]+4,
+			],inf),
+			\lpf, 1000,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+)
+
+
+////////
+
+(
+SynthDef(\basicpadfm, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\lpenv.kr(Env([1,2,1],[4.1,4.8])), 1);
+	env2 = EnvGen.kr(\fmenv.kr(Env([0,2,1],[4.1,4.8])), 1);
+	sig1 = SinOsc.ar(freq * [1,1+\det.kr(0.00001)] * ( SinOsc.ar(freq*[2,1/2,1+\det.kr]).sum * env2 + 1 ));
+	sig2 = LFSaw.ar(freq * [1,1+\det.kr]);
+	sig2 = sig2 * EnvGen.kr(\sawenv.kr(Env([0,1,0],[1.1,1.8])), 1);
+	sig2 = LPF.ar(sig2, \lpf.kr(8000) * env1);
+	sig2 = sig2 * 1;
+	sig = SelectX.ar(\oscmix.kr(0.5), [sig1, sig2]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, [1,-1], amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\xdemo, 
+	Ppar([
+		Pbind(
+			\instrument, \basicpadfm,
+			\det, ~pmodenv.(Pseq([0.00001,0.02,0.0001,0.04],inf), 8),
+			\note, Pseq([
+				[0,4,7],
+				[0,4,7]+4,
+			],inf),
+			\oscmix, ~pmodenv.(Pseq([0,1,0.51,0.74],inf), 8),
+			\lpf, 1000,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+)
+
+////////////
+
+(
+SynthDef(\stepchord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	lfo1 = Duty.kr(1/4/~t, 0, Dseq([
+		1,2,4,3/2,
+	],inf));
+	lfo2 = Duty.kr(1/3/~t, 0, Dseq([
+		1,2,4,3/2,
+	],inf));
+	freq = freq * [1/2,1,lfo2, lfo1];
+	sig1 = SinOsc.ar(freq);
+	sig2 = LFSaw.ar(freq);
+	sig2 = BPF.ar(sig2, freq * SinOsc.kr(1/2).range(0.5,2), 0.5 * SinOsc.kr(1/13).range(1.4,1/4));
+	sig3 = SinOsc.ar(freq * ( SinOsc.ar(freq) * 1 + 1 ));
+	sig3 = BPF.ar(sig3, freq * SinOsc.kr(1/3).range(0.5,2), 0.5 * SinOsc.kr(1/7).range(1.4,1/4));
+
+	sig = [sig1,sig2, sig3].mean;
+	sig.debug("sig");
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,8.1,0.2,2.1,1,-1)), gate, doneAction:2);
+	pan = pan + LFNoise1.ar(1/2!sig.size); 
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part1, Pdef(\demomo, 
+	Ppar([
+		Pbind(
+			\instrument, \sinchord,
+			\legato, 0.91,
+			\note, Pseq([
+				[0,1,3,7],
+				[4,7,9,12],
+			],inf),
+			\dur, 2,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+////////////////
+
+(
+SynthDef(\wavechord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	lfo1 = Duty.kr(1/~t * LFNoise1.kr(1/3).range(0.001,4), 0, Dseq([
+		1,0,1.5,0.5,0,2,
+	],inf)).lag(0.051);
+	lfo2 = Duty.kr(1/~t * LFNoise1.kr(1/3).range(0.001,4), 0, Dseq([
+		1,0,1.5,0.5,0,2,
+	],inf)).lag(0.051);
+	env1 = EnvGen.kr(Env([1,2,0.71],[Rand(0.1,0.7),Rand(0.4,1.7)]), 1);
+	env2 = EnvGen.kr(Env([1,2,0.71],[Rand(0.1,0.7),Rand(0.4,1.7)]), 1);
+	sig1 = SinOsc.ar(freq * [1/2,1,2]) * LFNoise1.kr(1/7!3).range(0,1);
+	sig1 = sig1.mean;
+	sig2 = LFSaw.ar(freq * [1/2,1,2]) * LFNoise1.kr(1/8!3).range(0,1);
+	sig2 = sig2.mean;
+	sig2 = RLPF.ar(sig2, \lpfr.kr(1.1) * env1 * freq, \rq.kr(0.5));
+	sig3 = LFPulse.ar(freq * [1/2,1,2]) * LFNoise1.kr(1/9!3).range(0,1);
+	sig3 = sig3.mean;
+	sig3 = RLPF.ar(sig3, \lpfr.kr(1.1) * env2 * freq, \rq.kr(0.5));
+	sig = SelectX.ar( lfo1, [sig1, sig2, sig3] ) * 1;
+	sig = [sig, SelectX.ar( lfo2, [sig1, sig2, sig3] ) * 1];
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,1.4)), gate, doneAction:2);
+	sig = sig * amp * 2;
+
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+SynthDef(\wavechord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	lfo1 = Duty.kr(1/8/~t * LFNoise1.kr(1/3).range(0.001,4), 0, Dseq([
+		1,0,1.5,0.5,0,2,
+	],inf)).lag(0.251);
+	lfo2 = Duty.kr(1/8/~t * LFNoise1.kr(1/3).range(0.001,4), 0, Dseq([
+		1,0,1.5,0.5,0,2,
+	],inf)).lag(0.251);
+	env1 = EnvGen.kr(Env([1,2,0.71],[Rand(0.1,0.7),Rand(0.4,1.7)]), 1);
+	env2 = EnvGen.kr(Env([1,2,0.71],[Rand(0.1,0.7),Rand(0.4,1.7)]), 1);
+	sig1 = SinOsc.ar(freq * [1/2,1,2]) * LFNoise1.kr(1/7!3).range(0,1);
+	sig1 = sig1.mean;
+	sig2 = LFSaw.ar(freq * [1/2,1,2]) * LFNoise1.kr(1/8!3).range(0,1);
+	sig2 = sig2.mean;
+	sig2 = RLPF.ar(sig2, \lpfr.kr(1.1) * env1 * freq, \rq.kr(0.5));
+	sig3 = LFPulse.ar(freq * [1/2,1,2]) * LFNoise1.kr(1/9!3).range(0,1);
+	sig3 = sig3.mean;
+	sig3 = RLPF.ar(sig3, \lpfr.kr(1.1) * env2 * freq, \rq.kr(0.5));
+	sig = SelectX.ar( lfo1, [sig1, sig2, sig3] ) * 1;
+	sig = [sig, SelectX.ar( lfo2, [sig1, sig2, sig3] ) * 1];
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,1.4)), gate, doneAction:2);
+	sig = sig * amp * 2;
+
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \wavechord,
+			\note, Pseq([
+				[0,4,7,12],
+				[0,4,7,11]+3,
+			],inf),
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \wavechord,
+			\note, Pseq([
+				[0,4,7,12],
+				[0,4,7,11]+3,
+			],inf),
+			\dur, 4,
+			\strum, 0.2,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)

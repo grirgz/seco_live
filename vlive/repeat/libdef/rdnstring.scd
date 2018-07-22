@@ -107,9 +107,9 @@
 
 
 ~rdn_to_fbstring.(RandDelayNetwork(\deldefault)).editorInsert
-~rdn_to_fbstring.(RandDelayNetwork(ProtoDef(\rdn).fxdef)).editorInsert
+~rdn_to_fbstring.(RandDelayNetwork(ProtoDef(\rdn).fxdef)).editorInsert // with outer synthdef and preset pbind
 
-ProtoDef(\rdn).synthDefCompileString.editorInsert
+ProtoDef(\rdn).synthDefCompileString.editorInsert // just ugens function
 
 
 //////// to use as template

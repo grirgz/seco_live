@@ -35,6 +35,82 @@
 - Pdict
 - PmonoArtic
 
+///// get same frequence as note pattern
+
+// setup
+(
+SynthDef(\snitch, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq.poll);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\snitch2, { arg out=0, amp=0.1, gate=1, pan=0, freq2=200;
+	var sig;
+	sig = SinOsc.ar(freq2.poll);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+(
+Pdef(\snitch, 
+	Pbind(
+		\instrument, \snitch,
+		\note, 0, // default
+		\octave, 5, // default
+		\dur, 1,
+		\amp, 0.1,
+	),
+).play;
+)
+// the Pkey(\freq) trick
+(
+Pdef(\snitch, 
+	Pbind(
+		\instrument, \snitch2,
+		\note, 0,
+		\freq2, Pkey(\freq),
+		\dur, 1,
+		\amp, 0.1,
+	),
+).play;
+)
+
+// midicps
+
+(
+Pdef(\snitch, 
+	Pbind(
+		\instrument, \snitch2,
+		\note2, 0,
+		\freq2, ( Pkey(\note2)+60 ).midicps,
+		\dur, 1,
+		\amp, 0.1,
+	),
+).play;
+)
+
+// the midiratio trick
+
+
+(
+Pdef(\snitch, 
+	Pbind(
+		\instrument, \snitch2,
+		\note2, 0,
+		\octave2, 5,
+		\freq2, 440 * (Pkey(\note2) - 9 + (Pkey(\octave2)-5 * 12)).midiratio,
+		\dur, 1,
+		\amp, 0.1,
+	),
+).play;
+)
+
+
+// DegreeToKey and PdegreeToKey are used to convert from \degree to \note
+
 
 ////////////////// fx
 - delay network + feedback + dist
@@ -51,3 +127,86 @@
 	[3,8,12, 0],
 	[1,6,10, -2],
 ],inf).stutter(8).collect({ arg x; x.choose }),
+
+
+////////////////////////////////
+// 9th and 11th
+
+~t = 170/4/60; TempoClock.default.tempo = ~t;
+
+(
+SynthDef(\chordlock, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,2,1],[0.1,0.8]), 1);
+	sig = SinOsc.ar(freq * ( Gendy1.ar(freq * [1,1.01,1.001] * Gendy2.ar(1)) * 0.1 * env1 + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \chordlock,
+			\note, Pseq([
+				[4,7,16],
+				[4,7-12,16],
+			],inf),
+			\legato, 1/2,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \chordlock,
+			\note, Pseq([
+				10, // 7th
+				14, // 9th
+				17, // 11th
+			],inf),
+			\octave, Pseq([
+				5,5,4,5,5,3,5,6,6,
+			],inf),
+			\legato, 1/2,
+			\dur, Pseq([1,1/2,1/4],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+// other
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \chordlock,
+			\note, Pseq([
+				[4,7,16],
+				[4,7-12,16],
+			],inf),
+			\legato, 1/2,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \chordlock,
+			\note, Pseq([
+				9,
+				11,
+				15,
+			],inf),
+			\octave, Pseq([
+				5,5,4,5,5,3,5,6,6,
+			],inf),
+			\legato, 1/2,
+			\dur, Pseq([1,1/2,1/4],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
