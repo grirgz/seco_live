@@ -147,7 +147,7 @@ TrackTemplateDef(\playerwrapper, (
 		var player_prefix;
 		var savepath;
 		var player;
-		"--------- try setting save path of %".format(track).debug;
+		//"--------- try setting save path of %".format(track).debug;
 		try {
 			playerwrapper = track.proxy;
 			player = playerwrapper.target;
@@ -162,9 +162,9 @@ TrackTemplateDef(\playerwrapper, (
 		}
 	
 	},
-
 ));
 TrackTemplateDef(\playertrack, (
+	childClass: { ProtoDef(\playerwrapper) },
 	label: { arg self; 
 		"%: %".format(self.key, if(self.proxy.notNil, { self.proxy.notNil }, { "-" }))
 	},
@@ -233,7 +233,7 @@ TrackTemplateDef(\playertrack, (
 		var ret;
 		self.children = self.children ?? { SparseArray.new };
 		ret = self.children[idx] ?? { 
-			self.children[idx] = TrackDef(\playerwrapper).new(self, idx);
+			self.children[idx] = self.childClass.new(self, idx);
 			self.children[idx];
 		};
 		ret;
@@ -273,11 +273,11 @@ TrackTemplateDef(\playertrack, (
 		};
 		self.mixer_obj;
 	},
-
 ));
 TrackTemplateDef(\playergrid, (
 	label: { arg self; "%".format(self.key) },
 	protoClass: \playergrid,
+	childClass: { ProtoDef(\playertrack) },
 
 	source_: { arg self, array;
 		array.collect({ arg val, idx;
@@ -293,7 +293,7 @@ TrackTemplateDef(\playergrid, (
 	},
 
 	gridOffset_: { arg self, pos;
-		[pos, Point(pos.x.clip(0,inf), pos.y.clip(0,inf))].debug("expliquez moi comment c'est possible!");
+		//[pos, Point(pos.x.clip(0,inf), pos.y.clip(0,inf))].debug("expliquez moi comment c'est possible!");
 		self.obj_gridOffset = Point(pos.x.clip(0,inf), pos.y.clip(0,inf));
 		self.changed(\gridOffset);
 	},
@@ -382,7 +382,7 @@ TrackTemplateDef(\playergrid, (
 				idx = idx.x;
 			};
 			ret = self.children[idx] ?? { 
-				self.children[idx] = TrackDef(\playertrack).new(self, idx);
+				self.children[idx] = self.childClass.new(self, idx);
 				self.children[idx];
 			};
 			if(idx2.notNil) {
@@ -500,6 +500,7 @@ TrackTemplateDef(\playergrid, (
 
 ));
 
+
 // backward compat 
 TrackDef(\playerwrapper, TrackTemplateDef(\playerwrapper));
 TrackDef(\playertrack, TrackTemplateDef(\playertrack));
@@ -571,15 +572,15 @@ WindowDef(\mixerView, { arg me, track;
 	);
 	layout.addUniqueMethod(\model_, { arg me, track;
 		if(track.isKindOf(Volume)) {
-			"volume".debug;
+			//"volume".debug;
 			param = Param(track, \volume);
 			sends = 4.collect({ arg x; nil });
 		} {
-			"track".debug;
+			//"track".debug;
 			param = track.mixer.asParam(\postfader);
 			sends = 4.collect({ arg x; track.mixer.asParam(\send+++x) });
 		};
-		[slider, param].debug("slider, param: what ?");
+		//[slider, param].debug("slider, param: what ?");
 		slider.mapParam(param);
 		textfield.mapParam(param);
 		knobs.do({ arg x, idx; x.mapParam(sends[idx]) })
@@ -666,7 +667,7 @@ WindowDef(\playergrid, { arg me, maintrack;
 					track.collect({ arg child;
 						var view = child.asView;
 						view.button.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
-							[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+							//[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
 							if(buttonNumber == 1) {
 								var target = child.model.target.source;
 								if(target.getHalo(\edit).notNil) {
@@ -689,13 +690,13 @@ WindowDef(\playergrid, { arg me, maintrack;
 						//view.labelView.fixedWidth_(49);
 						//view.fixedSize_(Point(300,20));
 						view.labelView.font_(Font.default.size_(10));
-						child.model.target.debug("childmodeltarget");
+						//child.model.target.debug("childmodeltarget");
 						if(child.model.target.isEmpty == true) {
 							child.color_deselected = Color.gray
 						};
 						child.selected = false;
 						view.labelView.mouseDownAction_({ arg label, x, y, modifiers, buttonNumber, clickCount;
-							"DOWN".debug;
+							//"DOWN".debug;
 							//view.selected = true
 						});
 						view;
@@ -942,10 +943,10 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 					}.defer;
 				} {
 					if(self.modifier_mixer == true) {
-						point.debug("what ?");
-						self.quickpad[point.x][point.y].debug("2what ?");
+						//point.debug("what ?");
+						//self.quickpad[point.x][point.y].debug("2what ?");
 						self.quickpad[point.x][point.y].value(self, point);
-						self.quickpad[point.x][point.y].debug("end what ?");
+						//self.quickpad[point.x][point.y].debug("end what ?");
 					} {
 						PlayerWrapper(self.grid.childAtOffset(point)).togglePlay;
 					};
@@ -967,7 +968,7 @@ WindowDef(\playergrid_OLD, { arg me, maintrack;
 		// debug
 		//self.ktl.elAt(\bt, 0).action = { self.render_grid; "refresh!!!!".debug };
 		move_in_grid = { arg el, offset;
-			el.value.debug("drole!!");
+			//el.value.debug("drole!!");
 			if(el.value == 0) {
 
 			} {
@@ -1031,10 +1032,10 @@ ProtoDef(\lauchpad_offsetgrid, (
 					}.defer;
 				} {
 					if(self.modifier_mixer == true) {
-						point.debug("what ?");
-						self.quickpad[point.x][point.y].debug("2what ?");
+						//point.debug("what ?");
+						//self.quickpad[point.x][point.y].debug("2what ?");
 						self.quickpad[point.x][point.y].value(self, point);
-						self.quickpad[point.x][point.y].debug("end what ?");
+						//self.quickpad[point.x][point.y].debug("end what ?");
 					} {
 						self.gridOffset = Point(idx % 8, ( idx / 8 ).trunc);
 					};
@@ -1056,7 +1057,7 @@ ProtoDef(\lauchpad_offsetgrid, (
 		// debug
 		//self.ktl.elAt(\bt, 0).action = { self.render_grid; "refresh!!!!".debug };
 		move_in_grid = { arg el, offset;
-			el.value.debug("drole!!");
+			//el.value.debug("drole!!");
 			if(el.value == 0) {
 
 			} {
