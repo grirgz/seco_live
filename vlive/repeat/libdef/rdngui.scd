@@ -89,8 +89,8 @@ ProtoTemplateDef(\rdn, (
 		~rdn_to_string.(self.rdn);
 	},
 
-	rebuild: { arg self; // use current code instead of new one
-		RandDelayNetwork(self.fxdef).make(self.fxkey, self.code, self.inbus) 
+	rebuild: { arg self, fxdef, fxkey, code, inbus; // use current code instead of new one
+		RandDelayNetwork(fxdef ? self.fxdef).make(fxkey ? self.fxkey, code ? self.code, inbus ? self.inbus) 
 	},
 
 	loadDefaultPreset: { arg self;
@@ -148,6 +148,10 @@ WindowDef(\rdngui, { arg def, model;
 			Param(
 				Message(model), \inbus, 
 				MenuSpec(BusDef.all.keys.as(Array).sort.collect({ arg k; k -> BusDef(k) }) )
+			).asPopUpMenu,
+			Param(
+				Message(model), \outBus, 
+				MenuSpec([\0->0] ++ BusDef.all.keys.as(Array).sort.collect({ arg k; k -> BusDef(k).index }) )
 			).asPopUpMenu,
 			PlayerWrapper(Ndef(model.fxkey)).asView, // FIXME: dynamic!
 			BasicButton.new.string_("Gen Fx!").action_({

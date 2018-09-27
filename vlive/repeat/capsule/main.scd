@@ -3,7 +3,8 @@ Pdef.defaultQuant = 2;
 //Ndef.defaultQuant = 1;
 ~t = 135/4/60; TempoClock.default.tempo = ~t;
 s.waitForBoot {
-	FileSystemProject.load("capsule/lib.scd");
+	"lib.scd".loadRelative;
+	//FileSystemProject.load("capsule/lib.scd");
 	FileSystemProject.load("capsule/track1.scd");
 	FileSystemProject.load("capsule/draftsynth.scd");
 	FileSystemProject.load("capsule/PatKitDef_ksh.scd");
@@ -70,8 +71,10 @@ s.waitForBoot {
 				"mixer" -> { ProtoDef(\simpleMixer).edit },
 				"rdn" -> { ProtoDef(\rdn).edit },
 				"rdn2" -> { ProtoDef(\rdn2).edit },
+				"rdn3" -> { ProtoDef(\rdn3).edit },
 				"startControl icon" -> { ~startControl.() },
 				"startControl piano" -> { ProtoDef(\piano).startControl },
+				"basic recorder" -> { ProtoDef(\basicrecorder).edit },
 			].collect({  arg target;
 				BasicButton.new.string_(target.key).action_(target.value)
 			})
@@ -93,6 +96,13 @@ s.waitForBoot {
 	ProtoDef(\rdn2).fxdef = \del3full;
 	ProtoDef(\rdn2).genfx;
 	ProtoDef(\rdn2).proxy.set(\indelay, 0.04);
+
+	ProtoDef(\rdn3, ProtoTemplateDef(\rdn));
+	ProtoDef(\rdn3).outBus = BusDef(\mixer8, \audio);
+	ProtoDef(\rdn3).inBus = BusDef(\sendbus3, \audio);
+	ProtoDef(\rdn3).fxdef = \del3full;
+	ProtoDef(\rdn3).genfx;
+	ProtoDef(\rdn3).proxy.set(\indelay, 0.04);
 
 	7.do { arg idx;
 		ProtoDef(\simpleMixer).tracks[idx].proxy.set(\prefader, 1);

@@ -1163,7 +1163,7 @@ Pdef(\demo, Pdef(\demomo,
 			],inf)/4,
 			\formdec, 0.03,
 			\dur, 1,
-			\amp, 0.1,
+			\amp, 0.1/2,
 		),
 	])
 )).play;

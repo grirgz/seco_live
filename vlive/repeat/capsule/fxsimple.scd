@@ -3,8 +3,8 @@
 // echo
 // dubecho
 // delay
-// stutter
-// tape
+// stutter - fx_stutter
+// tape - fx_tapeslow, fx_tapestop
 // flanger
 // chorus
 // reverb
@@ -109,6 +109,25 @@ SynthDef(\fx_reverb, { arg out=0, amp=0.1, gate=1;
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\fx_reverb_lhpf, { arg out=0, amp=0.1, gate=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = LocalIn.ar(2) * \fb.kr(0.1);
+	sig1 = LPF.ar(sig, \lpf.kr(16000));
+	sig = SelectX.ar(\lpmix.kr(0), [sig, sig1]);
+	sig1 = HPF.ar(sig, \hpf.kr(1600));
+	sig = SelectX.ar(\hpmix.kr(0), [sig, sig1]);
+	sig = sig + in;
+	15.do {
+		sig = AllpassL.ar(sig, 0.06, Rand(0.001,0.06) * \delayfac.kr(1), \decay.kr(3));
+	};
+	LocalOut.ar(sig);
+	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.1),gate,doneAction:2);
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\fx_gatedreverb, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -147,6 +166,42 @@ SynthDef(\fx_gatedreverblim, { arg out=0, amp=0.1, gate=1;
 	LocalOut.ar(sig);
 	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.1),gate,doneAction:2);
 	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fx_tapestop, { arg out=0, gate=1, startrate=1, endrate=0.1, tapetime=1, mix=0;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var buf = LocalBuf(\bufsize.ir(2) * s.sampleRate, 2);
+	var choosetrig = mix > 0;
+	var rate;
+	buf.clear;
+	sig = in;
+	// tape stop
+	RecordBuf.ar(sig, buf, loop:1, trigger:choosetrig);
+	rate = EnvGen.kr(Env([startrate,startrate,endrate],[0,tapetime]), choosetrig);
+	sig = PlayBuf.ar(2, buf, rate, choosetrig, loop:1);
+
+	sig = SelectX.ar(mix, [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fx_tapeslow, { arg out=0, gate=1, startrate=1, endrate=0.1, tapetime=1, mix=0;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var buf = LocalBuf(\bufsize.ir(2) * s.sampleRate, 2);
+	var choosetrig = mix > 0;
+	var rate;
+	sig = in;
+	buf.clear;
+	// tape stop
+	RecordBuf.ar(sig, buf, loop:1, trigger:choosetrig);
+	rate = EnvGen.kr(\env.kr(Env([1, 1,1,1,1],[0,1,1,1])), choosetrig);
+	sig = PlayBuf.ar(2, buf, rate, choosetrig, loop:1);
+
+	sig = SelectX.ar(mix, [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
@@ -383,7 +438,7 @@ SynthDef(\chorusdistlim, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 SynthDef(\simplecomp, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	var sidein = InFeedback.ar(\sideinbus.kr(BusDef(\zero, \audio)), 2); 
+	//var sidein = InFeedback.ar(\sideinbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = in;
 	sig = sig * \pregain.kr(1);
 	sig = Compander.ar(sig, sig, \cpt.kr(0.4), \cpbelow.kr(1.001), \cpabove.kr(0.9), \cpclamp.kr(0.01), \cprelax.kr(0.1));
@@ -567,6 +622,52 @@ Pdef(\part, Pdef(\plop,
 )).play;
 )
 
+///////// tape test
+
+(
+Pdef(\demo, Pdef(\demozed, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('voices/feynman.flac'),
+			\dur, 4,
+			\gain, 1,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		Pmono(\fx_tapestop,
+			\inbus, BusDef(\sendbus1),
+			\mix, Pseq([0,0,1,1],inf),
+			\time, 2,
+			\dur, 1,
+		),
+
+	])
+)).play;
+)
+
+(
+Pdef(\demo, Pdef(\demozed, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('voices/feynman.flac'),
+			\dur, 4,
+			\gain, 1,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		Pmono(\fx_tapeslow,
+			\inbus, BusDef(\sendbus1),
+			\mix, Pseq([0,1,1,1],inf),
+			\env, Pseq([
+				[ Env([1, 1,0.4,1.3,1], [0, 1,1,1]) ],
+			],inf),
+			\time, 2,
+			\dur, 1,
+		),
+
+	])
+)).play;
+)
 /////////////////////////////////////////
 // TODO: put this crap elsewhere
 

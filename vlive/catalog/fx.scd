@@ -558,3 +558,37 @@ SynthDef(\allreverb, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 		Out.ar(out, sig);
 	}).add;
 	)
+
+
+////////// nice stutter
+
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				0,0,0,-1,
+			],inf),
+			\octave, 3,
+			\dur, 1/4,
+			\amp, 0.1,
+			\out, BusDef(\stut, \audio),
+		),
+		Pmono(\fx_stutter,
+			\inbus, BusDef(\stut, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0005,
+			\mix, Pseq([
+				0,1,1,1, 0,1,0,1,
+			],inf),
+			\rate, Pseg(Pseq([0.7,1,2],inf),1.8),
+			\time, 1/16/~t,
+			\time, Pstep(Pseq([1/4,1/8,1/16]/2,inf),1/4)/~t,
+			\dur, Pser([1/8],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+)

@@ -37,6 +37,8 @@ TrackTemplateDef(\playerwrapper, (
 		"%: %".format(self.index, if(self.proxy.notNil, { self.proxy.label }, { "-" }))
 	},
 
+	defaultSource: nil,
+
 	new: { arg self, parent, index;
 		self = self.copy;
 
@@ -60,7 +62,7 @@ TrackTemplateDef(\playerwrapper, (
 
 	proxy: { arg self;
 		if(self[\obj_proxy].isNil) {
-			self[\obj_proxy] = PlayerWrapper(nil);
+			self[\obj_proxy] = PlayerWrapper(self.defaultSource);
 		};
 		self[\obj_proxy];
 	},

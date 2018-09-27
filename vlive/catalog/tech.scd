@@ -35,8 +35,44 @@ sig1 = PanAz.ar(freq.size, sig1, {LFNoise1.kr(( 1/2 ).rand).range(-1,1)} ! sig1.
 [[1,2], [3,4]] * [5,6,7] == [[1*5, 2*5], [3*6,4*6], [1*7,2*7]]
 [[1,2], [3,4]] * [[5,6,7]] == [[1*5, 2*6, 1*7], [3*5, 4*6, 3*7]]
 
+ // the one the most nested appear as the most nested in result
+ // size 2 is most nested, so 3 groups of 2
+[1,2,3] * [[4,5]] == [[1*4, 1*5], [2*4, 2*5], [3*4,3*5]]
+// sum and flop remove the outer structure, we are left with a group size of 2
+( [1,2,3] * [[4,5]] ).sum == ( [1*4, 1*5] + [2*4, 2*5] + [3*4,3*5])
+( [1,2,3] * [[4,5]] ).mean == [8 ,10]
+
+// Pan act like .dup(2) when pan==0
+[1,2,3].collect(_.dup(2));
+Pan2.ar([sig1, sig2, sig3]) == [[sig1, sig1], [sig2, sig2], [sig3, sig3]]
+//when summed of meaned, it remains only the pan
+Pan2.ar([sig1, sig2, sig3]).sum == [sig1+sig2+sig3, sig1+sig2+sig3]
+
+// *.t is nesting/flopping the second array
 [1,2,3] *.t [4,5] == ( [1,2,3] * [[4,5]] ) 
 [4,5] *.t [1,2,3] == ( [[1,2,3]] * [4,5] ) 
+[1,2].flop == [[1,2]]
+[[1,2]].flop ==  [[1],[2]]
+[[1],[2]].flop == [[1,2]]
+[1,2] * [400,500].flop
+( [1,2].flop + [400,50] ).sum
+( [1,2] + [400,50].flop ).sum
+
+// know the shape of your array
+([1,2,3] *.t [4,5]).shape.debug("shape"); // first item is outermost size, here 3
+([1,2] *.t [3,4,5]).shape.debug("shape");
+
+// flop the one you want to keep after .meaning
+{ SinOsc.ar([1,1.001] * [400,900].flop).mean * 0.1; }.play; // return left channel 400hz and right 450hz
+{ SinOsc.ar([1,1.001].flop * [400,900]).mean * 0.1; }.play; // return a chord with right channel slightly detuned from left
+{ SinOsc.ar([1,1.001] * [400,900].flop).mean; }.plot(1/8); // return left channel 400hz and right 450hz
+{ SinOsc.ar([1,1.001].flop * [400,900]).mean; }.plot(1/8); // return a chord with right channel slightly detuned from left
+
+SinOsc.ar([1,1.001,2].flop * [400,900]).mean
+
+{
+SinOsc.ar([1,0.1] * [400,450])[1] * 0.1;
+}.play;
 
 ////////////////////////////// base
 
@@ -162,7 +198,7 @@ Ndef(\custom_pulse, { arg freq=200, pan=0, amp=0.1;
 Ndef(\stereo, { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	sig = SinOsc.ar(freq * [0,4,7, 0+12,4+12,7+12].midiratio );
-	pan = pan + LFNoise1.kr(sig.collect({ arg x, idx; idx/10  }));
+	pan = pan + LFNoise1.kr(_ / 10 ! sig.size);
 	sig = Pan2.ar(sig, pan, amp).mean;
 }).play;
 );

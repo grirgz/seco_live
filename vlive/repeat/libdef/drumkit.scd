@@ -1,6 +1,7 @@
 
 // synthdefs listed in MenuSpecFuncDef(\patkitdef_synthdefs)
 FileSystemProject.load("libdef/soundfileview.scd");
+FileSystemProject.load("libdef/filedialog.scd");
 (
 // ~sampler_synthdef_list = [\playersec, \playerbeat] // define custom sampler synthdefs
 Spec.add(\adsr, XEnvSpec.adsr);
@@ -43,7 +44,8 @@ WindowDef(\sampler_new, { arg def, target, show_buttons=true;
 				Param(target, \instrument, MenuSpecFuncDef(\patkitdef_synthdefs)).asPopUpMenu,
 				buffer_popup,
 				BasicButton.new.string_("load").action_({ arg view;
-					Dialog.openPanel({ arg file;
+					//Dialog.openPanel({ arg file;})
+					WindowDef(\filedialog).front("./", { arg file;
 						BufDef(file.asSymbol); // autoload it
 						buffer.spec = MenuSpec(
 							BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
@@ -135,7 +137,8 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 				Param(target, \instrument, MenuSpecFuncDef(\patkitdef_synthdefs)).asPopUpMenu,
 				buffer_popup,
 				BasicButton.new.string_("load").action_({ arg view;
-					Dialog.openPanel({ arg file;
+					//Dialog.openPanel({ arg file;})
+					WindowDef(\filedialog).front("./", { arg file;
 						BufDef(file.asSymbol); // autoload it
 						buffer.spec = MenuSpec(
 							BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })

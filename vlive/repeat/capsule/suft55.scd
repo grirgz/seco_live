@@ -17,7 +17,7 @@ SynthDef(\bassmol, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 (
 SynthDef(\delmol, { arg out=0, freq=200, gate=1;
 	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2);
 	sig = in;
 
 	sig = sig + Fb { arg fb;
@@ -43,7 +43,7 @@ SynthDef(\delmol, { arg out=0, freq=200, gate=1;
 		//8.do  { arg xx;
 			//isig = DelayL.ar(sig, 2, 0.00000013 * SinOsc.ar(xx/100+0.01, add:1,mul:0.01) )+isig;
 		//};
-	
+
 		isig = Limiter.ar(isig);
 		isig;
 	};
@@ -61,7 +61,7 @@ Pdef(\part).reset;
 
 
 (
-Pdef(\part, Pdef(\zed, 
+Pdef(\part, Pdef(\zed,
 	Ppar([
 		PatKitDef(\rim).asPattern(Pbind(
 			\kitIndex, 5,
@@ -98,7 +98,7 @@ Pdef(\part, Pdef(\zed,
 
 
 (
-Pdef(\part, Pdef(\zed, 
+Pdef(\part, Pdef(\zed,
 	Ppar([
 		Pbind(\out, BusDef(\sendbus1, \audio)) <>
 		Ppar([
@@ -136,7 +136,7 @@ Pdef(\part, Pdef(\zed,
 			\inbus, BusDef(\sendbus1),
 			\dur, 1,
 		),
-		
+
 	])
 )).play;
 )
@@ -165,7 +165,7 @@ SynthDef(\veru, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 )
 
 (
-Pdef(\part, 
+Pdef(\part,
 	Pbind(
 		\instrument, \veru,
 		\degree, Pseq([0],inf),
@@ -177,7 +177,7 @@ Pdef(\part,
 );
 
 (
-Pdef(\part, Pdef(\zed, 
+Pdef(\part, Pdef(\zed,
 	Ppar([
 		Ppar(
 			8.collect({ arg x;
@@ -206,7 +206,7 @@ Pdef(\part, Pdef(\zed,
 )
 
 (
-Pdef(\part, Pdef(\zed, 
+Pdef(\part, Pdef(\zed,
 	Ppar([
 		Ppar(
 			8.collect({ arg x;
@@ -257,7 +257,7 @@ Pdef(\part, Pdef(\zed,
 			\inbus, BusDef(\sendbus1),
 			\dur, 1,
 		),
-		
+
 	])
 )).play;
 )
@@ -265,7 +265,7 @@ Pdef(\part, Pdef(\zed,
 
 
 ////////////
-
+TempoClock.default.tempo = 1; ~t = 1
 
 
 (
@@ -289,17 +289,17 @@ SynthDef(\stepchord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = [sig1,sig2, sig3].mean;
 	sig.debug("sig");
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,8.1,0.2,2.1,1,-1)), gate, doneAction:2);
-	pan = pan + LFNoise1.ar(1/2!sig.size); 
+	pan = pan + LFNoise1.ar(1/2!sig.size);
 	sig = Pan2.ar(sig, pan, amp).mean;
 	Out.ar(out, sig);
 }).add;
 );
 
 (
-Pdef(\part1, Pdef(\demomo, 
+Pdef(\part1, Pdef(\demomo,
 	Ppar([
 		Pbind(
-			\instrument, \sinchord,
+			\instrument, \stepchord,
 			\legato, 0.91,
 			\note, Pseq([
 				[0,1,3,7],
@@ -335,14 +335,14 @@ SynthDef(\stepchord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = ( [sig1,sig2, sig3, sig4] * LFNoise1.kr([1/17,1/13,1/16, 1/20]).range(0.0,1) ).mean * 3;
 	sig.debug("sig");
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,8.1,0.2,2.1,1,-1)), gate, doneAction:2);
-	pan = pan + LFNoise1.ar(1/2!sig.size); 
+	pan = pan + LFNoise1.ar(1/2!sig.size);
 	sig = Pan2.ar(sig, pan, amp).mean;
 	Out.ar(out, sig);
 }).add;
 );
 
 (
-Pdef(\part1, Pdef(\demomo, 
+Pdef(\part1, Pdef(\demomo,
 	Ppar([
 		Pbind(
 			\instrument, \stepchord,
@@ -365,7 +365,7 @@ Pdef(\part1, Pdef(\demomo,
 )
 
 (
-Pdef(\part1, Pdef(\demomo, 
+Pdef(\part1, Pdef(\demomo,
 	Ppar([
 		Pbind(
 			\instrument, \stepchord,
@@ -434,7 +434,7 @@ SynthDef(\wavechord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 );
 
 (
-Pdef(\part, Pdef(\zed, 
+Pdef(\part, Pdef(\zed,
 	Ppar([
 		Pbind(
 			\instrument, \wavechord,

@@ -726,9 +726,9 @@ Ndef(\drone, { arg freq=200, pan=0, amp=0.1;
 	sig = FreqShift.ar(sig, [0.01,0]) + sig;
 	LocalOut.ar(sig);
 
-	sig = sig/ 2;
+	//sig = sig/ 2;
 
-	sig = Pan2.ar(sig, SinOsc.kr((1..10)) * 0.1, amp).flop;
+	sig = Pan2.ar(sig, SinOsc.kr((1..10)) * 0.1, amp).mean;
 	sig = LeakDC.ar(sig);
 }).play;
 );
@@ -769,3 +769,164 @@ Ndef(\demo, { arg freq=200, pan=0, amp=0.1;
 
 
 y.stop;y.free;y = fork{loop{play{Splay.ar({Formlet.ar(Crackle.ar(2,0.01),(66.rand+17).midicps.postln,0.005)*LFGauss.ar(9,1/4,0,0,3)}!4)};2.wait;}}; //
+
+
+//////////////
+
+
+// ambiance busy hall
+(
+Ndef(\drone, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * LFNoise1.kr((1..8)/8,add:1));
+	sig = sig + LFSaw.ar(freq * ( SinOsc.ar(100 * LFNoise1.kr(1.0.rand)) * 1 + 1 ));
+	sig = sig.fold( SinOsc.ar(freq * ( LFNoise1.kr((1..8)/8) * 1 + 1 ))  );
+	sig = sig * 2;
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig.debug("sig");
+}).play;
+);
+
+
+////////////// sample drone
+(
+BufDef.mono(\moeten, "voices/02_moeten.flac");
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var clk = Impulse.ar(30);
+	var bufnum = BufDef.mono('voices/kaspi.flac');
+	var pitch_stretch = [1,0.8,1.2];
+	var pos = 2.2 + LFNoise1.ar(11,mul:0.01) + Line.kr(0.01,0.15,10);
+	var gdur = 0.4;
+	sig = TGrains.ar(2, clk, bufnum, pitch_stretch, pos % BufDur.kr(bufnum), gdur, pan, 1);
+	sig = sig + TGrains.ar(2, Impulse.kr(11), bufnum, pitch_stretch, pos+0.01 % BufDur.kr(bufnum), gdur, pan, 1);
+	sig = sig.mean;
+	sig = FreeVerb2.ar(sig[0],sig[1]);
+	sig.debug("sig");
+	sig = Splay.ar(sig, 1, amp, pan);
+}).play;
+);
+
+(
+BufDef.mono(\moeten, "voices/02_moeten.flac");
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var clk = Impulse.ar(30);
+	var bufnum = BufDef.mono('voices/kaspi.flac');
+	var pitch_stretch = [1,0.8,1.2];
+	var pos = 3.2 + LFNoise1.ar(11,mul:0.01) + Line.kr(0.01,1.15,50);
+	var gdur = 0.4;
+	sig = TGrains.ar(2, clk, bufnum, pitch_stretch, pos % BufDur.kr(bufnum), gdur, pan, 1);
+	sig = sig + TGrains.ar(2, Impulse.kr(11), bufnum, pitch_stretch, pos+0.01 % BufDur.kr(bufnum), gdur, pan, 1);
+	sig = sig.mean;
+	sig = FreeVerb2.ar(sig[0],sig[1]);
+	sig.debug("sig");
+	sig = Splay.ar(sig, 1, amp, pan);
+}).play;
+);
+
+(
+BufDef.mono(\moeten, "voices/02_moeten.flac");
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var clk = Impulse.ar(30);
+	var bufnum = BufDef.mono('voices/feynman.flac');
+	var pitch_stretch = LFNoise1.kr([1,0.878,1.4142]/10)*0.1+1;
+	var pos = 5.2 + LFNoise1.ar(11,mul:0.01) + Line.kr(0.01,1.15,50);
+	var gdur = 0.4;
+	sig = TGrains.ar(2, clk, bufnum, pitch_stretch, pos % BufDur.kr(bufnum), gdur, pan, 1);
+	sig = sig + TGrains.ar(2, Impulse.kr(11), bufnum, pitch_stretch, pos+0.01 % BufDur.kr(bufnum), gdur, pan, 1);
+	sig = sig.mean;
+	sig = FreeVerb2.ar(sig[0],sig[1]);
+	sig.debug("sig");
+	sig = Splay.ar(sig, 1, amp, pan);
+}).play;
+);
+
+(
+BufDef.mono(\moeten, "voices/02_moeten.flac");
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var clk = Impulse.ar(30);
+	//var bufnum = BufDef.mono('vipere/canabis.wav');
+	var bufnum = BufDef.mono('voices/feynman.flac');
+	var pitch_stretch = LFNoise1.kr(1/10)*0.01+1*[1,0.878,0.4142];
+	var pos = 06.2 + LFNoise1.ar(11*[1,1.2],mul:0.01) + Line.kr(0.01,10.15,50);
+	var gdur = 0.2;
+	sig = TGrains.ar(2, clk, bufnum, pitch_stretch, pos % BufDur.kr(bufnum), gdur, pan, 1);
+	sig = sig + TGrains.ar(2, Impulse.kr(11), bufnum, pitch_stretch, pos+0.01 % BufDur.kr(bufnum), gdur, pan, 1);
+	sig.debug("sig");
+	sig = sig.flat;
+	sig.debug("sig2");
+	pan = LFNoise1.kr(0.1!sig.size);
+	sig.debug("sig3");
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig.debug("sig4");
+	sig = FreeVerb2.ar(sig[0],sig[1]);
+	sig = sig * 2;
+}).play;
+);
+
+(
+BufDef.mono(\moeten, "voices/02_moeten.flac");
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var clk = Impulse.ar(20)+Dust.ar(20);
+	//var bufnum = BufDef.mono('vipere/canabis.wav');
+	var bufnum = BufDef.mono('vipere/rocksteady.flac');
+	var pitch_stretch = LFNoise1.kr(1/10!3)*0.01+1*[1,0.978,1.7142];
+	var pos = 06.2 + LFNoise1.ar(11*[1,1.2],mul:0.1) + Duty.kr(1/8/~t, 0, Dseq([
+		1,0,3,0,0.3,10
+	],inf));
+	var gdur = 0.1;
+	sig = TGrains.ar(2, clk, bufnum, pitch_stretch, pos % BufDur.kr(bufnum), gdur, pan, 1);
+	sig = sig + TGrains.ar(2, Impulse.kr(11), bufnum, pitch_stretch, pos+0.01 % BufDur.kr(bufnum), gdur, pan, 1);
+	sig.debug("sig");
+	sig = sig.flat;
+	sig.debug("sig2");
+	pan = LFNoise1.kr(0.1!sig.size);
+	sig.debug("sig3");
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig.debug("sig4");
+	sig = FreeVerb2.ar(sig[0],sig[1]);
+	sig = sig * 2;
+}).play;
+);
+
+(
+BufDef.mono(\moeten, "voices/02_moeten.flac");
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var clk = Impulse.ar(20)+Dust.ar(20);
+	//var bufnum = BufDef.mono('vipere/canabis.wav');
+	var bufnum = BufDef.mono('vipere/booba.flac');
+	var pitch_stretch = LFNoise1.kr(1/10!3)*0.01+1*[1,0.978,1.7142];
+	
+	var pos = Demand.ar(clk, 0,Dseq([
+		Dseq([
+			0.1,0.02,0.03,
+		],19)+4,
+		Dseq([
+			0.1,0.02,0.03,
+		],19)+3,
+		Dseq([
+			1,2,3,
+		],9),
+		Dseq([
+			1,3,
+		],9),
+	],inf));
+	var gdur = 0.2;
+	sig = TGrains.ar(2, clk, bufnum, pitch_stretch, pos % BufDur.kr(bufnum), gdur, pan, 1);
+	sig = sig + TGrains.ar(2, Impulse.kr(11), bufnum, pitch_stretch, pos+0.01 % BufDur.kr(bufnum), gdur, pan, 1);
+	sig.debug("sig");
+	sig = sig.flat;
+	sig.debug("sig2");
+	pan = LFNoise1.kr(0.1!sig.size);
+	sig.debug("sig3");
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig.debug("sig4");
+	sig = FreeVerb2.ar(sig[0],sig[1]);
+	sig = sig * 2;
+}).play;
+);

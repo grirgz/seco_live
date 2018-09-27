@@ -35,6 +35,17 @@
 - Pdict
 - PmonoArtic
 
+
+///////////////// the 8 step sequence: each step become it's own independent curve
+\lpf, Pswitch1(
+	{ Pseg(Pseq([exprand(100.1,12000.0),exprand(100.1,12000.0)],inf),rrand(4,18.5)) }.dup(8),
+	Pseq((0..7),inf)
+),
+\amp, 0.1 * Pswitch1(
+	8.collect({ arg x; Pseq(Array.series(x+5,0,1).normalize,inf)}),
+	Pseq((0..7),inf)
+),
+
 ///// get same frequence as note pattern
 
 // setup
@@ -210,3 +221,31 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 )
+
+/////////////////////////
+
+
+// rand gain for upbeat render well
+(
+Pdef(\part, Pdef(\ze_hat_ksh2b, 
+	Ppar([
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 9,
+			\isRest, Pseq([
+				1,1,1,1,
+			],inf).coin.not,
+			\lag, 0.04,
+			\sustain, 0.1,
+			\dur, 1/8,
+			\gain, 0.2 * Pseq([
+				1,0.7,
+			],inf) * Pseq([
+				1,Pwhite(0.01,0.5,1),
+			],inf),
+			\amp, 0.1,
+			//\lag, 0.04,
+			//\out, BusDef(\fx1, \audio),
+		)),
+	])
+)).play;
+);

@@ -43,11 +43,14 @@ ParamProto.init;
 
 	FileSystemProject.load("capsule/draftsynth.scd");
 	FileSystemProject.load("capsule/PatKitDef_ksh.scd");
+	FileSystemProject.load("capsule/PatKitDef_bat.scd");
 
+FileSystemProject.load("libdef/mysynthdefault.scd");
 FileSystemProject.load("libdef/drumkit.scd");
 FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
 
 FileSystemProject.load("libdef/tracks.scd");
+FileSystemProject.load("libdef/pdeftrack.scd");
 FileSystemProject.load("libdef/piano.scd");
 FileSystemProject.load("libdef/synthplayrec.scd");
 FileSystemProject.load("libdef/multifbdel.scd");
@@ -77,7 +80,9 @@ FileSystemProject.load("capsule/fxheavy.scd");
 		//} 
 	//};
 
+	// now mapParam is implemented
 	~icon_map_param = { arg input, param;
+		//input.mapParam(param)
 		input.action = { arg kn, val; 
 			param.normSet(kn.value);
 		} 

@@ -17,6 +17,7 @@ s.waitForBoot {
 Pdef(\part).clear;
 
 (
+~t = 135/4/60; TempoClock.default.tempo = ~t;
 	Pdef(\part, Pdef(\plop, 
 		Ppar([
 			Pbind(
@@ -170,7 +171,44 @@ Pdef(\part).clear;
 				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
 				\dur, 1/8,
 				\amp, 0.1,
-			);
+			),
+			Pbind(
+				\instrument, \vlip,
+				\note, Pseq([
+					2,5,9,
+					1,4,9,
+					2,5,2,
+					1,4,1,
+					2,5,5,
+					1,4,4,
+				],inf),
+				\fmamp, 0.4,
+				\legato, Pseq([
+					0,0,0, 3,0,0,
+					0,0,1/4, 3,0,0,
+					0,0,0, 3,0,0,
+					0,0,1/4, 1/4,0,0,
+				],inf),
+				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+				\dur, 1/6,
+				\amp, 0.3,
+			),
+		Pbind(
+			\instrument, \kalimba,
+			\note, Pseq([
+				0,-1
+			],inf),
+			\isRest, Pseq([
+				1,0,0,1, 1,0,0,0,
+				1,0,0,1, 1,0,0,0,
+				1,0,0,1, 1,0,0,0,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/4,
+			\amp, 0.2,
+			//\out, BusDef(\sendbus1, \audio),
+			\isRest, true,
+		),
 
 		])
 	)).play;
@@ -417,6 +455,7 @@ Pdef(\part, Pdef(\plop,
 			\dur, 1/8,
 		//	\out, BusDef(\fx1, \audio),
 			\amp, 0.1,
+			\lag, 0.04,
 		)),
 		PatKitDef(\sample1).asPattern(Pbind(
 			\kitIndex, 0,
@@ -429,6 +468,7 @@ Pdef(\part, Pdef(\plop,
 			\sustain, 0.1,
 			\dur, 1/8,
 			\amp, 0.1,
+			\lag, 0.04,
 		)),
 		PatKitDef(\sample1).asPattern(Pbind(
 			\kitIndex, 4,
@@ -438,6 +478,7 @@ Pdef(\part, Pdef(\plop,
 			\sustain, 0.1,
 			\dur, 1/8,
 			\amp, 0.1,
+			\lag, 0.04,
 		)),
 		PatKitDef(\sample1).asPattern(Pbind(
 			\kitIndex, 4,
@@ -452,6 +493,7 @@ Pdef(\part, Pdef(\plop,
 			\gain, 0.4,
 			\dur, 1/8,
 			\amp, 0.1,
+			\lag, 0.04,
 		)),
 		PatKitDef(\sample1).asPattern(Pbind(
 			\kitIndex, 8,
@@ -464,6 +506,7 @@ Pdef(\part, Pdef(\plop,
 			\sustain, 0.1,
 			\dur, 1/8,
 			\amp, 0.1,
+			\lag, 0.04,
 		)),
 		Pbind(
 			\instrument, \sibass,
@@ -480,7 +523,8 @@ Pdef(\part, Pdef(\plop,
 			\legato, 0.3,
 			\octave, 5,
 			\dur, 1/8,
-			\amp, 0.1
+			\amp, 0.1,
+			\lag, 0.04,
 		),
 		Pbind(
 			\instrument, \sibass,
@@ -581,7 +625,8 @@ Pdef(\part, Pdef(\plop,
 			],inf),
 			\dur, 1/4,
 			\amp, 0.1,
-		);
+		),
+		Pdef(\pluck)
 	])
 )).play;
 )
@@ -592,8 +637,9 @@ Pdef(\part, Pdef(\plop,
 Pdef(\pluck, Pbind(
 	\instrument, \pluck,
 	\degree, Pseq([
-		[0,4,7],
-	],inf),
+		[2,5,9],
+		[1,4,9],
+	],inf).stutter(3*2*2),
 	\dstrum, Pseg(Pseq([0,0.0010],inf),8*2),
 	\decay, 0.04,
 	\coef, Pseg(Pseq((1..10)/10,inf),1),
