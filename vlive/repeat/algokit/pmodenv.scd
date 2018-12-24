@@ -1,3 +1,4 @@
+// deprecated, use libdef/pmodenv.scd
 
 (
 SynthDef(\simplefm, { arg out=0, amp=0.1, gate=1, pan=0;

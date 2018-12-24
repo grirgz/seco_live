@@ -3,6 +3,7 @@ ParamProto.init;
 
 FileSystemProject.load("libdef/drumkit.scd");
 FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
+FileSystemProject.load("capsule/PatKitDef_bat.scd");
 
 FileSystemProject.load("libdef/tracks.scd");
 FileSystemProject.load("libdef/piano.scd");

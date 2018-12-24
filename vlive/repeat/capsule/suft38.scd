@@ -932,6 +932,209 @@ Pdef(\part, Pdef(\zed,
 )
 
 (
+	~pjitter = { arg x;
+		Prout({ arg ev;
+			x.stutter(2).clump(2).asStream.do({ arg x;
+				x.debug("x");
+				ev = Pseq([x.first, -1 * x.last]+1).embedInStream
+			});
+			ev;
+		});
+   
+	};
+~pjitter.(Pseq([0,0.1],inf)).asStream.nextN(10)
+)
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \iron,
+			\note, Pstep(Pseq([
+				0,1,1,-1,
+			],inf),1/2),
+			\octave, 6,
+			\env1, Pseq([
+				[ Env([1,0.9,1],[0.1,0.8],[1,-1]) ],
+				[ Env([0.1,0.9,1],[0.1,0.8],[1,-1]) ],
+				[ Env([1,1.2,1],[0.1,0.8],[1,-1]) ],
+			],inf),
+			\hpf, 400,
+			\gain,8,
+			\fmr, Pseq([
+				1/8,
+			],inf),
+			\lpfr, 1,
+			\rq, 0.7,
+			\foldbias, 1.5,
+			\foldlevel, 0.0,
+			\diff, 0.02 * Pseq([1],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1,1,-2) ],
+			],inf),
+			\trigenv, 1,
+			\fmamp, 1.5,
+			\legato, Pseq([
+					0.1,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\out, BusDef(\sendbus2, \audio),
+		),
+		Pbind(
+			\instrument, \tok,
+			\note, Pstep(Pseq([
+				0,4,18,-1,
+			],inf),1),
+			\octave, 6,
+			\legato, Pseq([
+				//	0.1,0,
+				1,0,0,0,
+				1,0,1,0,
+				1,1,0,0,
+				1,0,0,1,
+			],inf)/12,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\amp, 0.1,
+			\out, BusDef(\sendbus2, \audio),
+		),
+		Pbind(
+			\instrument, \snapkickx,
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,0,0,
+				1,0,1,0,
+				1,1,0,0,
+				1,0,0,1,
+			],inf).coin.not,
+			\amp, 0.1,
+			\out, BusDef(\sendbus2, \audio),
+			\distpreamp, 10,
+			\isRest, true,
+		),
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				1,0,
+			],inf).coin.not,
+			\sustain, 0.05,
+			\fac1,0.1,
+			\dur, 1/8,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+			\out, BusDef(\sendbus2, \audio),
+		),
+		Pmono( \rdncleandist_fulllight,
+			\inbus, BusDef(\sendbus2, \audio, 2),
+			'wet10', 1.0,
+			'mix', 0.95714285714286,
+			'gain', 0.3344889782792,
+			'fb', 0.00101099467303085,
+			'delay', 0.0011001231 * Pseq([
+				1,1,1,2, 1,3,2,1,
+			],inf).stutter(1),
+			'delay2', 0.000000543560101,
+			'shift', 0.0,
+			'shift2', 0.0,
+			'distamp', 141.361836201538,
+			'pitchlag', 1.0,
+			'pitchmix', 0.50924369747899,
+			'prelpf', 17000,
+			'prehpf', 17,
+			'lpf', 1700,
+			'hpf', 17,
+			'fbdistamp', 14.5388371966577,
+			'fbdistmix', 0.98176470588235,
+			'postlpf', 17000 * Pseq([
+				1/4
+			],inf),
+			'posthpf', 17 * Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf),
+			'wetamp', 0.20503372119697,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			\dur, 1/8,
+		),
+		Pbind(
+			\instrument, \pluck,
+			\note, Ptuple([
+				Pstep(Pseq([
+					5,6,5,9,
+					5,5,7,9,
+				],inf),1/2),
+				Pseq([
+					0,1
+				],inf).stutter(4),
+			]),
+			\octave, 6,
+			\legato, Pseq([
+					0.1,0.1,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8 ,
+			\dur, 1/8 * ~pjitter.(Pseq([0.4,0.1],inf)),
+			\amp, 0.1,
+			\out, BusDef(\sendbus3, \audio),
+		),
+		Pbind(
+			\instrument, \pluck,
+			\note, 
+				Pseq([
+					9,8
+				],inf).stutter(4),
+			\octave, 5,
+			\legato, Pseq([
+					0.1,0.4,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8 * ~pjitter.(Pseq([0.4,0.1],inf)),
+			\dur, 1/1 ,
+			\amp, 0.1,
+			\out, BusDef(\sendbus3, \audio),
+		),
+		Pmono( \rdncleandist_fulllight,
+			\inbus, BusDef(\sendbus3, \audio, 2),
+			'wet10', 1.0,
+			'mix', 0.95714285714286,
+			'gain', 0.3344889782792,
+			'fb', 0.00101099467303085,
+			'delay', 0.4111001231 * Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf).stutter(1),
+			'delay2', 0.000000543560101,
+			'shift', 0.0,
+			'shift2', 0.0,
+			'distamp', 141.361836201538,
+			'pitchlag', 1.0,
+			'pitchmix', 0.50924369747899,
+			'prelpf', 17000,
+			'prehpf', 17,
+			'lpf', 1700,
+			'hpf', 17,
+			'fbdistamp', 14.5388371966577,
+			'fbdistmix', 0.98176470588235,
+			'postlpf', 17000 * Pseq([
+				1/4
+			],inf),
+			'posthpf', 517 * Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf),
+			'wetamp', 0.20503372119697,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			\dur, 1/8,
+		),
+	])
+)).play;
+)
+
+
+
+(
 Pdef(\part, Pdef(\zed, 
 	Ppar([
 		

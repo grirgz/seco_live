@@ -207,6 +207,7 @@ Pdef(\part, Pdef(\zed,
 }
 )
 
+	ProtoDef(\rdn).clear
 (
 	~mymaster.();
 Pdef(\part, Pdef(\zed, 

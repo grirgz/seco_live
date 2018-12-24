@@ -34,6 +34,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 );
 (
 ~pmodenv = { arg valpat, timepat=1, repeat=1, curvepat;
+	repeat = repeat.clip(1,inf); // prevent infinite loop when puting negative curve in repeat
 	Prout({ arg ev;
 		var bus = Bus.control(s, 1);
 		var timestr;

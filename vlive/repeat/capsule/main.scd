@@ -5,9 +5,11 @@ Pdef.defaultQuant = 2;
 s.waitForBoot {
 	"lib.scd".loadRelative;
 	//FileSystemProject.load("capsule/lib.scd");
+	FileSystemProject.load("capsule/mainwindow.scd");
 	FileSystemProject.load("capsule/track1.scd");
 	FileSystemProject.load("capsule/draftsynth.scd");
 	FileSystemProject.load("capsule/PatKitDef_ksh.scd");
+	FileSystemProject.load("holis/synthdef.scd");
 
 };
 );
@@ -64,22 +66,6 @@ s.waitForBoot {
 	BusDef(\mixer7, \audio);
 	BusDef(\mixer8, \audio);
 
-	WindowDef(\main, {
-		VLayout (
-			* [
-				"master" -> { ~master.(); },
-				"mixer" -> { ProtoDef(\simpleMixer).edit },
-				"rdn" -> { ProtoDef(\rdn).edit },
-				"rdn2" -> { ProtoDef(\rdn2).edit },
-				"rdn3" -> { ProtoDef(\rdn3).edit },
-				"startControl icon" -> { ~startControl.() },
-				"startControl piano" -> { ProtoDef(\piano).startControl },
-				"basic recorder" -> { ProtoDef(\basicrecorder).edit },
-			].collect({  arg target;
-				BasicButton.new.string_(target.key).action_(target.value)
-			})
-		)
-	});
 
 
 

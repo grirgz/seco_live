@@ -504,7 +504,7 @@ Pdef(\part, Pdef(\zed,
 			\dur, Pn(8,1),
 			\out, BusDef(\null, \audio),
 			\amp, 0.1,
-			\isRest, true,
+			//\isRest, true,
 		),
 		
 	])

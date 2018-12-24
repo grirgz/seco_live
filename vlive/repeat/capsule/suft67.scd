@@ -103,7 +103,7 @@ Pdef(\part, Pdef(\port3,
 		
 	])
 )).play;
-)
+);
 
 
 (
@@ -276,7 +276,7 @@ Pdef(\part, Pdef(\port2,
 		
 	])
 )).play;
-)
+);
 
 (
 SynthDef(\nidi, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
@@ -291,7 +291,7 @@ SynthDef(\nidi, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
-)
+);
 
 (
 Pdef(\part, Pdef(\port1, 
@@ -520,7 +520,7 @@ Pdef(\part, Pdef(\port1,
 		
 	])
 )).play;
-)
+);
 
 
 (
@@ -573,7 +573,7 @@ Pdef(\part, Pdef(\main,
 		
 	],inf)
 )).play;
-)
+);
 
 (
 	// calm
@@ -766,7 +766,7 @@ Pdef(\part, Pdef(\port1_calm,
 		
 	])
 )).play;
-)
+);
 
 (
 	// calm
@@ -954,7 +954,7 @@ Pdef(\part, Pdef(\port1_calm2,
 		
 	])
 )).play;
-)
+);
 
 (
 	// calm
@@ -1169,7 +1169,7 @@ Pdef(\part, Pdef(\port1_calm3,
 		
 	])
 )).play;
-)
+);
 
 (
 	// calm
@@ -1393,7 +1393,7 @@ Pdef(\part, Pdef(\port1_calm4,
 		
 	])
 )).play;
-)
+);
 
 
 (
@@ -1702,7 +1702,7 @@ Pdef(\part, Pdef(\zed,
 		
 	])
 )).play;
-)
+);
 
 SynthDef(\crackledec, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -1991,4 +1991,4 @@ Pdef(\part, Pdef(\zed,
 		
 	])
 )).play;
-)
+);

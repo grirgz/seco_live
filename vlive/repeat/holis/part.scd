@@ -1402,7 +1402,7 @@ Pdef(\part, Pdef(\ze_grancru,
 		)
 	])
 )).play;
-)
+);
 
 (
 Pdef(\part, Pdef(\ze_smp_crush, 
@@ -1616,7 +1616,7 @@ Pdef(\part, Pdef(\ze_chordlock2,
 		),
 	])
 )).play;
-)
+);
 
 (
 Pdef(\part, Pdef(\ze_chordlock3, 
@@ -1647,7 +1647,7 @@ Pdef(\part, Pdef(\ze_chordlock3,
 		),
 	])
 )).play;
-)
+);
 (
 Pdef(\part, Pdef(\ze_basslok, 
 	Ppar([
@@ -1861,179 +1861,266 @@ Pdef(\part, Pdef(\ze_longf,
 )).play;
 );
 
+
 (
-Pdef(\part, Pdef(\main, 
-	Pseq([
-		Ppar([
-			//Pdef(\ze_snapkickx),
-			//Pdef(\ze_snare_ksh2b),
-			//Pdef(\ze_phyhat3),
-			//Pdef(\ze_kalimba),
-			//Pdef(\ze_brownbass),
-			//Pdef(\ze_fmbass),
-			//Pdef(\ze_fmbell),
-			//Pdef(\ze_vlip),
-			Pdef(\ze_pluck),
-			//Pdef(\ze_chordar),
-			//Pdef(\ze_fmsaw_scratch),
-			//Pdef(\ze_rise),
-			//Pdef(\ze_amenbreak),
-			//Pdef(\ze_sibass),
-			//Pdef(\ze_stringsx),
-			//Pdef(\ze_basicbass),
-			//Pdef(\ze_snare_electro),
-			Pdef(\ze_hihat_electro),
-			//Pdef(\ze_snaretuned2),
-			//Pdef(\ze_organ_tonewheel1),
-			//Pdef(\ze_hech),
-			//Pdef(\ze_fzion3),
-			//Pdef(\ze_fzion4),
-			//Pdef(\ze_fzion2),
-			//Pdef(\ze_fzion),
-			Pdef(\ze_clap_bat),
-			//Pdef(\ze_hat_bat_pre),
-			//Pdef(\ze_clave_bat),
-			Pdef(\ze_feynman_scratch),
-			//Pdef(\ze_dronebleu),
-			//Pdef(\ze_dronebleuhi),
-			//Pdef(\ze_iron),
-			//Pdef(\ze_cracklemono),
-			//Pdef(\ze_crackledec),
-			//Pdef(\ze_bassgrise),
-			//Pdef(\ze_dubdrone4x),
-			//Pdef(\ze_dubdrone4),
-			//Pdef(\ze_rim1),
-			Pdef(\ze_rim5),
-			//Pdef(\ze_rim6),
-			//Pdef(\ze_rim8),
-			//Pdef(\ze_chovar),
-			//Pdef(\ze_hat_ksh2b),
-			//Pdef(\ze_ridecast_speed),
-			//Pdef(\ze_phyhat4),
-			//Pdef(\ze_organ),
-			//Pdef(\ze_wavechord),
-			//Pdef(\ze_rim1_speed),
-			//Pdef(\ze_grancru),
-			//Pdef(\ze_smp_crush),
-			//Pdef(\ze_smp_crush2),
-			//Pdef(\ze_simpleacid),
-			//Pdef(\ze_stepchord1),
-			//Pdef(\ze_stepchord2),
-			//Pdef(\ze_ridecast),
-			//Pdef(\ze_chordlock2),
-			//Pdef(\ze_chordlock3),
-			//Pdef(\ze_basslok),
-			Pdef(\ze_tassbass),
-			//Pdef(\ze_chordo),
-			//Pdef(\ze_perctone),
-			Pdef(\ze_aigu),
-			//Pdef(\ze_conga),
-			Pdef(\ze_longf),
-		]),
+Pdef(\part, Pdef(\ze_dubdrone, 
+	Ppar([
+		Pbind(
+			\instrument, \dubdrone,
+			\note, Pseq([
+				0,
+			],inf),
+			\octave, 3,
+			\legato, Pseq([
+				0,0,0, 0,0,0,
+				0,0,0, 0,0,0,
+				0,0,1/4, 3*3,0,0,  
+				0,0,0, 0,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\lag, 0.04,
+			\dur, 1/12,
+			\amp, 0.1,
+		),
 	])
 )).play;
-)
-
-// j'en suis a suft52 il reste des sd a pomper dedans
-
+);
 (
-~ze_list = [
-				Pdef(\ze_snapkickx),
-				Pdef(\ze_snare_ksh2b),
-				Pdef(\ze_phyhat3),
-				Pdef(\ze_kalimba),
-				Pdef(\ze_brownbass),
-				Pdef(\ze_fmbass),
-				Pdef(\ze_fmbell),
-				Pdef(\ze_vlip),
-				Pdef(\ze_pluck),
-				Pdef(\ze_chordar),
-				Pdef(\ze_fmsaw_scratch),
-				Pdef(\ze_rise),
-				Pdef(\ze_amenbreak),
-				Pdef(\ze_sibass),
-				Pdef(\ze_stringsx),
-				Pdef(\ze_basicbass),
-				Pdef(\ze_snare_electro),
-				Pdef(\ze_hihat_electro),
-				Pdef(\ze_snaretuned2),
-				Pdef(\ze_organ_tonewheel1),
-				Pdef(\ze_hech),
-				Pdef(\ze_fzion3),
-				Pdef(\ze_fzion4),
-				Pdef(\ze_fzion2),
-				Pdef(\ze_fzion),
-				Pdef(\ze_clap_bat),
-				Pdef(\ze_hat_bat_pre),
-				Pdef(\ze_clave_bat),
-				Pdef(\ze_feynman_scratch),
-				Pdef(\ze_dronebleu),
-				Pdef(\ze_dronebleuhi),
-				Pdef(\ze_iron),
-				Pdef(\ze_cracklemono),
-				Pdef(\ze_crackledec),
-				Pdef(\ze_bassgrise),
-				Pdef(\ze_dubdrone4x),
-				Pdef(\ze_dubdrone4),
-				Pdef(\ze_rim1),
-				Pdef(\ze_rim5),
-				Pdef(\ze_rim6),
-				Pdef(\ze_rim8),
-				Pdef(\ze_chovar),
-				Pdef(\ze_hat_ksh2b),
-				Pdef(\ze_ridecast_speed),
-				Pdef(\ze_phyhat4),
-				Pdef(\ze_organ),
-				Pdef(\ze_wavechord),
-				Pdef(\ze_rim1_speed),
-				Pdef(\ze_grancru),
-				Pdef(\ze_smp_crush),
-				Pdef(\ze_smp_crush2),
-				Pdef(\ze_simpleacid),
-				Pdef(\ze_stepchord1),
-				Pdef(\ze_stepchord2),
-				Pdef(\ze_ridecast),
-				Pdef(\ze_chordlock2),
-				Pdef(\ze_chordlock3),
-				Pdef(\ze_basslok),
-]
-)
-
-(
-Pdef(\part, Pdef(\zed, 
+Pdef(\part, Pdef(\ze_dubdrone3, 
 	Ppar([
-		Prout({ arg ev;
-			var tab = ~ze_list;
-			100.do  {
-				Ppar(
-					{ tab.choose }.dup(8).collect({ arg x; Pfindur(8,x) })
-				).embedInStream;
-			}
-		}),
+		Pbind(
+			\instrument, \dubdrone3,
+			\note, Pseq([
+				4,
+			],inf),
+			\octave, 7,
+			\legato, Pseq([
+				0,0,0, 0,0,0,
+				0,0,0, 6,0,0,
+				0,0,0, 0,0,0,
+				0,0,0, 0,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\lag, 0.04,
+			\dur, 1/12,
+			\amp, 0.1,
+		),
 	])
 )).play;
 );
 
 (
-Pdef(\part, Pdef(\zed, 
+Pdef(\part, Pdef(\ze_chordo2, 
 	Ppar([
-		Prout({ arg ev;
-			var tab = ~ze_list;
-			100.do  {
-				Ppar(
-					{ tab.choose }.dup(4).collect({ arg x; Pfindur(16,x) })
-				).embedInStream;
-			}
-		}),
-		Prout({ arg ev;
-			var tab = ~ze_list;
-			Event.silent(8).embedInStream;
-			100.do  {
-				Ppar(
-					{ tab.choose }.dup(4).collect({ arg x; Pfindur(16,x) })
-				).embedInStream;
-			}
-		}),
+		Pbind(
+			\instrument, \chordo2,
+			\note, Pseq([
+				//[0,3,5],
+				[2,5,9],
+				[2,5,9]-1,
+			],inf).stutter(8),
+			\legato, Pseq([
+				4,0,0,0, 0,0,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\octave, 6,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\ze_hipass, 
+	Ppar([
+		Pbind(
+			\instrument, \hipass,
+			\note, Pseq([
+				0,
+			],inf),
+			\octave, 4,
+			\fmf1, Pexprand(1,333.0).stutter(inf),
+			\fmf2, Pexprand(1,9.0).stutter(inf),
+			\hpf, 7000,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\ze_plouc, 
+	Ppar([
+		Pbind(
+			\instrument, \plouc,
+			\note, Pseq([
+				Pser([
+					2,1,
+				],6),
+				Pser([
+					Rest(2),1,
+				],2),
+			],inf).stutter(8),
+			\delay, ~pmodenv.(Pseq([0.01,0.2,0.001,0.0004],inf), 8),
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\ze_hipasswide, 
+	Ppar([
+		Pbind(
+			\instrument, \hipasswide,
+			\note, Pseq([
+				5,4,
+				5,4,
+				5,4,
+				5,1,
+			],inf),
+			\octave, 6,
+			\fmf1, 13,
+			\fmf2, 4,
+			\hpf, 14000,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\ze_chordodo, 
+	Ppar([
+		Pbind(
+			\instrument, \chordodo,
+			\hpf, 10,
+			\octave, 5,
+			\amp, 0.1,
+			\dur, 1/12,
+			\note, Pseq([
+				//[0,3,5],
+				Pseq([
+					[2,5,9],
+				],4),
+				Pser([
+					[2,5,9]-1,
+					[2,5,8]-1,
+				],4),
+			],inf).stutter(3),
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,0.8) ],
+			],inf),
+			\legato, Pseq([
+				8,0,0, 0,0,0, 0,0,0, 0,0,0,
+				3,0,0, 0,0,0, 1,0,0, 1,0,0,
+				8,0,0, 0,0,0, 0,0,0, 0,0,0,
+				3,0,0, 0,0,0, 1,0,0, 1,0,0,
+				8,0,0, 0,0,0, 0,0,0, 0,0,0,
+				3,0,0, 0,0,0, 1,0,0, 1,0,0,
+				8,0,0, 0,0,0,  0,0,0, 0,0,0,
+				0,0,0, 0,0,0, 0,0,1, 1,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+		)
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\ze_basicpadfm, 
+	Ppar([
+		Pbind(
+			\instrument, \basicpadfm,
+			\det, ~pmodenv.(Pseq([0.00001,0.02,0.0001,0.04],inf), 8),
+			\note, Pseq([
+				[2,5,9],
+				[2,5,9]-1,
+			],inf),
+			\oscmix, ~pmodenv.(Pseq([0,1,0.51,0.74],inf), 8),
+			\lpf, 1000,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+
+
+(
+Pdef(\part, Pdef(\ze_cymbalsimple, 
+	Ppar([
+		Pbind(
+			\instrument, \cymbalsimple,
+			\freq, 200,
+			\dur, 1,
+			\isRest, Pseq([
+				1,0,0,0,
+				1,0,0,1,
+			],inf).coin.not,
+			\amp, 0.2,
+		),
+	])
+)).play;
+);
+
+
+
+(
+Pdef(\part, Pdef(\ze_oneone, 
+	Ppar([
+		Pbind(
+			\instrument, \oneone,
+			\note, Pseq([
+				2,8-12,
+				5,4-12,
+				9,1-12,
+				9,1-12,
+			],inf),
+			\octave, 6,
+			\legato, Pseq([
+				2,0,1,1,
+				2,0,1,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1,
+			\amp, 0.1,
+			\timeScale, 1/~t/1.2,
+			\lfo, 16*~t,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\ze_oneone2, 
+	Ppar([
+		Pbind(
+			\instrument, \oneone2,
+			\note, Pseq([
+				2,8-12,
+				5,4-12,
+				9,1-12,
+				9,1-12,
+			],inf),
+			\octave, 6,
+			\legato, Pseq([
+				1/2,0,2,0, 4,0,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/2,
+			\amp, 0.1,
+			\timeScale, 1/~t/1.2,
+		),
 	])
 )).play;
 );

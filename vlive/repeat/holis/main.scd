@@ -7,6 +7,7 @@ Pdef.defaultQuant = 2;
 s.waitForBoot {
 	FileSystemProject.load("holis/lib.scd");
 	FileSystemProject.load("holis/synthdef.scd");
+	FileSystemProject.load("holis/part.scd");
 };
 );
 

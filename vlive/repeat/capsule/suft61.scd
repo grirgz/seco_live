@@ -1,4 +1,5 @@
-~t = 185/2/60; TempoClock.default.tempo = ~t;
+(
+~t = 185/4/60; TempoClock.default.tempo = ~t;
 ~swing = (1 + (0.06 * Pseg(Pseq([1,-1],inf),1/8)));
 ProtoDef(\rdn2, ProtoTemplateDef(\rdn));
 ProtoDef(\rdn3, ProtoTemplateDef(\rdn));
@@ -6,6 +7,7 @@ ProtoDef(\rdn3, ProtoTemplateDef(\rdn));
 	ProtoDef(\rdn).play;
 	ProtoDef(\rdn2).play;
 }
+)
 
 (
 	~master_simple.();

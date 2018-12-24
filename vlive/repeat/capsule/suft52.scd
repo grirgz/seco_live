@@ -2349,9 +2349,77 @@ Pdef(\part, Pdef(\zed,
 		Pbind(
 			\instrument, \hipass,
 			\note, Pseq([
+				0,
+			],inf),
+			\fmf1, Pexprand(1,333.0).stutter(inf),
+			\fmf2, Pexprand(1,9.0).stutter(inf),
+			\hpf, 7000,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \chordo2,
+			\note, Pseq([
+				//[0,3,5],
+				[0,4,7],
+				[0,3,7]+2,
+			],inf).stutter(8),
+			\legato, Pseq([
+				4,0,0,0, 0,0,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\octave, 6,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+)
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \hipass,
+			\note, Pseq([
 				0,4,9,
 			],inf),
 			\fmf1, ~pmodenv.(Pseq([1,2,1,4],inf), 8),
+			\hpf, ~pmodenv.(Pseq([7000,2000,100,400],inf), 8),
+			\dur, 1,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \chordo2,
+			\note, Pseq([
+				//[0,3,5],
+				[0,4,7],
+				[0,3,7]+2,
+			],inf).stutter(8),
+			\legato, Pseq([
+				4,0,0,0, 0,0,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\hpf, 10,
+			\octave, 6,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+)
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \hipass,
+			\note, Pseq([
+				0,4,9,
+			],inf),
+			\fmf1, ~pmodenv.(Pseq([1,2,1/2,4]*8,inf), 3.2),
+			\fmf2, 17,
 			\hpf, ~pmodenv.(Pseq([7000,2000,100,400],inf), 8),
 			\dur, 1,
 			\amp, 0.1,
