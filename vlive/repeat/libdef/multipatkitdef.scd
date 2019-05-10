@@ -67,8 +67,11 @@ WindowDef(\multipatkitdef, { arg def, gridlist;
 )
 
 // END
+PatKitDef.all
+PatKitDef.all.choose.keys
 
 WindowDef(\multigrid).front
+WindowDef(\multipatkitdef).front
 
 BufDef('/home/ggz/Musique/sc/reckit/loop/loop2.flac')
 BufDef.all['/home/ggz/Musique/sc/reckit/loop/loop2.flac'] = nil

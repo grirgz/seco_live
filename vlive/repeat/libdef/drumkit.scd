@@ -45,7 +45,7 @@ WindowDef(\sampler_new, { arg def, target, show_buttons=true;
 				buffer_popup,
 				BasicButton.new.string_("load").action_({ arg view;
 					//Dialog.openPanel({ arg file;})
-					WindowDef(\filedialog).front("./", { arg file;
+					WindowDef(\filedialog).front(nil, { arg file;
 						BufDef(file.asSymbol); // autoload it
 						buffer.spec = MenuSpec(
 							BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
@@ -177,7 +177,7 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 	
 });
 
-WindowDef(\samplekit, { arg def, group;
+WindowDef(\samplekit, { arg def, group, selectidx=0;
 	var size = Point(4,8);
 	var edit;
 	var layout;
@@ -193,6 +193,8 @@ WindowDef(\samplekit, { arg def, group;
 	padkeys = "&X\"'azerqsdfwxcv(-X_tyuighjkbn,;".as(Array);
 	padkeys[1] = -23.asAscii;
 	padkeys[1+16] = -24.asAscii;
+
+	group.defaultTarget = default_stepevent;
 
 	keyDownAction = { arg me, key, modifiers, unicode, keycode;
 		[me, key.asCompileString, modifiers, unicode, keycode].debug("samplekit keyDownAction");
@@ -257,15 +259,15 @@ WindowDef(\samplekit, { arg def, group;
 						)
 					).setInnerExtent(600,140).front;
 				} {
-					model.savePresetCompileString(nil, {
+					model.savePresetCompileStringDialog(nil, {
 						me.refreshChange;
 					}, false);
 				};
 			})
 			.mouseUpAction_({ arg me, x, y, mod, but;
 				//[a,b,c,but].debug("but");
-				if(but == 1) { // right click
-					model.savePresetCompileString(nil, {
+				if(but == 1) { // right click to force save as
+					model.savePresetCompileStringDialog(nil, {
 						me.refreshChange;
 					}, true)
 				}
@@ -290,10 +292,10 @@ WindowDef(\samplekit, { arg def, group;
 	};
 	deselect = { arg x;
 		var tar;
-		"x1".debug;
-		tar = group.elAt(x).target;
-		"x2".debug;
-		selector[x].background = if(tar.isNil or: { tar == default_stepevent.() }) {
+		//"x1".debug;
+		//tar = group.elAt(x).target;
+		//"x2".debug;
+		selector[x].background = if(group.elAt(x).isEmpty) {
 			Color.white
 		} {
 			ParamViewToolBox.color_ligth;
@@ -353,7 +355,7 @@ WindowDef(\samplekit, { arg def, group;
 
 						"5".debug;
 	editlayout = View.new;
-	edit.(0);
+	edit.(selectidx);
 
 						"6".debug;
 	layout = HLayout (
@@ -388,8 +390,8 @@ ParamProto.init;
 	)
 };
 ~parPlayerGroup[\asPresetCompileString] = ~parPlayerGroup[\presetCompileString]; // backward compat
-~parPlayerGroup[\edit] = { arg self;
-	WindowDef(\samplekit_+++self.key, WindowDef(\samplekit)).front(self);
+~parPlayerGroup[\edit] = { arg self, idx=0;
+	WindowDef(\samplekit_+++self.key, WindowDef(\samplekit)).front(self, idx);
 };
 ~parPlayerGroup[\startControl] = { arg self;
 	var count = 0;

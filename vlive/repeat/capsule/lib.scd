@@ -49,8 +49,13 @@ FileSystemProject.load("libdef/mysynthdefault.scd");
 FileSystemProject.load("libdef/drumkit.scd");
 FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
 
+
 FileSystemProject.load("libdef/tracks.scd");
 FileSystemProject.load("libdef/pdeftrack.scd");
+FileSystemProject.load("libdef/track_rdnpreset.scd");
+FileSystemProject.load("libdef/apc.scd");
+FileSystemProject.load("libdef/patkitdef_apc.scd");
+
 FileSystemProject.load("libdef/piano.scd");
 FileSystemProject.load("libdef/synthplayrec.scd");
 FileSystemProject.load("libdef/multifbdel.scd");
@@ -64,6 +69,7 @@ FileSystemProject.load("capsule/PatKitDef_ksh.scd");
 FileSystemProject.load("capsule/PatKitDef_rim.scd");
 FileSystemProject.load("capsule/fxsimple.scd");
 FileSystemProject.load("capsule/fxheavy.scd");
+FileSystemProject.load("~/.local/share/SuperCollider/Extensions/seco/seco/veco/inline_editor.scd");
 
 ///////////////////// control
 

@@ -13,6 +13,8 @@ ProtoDef(\apc40, (
 		self;
 	},
 
+	shiftModifier: false,
+
 	clearAll: { arg self;
 		//self.ktl.sendSpecialMessage(\clearAll);
 		//self.ktl.sendSpecialMessage(\enableFlashMode);
@@ -79,8 +81,8 @@ ProtoDef(\apc40, (
 	render_cell: { arg self, pos, isPlaying, mode;
 		// playerWrapper to pad
 		var color;
-		var child = self.grid.childAtOffset(pos);
-		if(child.isEmpty == true) {
+		var child = self.childAtOffset(pos);
+		if(child.isNil or: {child.isEmpty == true}) {
 			color = \off
 		} {
 			//[isPlaying, child.isPlaying].debug("render_cell: is, chiisp");
@@ -141,7 +143,7 @@ ProtoDef(\apc40, (
 	},
 
 	listenAt: { arg self, pos;
-		var player = PlayerWrapper(self.grid.childAtOffset(pos));
+		var player = PlayerWrapper(self.childAtOffset(pos));
 		if(self.controllers[pos.x][pos.y].notNil) {
 			self.controllers[pos.x][pos.y].remove;
 		};
@@ -178,6 +180,10 @@ ProtoDef(\apc40, (
 		};
 	},
 
+	childAtOffset: { arg self, point;
+		self.grid.childAtOffset(point);
+	},
+
 	activate: { arg self, grid;
 		var move_in_grid;
 		if(grid.notNil) {
@@ -204,9 +210,11 @@ ProtoDef(\apc40, (
 
 				pad.elAt(\on).action = {
 					var point = Point(colidx, rowidx);
-					if(self.edit_mode == true) {
+					point.debug("pad down");
+					if(self.shiftModifier == true) {
 						{
-							self.grid.childAtOffset(point).edit;
+							self.childAtOffset(point).edit;
+							self.render_cell(point);
 						}.defer;
 					} {
 						if(self.modifier_mixer == true) {
@@ -215,12 +223,26 @@ ProtoDef(\apc40, (
 							self.quickpad[point.x][point.y].value(self, point);
 							self.quickpad[point.x][point.y].debug("end what ?");
 						} {
-							PlayerWrapper(self.grid.childAtOffset(point)).togglePlay;
+							var node = self.childAtOffset(point);
+							if(node.playMode == \gate) {
+								point.debug("pad gate play");
+								PlayerWrapper(node).play;
+							} {
+								point.debug("pad toggle play");
+								PlayerWrapper(node).togglePlay;
+							}
 						};
 					}
 				};
 				pad.elAt(\off).action = {
-					//self.grid.childAt(idx % self.gridsize.x, ( idx/self.gridsize.x ).asInteger).stop;
+					var point = Point(colidx, rowidx);
+					var node = self.childAtOffset(point);
+					if(node.playMode == \gate) {
+						point.debug("pad gate stop");
+						PlayerWrapper(node).stop;
+					} {
+						// NOOP
+					}
 				};
 			};
 		};
@@ -279,6 +301,7 @@ ProtoDef(\apc40, (
 		self.ktl.elAt(\bt, \bank, \down,\on).action = { arg el; move_in_grid.(el, Point(0,1)) }; // up
 		self.ktl.elAt(\bt, \bank, \left,\on).action = { arg el; move_in_grid.(el, Point(-1,0)) }; // left
 		self.ktl.elAt(\bt, \bank, \right,\on).action = { arg el; move_in_grid.(el, Point(1,0)) }; // right
+		self.ktl.elAt(\bt, \flat, \metronome).mapPlayer(PlayerWrapper(Pdef(\metronome)));
 
 		//self.clearAll;
 
@@ -310,6 +333,31 @@ ProtoDef(\apc40, (
 				self.map_simplemixer_send(idx);
 			};
 		}
+	},
+
+	map_rdn_to_bank: { arg self, bankidx, rdnkey, arglist;
+		self.bank_actions[bankidx] = {
+			if(self.shiftModifier) {
+				{
+				ProtoDef(rdnkey).edit;
+				}.defer;
+			} {
+				arglist.collect({ arg param, idx;
+					param = case(
+						{ param.isKindOf(Symbol) }, {
+							Param(ProtoDef(rdnkey).proxy, param);
+						},
+						{ param.isSequenceableCollection }, {
+							Param(ProtoDef(rdnkey).proxy, *param);
+						}, {
+							param;
+						}
+					);
+					self.mapParam([ \kn, \d, idx ], param);
+				})
+			}
+		};
+		
 	},
 
 	map_rdn: { arg self;
@@ -378,12 +426,13 @@ ProtoDef(\apc40, (
 
 ));
 
-)
-ProtoDef(\apc40).activate(TrackDef(\mygrid)); // debug
-ProtoDef(\apc40).activate; // debug
+);
 
 // END
 
+ProtoDef(\apc40).activate(TrackDef(\mygrid)); // debug
+ProtoDef(\apc40).activate; // debug
+ProtoDef(\apc40).ktl.elAt(\bt, \flat)
 
 
 

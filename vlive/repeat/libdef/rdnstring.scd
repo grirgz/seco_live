@@ -1,15 +1,19 @@
 
 
 (
-	~rdn_to_string = { arg rdn;
+	~rdn_to_string = { arg rdn, code;
 		var tree;
-		tree = ~simplify_tree.(rdn.tree);
+		if(code.notNil) {
+			tree = ~simplify_tree.(rdn.codeToTree(nil, code));
+		} {
+			tree = ~simplify_tree.(rdn.tree);
+		};
 		tree.asCompileString.postln;
 		~tree_to_string.(tree, rdn.dict, ());
 	};
-	~rdn_to_fbstring = { arg rdn;
-		var str = ~rdn_to_string.(rdn);
-		var pbindcode = rdn.getPbindCompileString;
+	~rdn_to_fbstring = { arg rdn, ndefkey, code;
+		var str = ~rdn_to_string.(rdn, code);
+		var pbindcode = rdn.getPbindCompileString(ndefkey);
 		"
 		SynthDef(\\rdnfx, { arg out=0, gate=1;
 			var sig;
@@ -45,6 +49,37 @@
 		%
 		".format(rdn.class.codeToSeeds(rdn.code)[2], str, pbindcode)
 	};
+
+	~rdn_to_graphstring = { arg rdn, ndefkey, code;
+		var str = ~rdn_to_string.(rdn, code);
+		var pbindcode = rdn.getPbindCompileString(ndefkey);
+		var wrapper = rdn.make_graph.asCompileString;
+		var rdncode = "%\n%\nsig = %".format(
+			"thisThread.randSeed = %;".format(rdn.class.codeToSeeds(rdn.code)[2]),
+			"si = sig;",
+			str
+		);
+		wrapper = wrapper.replace("{ arg in, code, rdnkey;", "");
+		wrapper = wrapper.copyRange(0, wrapper.findBackwards("}").debug("back")-1);
+		wrapper = wrapper.replace("sig = RandDelayNetwork(rdnkey).ar(sig, code);", rdncode);
+		"
+		SynthDef(\\rdnfx, { arg out=0, gate=1;
+			var si, env = ();
+			var in = InFeedback.ar(\\inbus.kr(BusDef(\\fx1, \\audio)), 2); 
+			var code, rdnkey;
+			%
+
+			sig = sig * EnvGen.kr(\\adsr.kr(Env.adsr(0.001,0,1,0.001)), gate, doneAction:2);
+			Out.ar(out, sig);
+		}).add;
+
+		%
+		".format(
+			wrapper,
+			pbindcode
+		)
+	};
+
 	~tree_to_string = { arg tree, dict, envir, level=0;
 		var str = "";
 		if(tree.isKindOf(Association)) {
@@ -98,6 +133,9 @@
 	//~rdn_to_string.(RandDelayNetwork(\deldefault)).editorInsert
 //	~rdn_to_fbstring.(RandDelayNetwork(\deldefault));
 
+	~protordn_to_fbstring = { arg protordn;
+		~rdn_to_graphstring.(protordn.rdn, protordn.fxkey, protordn.code.debug("code"))
+	};
 )
 
 // END
@@ -105,12 +143,27 @@
 
 /// usage
 
+~protordn_to_fbstring.(ProtoDef(\rdn2)).editorInsert // with outer synthdef and preset pbind
 
 ~rdn_to_fbstring.(RandDelayNetwork(\deldefault)).editorInsert
 ~rdn_to_fbstring.(RandDelayNetwork(ProtoDef(\rdn).fxdef)).editorInsert // with outer synthdef and preset pbind
-
 ProtoDef(\rdn).synthDefCompileString.editorInsert // just ugens function
 
+
+////////// draft
+
+ProtoDef(\rdn).code
+ProtoDef(\rdn).rdn.make_graph.asCompileString.replace("")
+RandDelayNetwork(\deldefault).getPbindCompileString(\rdn2).editorInsert
+(
+
+
+);
+
+RandDelayNetwork(\deldefault).code
+ProtoDef(\rdn).keys
+ProtoDef(\rdn).synthDefCompileString
+ProtoDef(\rdn).fxcode
 
 //////// to use as template
 			default_make_graph = { arg in, code, rdnkey;

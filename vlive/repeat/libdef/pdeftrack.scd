@@ -6,8 +6,20 @@ TrackTemplateDef(\pdefwrapper, TrackTemplateDef(\playerwrapper).putAll((
 		self.parentTrack.prefix;
 	},
 
+	isEmpty: { arg self;
+		if(self.source.isKindOf(ProtoClass)) {
+			self.source.isEmpty;
+		} {
+			self.source.source.isNil
+		}
+	},
+
 	defaultSource: { arg self;
 		Pdef("%_%".format(self.prefix, self.index).asSymbol)
+	},
+
+	edit: { arg self;
+		self.proxy.edit;
 	},
 
 )));
@@ -33,4 +45,3 @@ TrackTemplateDef(\pdefgrid, TrackTemplateDef(\playergrid).putAll((
 )));
 
 TrackDef(\pdefgrid, TrackTemplateDef(\pdefgrid))
-PlayerWrapper({ "kjk".postln }).play

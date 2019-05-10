@@ -1134,3 +1134,46 @@ Pdef(\demo, Pdef(\demomo,
 	])
 )).play;
 )
+
+////////////
+
+(
+SynthDef(\somebass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([2,1/8,1/20],[0.1,0.8]), 1);
+	env2 = EnvGen.kr(Env([1,1/8,1/10],[0.1,0.8]), 1);
+	env3 = EnvGen.kr(Env([0.1,1/21,1],[0.1,0.8]), 1);
+	sig1 = SinOsc.ar(freq);
+	sig2 = LFSaw.ar(freq + [0,1]).mean;
+	sig2 = RLPF.ar(sig2, \lpf.kr(1000) * env1, \rq.kr(0.5));
+	sig3 = LFNoise1.ar(1000 + [0,1]).mean;
+	sig3 = WhiteNoise.ar;
+	sig3 = sig3 * ( LFSaw.ar(freq / env2)  * env3 + 1);
+	//sig3 = RHPF.ar(sig3, 19000 * env2, \rq.kr(0.5));
+	sig3 = BPF.ar(sig3, 19000 * env2, \rq.kr(0.5));
+	sig3 = sig3 * EnvGen.kr(Env([0,1/12,0],[0.4,0.8], [1,-1]), 1);
+	sig4 = LFSaw.ar(freq *8 );
+	sig4 = RHPF.ar(sig4, 8000 * EnvGen.kr(Env([1,2,3],[0.1,0.8]), 1), \rq.kr(0.5));
+	sig4 = sig4 * EnvGen.kr(Env([0,1/1.2,1],[0.1,4.8]), 1);
+	sig = [sig1,sig2,sig3,sig4].sum;
+	//sig = sig4;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \somebass,
+		\degree, Pseq([0],inf),
+		\octave, 3,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);

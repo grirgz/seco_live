@@ -56,6 +56,17 @@ ProtoTemplateDef(\rdn, (
 		PlayerWrapper(Ndef(self.fxkey)).isPlaying;
 	},
 
+	make: { arg self, fxdef, fxkey, fxcode, inbus;
+		fxcode.debug("fxcode");
+		self.fxcode.debug("fxcode1.2");
+		self.fxdef = fxdef ? self.fxdef;
+		self.fxkey = fxkey ? self.fxkey;
+		self.fxcode = fxcode ? self.fxcode;
+		self.fxcode.debug("fxcode2");
+		self.inbus = inbus ? self.inbus;
+		self.rebuild(nil, nil, self.fxcode);
+	},
+
 	enablefx_: { arg self, val;
 		self[\enablefx] = val;
 		if(val == true) {
@@ -70,10 +81,13 @@ ProtoTemplateDef(\rdn, (
 	},
 
 	presetCompileString: { arg self;
-		RandDelayNetwork(self.fxdef).presetCompileString(self.fxkey);
+		var lines = RandDelayNetwork(self.fxdef).presetCompileString(self.fxkey).split($\n);
+		lines[0] = "ProtoDef(%).make(%, %, %, %);".format(*[self.key, self.fxdef, self.fxkey, self.code, self.inbus].collect(_.asCompileString));
+		lines.join( $\n)
 	},
 
 	code: { arg self;
+		// code is current specific code of rdn and fxcode is the generic code (eg. "4--")
 		self.proxy.getHalo(\code)
 	},
 

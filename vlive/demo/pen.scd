@@ -1,5 +1,6 @@
 
 (
+	~size = 10;
 WindowDef(\distri, {
 	var uv = UserView.new;
 	uv.drawFunc = {

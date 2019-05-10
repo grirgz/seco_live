@@ -113,8 +113,8 @@ TrackTemplateDef(\playerwrapper, (
 	},
 
 	isPlaying: { arg self;
-		self.proxy.isPlaying and: {
-			self.mixer.isNil or: { self.mixer.isPlaying }
+		(self.proxy.isPlaying == true) and: {
+			self.mixer.isNil or: { self.mixer.isPlaying == true }
 		};
 	},
 

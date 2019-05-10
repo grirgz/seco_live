@@ -536,7 +536,7 @@ SynthDef(\echoer, { arg out=0, gate=1;
 	sig = in;
 	sig = sig * SinOsc.ar(300);
 	sig = CombL.ar(sig, 0.1,\delay.kr(0.011),\decay.kr(10)) + sig;
-	sig = SelectX.ar(\mix.kr(1) * env1.poll, [in, sig]);
+	sig = SelectX.ar(\mix.kr(1) * env1, [in, sig]);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
@@ -1147,3 +1147,268 @@ TrackDef(\keyer, TrackTemplateDef(\keyer)).source
 
 
 
+
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \snapkickx,
+			\bodyfreqenv, [ Env([261, 54, 21], [0.035, 0.08], curve: \exp) ],
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				1,0,1,0, 0,0,0,0,
+			],inf).coin.not,
+			\amp, 0.1,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		PatKitDef(\rim).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,1,0, 0,0,0,0, 0,1,0,1,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,1,1, 
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,1,1, 0,0,0,0, 0,1,0,1,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,1,1, 
+
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,1,0, 0,0,1,1, 0,0,1,1,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0, 1,0,0,1, 1,0,0,1, 
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
+			\dur, 1/16,
+			\out, BusDef(\sendbus1, \audio),
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 8,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,1,0, 1,1,0,0,
+				0,0,0,0, 1,0,1,0, 0,0,1,1, 0,1,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+
+				0,0,0,0, 0,0,0,0, 1,0,1,0, 1,0,1,0,
+				0,0,0,0, 1,1,1,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,1,0, 0,0,1,0, 1,1,0,1,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.06,
+			\dur, 1/16,
+			\out, BusDef(\sendbus1, \audio),
+		)),
+		PatKitDef(\bat).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\velamp, 1/3,
+			\dur, 1/8,
+			\out, BusDef(\sendbus1, \audio),
+		)),
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				1,1,
+			],inf).coin.not,
+			\sustain, 0.05,
+			\fac1,0.1,
+			\dur, 1/8,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+			\lag, 0.04,
+			//\out, BusDef(\sendbus2, \audio),
+		),
+		PatKitDef(\bat).asPattern(Pbind(
+			\kitIndex, 8,
+			\isRest, Pseq([
+				1,1,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.1,0.8,0.1) ],
+			],inf),
+			\sustain, 0.1/2,
+			\velamp, 1/6,
+			\dur, 1/8,
+			\out, BusDef(\sendbus2, \audio),
+		)),
+		PatKitDef(\rim).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
+			\dur, 1/8,
+			\out, BusDef(\sendbus2, \audio),
+		)),
+		PatKitDef(\ksh2b).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,1, 0,1,1,0, 0,0,0,1, 1,0,1,0,
+				0,0,0,0, 1,0,0,1, 0,0,0,0, 0,0,0,0,
+				0,0,0,1, 0,1,1,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 1,0,1,1,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\gain, 0.2,
+			\dur, 1/16,
+			\out, BusDef(\sendbus2, \audio),
+		)),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\freq, 221.85797297904,
+			\isRest, Pseq([
+				1,0,0, 0,0,0,  0,1,0, 0,0,0,  
+				1,0,0, 0,0,0,  0,0,0, 0,0,0,  
+				1,0,0, 0,0,0,  0,1,0, 0,0,0,  
+				1,0,0, 0,0,0,  0,0,0, 0,0,0,  
+				1,0,0, 0,0,0,  0,1,0, 0,0,0,  
+				1,0,0, 0,0,0,  0,0,0, 0,0,0,  
+			],inf).coin.not,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+
+~inline_editor = { arg ...args; args.debug("args") }
+
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('voices/feynman.flac'),
+			\dur, 1,
+			\gain, 1,
+		)
+	])
+)).play;
+);
+
+
+(
+SynthDef(\drodro, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq * ( SinOsc.ar(freq) * 1 + 1 ));
+	sig = sig * SinOsc.ar(freq*( 3/2 ) * ( SinOsc.ar(sig.abs+0.1 * freq) * 1 + 1 ));
+	//sig = sig * LFSaw.ar(313 * ( SinOsc.ar(sig) * 1 + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\drodro, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq * ((0..7)/7 - 0.5 * ( SinOsc.ar(Rand(0.01,0.1)) * 1 + 1 ) + 1)); 
+	sig = sig + sig.fold2( SinOsc.ar(0.1 * [1,1.1])  ).mean / 2;
+	//sig = sig * LFSaw.ar(313 * ( SinOsc.ar(sig) * 1 + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig.clump(4), pan, amp).mean;
+	sig.mean.debug("sig");
+	Out.ar(out, sig);
+}).add;
+SynthDef(\comby, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = CombL.ar(sig, 0.4, 1/8/~t,1/~t) + sig;
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+
+Pdef(\part).reset;
+);
+
+
+(
+Pdef(\part, Pdef(\zed, 
+	Pseq([
+		Pfindur(4,
+			Ppar([
+				Psched([0,3.5], Ppar([
+					{ arg x;
+						Pbind(
+							\instrument, \drodro,
+							\note, Pseq([
+								Pseq((1..3+x),1),
+								Pseq((1..3+x).reverse,x+1),
+							],inf),
+							\dur, 1/7,
+							\lag, x/3,
+							\octave, x+4,
+							\legato, 1,
+							\adsr, Pseq([
+								[ Env.adsr(0.1,0.1,0.8,4.1) ],
+							],inf),
+							\amp, 0.1,
+							\out, BusDef(\fxbus1, \audio),
+						)
+					}!4,
+					Pmono(\comby,
+						\inbus, BusDef(\fxbus1, \audio),
+						\dur, 1,
+					),
+				].flat)),
+				Psched([3.5,4],
+					Pbind(
+						\instrument, \default,
+						\freq, [
+							3250,
+							1151,
+							2202,
+							2720,
+						],
+						\dur, 1/2,
+						\amp, 0.1,
+					),
+				)
+			].flat),
+		),
+		Ppar([
+			PatKitDef(\sample1).asPattern(Pbind(
+				\kitIndex, 0,
+				\isRest, Pseq({[
+					1,0,0,1, 0,0,0,0,
+				].clump(8).choose}.dup(8).flat,inf).coin.not,
+				\sustain, 0.1,
+				\dur, 1/8,
+			)),
+			Pmono(\drodro,
+				\note, Pseq([
+					0
+				],inf),
+				\octave, 6,
+				\dur, 1,
+				\amp, 0.1,
+			),
+			Pmono(\drodro,
+				\note, Pseq([
+					5,9,
+				],inf),
+				\octave, 6,
+				\dur, Prand([1/8,1/3],inf),
+				\amp, 0.1,
+			),
+		])
+	],1),
+)).play;
+);

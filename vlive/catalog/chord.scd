@@ -132,6 +132,7 @@ Pdef(\chord,
 // laminated chord
 
 (
+	// problem: nore than stereo
 Ndef(\chord, { arg freq=800, pan=0, amp=0.1;
 	var sig;
 	freq = freq * [0,8,15].midiratio;
@@ -142,6 +143,41 @@ Ndef(\chord, { arg freq=800, pan=0, amp=0.1;
 	sig = Resonz.ar(sig, SinOsc.kr(1/9 * [1,2,3]).range(100,7000), 0.5);
 	sig.debug("sig");
 	sig = Pan2.ar(sig, pan, amp).flop;
+	sig.debug("sig");
+}).play;
+);
+
+(
+Ndef(\chord, { arg freq=800, pan=0, amp=0.1;
+	var sig;
+	freq = freq * [0,4,7].midiratio;
+	freq = freq *.x [1,1/2,2];
+	sig = SinOsc.ar(freq);
+	sig = sig.fold2( SinOsc.kr(1/7 * [1,2,3]).range(0,1) );
+	sig = sig.wrap2( SinOsc.kr(1/6 * [1,2,3]).range(0,1) );
+	sig = Resonz.ar(sig, SinOsc.kr(1/9 * [1,2,3]).range(100,7000), 0.5);
+	sig.debug("sig");
+	sig = Splay.ar(sig, 1, amp, pan);
+	sig.debug("sig");
+}).play;
+);
+
+(
+Ndef(\chord, { arg freq=800, pan=0, amp=0.1;
+	var sig;
+	freq = freq * Duty.kr(1/~t, 0, Dseq([
+		1,0,4,3,
+	],inf)).midiratio;
+	freq = freq * [0,4,7].midiratio;
+	freq = freq *.x [1,1/2,2];
+	sig = SinOsc.ar(freq);
+	sig.debug("sig");
+	sig = sig.fold2( SinOsc.kr(1/7 * [1,2,3]).range(0,1) );
+	sig = sig.wrap2( SinOsc.kr(1/6 * [1,2,3]).range(0,1) );
+	sig = sig + DelayL.ar(sig, 0.5, SinOsc.kr((1..9)/170,(1..9)).range(0.001,0.5) );
+	sig = Resonz.ar(sig, SinOsc.kr(1/9 * [1,2,3]).range(100,7000), 0.5);
+	sig.debug("sig");
+	sig = Splay.ar(sig, 1, amp, pan);
 	sig.debug("sig");
 }).play;
 );
@@ -211,8 +247,9 @@ Pdef(\demo, Pdef(\demomo,
 			\legato, 0.91,
 			\note, Pseq([
 				[0,1,3,7],
+				[0,1,3,7]+4,
 			],inf),
-			\dur, 8,
+			\dur, 4,
 			\amp, 0.1,
 		),
 	])
@@ -246,6 +283,24 @@ SynthDef(\chordo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = Pan2.ar(sig, pan, amp).mean;
 	Out.ar(out, sig);
 }).add;
+
+(
+Pdef(\demo, Pdef(\xdemo, 
+	Ppar([
+		Pbind(
+			\instrument, \chordo,
+			\note, Pseq([
+				[0,4,7],
+				[0,4,7]+4,
+			],inf),
+			\lpf, 1000,
+			\dur, 4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+)
 
 
 ////////////////////
@@ -362,7 +417,7 @@ SynthDef(\stepchord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 Pdef(\part1, Pdef(\demomo, 
 	Ppar([
 		Pbind(
-			\instrument, \sinchord,
+			\instrument, \stepchord,
 			\legato, 0.91,
 			\note, Pseq([
 				[0,1,3,7],
@@ -473,3 +528,38 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 )
+//////////////
+(
+SynthDef(\accordeon, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	env1 = EnvGen.kr(Env([0,1,2],[0.01,0.8]), 1);
+	lfo1 = Duty.kr(1/8/~t * LFNoise1.kr(1/2).range(0.1,2.0), 0, Dseq([
+		0,7-12,3,7,
+	],inf)).midiratio;
+	sig = SinOsc.ar(freq * lfo1);
+	sig = CombL.ar(sig, 1/freq, 1/freq * 1) + sig;
+	sig = (sig * 1).tanh;
+	sig = sig * 0.9;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \accordeon,
+			\note, Pseq([
+				[0,3,7],
+				[11,3,7]-4,
+			],inf) ,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
