@@ -819,3 +819,20 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 );
+
+~master.()
+
+//////////////////
+
+ClipTimeline(\suft90).edit
+ClipTimeline(\suft90).clear
+ClipTimeline(\suft90).presetCompileString.editorInsert
+(
+ClipTimeline('suft90').eventList = XEventList.newFrom([
+	(\absTime: 0, \dur: 0, \label: 'start', \playDur: 0, \relDur: 0, \sustain: 0, \type: 'start', ),
+	PatternEvent((\absTime: 0, \dur: 1, \midinote: 0, \playDur: 1, \relDur: 1, \sustain: 4.6040871610001, \timeline: { ProtoTemplateDef(\SampleTimeline).new('rec_suft90_190512_022540') }, \type: 'pattern', )),
+	(\absTime: 1, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+);
+ProtoTemplateDef(\SampleTimeline).new('rec_suft90_190512_022540').buffer
+BufDef('/tmp/rec_suft90_190512_022540.wav')
