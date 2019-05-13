@@ -305,13 +305,12 @@ ProtoTemplateDef(\SampleTimeline).new('st').eventList = XEventList.newFrom([
 (
 ClipTimeline('inte').eventList = XEventList.newFrom([
 	(\absTime: 0.0, \dur: 1.0, \label: 'start', \playDur: 1.0, \relDur: 1.0, \sustain: 0, \type: 'start', ),
-	PatternEvent((\absTime: 1.0, \dur: 3.0, \midinote: 1.0, \playDur: 3.0, \relDur: 3.0, \sustain: 2.25, \timeline: { ProtoTemplateDef(\SampleTimeline).new('st') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 1.0, \dur: 3.0, \midinote: 1.0, \playDur: 3.0, \relDur: 3.0, \sustain: 2.25, \timeline: { SampleTimeline('st') }, \type: 'pattern', )),
 	(\absTime: 4.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
 ]);
 
-ProtoDef.all[\st] = ProtoTemplateDef(\SampleTimeline).new(\st);
-ProtoDef(\st).buffer = BufDef('voices/feynman.flac');
-ProtoTemplateDef(\SampleTimeline).new('st').eventList = XEventList.newFrom([
+SampleTimeline(\st).buffer = BufDef('voices/feynman.flac');
+SampleTimeline(\st).eventList = XEventList.newFrom([
 	(\absTime: 0, \dur: 20.0, \label: 'start', \playDur: 20.0, \relDur: 20.0, \sustain: 0, \type: 'start', ),
 	(\absTime: 20.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
 ]);
@@ -320,13 +319,44 @@ ProtoTemplateDef(\SampleTimeline).new('st').eventList = XEventList.newFrom([
 
 
 /////////////////
-ProtoDef(\st).buffer = BufDef('voices/feynman.flac');
+SampleTimeline(\st).buffer = BufDef('voices/feynman.flac');
+ClipTimeline.all.keys
 
 ClipTimeline(\inte).edit
+ClipTimeline(\inte).proxy.reset;
+ClipTimeline(\inte).proxy.play;
+ClipTimeline(\inte).asSelectedPattern
 1.2.trunc(0.1)
 
 NoteTimeline(\bla).edit
-ProtoDef(\st).edit;
+NoteTimeline(\bla).presetCompileString.editorInsert
+(
+NoteTimeline('bla').eventList = XEventList.newFrom([
+	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	(\absTime: 0.0, \dur: 0.125, \midinote: 76.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.25, ),
+	(\absTime: 0.125, \dur: 0.375, \midinote: 62.0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.25, ),
+	(\absTime: 0.5, \dur: 0.375, \midinote: 66.0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.1, ),
+	(\absTime: 0.875, \dur: 0.125, \midinote: 49.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 1.0, \dur: 0.25, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.1, ),
+	(\absTime: 1.25, \dur: 0.125, \midinote: 74.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 1.375, \dur: 0.125, \midinote: 101.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 1.5, \dur: 0.25, \midinote: 101.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.1, ),
+	(\absTime: 1.75, \dur: 0.375, \midinote: 79.0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.1, ),
+	(\absTime: 2.125, \dur: 0.75, \midinote: 84.0, \playDur: 0.75, \relDur: 0.75, \sustain: 0.1, ),
+	(\absTime: 2.875, \dur: 0.5, \midinote: 89.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.1, ),
+	(\absTime: 3.375, \dur: 0.375, \midinote: 93.0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.1, ),
+	(\absTime: 3.75, \dur: 0.125, \midinote: 99.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 3.875, \dur: 0.125, \midinote: 61.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 4.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+);
+
+SampleTimeline(\st).edit;
+SampleTimeline(\st).cursor.endPoint
+SampleTimeline(\st).selection_cursor.endPoint
+SampleTimeline(\st).clear
+ProtoTemplateDefProtoDef(\st).clear
+"".beginsWith("")
 ClipTimeline(\inte).presetCompileString.editorInsert
 (
 ClipTimeline('inte').eventList = XEventList.newFrom([
@@ -503,3 +533,122 @@ ClipTimeline('inte').eventList = XEventList.newFrom([
 );
 
 TempoClock.default.tempo
+
+
+//////////////////// play now
+(
+Pdef(\part, Pdef(\testme, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\note, Pseq((0..27).mirror,inf),
+			\octave, 4,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		
+	])
+));
+);
+Pdef(\part).clear;
+Pdef(\part).play
+Pdef(\part).play(quant:0, doReset:true)
+Pdef(\part).reset; Pdef(\part).play(quant:0)
+
+"~/.local/share/SuperCollider/Extensions/param/Proto/timeline.scd".standardizePath.load
+SampleTimeline(\st).asSelectedPattern
+ClipTimeline(\bla10).edit
+ClipTimeline(\bla10).quant = nil;
+ClipTimeline(\bla10).clear
+ClipTimeline(\bla10).proxy.stop
+ClipTimeline(\bla10).proxy.reset
+ClipTimeline(\bla10).proxy.play;
+ClipTimeline(\bla10).proxy.quant
+ClipTimeline(\bla10).proxy.quant = 0
+ClipTimeline(\bla10).proxy.stop; ClipTimeline(\bla10).proxy.play;
+ClipTimeline(\bla10).proxy.clear
+ClipTimeline(\bla10).presetCompileString.editorInsert
+(
+ClipTimeline('bla10').eventList = XEventList.newFrom([
+	(\absTime: 0, \dur: 0.5, \label: 'start', \playDur: 0.5, \relDur: 0.5, \sustain: 0, \type: 'start', ),
+	PatternEvent((\absTime: 0.5, \dur: 7.5, \midinote: 2.0, \pattern: Pdef('testme'), \playDur: 7.5, \relDur: 7.5, \sustain: 5.5, \type: 'pattern', )),
+	(\absTime: 8.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+);
+
+ClipTimeline(\bla10).eventList.addEvent((bla:3, \absTime:100))
+ClipTimeline(\bla10).eventList.reorder
+ClipTimeline(\bla10).eventList
+
+
+/////////// Pmono doesnt stop
+
+(
+Pdef(\momo, 
+	Pmono(\SampleTimeline_player,
+		\bufnum, BufDef('voices/feynman.flac'),
+		\dur, 1,
+		\gain, 0.1,
+		\amp, 0.1,
+	),
+).play;
+);
+
+Pdef(\momo).play
+Pdef(\momo).reset // no bug
+Pdef(\momo).play(quant:0, doReset:true) // pmono doesnt stop
+Pdef(\momo).stop; Pdef(\momo).play(quant:0) // pmono doesnt stop
+
+
+/////////////
+ PatKitDef(\kd).edit
+ PatKitDef(\kd).presetCompileString.editorInsert // not working!
+ // TOOD: change ~ppg and do something for default buffer
+(
+~ppg.targets = [
+	StepEvent.newFrom((pos: 3.5007029478458, instrument: 'playersecmax', bufnum: Buffer.new, maxsustain: 0.22091373939148, sustain: 0.16249433106576)),
+	StepEvent.newFrom((pos: 3.0662585034014, instrument: 'playersecmax', bufnum: Buffer.new, maxsustain: 0.22091373939148, sustain: 0.22630385487528)),
+	StepEvent.newFrom((pos: 4.3849206349206, instrument: 'playersecmax', bufnum: Buffer.new, maxsustain: 0.41648648066795, sustain: 0.20446712018141)),
+	nil,
+	StepEvent.newFrom((instrument: 'playersec', bufnum: BufDef('com/Kick/Kick Alkaloid 4 V2.wav'))),
+];
+);
+
+(
+PatKitDef(\kd).targets = [
+	StepEvent.newFrom((pos: 3.5007029478458, instrument: 'playersecmax', bufnum: Buffer.new, maxsustain: 0.22091373939148, sustain: 0.16249433106576)),
+	StepEvent.newFrom((pos: 3.0662585034014, instrument: 'playersecmax', bufnum: Buffer.new, maxsustain: 0.22091373939148, sustain: 0.22630385487528)),
+	StepEvent.newFrom((pos: 4.3849206349206, instrument: 'playersecmax', bufnum: Buffer.new, maxsustain: 0.41648648066795, sustain: 0.20446712018141)),
+];
+);
+
+ FileSystemProject.load("libdef/drumkit.scd")
+ FileSystemProject.load("libdef/synthplayrec.scd")
+KitTimeline(\mkit, PatKitDef(\kd)).edit
+KitTimeline(\mkit2, PatKitDef(\kd)).edit
+KitTimeline(\mkit).presetCompileString.editorInsert
+(
+KitTimeline('mkit').eventList = XEventList.newFrom([
+	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	(\absTime: 0.0, \dur: 0.125, \kitIndex: 0.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.125, ),
+	(\absTime: 0.125, \dur: 0.125, \kitIndex: 2.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.0625, ),
+	(\absTime: 0.25, \dur: 0.0, \kitIndex: 0.0, \playDur: 0.0, \relDur: 0.0, \sustain: 0.25, ),
+	(\absTime: 0.25, \dur: 0.125, \kitIndex: 2.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 0.375, \dur: 0.125, \kitIndex: 2.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.0625, ),
+	(\absTime: 0.5, \dur: 0.125, \kitIndex: 1.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.25, ),
+	(\absTime: 0.625, \dur: 0.125, \kitIndex: 2.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 0.75, \dur: 0.125, \kitIndex: 2.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.0625, ),
+	(\absTime: 0.875, \dur: 0.125, \kitIndex: 0.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 1.0, \dur: 0.0, \kitIndex: 2.0, \playDur: 0.0, \relDur: 0.0, \sustain: 0.0625, ),
+	(\absTime: 1.0, \dur: 0.125, \kitIndex: 0.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.125, ),
+	(\absTime: 1.125, \dur: 0.125, \kitIndex: 2.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.0625, ),
+	(\absTime: 1.25, \dur: 0.125, \kitIndex: 0.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.25, ),
+	(\absTime: 1.375, \dur: 0.125, \kitIndex: 2.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.0625, ),
+	(\absTime: 1.5, \dur: 0.125, \kitIndex: 1.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.25, ),
+	(\absTime: 1.625, \dur: 0.125, \kitIndex: 2.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.0625, ),
+	(\absTime: 1.75, \dur: 0.125, \kitIndex: 0.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 1.875, \dur: 6.125, \kitIndex: 2.0, \playDur: 6.125, \relDur: 6.125, \sustain: 0.125, ),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+);
+
