@@ -6,236 +6,16 @@
 
 (
 	ParamProto.init;
-ProtoClassDef(\cliplist, (
-	parent: ~clipEditor,
-	new: { arg self, timeline;
-		self = self.deepCopy;
-	
-		self.init_default_clip_factories;
-		self.clipList = List.new;
-		self.timeline = timeline;
-		self.defineEventFactory;
-		self.gatherClips;
-		if(self.clipList.size > 0) {
-			self.setBrushToClipId(self.clipList.first)
-		};
-		
-		self;
-	},
-
-	eventToClipId: { arg self, ev;
-		var clipkey;
-		ev.debug("eventToClipId: ev");
-		if([\rest, \start,\end].includes(ev.type)) {
-			nil
-		} {
-			clipkey	= self.event_to_clipFactory_key(ev); 
-			clipkey.debug("clipkey");
-			if(clipkey.notNil) {
-				[clipkey, self.clipFactories[clipkey].getName(ev)].debug("clipId")
-			} {
-				Log(\Param).debug("eventToClipId: no clipkey %, ev:%", clipkey, ev);
-				nil;
-			};
-		}
-	},
-
-	clipIdToEvent: { arg self, clipId;
-		var clipkey = clipId.first;
-		var inskey = clipId.last;
-		var ev = ();
-		var clipfac;
-		[clipId, self.clipFactories[clipkey], ev].debug("clipIdToEvent");
-		self.clipFactories[clipkey].redefineClip(inskey, ev);
-		[ev].debug("clipIdToEvent ev");
-		ev
-	},
-
-	addClipIdToClipList: { arg self, clipId;
-		if(clipId.notNil) {
-			if(self.clipList.includesEqual(clipId).not) {
-				self.clipList.add(clipId);
-				if(self.clipList.size == 1) {
-					self.setBrushToClipId(self.clipList.first)
-				};
-			} {
-				Log(\Param).debug("already added");
-			}
-		} {
-			Log(\Param).debug("addClipIdToClipList: no clipId %", clipId);
-		};
-		self.changed(\clipList);
-	},
-
-	clipIdToFactory: { arg self, clipId;
-		if(clipId.notNil) {
-			var fac = self.clipFactories[clipId.first];
-			if(fac.notNil) {
-				fac;
-			} {
-				Log(\Param).debug("addClipIdToClipList: no clipId %", clipId);
-				nil;
-			}
-		} {
-			Log(\Param).debug("clipIdToFactory: no clipId %", clipId);
-			nil;
-		};
-	},
-
-	clipIdToTarget: { arg self, clipId;
-		var fac = self.clipIdToFactory(clipId);
-		fac.className.new(clipId.last);
-	},
-
-	addToClipList: { arg self, val;
-		var clipId = self.eventToClipId(val);
-		self.addClipIdToClipList(clipId);
-	},
-
-	gatherClips: { arg self;
-		"gat".debug;
-		self.timeline.eventList.do { arg clip;
-			self.addToClipList(clip)
-		}
-	},
-	
-	edit: { arg self;
-		WindowDef(\ClipList).front(self);
-	},
-
-	clipIdLabel: { arg self, clipId;
-		if(clipId.isNil) {
-			"nil"
-		} {
-			"% (%)".format(PlayerWrapper(self.clipIdToTarget(clipId)).label, clipId.first);
-		}
-	},
-
-	setBrushToClipId: { arg self, clipId;
-		self.brushClipId = clipId;
-		self.changed(\brushClipId);
-	},
-
-	defineEventFactory: { arg self;
-		self.timeline.eventFactory = { 
-			{ arg pos, nodesize;
-				var ev = (absTime: pos.x, midinote: pos.y, legato:1, sustain: nodesize).debug("ev add ###");
-				var clipev;
-				Log(\Param).debug("ev fac: brush:%, clipev:%", self.brushClipId, clipev);
-				if(self.brushClipId.isNil) {
-					Log(\Param).debug("No brush selected");
-				} {
-					clipev = self.clipIdToEvent(self.brushClipId);
-					ev.putAll(clipev);
-				};
-				Log(\Param).debug("ev fac: brush:%, clipev:%", self.brushClipId, clipev);
-				ev;
-			}
-		};
-		self.timeline.changed(\eventFactory);
-		
-	},
-));
-
-WindowDef(\newClip, { arg def, model, fac;
-	var namefield = TextField.new;
-	VLayout (
-		HLayout(
-			StaticText.new.string_("name:"),
-			namefield,
-		),
-		ListView.new.items_(fac.keylist ++ [""]).action_({ arg view;
-			namefield.string = view.items[view.value];
-		}),
-		HLayout(
-			BasicButton.new.string_("Cancel").action_({ arg view;
-				def.closeWindow;
-			}),
-			BasicButton.new.string_("OK").action_({ arg view;
-				var name = namefield.string;
-				if(name.notNil and: {name.trim != ""}) {
-					var inst = fac.className.new(name.asSymbol);
-					model.addClipIdToClipList([fac.key, inst.key]);
-					def.closeWindow;
-				} {
-					"no name".debug;
-				}
-			}),
-		)
-	)
-});
-
-WindowDef(\ClipList, { arg def, model;
-	VLayout (
-		HLayout (
-			BasicButton.new.string_("Add").action_({ arg view;
-				var menu = MenuSpec(
-					[
-						"clipTimeline", 
-						"noteTimeline",
-					]
-				);
-				model.gatherClips;
-				ContextMenuWindow(menu.labelList.asArray).front(view, view.bounds.rightBottom.x, view.bounds.rightBottom.y).action_({ arg me, idx;
-					var key = menu.labelList[idx].value.asSymbol;
-					model.clipFactories_keys.debug("keys");
-					if( model.clipFactories_keys.includes(key)) {
-						WindowDef(\newClip).front(model,model.clipFactories[key])
-					} {
-						key.debug("no name");
-					}
-				})
-			}),
-			//BasicButton.new.string_("open clip timeline").action_({
-				//model.timeline.edit
-				
-			//})
-		),
-		ListView.new.action_({arg view;
-			Log(\Param).debug("action! %", view.value);
-			model.setBrushToClipId(model.clipList[view.value]);
-		}).enterKeyAction_({arg view;
-			Log(\Param).debug("action! %", view.value);
-			model.setBrushToClipId(model.clipList[view.value]);
-		}).followChange(model, \clipList, { arg view;
-			view.items_(model.clipList.collect({ arg clipId;
-				model.clipIdLabel(clipId)
-			}))
-		}),
-		HLayout (
-			StaticText.new.followChange(model, \brushClipId, { arg view;
-				var clipId = model.brushClipId;
-				view.string_(
-					model.clipIdLabel(clipId)
-				)
-			}),
-			BasicButton.new.string_("Edit").action_({
-				model.clipIdToTarget(model.brushClipId).edit;
-			})
-		)
-	)
-});
-~clipTimelinePanelView.makeLeftPaneLayout = { arg self;
-	self.leftPaneView = View.new.layout_(WindowDef(\ClipList).asView(ProtoClassDef(\cliplist).new(self.timeline_model))).maxWidth_(200);
-	self.leftPaneView;
-};
-~clipTimelinePanelView.makeLeftPaneToggle = { arg self;
-	BasicButton.new.string_("<")
-		.fixedWidth_(20)
-		.action_({ arg me;
-			if(self.leftPaneView.visible) {
-				me.string = "<";
-				self.leftPaneView.visible = false;
-			} {
-				me.string = "^";
-				self.leftPaneView.visible = true;
-			}
-		})
-	;
-};
+	// moved to Proto/timeline.scd
 )
 ProtoClassDef(\cliplist).new(ClipTimeline(\hey)).edit;
+
 ProtoInst(\cliplist, ClipTimeline(\hey)).edit
+
+PatKitDef(\PatKitDef_default).edit
+
+ProtoDef(\rdn).edit
+KitTimeline(\aze2).outBus = BusDef(\sendbus1)
 
 ClipTimeline(\hey).edit
 ClipTimeline(\hey).clear
@@ -739,3 +519,13 @@ NoteTimeline('ho').eventList = XEventList.newFrom([
 	},
 
 );
+
+///////////////////
+
+
+ProtoTemplateDef(\bla, (rah:3))
+ProtoDef(\nia, ProtoTemplateDef(\bla))
+ProtoDef(\nia)
+ProtoDef.all.collect(_.postln)
+
+MixerDef

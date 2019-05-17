@@ -1,6 +1,6 @@
 // dpends on libdef/track.scd
 
-TrackTemplateDef(\pdefwrapper, TrackTemplateDef(\playerwrapper).putAll((
+TrackTemplateDef(\pdefwrapper, ().putAll(TrackTemplateDef(\playerwrapper)).putAll((
 
 	prefix: { arg self;
 		self.parentTrack.prefix;
@@ -24,7 +24,7 @@ TrackTemplateDef(\pdefwrapper, TrackTemplateDef(\playerwrapper).putAll((
 
 )));
 
-TrackTemplateDef(\pdeftrack, TrackTemplateDef(\playertrack).putAll((
+TrackTemplateDef(\pdeftrack, ().putAll(TrackTemplateDef(\playertrack)).putAll((
 	childClass: { TrackDef(\pdefwrapper) },
 
 	prefix: { arg self;
@@ -34,7 +34,7 @@ TrackTemplateDef(\pdeftrack, TrackTemplateDef(\playertrack).putAll((
 
 )));
 
-TrackTemplateDef(\pdefgrid, TrackTemplateDef(\playergrid).putAll((
+TrackTemplateDef(\pdefgrid, ().putAll(TrackTemplateDef(\playergrid)).putAll((
 	childClass: { TrackDef(\pdeftrack) },
 
 	prefix: { arg self;

@@ -166,7 +166,7 @@ TrackTemplateDef(\playerwrapper, (
 	},
 ));
 TrackTemplateDef(\playertrack, (
-	childClass: { ProtoDef(\playerwrapper) },
+	childClass: { TrackTemplateDef(\playerwrapper) },
 	label: { arg self; 
 		"%: %".format(self.key, if(self.proxy.notNil, { self.proxy.notNil }, { "-" }))
 	},
@@ -279,7 +279,7 @@ TrackTemplateDef(\playertrack, (
 TrackTemplateDef(\playergrid, (
 	label: { arg self; "%".format(self.key) },
 	protoClass: \playergrid,
-	childClass: { ProtoDef(\playertrack) },
+	childClass: { TrackTemplateDef(\playertrack) },
 
 	source_: { arg self, array;
 		array.collect({ arg val, idx;
@@ -618,22 +618,30 @@ WindowDef(\playergrid, { arg me, maintrack;
 	mixerviews = 9.collect({ arg x;
 			var boxview = View.new;
 			var delayview;
-			var child = maintrack.childAtOffset(x);
-			var mixer = child.mixer;
+			var child;
+			var mixer;
 			var mixerview;
-			delayview = TextField.new;
-			delayview.mapParam( Param(mixer.proxy, \postdelay, ControlSpec(0,0.1,\lin)) );
-			boxview.layout = VLayout (
-				PlayerWrapper(mixer.proxy).label_(mixer.key).asView,
-				mixerview = WindowDef(\mixerView).asView(child),
-				HLayout(StaticText.new.string_("postdelay:"), delayview),
-			);
-			boxview.background = Color.gray;
-			mixerview.slider.minWidth_(10);
-			boxview.maxWidth_(260);
-			boxview.addUniqueMethod(\model_, { arg me, val;
-				mixerview.model = val;
-			});
+			child = maintrack.childAtOffset(x);
+			if(child.notNil) {
+				mixer = child.mixer;
+				delayview = TextField.new;
+				delayview.mapParam( Param(mixer.proxy, \postdelay, ControlSpec(0,0.1,\lin)) );
+				boxview.layout = VLayout (
+					PlayerWrapper(mixer.proxy).label_(mixer.key).asView,
+					mixerview = WindowDef(\mixerView).asView(child),
+					HLayout(StaticText.new.string_("postdelay:"), delayview),
+				);
+				boxview.background = Color.gray;
+				mixerview.slider.minWidth_(10);
+				boxview.maxWidth_(260);
+				boxview.addUniqueMethod(\model_, { arg me, val;
+					mixerview.model = val;
+				});
+			} {
+				boxview.addUniqueMethod(\model_, { arg me, val;
+					// NOOP
+				});
+			};
 			boxview;
 	});
 

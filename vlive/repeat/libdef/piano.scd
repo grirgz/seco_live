@@ -42,18 +42,22 @@ ProtoDef(\piano, (
 		var kb = MIDIKeyboardView.new;
 		if(target.notNil) {
 			var player = ~seqPlayerGroup.new(target);
-			kb.keyDownAction = { arg midinote;
-				player.elAt(midinote).play;
-			};
 			kb.keyDownAction = { arg midinote, old;
 				if(old.notNil) {
 					player.elAt(old).stop;
 				};
 				player.elAt(midinote).play;
 			};
+			kb.keyTrackAction = { arg midinote, old;
+				player.elAt(old).stop;
+				player.elAt(midinote).play;
+			};
 			kb.keyUpAction = { arg midinote;
 				player.elAt(midinote).stop;
 			};
+		};
+		def.windowDo { arg win;
+			win.setInnerExtent(800,120)
 		};
 		kb.asView;
 	});

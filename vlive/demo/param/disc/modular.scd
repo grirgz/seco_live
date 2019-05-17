@@ -66,7 +66,7 @@ Ndef(\plop).setBusMode(\inputs)
 	);
 	~make_standard_layout = { arg label, pg;
 		VLayout(
-			[StaticText.new.string_(label).background_(ParamView.color_dark), stretch:0],
+			[StaticText.new.string_(label).background_(ParamViewToolBox.color_dark), stretch:0],
 			* pg.collect({ arg pa;
 				HLayout(
 					XStaticText.new.value_(pa.shortLabel).fixedWidth_(100),
