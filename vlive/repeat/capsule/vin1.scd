@@ -3,7 +3,7 @@
 PatKitDef(\newkit).edit
 PatKitDef(\newkit).presetCompileString.editorInsert
 (
-~ppg.targets = [
+PatKitDef(\newkit).targets = [
 	StepEvent.newFrom((instrument: 'playersec', out: BusDef(\sendbus1), gain: 0.22452932564887, bufnum: BufDef('com/Kick/Kick AfroShop 1.wav'))),
 	nil,
 	nil,

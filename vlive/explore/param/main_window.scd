@@ -36,9 +36,11 @@ WindowDef(\MainProject, { arg def, proj;
 				BasicButton.new.string_("Mixer").action_({
 					ProtoDef(\simpleMixer).edit
 				}),
-				BasicButton.new.string_("TrackList"),
+				BasicButton.new.string_("TrackList").action_({
+					TrackDef(\mygrid, TrackTemplateDef(\TrackList)).edit;
+				}),
 				BasicButton.new.string_("TrackGrid").action_({
-					TrackDef(\mygrid, TrackTemplateDef(\playergrid)).edit
+					TrackDef(\mygrid, TrackTemplateDef(\TrackList)).edit;
 				}),
 			)
 		), stretch:2]
