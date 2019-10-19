@@ -41,14 +41,21 @@ MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\playersec_hlpf);
 
 ParamProto.init;
 
+FileSystemProject.load("libdef/default_specs.scd");
+
 	FileSystemProject.load("capsule/draftsynth.scd");
 	FileSystemProject.load("capsule/PatKitDef_ksh.scd");
 	FileSystemProject.load("capsule/PatKitDef_bat.scd");
+	FileSystemProject.load("capsule/PatKitDef_comkit.scd");
+	FileSystemProject.load("capsule/sample_manager.scd");
 
 FileSystemProject.load("libdef/mysynthdefault.scd");
 FileSystemProject.load("libdef/drumkit.scd");
 FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
 
+
+FileSystemProject.load("libdef/simple_main_panel.scd");
+FileSystemProject.load("libdef/ConfirmDialog.scd");
 
 FileSystemProject.load("libdef/tracks.scd");
 FileSystemProject.load("libdef/pdeftrack.scd");

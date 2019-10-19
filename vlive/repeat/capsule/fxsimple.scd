@@ -92,6 +92,18 @@ SynthDef(\fx_rlpfrhpf, { arg out=0, amp=0.1, gate=1;
 	Out.ar(out, sig);
 }).add;
 
+SynthDef(\fx_delay, { arg out=0, amp=0.1, gate=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = DelayL.ar(sig, \maxdelay.kr(0.1),\delay.kr(0.04));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.01),gate,doneAction:2);
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+
 SynthDef(\fx_reverb, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;

@@ -1,5 +1,12 @@
 
 (
+// FIXME: used in Param quark
+WindowDef(\EventPatternProxyEditor, { arg me, target;
+	VLayout(
+		PlayerWrapper(target).asView,
+		ParamGroupLayout.two_panes(target.asParamGroup),
+	);
+});
 WindowDef(\PdefEditor, { arg me, key=\default;
 	var target;
 	if(key.isKindOf(Pdef) or: key.isKindOf(Ndef)) {
@@ -53,7 +60,9 @@ TrackTemplateDef(\playerwrapper, (
 
 	source_: { arg self, val;
 		self.proxy = PlayerWrapper(val);
-		self.proxy.outBus = self.mixer.inbus;
+		if(self.mixer.notNil) {
+			self.proxy.outBus = self.mixer.inbus;
+		}
 	},
 
 	source: { arg self;
@@ -84,7 +93,6 @@ TrackTemplateDef(\playerwrapper, (
 	play: { arg self;
 		var stopchild;
 		if(self.isEmpty == true) {
-			self.parentTrack.activeChild.stop;
 			self.parentTrack.stop;
 		} {
 			if(self.parentTrack.activeIndex != self.index) {
@@ -93,14 +101,58 @@ TrackTemplateDef(\playerwrapper, (
 			self.parentTrack.activeIndex = self.index;
 			if(stopchild.notNil) { stopchild.stop }; // changed message but arrive after deselect
 			self.proxy.play;
-			self.parentTrack.play;
+			self.parentTrack.childPlayed;
+			self.changed(\play, self.quant);
+		}
+	},
+
+	resetPlay: { arg self;
+		var stopchild;
+		if(self.isEmpty == true) {
+			self.parentTrack.stop;
+		} {
+			if(self.parentTrack.activeIndex != self.index) {
+				stopchild = self.parentTrack.activeChild;
+			};
+			self.parentTrack.activeIndex = self.index;
+			if(stopchild.notNil) { stopchild.stop }; // changed message but arrive after deselect
+			// TODO: make it in PlayerWrapper
+			if(self.proxy.target.isKindOf(EventPatternProxy)) {
+				Log(\Param).debug("playerwrapper track: reset play");
+				self.proxy.target.reset;
+				self.proxy.play;
+			} {
+				self.proxy.play;
+			};
+			self.parentTrack.childPlayed;
+			self.changed(\play, self.quant);
+		}
+		
+	},
+
+	playNow: { arg self;
+		var stopchild;
+		if(self.isEmpty == true) {
+			self.parentTrack.stop;
+		} {
+			self.parentTrack.activeIndex = self.index;
+			self.proxy.playNow;
+			self.parentTrack.childPlayed;
 			self.changed(\play, self.quant);
 		}
 	},
 
 	stop: { arg self;
-		self.proxy.stop;
-		self.parentTrack.stop;
+		if(self.isEmpty.not) {
+			self.proxy.stop;
+			self.parentTrack.childStopped;
+			self.changed(\stop, self.quant);
+		};
+	},
+
+	stopNow: { arg self;
+		self.proxy.stopNow;
+		self.parentTrack.childStopped;
 		self.changed(\stop, self.quant);
 	},
 
@@ -203,6 +255,10 @@ TrackTemplateDef(\playertrack, (
 	},
 
 	play: { arg self;
+		self.activeChild.play;
+	},
+
+	childPlayed: { arg self;
 		if(self.mixer.notNil) {
 			self.mixer.play;
 		};
@@ -224,9 +280,14 @@ TrackTemplateDef(\playertrack, (
 	},
 
 	stop: { arg self;
+		self.activeChild.stop;
 		if(self.mixer.notNil) {
 			//self.mixer.stop; // never stop mixers!
 		};
+		self.changed(\stop, self.quant);
+	},
+
+	childStopped: { arg self;
 		self.changed(\stop, self.quant);
 	},
 
@@ -267,13 +328,21 @@ TrackTemplateDef(\playertrack, (
 		}
 	},
 
+	enableMixer: { arg self;
+		self.parentTrack.enableMixer;
+	},
+
 	mixer: { arg self;
-		if(self.mixer_obj.isNil) {
-			self.mixer_obj = ~trackMixerDef.new(self.parentTrack.key+++"."+++self.index);
-			self.mixer_obj.define_mixer;
-			self.init_mixer_busses;
-		};
-		self.mixer_obj;
+		if(self.enableMixer) {
+			if(self.mixer_obj.isNil) {
+				self.mixer_obj = ~trackMixerDef.new(self.parentTrack.key+++"."+++self.index);
+				self.mixer_obj.define_mixer;
+				self.init_mixer_busses;
+			};
+			self.mixer_obj;
+		} {
+			nil
+		}
 	},
 ));
 TrackTemplateDef(\playergrid, (
@@ -323,6 +392,7 @@ TrackTemplateDef(\playergrid, (
 
 	savePresetCompileString: { arg self;
 		self.children.do({ arg column;
+			column.savePresetCompileString;
 			column.children.do({ arg track;
 				track.savePresetCompileString;
 			})
@@ -371,6 +441,13 @@ TrackTemplateDef(\playergrid, (
 		self[\obj_children] ?? { 
 			self[\obj_children] = SparseArray.new;
 			self[\obj_children];
+		};
+	},
+
+	linePlayers: { arg self;
+		self[\obj_linePlayers] ?? { 
+			self[\obj_linePlayers] = SparseArray.new;
+			self[\obj_linePlayers];
 		};
 	},
 
@@ -446,47 +523,11 @@ TrackTemplateDef(\playergrid, (
 		~launchpad_playergrid.new(self).activate
 	},
 
-	linePlayerAt: { arg parent, idx;
-		var lineplayer = ProtoClass((
-			label: { arg self;
-				"line "++idx
-			},
-			isLinePlayer: true,
-			play: { arg self;
-					["play"].postln;
-				self.children.do({ arg x, ii; 
-					["play", ii, x].postln;
-					x.play;
-				});
-				//self.play;
-			},
-
-			stop: { arg self;
-					["stop"].postln;
-				self.children.do({ arg x, ii; 
-					["stop", ii, x].postln;
-					x.stop
-				});
-				//parent.stop;
-			},
-
-			isPlaying: { arg self;
-				//["lineplayer: isPlaying",parent.isPlaying, self.children.every({ arg x; x.activeIndex == idx })].postln;
-				parent.isPlaying and: {
-					self.children.every({ arg x, ii; 
-						//["child:", x,ii, x.activeIndex, idx].postln;
-						x.notNil and: {x.parentTrack.isEmpty or: {
-							x.parentTrack.activeIndex == idx
-						}}
-					});
-				};
-			},
-
-			children: { arg self;
-				parent.children.asArray.collect({ arg x; x.childAt(idx) });
-			},
-		));
-		lineplayer;
+	linePlayerAt: { arg self, idx;
+		if(self.linePlayers[idx].isNil) {
+			self.linePlayers[idx] = TrackTemplateDef(\lineplayer).new(self, idx);
+		}; 
+		self.linePlayers[idx];
 	},
 
 	initFromPresetDir: { arg self, path, force=false;
@@ -498,8 +539,189 @@ TrackTemplateDef(\playergrid, (
 		}
 	},
 
-	mixer:nil,
+	enableMixer: true,
+	//mixer:nil, // TODO: make a container for child mixers here with handy methods
 
+));
+
+TrackTemplateDef(\lineplayer, (
+	new: { arg self, parent, idx; 
+		self = self.deepCopy;
+	
+		
+		self.parentTrack = { parent };
+		self.index = idx; // line index
+	
+		self;
+	},
+	label: { arg self;
+		"% line %".format(self.parentTrack.label, self.index)
+	},
+	isLinePlayer: true,
+	play: { arg self;
+		["play"].postln;
+		self.children.do({ arg x, ii; 
+			["play", ii, x].postln;
+			x.play;
+		});
+		//self.play;
+	},
+
+	playNow: { arg self;
+		["play now"].postln;
+		self.children.do({ arg x, ii; 
+			["play now", ii, x].postln;
+			x.playNow;
+		});
+	},
+
+	stop: { arg self;
+		["stop"].postln;
+		self.children.do({ arg x, ii; 
+			["stop", ii, x].postln;
+			x.stop;
+		});
+		//parent.stop;
+	},
+
+	stopNow: { arg self;
+		["stop now"].postln;
+		self.children.do({ arg x, ii; 
+			["stop now", ii, x].postln;
+			x.stopNow;
+		});
+	},
+
+	isPlaying: { arg self;
+		//["lineplayer: isPlaying",parent.isPlaying, self.children.every({ arg x; x.activeIndex == idx })].postln;
+		self.parentTrack.isPlaying and: {
+			var atLeastOneIsPlaying = false;
+			self.children.every({ arg x, ii; 
+				//["child:", x,ii, x.activeIndex, idx].postln;
+				x.notNil and: {x.parentTrack.isEmpty or: {
+					if(x.parentTrack.activeIndex == self.index) {
+						atLeastOneIsPlaying = true;
+						true;
+					} {
+						false;
+					}
+				}}
+			}) and: { atLeastOneIsPlaying };
+		};
+	},
+
+	asPatternAbs: { arg self, startPosition, endPosition, repeatCount;
+		var relStartTime, totalDur;
+		var eventlist = self.eventList;
+		// currentlty, startPosition and endPosition are in absolute time in the GUI, but will be relative to start event in futur
+		// this code translate absolute in relative (to start event)
+
+		// this is the time between first event absTime and asked start time
+		// because silence before first event can't be counted in Pembed
+		// if startPosition is before first event, relStartTime is negative, not handled by Pembed for the moment
+		// relStartTime need to be relative to the first event, because Pembed only see the relative time to the first event and doesn't read \absTime
+		
+		relStartTime = {
+			var sp = startPosition.value;
+			if(sp.isNil) {
+				self.eventList.relStartTime; // start time relative to first event
+			} {
+				var xx;
+				xx = ( sp - self.eventList.firstTime ).clip(0,inf); // now relStartTime is independent of start event
+				self.eventList.firstTime max: xx; // now relStartTime is always after first event
+			};
+
+		};
+
+		// total dur is absEnd - absStart (eventlist.totalDur is already that)
+		totalDur = {
+			var absStart = relStartTime.value + self.eventList.firstTime;
+			var ep = endPosition.value;
+			var xx;
+			if(ep.notNil and:{ep - absStart < 0.01}) { // prevent too short cursor loop
+				ep = eventlist.endTime;
+			};
+			//xx = if(ep.isNil) {
+				////totalDur = self.eventloop.list.totalDur - (startPosition - eventlist.startTime ).clip(0,inf);
+				//self.eventlist.totalDur;
+			//} {
+				////totalDur = endPosition - (startPosition ? eventlist.startTime);
+				//(( ep ? eventlist.endTime ) - absStart);
+			//};
+			xx = (( ep ? eventlist.endTime ) - absStart);
+			// prevent empty (infinite loop)
+			if(xx < 0.01) {
+				Log(\Param).debug("timeline.asPattern: loop too short, setting it to 2: xx", xx);
+				2;
+			} {
+				xx
+			}
+		};
+
+		//[startPosition, endPosition, relStartTime, totalDur].collect(_.value).debug("asPatternAbs: start, end, relstart, totdur");
+		self.xasPattern(relStartTime, totalDur, repeatCount);
+	},
+
+	bypass_pattern: { arg self, pat;
+		Pcollect({ arg ev;
+			//"entering pcollect".debug;
+			ev = ev.copy;
+			if(self.tracks_bypassed.notNil and: {self.tracks_bypassed.includes(ev.use({ev.midinote}))}) {
+				ev[\type] = \rest;
+				ev[\eventType] = nil;
+				ev[\nodeType] = nil;
+			};
+			//"ending pcollect".debug;
+			ev;
+		}, pat)	
+	},
+
+	makeEventList: { arg self, totalDur = 1;
+		var el = TimelineEventList.new;
+		el.start(0);
+		self.children.select(_.isEmpty.not).do({ arg child, idx; 
+			var ev = child.asPatternEvent;
+			ev[\absTime] = 0;
+			ev[\sustain] = totalDur;
+			el.addEvent(ev)
+		});
+		el.finish(totalDur);
+		el;
+	},
+
+	repeatCount: inf,
+
+	refCompileString: { arg self;
+		"TrackDef(%).linePlayerAt(%)".format(self.parentTrack.key.asCompileString, self.index.asCompileString);
+	},
+
+	asPattern: { arg self, relStartTime, totalDur=1000, repeatCount;
+		var pat;
+		pat = Plazy({
+			var eventlist = self.makeEventList(totalDur);
+			var xrelStartTime, xtotalDur;
+
+			xrelStartTime = relStartTime.value ? eventlist.relStartTime;
+			xtotalDur = totalDur.value ? eventlist.totalDur;
+
+			//[xrelStartTime, xtotalDur].debug("clip xasPattern: plazy: relstart, totdur");
+			if(xtotalDur <= 0) {
+				"ERROR: totalDur is negative or zero".postln;
+				xtotalDur = 2
+			};
+
+			eventlist.changed(\cursor, \play); // FIXME: should be an event
+			Pfindur(xtotalDur, Pembed(
+				self.bypass_pattern( Pn(eventlist.clone, 1) ),
+				xrelStartTime
+			));
+		}).repeat(repeatCount ? self.repeatCount);
+		pat;
+	},
+
+	children: { arg self;
+		self.parentTrack.children.asArray.collect({ arg x; x.childAt(self.index) });
+	},
 ));
 
 

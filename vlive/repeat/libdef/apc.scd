@@ -124,6 +124,10 @@ ProtoDef(\apc40, (
 		self.makeListeners;
 	},
 
+	refresh: { arg self;
+		self.render_grid;
+	},
+
 	controllers: { arg self;
 		var k = self.ktl.getHalo(\controllers);
 		if(k.isNil) {
@@ -228,8 +232,13 @@ ProtoDef(\apc40, (
 								point.debug("pad gate play");
 								PlayerWrapper(node).play;
 							} {
-								point.debug("pad toggle play");
-								PlayerWrapper(node).togglePlay;
+								if(node.playMode == \reset) {
+									point.debug("pad reset play");
+									node.resetPlay;
+								} {
+									point.debug("pad toggle play");
+									PlayerWrapper(node).togglePlay;
+								}
 							}
 						};
 					}
@@ -246,14 +255,20 @@ ProtoDef(\apc40, (
 				};
 			};
 		};
-		self.ktl.elAt(\bt, \clipS).do { arg pad, idx;
-			pad.action = {
+		self.ktl.elAt(\bt, \scene).do { arg pad, idx;
+			idx = 4-idx;
+			pad.elAt(0).action = {
 				PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)).togglePlay;
 			};
-			//pad.action = {
-			//	//self.grid.childAt(idx % self.gridsize.x, ( idx/self.gridsize.x ).asInteger).stop;
-			//};
 		};
+		self.ktl.elAt(\bt, \clipS).do { arg pad, idx;
+			idx = 7-idx;
+			pad.elAt(0).action = {
+				PlayerWrapper(self.grid.childAtOffset(idx)).stop;
+			};
+		};
+
+		self.map_quant_chooser;
 
 
 		self.ktl.elAt(\bt, \flat, \shift, \on).action =  { arg me;
@@ -294,6 +309,9 @@ ProtoDef(\apc40, (
 			if(el.value == 0) {
 
 			} {
+				if(self.shiftModifier) {
+					offset = offset * Point(8,5);
+				};
 				self.gridOffset = self.gridOffset + offset;
 			}
 		};
@@ -405,17 +423,45 @@ ProtoDef(\apc40, (
 		};
 	},
 
+	map_quant_chooser: { arg self;
+		self.quant_list = [0, 8, 4, 2,  1, 1/4, 1/8, 1/16];
+		8.do { arg idx;
+			var iidx = 7-idx;
+			self.ktl.elAt(\bt, \selection, idx, 0).action = { arg me;
+				if(self.shiftModifier == true) {
+					self.quant_list[iidx].debug("set quant to");
+					Pdef.defaultQuant = self.quant_list[iidx];
+				} {
+					self.grid.childAtOffset(iidx).play;
+				}
+			};
+		}
+	},
+
 	map_simplemixer_send: { arg self, send=0;
 		var mixer = ProtoDef(\simpleMixer);
 		8.do { arg idx;
 			self.mapParam([\kn, \t, idx], mixer.tracks[idx].asParam(\send+++send));
 		}
 	},
+	map_simplemixer_sends: { arg self...args; self.map_simplemixer_send(*args) },
 
-	map_simplemixer_faders: { arg self, send=0;
+	map_simplemixer_faders: { arg self;
 		var mixer = ProtoDef(\simpleMixer);
 		8.do { arg idx;
 			self.mapParam([\sl, 0, idx], mixer.tracks[idx].asParam(\postfader));
+		}
+	},
+
+	map_track_mixer_faders: { arg self;
+		8.do { arg idx;
+			self.mapParam([\sl, 0, idx], self.grid.childAt(idx).mixer.asParam(\postfader));
+		}
+	},
+
+	map_track_mixer_sends: { arg self, send=0;
+		8.do { arg idx;
+			self.mapParam([\kn, \t, idx], self.grid.childAt(idx).mixer.asParam(\send+++send));
 		}
 	},
 

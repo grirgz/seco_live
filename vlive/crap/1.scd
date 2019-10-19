@@ -1,4 +1,5 @@
 { SinOsc.ar() }
+{ SinOsc.ar(900 * ( SinOsc.ar(CuspN.ar(1, SinOsc.ar(0.1),-0.9)* 10) * 1 + 1 )) ! 2 * 0.1}.play;
 
 10.do({ arg i;
     [1, 2, 3, 4].pyramid(i + 1).postcs;

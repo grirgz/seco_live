@@ -25,7 +25,7 @@ TrackTemplateDef(\pdefwrapper, ().putAll(TrackTemplateDef(\playerwrapper)).putAl
 )));
 
 TrackTemplateDef(\pdeftrack, ().putAll(TrackTemplateDef(\playertrack)).putAll((
-	childClass: { TrackDef(\pdefwrapper) },
+	childClass: { TrackTemplateDef(\pdefwrapper) },
 
 	prefix: { arg self;
 		self.parentTrack.prefix+++self.index;
@@ -35,7 +35,7 @@ TrackTemplateDef(\pdeftrack, ().putAll(TrackTemplateDef(\playertrack)).putAll((
 )));
 
 TrackTemplateDef(\pdefgrid, ().putAll(TrackTemplateDef(\playergrid)).putAll((
-	childClass: { TrackDef(\pdeftrack) },
+	childClass: { TrackTemplateDef(\pdeftrack) },
 
 	prefix: { arg self;
 		self.key;

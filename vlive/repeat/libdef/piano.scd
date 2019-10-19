@@ -4,15 +4,24 @@ ParamProto.init;
 FileSystemProject.load("lib/piano.scd");
 ProtoDef(\piano, (
 	startControl: { arg self, target;
-		~apro_device_id.debug("A-PRO device id");
 		if(target.isNil) {
 			target = Pdef(\piano_player, Pbind(\instrument, \default));
 			MIDIMap(\apk9,Param(Pdef(\piano_player), \amp).setBusMode);
 		};
+		if(~apro_device_id.notNil) {
+			self.apro(~seqPlayerGroup.new(target));
+		};
+		if(~nektar_device_id.notNil) {
+			self.nektar(~seqPlayerGroup.new(target));
+		};
+	},
+
+	apro: { arg self, playergroup;
+		~apro_device_id.debug("A-PRO device id");
 		if(self.playergroup.notNil) {
 			self.playergroup.stop;
 		};
-		self.playergroup = ~seqPlayerGroup.new(target);
+		self.playergroup = playergroup;
 		MIDIdef.noteOn(\piano, { arg ... args;
 			var midinote = args[1];
 			"on".debug(args);
@@ -23,6 +32,32 @@ ProtoDef(\piano, (
 			"off".debug(args);
 			self.playergroup.elAt(midinote).stop;
 		}, srcID:~apro_device_id);
+		
+		MIDIdef(\piano).permanent = self.permanent;
+		MIDIdef(\piano_off).permanent = self.permanent;
+	},
+
+	stopControl: { arg self;
+		MIDIdef.noteOn(\piano).clear;
+		MIDIdef.noteOn(\piano_off).clear;
+	},
+
+	nektar: { arg self, playergroup;
+		~nektar_device_id.debug("Nektar SE25 device id");
+		if(self.playergroup.notNil) {
+			self.playergroup.stop;
+		};
+		self.playergroup = playergroup;
+		MIDIdef.noteOn(\piano, { arg ... args;
+			var midinote = args[1];
+			"on".debug(args);
+			self.playergroup.elAt(midinote).play;
+		}, srcID:~nektar_device_id);
+		MIDIdef.noteOff(\piano_off, { arg ... args;
+			var midinote = args[1];
+			"off".debug(args);
+			self.playergroup.elAt(midinote).stop;
+		}, srcID:~nektar_device_id);
 		
 		MIDIdef(\piano).permanent = self.permanent;
 		MIDIdef(\piano_off).permanent = self.permanent;
@@ -61,4 +96,40 @@ ProtoDef(\piano, (
 		};
 		kb.asView;
 	});
+
+ProtoDef(\nektar, (
+	parent: ProtoDef(\piano),
+	startControl: { arg self, notetimeline;
+		var playergroup = notetimeline.wrapper;
+		self.nektar(playergroup);
+	},
+));
+ProtoDef(\apro, (
+	parent: ProtoDef(\piano),
+	startControl: { arg self, notetimeline;
+		var playergroup = notetimeline.wrapper;
+		self.apro(playergroup);
+	},
+));
+ProtoDef(\generic_piano, (
+	parent: ProtoDef(\piano),
+	startControl: { arg self, notetimeline;
+		var playergroup = notetimeline.wrapper;
+		notetimeline.keys.debug("kkjjkj");
+		if(~apro_device_id.notNil) {
+		notetimeline.keys.debug("kkjjk1j");
+			self.apro(playergroup);
+		};
+		if(~nektar_device_id.notNil) {
+		notetimeline.keys.debug("kkjjk3j");
+			self.nektar(playergroup);
+		};
+	},
+));
 );
+
+
+TagSpecDef(\NoteTimeline_controller).addUnique(\generic_piano, ProtoDef(\generic_piano));
+TagSpecDef(\NoteTimeline_controller).addUnique(\nektar, ProtoDef(\nektar));
+TagSpecDef(\NoteTimeline_controller).addUnique(\apro, ProtoDef(\apro));
+

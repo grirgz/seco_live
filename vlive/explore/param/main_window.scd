@@ -1,15 +1,10 @@
-
-(
 ProtoTemplateDef('MainProject', (
 	//parent: FileSystemProject.defaultParent,
 	edit: { arg self;
 		WindowDef(\MainProject).front(self);
 	}
 ));
-FileSystemProject('ex6', ProtoTemplateDef( \MainProject ))
-)
 
-(
 WindowDef(\MainProject, { arg def, proj;
 	HLayout (
 		VLayout (
@@ -46,24 +41,8 @@ WindowDef(\MainProject, { arg def, proj;
 		), stretch:2]
 	)
 
-}).front(FileSystemProject('ex6'));
-)
+});
 
-TrackDef(\mygrid).clear
-					TrackDef(\mygrid, TrackTemplateDef(\playergrid)).edit
-					TrackDef(\mygrid).children
-					TrackDef(\mygrid).childAtOffset(Point(0,0))
-					TrackDef(\mygrid).childAt(0)
-					TrackDef(\mygrid).childClass.new
-					TrackTemplateDef(\playergrid).childClass
-
-FileSystemProject.paths
-
-ProtoDef(\simpleMixer).edit
-ProtoDef(\playergrid).edit
-TrackDef(\playergrid).edit
-
-(
 WindowDef(\MainProjectOverlayMenu, { arg def, model, view, x=600, y=600;
 	var inview, layout;
 	[x, y].debug("xy");
@@ -93,4 +72,30 @@ WindowDef(\MainProjectOverlayMenu, { arg def, model, view, x=600, y=600;
 	inview.layout_(layout);
 	
 }).border_(false);
+
+// END
+
+(
+FileSystemProject('ex6', ProtoTemplateDef( \MainProject ));
+WindowDef(\MainProject).front(FileSystemProject('ex6'));
+)
+
+(
+)
+
+TrackDef(\mygrid).clear
+					TrackDef(\mygrid, TrackTemplateDef(\playergrid)).edit
+					TrackDef(\mygrid).children
+					TrackDef(\mygrid).childAtOffset(Point(0,0))
+					TrackDef(\mygrid).childAt(0)
+					TrackDef(\mygrid).childClass.new
+					TrackTemplateDef(\playergrid).childClass
+
+FileSystemProject.paths
+
+ProtoDef(\simpleMixer).edit
+ProtoDef(\playergrid).edit
+TrackDef(\playergrid).edit
+
+(
 )

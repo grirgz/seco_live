@@ -277,7 +277,7 @@ SynthDef(\chordo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig6 = SinOsc.ar(freq*1.001 * [1,1/2,2,1/8]  * ( SinOsc.ar(freq* [0+12,4,7,7-12].midiratio/2) * 1.4 + 1 )) * EnvGen.kr(Env([0,0,0.41,0],[0.3,0.8,6.5]), 1);
 	sig6 = HPF.ar(sig6, 1000 * EnvGen.kr(Env([1,2,1],[4.1,0.8]), 1)) + BPF.ar(sig6, 70);
 	sig = sig1 + sig2 + sig3 + sig4 + sig5 + sig6;
-	sig = RLPF.ar(sig, env2 * 1000, 0.5 / (1+ env2 ));
+	sig = RLPF.ar(sig, env2 * \lpf.kr(1000), 0.5 / (1+ env2 ));
 	sig = AllpassL.ar(sig, 0.4,0.01 * [1,0.6,0.7,1.1],4.5) + ( sig * 2 );
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,5.8)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp).mean;
@@ -293,7 +293,8 @@ Pdef(\demo, Pdef(\xdemo,
 				[0,4,7],
 				[0,4,7]+4,
 			],inf),
-			\lpf, 1000,
+			\octave, 7,
+			\lpf, 7000,
 			\dur, 4,
 			\amp, 0.1,
 		),
@@ -562,4 +563,39 @@ Pdef(\part, Pdef(\zed,
 		),
 	])
 )).play;
+);
+
+///////////////////////
+
+(
+SynthDef(\serenity, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freq = freq * \ratio.kr([0,4,7]) * [1/2,1,2];
+	sig1 = SinOsc.kr((1..9)/10).range(0,1);
+	sig2 = SinOsc.kr((1..9)/20).range(0,1);
+	sig = SinOsc.ar(freq) * SinOsc.ar(freq+sig2, SinOsc.ar(freq+2+sig1), 1, SinOsc.ar(freq+2+sig2) );
+	pan = LFNoise1.kr((1..9)/75).range(-1,1);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \serenity,
+		\degree, Pseq([0,3,2,1],inf),
+		\ratio, Pseq([
+			[[0,4,7]],
+			[[0,3,7]],
+		],inf).midiratio,
+		\adsr, Pseq([
+			[ Env.adsr(0.1,0.1,0.8,1.8) ],
+		],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
 );

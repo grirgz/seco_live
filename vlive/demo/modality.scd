@@ -11,6 +11,7 @@ k = MKtl(\apc, "akai-apc40mkii", true); // no this only do when something is not
 
 //=== set button color
 k.elAt(\bt, \clip, 0,0, \on).value = 123/127 // works!
+k.elAt(\bt, \clip, 1,1, \on).value = 123/127 // works!
 
 //////////////////////
 /////// BUGS
@@ -68,6 +69,12 @@ MKtl(\lp).specialMessages
 
 MKtl(\lp).sendSpecialMessage(\enableFlashModex)
 MKtl(\lp).sendSpecialMessage(\existnot)
+
+MKtl(\apc).postPossible
+MKtl.postPossible
+MKtl('midi_3_apc40_2', "akai-apc40mkii");
+MKtl('midi_3_apc40_').sendSpecialMessage(\setLiveMode);
+MIDIClient.init
 
 //=== refresh description file:
 MKtlDesc.loadDescs; // first do this!
