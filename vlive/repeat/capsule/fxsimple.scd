@@ -235,7 +235,7 @@ SynthDef(\fx_stutter, { arg out = 0, time= 0.1, mix=0, rate=1;
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
-SynthDef(\fx_chorus, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+SynthDef(\fx_chorus, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = LocalIn.ar(2) * \fb.kr(0.4);
@@ -251,7 +251,7 @@ SynthDef(\fx_chorus, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
 	Out.ar(out, sig);
 }).add;
-SynthDef(\fx_ring, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+SynthDef(\fx_ring, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = LocalIn.ar(2) * \fb.kr(0.4);
@@ -268,7 +268,7 @@ SynthDef(\fx_ring, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
 	Out.ar(out, sig);
 }).add;
-SynthDef(\fx_freqshift, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+SynthDef(\fx_freqshift, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = in;
@@ -321,7 +321,7 @@ SynthDef(\fx_lowshelf, { arg out=0, mix=1, gain=1, gate=1;
 	Out.ar(out, sig);
 }).add;
 
-SynthDef(\fx_echo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+SynthDef(\fx_echo, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -343,7 +343,7 @@ SynthDef(\fx_expecho, { arg out=0, gate=1,
 		lpfCutoff = 500,
 		ioiScale = 0.8,
 		ioiDecayFactor = 0.75;
-    var trig, freq;
+    var trig;
     var dry, snd, phase, iois;
     var cumulDelay;
 	var buf = LocalBuf(SampleRate.ir*5);
@@ -395,7 +395,7 @@ SynthDef(\fx_limiter, { arg out=0, gate=1;
 );
 
 (
-SynthDef(\chorus, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+SynthDef(\chorus, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = LocalIn.ar(2) * \fb.kr(0.4);
@@ -413,7 +413,7 @@ SynthDef(\chorus, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }).add;
 Pdef(\part).reset;
 
-SynthDef(\chorusdist, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+SynthDef(\chorusdist, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -432,7 +432,7 @@ SynthDef(\chorusdist, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
-SynthDef(\chorusdistlim, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+SynthDef(\chorusdistlim, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -497,6 +497,46 @@ SynthDef(\fx_sidechain, { arg out=0, gate=1, sidemode=1;
 	Out.ar(out, sig);
 }).add;
 );
+
+
+(
+	[
+		\fx_freeverb2,
+		\fx_gain,
+		\fx_bpf,
+		\fx_lpf,
+		\fx_hpf,
+		\fx_rlpf,
+		\fx_rhpf,
+		\fx_rlpfrhpf,
+		\fx_delay,
+		\fx_reverb,
+		\fx_reverb_lhpf,
+		\fx_gatedreverb,
+		\fx_gatedreverblim,
+		\fx_tapestop,
+		\fx_tapeslow,
+		\fx_stutter,
+		\fx_chorus,
+		\fx_ring,
+		\fx_freqshift,
+		\fx_eqhi,
+		\fx_eqlow,
+		\fx_hishelf,
+		\fx_lowshelf,
+		\fx_echo,
+		\fx_expecho,
+		\fx_limiter,
+		\chorus,
+		\chorusdist,
+		\chorusdistlim,
+		\simplecomp,
+		\fx_compander,
+		\fx_sidechain,
+	].do { arg key;
+		TagSpecDef(\SynthDef_fx).addUnique(key)
+	};
+)
 
 // END
 

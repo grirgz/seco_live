@@ -286,10 +286,25 @@ Pdef(\demo, Pdef(\demomo,
 	Ppar([
 		Pbind(
 			\instrument, \cymbalsimple3,
-			\freq, 200,
 			\freqtab, Pfunc({ arg ev;
 				thisThread.randSeed = 10;
 				[ {exprand(8030, 12000)}.dup(50) ++ {exprand(720, 7000)}.dup(50) ]
+			}),
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+(
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		Pbind(
+			\instrument, \cymbalsimple3,
+			\freqtab, Pfunc({ arg ev;
+				thisThread.randSeed = 10;
+				[ {exprand(230, 17000)}.dup(50) ++ {exprand(720, 7000)}.dup(50) ]
 			}),
 			\dur, 1,
 			\amp, 0.1,

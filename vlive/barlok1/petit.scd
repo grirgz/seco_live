@@ -25,7 +25,7 @@ Ndef(\ota, { arg freq=200, pan=0, amp=0.1;
 	sig1 = Pan2.ar(sig1, SinOsc.ar(sig1.size.collect({ arg x; SinOsc.kr(x/10+1.2).range(0,8) })) * SinOsc.kr(1/48).range(0,1), amp).mean;
 	sig = Pan2.ar(sig, SinOsc.ar(sig.size.collect({ arg x; SinOsc.kr(x/10+1.1).range(0,8) })) * SinOsc.kr(1/58).range(0,1), amp).mean;
 	sig = sig + sig1;
-	sig = sig / 2.0;
+	sig = sig / 1.0;
 	sig = LPF.ar(sig, 1999);
 	sig;
 }).play;
@@ -56,11 +56,10 @@ Ndef(\fx).put(0, { arg amp=0.1;
 			[0,3,7,12,-12] ,
 		],inf)).midiratio,
 		( [0,3,7,12,-12] * 0.1 ).midiratio,
-	])
-	*.x [1/2,1,2]
-	* Duty.kr(4/~t, 0, Dseq([
+	]) *.x [1/2,1,2] * Duty.kr(4/~t, 0, Dseq([
 		0,2,
-	],inf)).midiratio
+	],inf)
+		).midiratio
 	;
 
 	sig4 = SinOsc.ar(Select.kr(mix**2 * 2, [4,8,32,128])) * 5;
@@ -91,6 +90,7 @@ Ndef(\fx).put(0, { arg amp=0.1;
 	//sig = Splay.ar(sig, \spread.kr(0.8), amp, \pan.kr(0));
 	amp = amp * \gain.kr(1);
 	sig = Pan2.ar(sig, {LFNoise1.kr(1/2).range(-1.0,1.0)} ! sig.size * pan, amp).mean;
+	sig = * 2;
 	sig;
 }).play;
 

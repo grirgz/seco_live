@@ -1049,7 +1049,7 @@ SynthDef(\fmcowbell, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = Pan2.ar(sig, pan, amp).mean;
 	Out.ar(out, sig);
 }).add;
-Pdef(\plop, Pbind(
+Pdef(\demo, Pbind(
 	\instrument, \fmcowbell,
 	\freq, 5200,
 	\fmr, 1/2,
@@ -1061,3 +1061,265 @@ Pdef(\plop, Pbind(
 	\amp, 0.1,
 )).play;
 )
+
+/////////////////////
+
+(
+SynthDef(\doublebell, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = WhiteNoise.ar;
+	sig = sig * EnvGen.ar(Env.perc(0.001,0.01),gate);
+	sig = Ringz.ar(sig, \freqtab.kr({exprand(100,10000) }.dup(30)) * \freqr.kr(1), \res.kr(3)).mean;
+	sig = Ringz.ar(sig, \freqtab2.kr({exprand(100,10000) }.dup(30)) * \freqr2.kr(1), \res2.kr(0.1)).mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,1.5)), gate, doneAction:2) * 0.1;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\zed, 
+	Ppar([
+		Plazy({ arg ev;
+			Pbind(
+				\instrument, \doublebell,
+				\freqtab, Pseq([
+					[{exprand(400,10000) }.dup(30)  ]
+				],inf),
+				\sustain, 0.1,
+				\dur, Pseq((1..10).reverse/20),
+				\freqr, Pkey(\dur),
+				\amp, 0.1,
+			);
+		}).loop,
+		
+	])
+)).play;
+);
+
+(
+SynthDef(\doublebell, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var tabsize = 30;
+	sig = WhiteNoise.ar;
+	sig = LFPulse.ar(freq) + sig;
+	sig = sig * EnvGen.ar(Env.perc(0.001,0.01),gate);
+	sig = sig + ( BPF.ar(WhiteNoise.ar * EnvGen.kr(Env([1,1/2,0],[0.1,0.8],-1), 1), freq*2,0.1)  );
+	sig1 = Ringz.ar(sig, \freqtab.kr({exprand(100,10000) }.dup(tabsize)) * \freqr.kr(1), \res.kr(3.dup(tabsize))).mean;
+	sig2 = Ringz.ar(sig, \freqtab2.kr({exprand(100,10000) }.dup(tabsize)) * \freqr2.kr(1), \res2.kr(0.1.dup(tabsize))).mean;
+	sig = SelectX.ar(Line.kr(0,0.5,1/2), [sig1 , sig2]);
+	sig = LPF.ar(sig, EnvGen.kr(Env([1000,200,1000]+1000,[0.4,0.8]), 1));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,1.5,1,1)), gate, doneAction:2) * 0.1;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Plazy({ arg ev;
+			Pbind(
+				\degree, Pseq([
+					1,2,3,4,5,
+				],inf),
+				\octave, 5,
+				\instrument, \doublebell,
+				\freqtab, Pseq([
+					[{exprand(40,10000) }.dup(30)  ]
+				],inf),
+				\freqtab2, Pseq([
+					[{exprand(40,10000) }.dup(30)  ]
+				],inf),
+				\res, Pseq([
+					[{rrand(0.01,0.3) }.dup(30)  ]
+				],inf),
+				\res2, Pseq([
+					[{rrand(0.01,0.4) }.dup(30)  ]
+				],inf),
+				\sustain, 0.1,
+				\dur, Pseq(
+					(1-2.pow((0..10).neg/4).reverse/4)
+					* rrand(0.5,2)),
+				\freqr, 1,
+				\amp, 0.3,
+			);
+		}).loop,
+		
+	])
+)).play;
+);
+
+//// spread ring around freq
+(
+SynthDef(\doublebell, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var tabsize = 30;
+	sig = WhiteNoise.ar;
+	sig = LFPulse.ar(freq) + sig;
+	sig = sig * EnvGen.ar(Env.perc(0.001,0.01),gate);
+	sig = sig + ( BPF.ar(WhiteNoise.ar * EnvGen.kr(Env([1,1/2,0],[0.1,0.8],-1), 1), freq,0.4)  );
+	sig1 = Ringz.ar(sig, \freqtab.kr({exprand(0.99,1) }.dup(tabsize)) * freq, \res.kr(3.dup(tabsize))).mean;
+	sig2 = Ringz.ar(sig, \freqtab2.kr({exprand(0.99,1.02)  }.dup(tabsize)) * freq, \res2.kr(0.1.dup(tabsize))).mean;
+	sig = SelectX.ar(Line.kr(0.61,0.5,1/2), [sig1 , sig2]);
+	//sig = HPF.ar(sig, EnvGen.kr(Env([1000,200,1000]+1000,[0.4,0.8]), 1));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,1.5,1,1)), gate, doneAction:2) * 0.1;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Plazy({ arg ev;
+			Pbind(
+				\degree, Pseq([
+					1,2,3,4,5,
+				],inf),
+				\octave, 5,
+				\instrument, \doublebell,
+				\freqtab, Pseq([
+					[{exprand(140,10000) }.dup(30)  ]
+				],inf),
+				\freqtab2, Pseq([
+					[{exprand(140,10000) }.dup(30)  ]
+				],inf),
+				\res, Pseq([
+					[{rrand(0.01,1.3) }.dup(30)  ]
+				],inf),
+				\res2, Pseq([
+					[{rrand(0.01,1.4) }.dup(30)  ]
+				],inf),
+				\sustain, 0.1,
+				\dur, Pseq(
+					(1-2.pow((0..10).neg/4).reverse/4)
+					* rrand(0.5,2)),
+				\freqr, 1,
+				\amp, 0.3,
+			);
+		}).loop,
+		
+	])
+)).play;
+);
+
+
+//////// ringz on scale with chords
+
+(
+SynthDef(\doublebell, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var tabsize = 30;
+	sig = WhiteNoise.ar;
+	sig = LFSaw.ar(freq * [0,4,7].midiratio).mean + sig;
+	sig = sig * EnvGen.ar(Env.perc(0.001,0.01),gate);
+	//sig = sig + ( BPF.ar(WhiteNoise.ar * EnvGen.kr(Env([1,1/2,0],[0.1,0.8],-1), 1), freq,0.4)  );
+	sig = Ringz.ar(sig, \freqtab.kr({ exprand(0.99,1) }.dup(tabsize)), \res.kr(3.dup(tabsize))).mean;
+	//sig2 = Ringz.ar(sig, \freqtab2.kr({exprand(0.99,1.02)  }.dup(tabsize)) * freq, \res2.kr(0.1.dup(tabsize))).mean;
+	//sig = SelectX.ar(Line.kr(0.61,0.5,1/2), [sig1 , sig2]);
+	//sig = HPF.ar(sig, EnvGen.kr(Env([1000,200,1000]+1000,[0.4,0.8]), 1));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,1.5,1,-1)), gate, doneAction:2) * 0.1;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Plazy({ arg ev;
+			Pbind(
+				\degree, Pseq([
+					1,2,3,4,5,
+				],inf),
+				\octave, 4,
+				\instrument, \doublebell,
+				\freqtab, Pseq([
+					[
+						( (0..29)+rrand(40,70) ).midicps 
+					]
+				],inf),
+				\freqtab2, Pseq([
+					[{exprand(140,10000) }.dup(30)  ]
+				],inf),
+				\res, Pseq([
+					[{rrand(0.01,1.3) }.dup(30)  ]
+				],inf),
+				\res2, Pseq([
+					[{rrand(0.01,1.4) }.dup(30)  ]
+				],inf),
+				\sustain, 0.1,
+				\dur, Pseq(
+					(1-2.pow((0..10).neg/4).reverse/4)
+					* rrand(0.5,2)),
+				\freqr, 1,
+				\amp, 0.5,
+			);
+		}).loop,
+		
+	])
+)).play;
+);
+
+
+/// more instrument like
+
+(
+SynthDef(\doublebell, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var tabsize = 30;
+	sig = WhiteNoise.ar;
+	sig = LFSaw.ar(freq * [0,3,7].midiratio).mean + sig;
+	sig = sig * EnvGen.ar(Env.perc(0.01,0.401),gate);
+	//sig = sig + ( BPF.ar(WhiteNoise.ar * EnvGen.kr(Env([1,1/2,0],[0.1,0.8],-1), 1), freq,0.4)  );
+	sig = Ringz.ar(sig, \freqtab.kr({ exprand(0.99,1) }.dup(tabsize)), \res.kr(3.dup(tabsize))).mean;
+	//sig2 = Ringz.ar(sig, \freqtab2.kr({exprand(0.99,1.02)  }.dup(tabsize)) * freq, \res2.kr(0.1.dup(tabsize))).mean;
+	//sig = SelectX.ar(Line.kr(0.61,0.5,1/2), [sig1 , sig2]);
+	//sig = HPF.ar(sig, EnvGen.kr(Env([1000,200,1000]+1000,[0.4,0.8]), 1));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.5,1,-1)), gate, doneAction:2) * 0.1;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Plazy({ arg ev;
+			Pbind(
+				\degree, Pseq([
+					1,2,3,4,5,
+				],inf),
+				\octave, 4,
+				\instrument, \doublebell,
+				\freqtab, Pseq([
+					[
+						( (0..29)+rrand(40,70) ).midicps 
+					]
+				],inf),
+				\freqtab2, Pseq([
+					[{exprand(140,10000) }.dup(30)  ]
+				],inf),
+				\res, Pseq([
+					[{rrand(0.01,1.3) }.dup(30)  ]
+				],inf),
+				\res2, Pseq([
+					[{rrand(0.01,1.4) }.dup(30)  ]
+				],inf),
+				\sustain, 0.1,
+				\dur, Pseq(
+					(1-2.pow((0..10).neg/4).reverse/4)
+					* rrand(0.5,2)),
+				\freqr, 1,
+				\amp, 0.1,
+			);
+		}).loop,
+		
+	])
+)).play;
+);

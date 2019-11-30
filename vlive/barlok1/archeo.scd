@@ -21,6 +21,7 @@ Main.version
 
 // END
 
+Pdef(\archeo).clear;
 (
 )
 Tdef(\fx).quant
@@ -58,3 +59,6 @@ Pdef(\main,
 	]),
 )
 )
+
+Pdef(\hat).play
+Pdef(\hat).clear

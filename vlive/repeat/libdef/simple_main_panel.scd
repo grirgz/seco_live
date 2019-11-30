@@ -3,6 +3,9 @@
 WindowDef(\SimpleMainPanel, { arg def;
 	var meter = SimpleServerMeterView.new(nil, 0,2);
 	//var meter = ServerMeterView.new;
+	def.windowDo { arg win;
+		win.autoRememberPosition(\SimpleMainPanel);
+	};
 	HLayout (
 		meter.view,
 		VLayout (
@@ -14,27 +17,31 @@ WindowDef(\SimpleMainPanel, { arg def;
 				StaticText.new.string_("tempo:"),
 				Param(Message(TempoClock.default), \tempo).asTextField.fixedWidth_(50)
 			),
+			nil,
 		),
 		[VLayout (
 			HLayout (
+				PlayerWrapper(Pdef(\main)).asView,
 				PlayerWrapper(Pdef(\part)).asView,
+				PlayerWrapper(Pdef(\part2)).asView,
+				PlayerWrapper(Pdef(\part3)).asView,
+				PlayerWrapper(Pdef(\part4)).asView,
+				nil,
+			),
+
+			HLayout (
 				BasicButton.new.string_("Play master").action_({
 					~master.();
 				}),
-				BasicButton.new.string_("PANIC").action_({
-					CmdPeriod.run;
-				}),
-				BasicButton.new.string_("...").action_({
-					WindowDef(\SimpleMainPanelOverlayMenu).front
-				}).maxWidth_(30),
-				nil,
+				PlayerWrapper(ProtoDef(\simpleMixer)).label_("mixer").asView,
+				PlayerWrapper(ProtoDef(\rdn)).asView,
+				PlayerWrapper(ProtoDef(\rdn2)).asView,
+				PlayerWrapper(ProtoDef(\rdn3)).asView,
+				PlayerWrapper(ProtoDef(\rdn4)).asView,
 			),
 			HLayout (
 				BasicButton.new.string_("Timeline").action_({
 					ClipTimeline(\mainTimeline).edit
-				}),
-				BasicButton.new.string_("Mixer").action_({
-					ProtoDef(\simpleMixer).edit
 				}),
 				BasicButton.new.string_("TrackList").action_({
 					TrackDef(\mygrid, TrackTemplateDef(\TrackList)).edit;
@@ -45,6 +52,27 @@ WindowDef(\SimpleMainPanel, { arg def;
 				BasicButton.new.string_("Main window").action_({
 					WindowDef(\main).front;
 				}),
+				BasicButton.new.string_("PANIC").action_({
+					CmdPeriod.run;
+				}),
+				nil,
+			),
+			HLayout (
+				BasicButton.new.string_("Mixer").action_({
+					ProtoDef(\simpleMixer).edit
+				}),
+				BasicButton.new.string_("Fx").action_({
+					WindowDef(\FxManager).front
+				}),
+				BasicButton.new.string_("Workspace").action_({
+					WindowDef(\WorkspaceView).front;
+				}),
+				BasicButton.new.string_("Sample Manager").action_({
+					WindowDef(\SampleTimelineManager).front
+				}),
+				BasicButton.new.string_("...").action_({
+					WindowDef(\SimpleMainPanelOverlayMenu).front
+				}).maxWidth_(30),
 				nil,
 			),
 		), stretch:2],
@@ -74,9 +102,6 @@ WindowDef(\SimpleMainPanelOverlayMenu, { arg def, model, view, x=600, y=600;
 		}),
 		BasicButton.new.string_("Meter").action_({
 			s.meter
-		}),
-		BasicButton.new.string_("SampleTimelineManager").action_({
-			WindowDef(\SampleTimelineManager).front
 		}),
 		nil
 	);

@@ -159,3 +159,60 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 )
+
+
+(
+SynthDef(\clavecin, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var tabsize = 30;
+	sig = WhiteNoise.ar;
+	sig = LFSaw.ar(freq * [0,3,7].midiratio).mean + sig;
+	sig = sig * EnvGen.ar(Env.perc(0.01,0.401),gate);
+	//sig = sig + ( BPF.ar(WhiteNoise.ar * EnvGen.kr(Env([1,1/2,0],[0.1,0.8],-1), 1), freq,0.4)  );
+	sig = Ringz.ar(sig, \freqtab.kr({ exprand(0.99,1) }.dup(tabsize)), \res.kr(3.dup(tabsize))).mean;
+	sig = sig + Ringz.ar(sig, \freqtab2.kr({exprand(0.99,1.02)  }.dup(tabsize)) * freq, \res2.kr(0.1.dup(tabsize))).mean;
+	//sig = SelectX.ar(Line.kr(0.61,0.5,1/2), [sig1 , sig2]);
+	//sig = HPF.ar(sig, EnvGen.kr(Env([1000,200,1000]+1000,[0.4,0.8]), 1));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.5,1,-1)), gate, doneAction:2) * 0.1;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Plazy({ arg ev;
+			Pbind(
+				\degree, Pseq([
+					1,2,3,4,5,
+				],inf),
+				\octave, 4,
+				\instrument, \clavecin,
+				\freqtab, Pseq([
+					[
+						( (0..29)+rrand(40,70) ).midicps 
+					]
+				],inf),
+				\freqtab2, Pseq([
+					[{exprand(140,10000) }.dup(30)  ]
+				],inf),
+				\res, Pseq([
+					[{rrand(0.01,1.3) }.dup(30)  ]
+				],inf),
+				\res2, Pseq([
+					[{rrand(0.01,0.04) }.dup(30)  ]
+				],inf),
+				\sustain, 0.1,
+				\dur, Pseq(
+					(1-2.pow((0..10).neg/4).reverse/4)
+					* rrand(0.5,2)),
+				\freqr, 1,
+				\amp, 0.1,
+			);
+		}).loop,
+		
+	])
+)).play;
+);

@@ -1,185 +1,10 @@
+//// track_trente
 
-PatKitDef(\ksh2).edit
-PatKitDef(\ksh2).presetCompileString.editorInsert
+// use master for simpleMixer
 
-(
-PatKitDef('ksh2').targets = [
-	StepEvent.newFrom((pos: 0.53160997732426, instrument: 'playersec', gain: 0.43224671703362, bufnum: BufDef('loop/kicksnarehat2.flac'), sustain: 1)),
-	StepEvent.newFrom((pos: 4.5360997732426, instrument: 'playersec', gain: 0.43574427961076, bufnum: BufDef('loop/kicksnarehat2.flac'), sustain: 1)),
-	StepEvent.newFrom((instrument: 'playersec')),
-	nil,
-	StepEvent.newFrom((pos: 0.69823129251701, instrument: 'playersec', gain: 0.43574427961076, bufnum: BufDef('loop/kicksnarehat2.flac'), sustain: 1)),
-	StepEvent.newFrom((pos: 17.598752834467, instrument: 'playersec', gain: 0.43574427961076, bufnum: BufDef('loop/kicksnarehat2.flac'), sustain: 1)),
-	nil,
-	nil,
-	StepEvent.newFrom((pos: 4.7151700680272, instrument: 'playersec', gain: 0.43574427961076, bufnum: BufDef('loop/kicksnarehat2.flac'), sustain: 1)),
-	StepEvent.newFrom((pos: 9.6393197278912, instrument: 'playersec', gain: 0.43574427961076, bufnum: BufDef('loop/kicksnarehat2.flac'), sustain: 1)),
-	StepEvent.newFrom((pos: 14.168911564626, instrument: 'playersec', gain: 0.43574427961076, bufnum: BufDef('loop/kicksnarehat2.flac'), sustain: 1)),
-	StepEvent.newFrom((pos: 14.174648526077, instrument: 'playersec', gain: 0.43574427961076, bufnum: BufDef('loop/kicksnarehat2.flac'), sustain: 1)),
-	nil,
-	nil,
-	nil,
-	nil,
-	StepEvent.newFrom((pos: 1.5487301587302, instrument: 'playersec', gain: 0.43574427961076, bufnum: BufDef('voices/kaspi.flac'), sustain: 1)),
-	StepEvent.newFrom((pos: 8.9065079365079, instrument: 'playersec', gain: 0.43574427961076, bufnum: BufDef('voices/kaspi.flac'), sustain: 1)),
-	StepEvent.newFrom((pos: 12.742176870748, instrument: 'playersec', gain: 0.43574427961076, bufnum: BufDef('voices/kaspi.flac'), sustain: 1)),
-];
-);
+~t = 135/4/60; TempoClock.default.tempo = ~t;
 
-(
-SynthDef(\meme, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = SinOsc.ar(freq);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-SynthDef(\meme2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = Saw.ar(freq);
-	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-SynthDef(\memefx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = in;
-	sig = in * ( 1 + ( SinOsc.ar(freq) * 1 ));
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	Out.ar(out, sig);
-}).add;
-SynthDef(\memefx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = in;
-	sig = FreqShift.ar(sig, LFPulse.kr(1*~t).range(100,1000)) + sig;
-	sig = sig * ( 1 + ( SinOsc.ar(freq) * 1 ));
-	sig = CombL.ar(sig, 1/~t, \combbias.kr(1/2/~t) * SinOsc.kr(\comblfo.kr(2/~t)).range(1/8,1), 1) + sig;
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	Out.ar(out, sig);
-}).add;
-SynthDef(\memefx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = LocalIn.ar(2) * \fb.kr(0.9);
-	sig = sig + in;
-	sig = FreqShift.ar(sig, \shift.kr(100)) + sig;
-	sig = sig * ( 1 + ( SinOsc.ar(freq) * 1 ));
-	//sig = CombL.ar(sig, 1/~t, \combbias.kr(1/2/~t) * SinOsc.kr(\comblfo.kr(2/~t)).range(1/8,1), 1) + sig;
-	sig = sig.tanh;
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	LocalOut.ar(sig);
-	sig = sig /2;
-	sig = RLPF.ar(sig, 15000,0.6);
-	sig = HPF.ar(sig, 150);
-	sig = Limiter.ar(sig * \limit.kr(1.2)) / \limit.kr;
-	sig = sig * \gain.kr(1);
-	Out.ar(out, sig);
-}).add;
-SynthDef(\medelfx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var sigx;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = LocalIn.ar(2) * \fb.kr(0.9);
-	sig = sig + in;
-	//sig = FreqShift.ar(sig, \shift.kr(100)) + sig;
-	//sig = sig * ( 1 + ( SinOsc.ar(freq) * 1 ));
-	sig = DelayC.ar(sig, 1, \delays1.kr(rrand(0.0001,0.4)) * SinOsc.kr(1/2).range(1,1.1)) + sig;
-	sigx = sig;
-	sig = DelayC.ar(sig, 1, \delays2.kr(rrand(0.0001,0.4)));
-	sig = ( sig*\distamp.kr(10) ).tanh * \distpostamp.kr(1/2);
-	sig = DelayC.ar(sig, 1, \delays3.kr(rrand(0.0001,0.4)) * SinOsc.kr(1/2).range(1,1.1)) + sig;
-	sig = sig + sigx;
-	sig1 = Compander.ar(sig, in, \cpt.kr(0.04), \cpbelow.kr(1.701), \cpabove.kr(1), \cpclamp.kr(0.01), \cprelax.kr(2.1));
-	sig = SelectX.ar(\compmix.kr(1), [sig, sig1]);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Limiter.ar(sig);
-	LocalOut.ar(sig);
-	sig = sig /2;
-	sig = RLPF.ar(sig, \lpf.kr(15000,0.6));
-	sig = HPF.ar(sig, \hpf.kr(150));
-	//sig = Limiter.ar(sig * \limit.kr(1.2)) / \limit.kr;
-	sig = sig * \gain.kr(1);
-	Out.ar(out, sig);
-}).add;
-SynthDef(\medelfx2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var sigx;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = LocalIn.ar(2) * \fb.kr(0.9);
-	sig = sig + in;
-	//sig = FreqShift.ar(sig, \shift.kr(100)) + sig;
-	//sig = sig * ( 1 + ( SinOsc.ar(freq) * 1 ));
-	sig = DelayC.ar(sig, 1, \delays1.kr(rrand(0.0001,0.4)) * SinOsc.kr(1/2).range(1,1.1)) + sig;
-	sigx = sig;
-	sig = DelayC.ar(sig, 1, \delays2.kr(rrand(0.0001,0.4)));
-	sig = ( sig*\distamp.kr(10) ).tanh * \distpostamp.kr(1/2);
-	sig = sig + sigx;
-	sig = DelayC.ar(sig, 1, \delays3.kr(rrand(0.0001,0.4)) * SinOsc.kr(1/2).range(1,1.1)) + sig;
-	sig1 = Compander.ar(sig, in, \cpt.kr(0.04), \cpbelow.kr(1.701), \cpabove.kr(1), \cpclamp.kr(0.01), \cprelax.kr(2.1));
-	sig = SelectX.ar(\compmix.kr(1), [sig, sig1]);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Limiter.ar(sig);
-	LocalOut.ar(sig);
-	sig = sig /2;
-	sig = RLPF.ar(sig, \lpf.kr(15000,0.6));
-	sig = HPF.ar(sig, \hpf.kr(150));
-	//sig = Limiter.ar(sig * \limit.kr(1.2)) / \limit.kr;
-	sig = sig * \gain.kr(1);
-	Out.ar(out, sig);
-}).add;
-SynthDef(\seqdelfx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var sigx;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	var delays1 = \delays1.kr(1!4);
-	sig = LocalIn.ar(2) * \fb.kr(0.9);
-	sig = sig + in;
-	//sig = FreqShift.ar(sig, \shift.kr(100)) + sig;
-	//sig = sig * ( 1 + ( SinOsc.ar(freq) * 1 ));
-	sig = [
-		{ arg sig;
-			delays1.do { arg del;
-				sig = DelayC.ar(sig, 1, del) + sig;
-			};
-			sig;
-		}.value(sig),
-		{ arg sig;
-			\delays2.kr({ rrand(0.0001,0.4) }!4).do { arg del, idx;
-				var xsig = sig;
-				if(idx==0) {
-					sig = ( sig*\distamp.kr(10) ).tanh * \distpostamp.kr(1/2);
-				};
-				sig = DelayC.ar(sig, 1, del) + xsig;
-			};
-			sig;
-		}.value(sig),
-		{ arg sig;
-			\delays3.kr({ rrand(0.0001,0.4) }!4).do { arg del;
-				sig = DelayC.ar(sig, 1, del) + sig;
-			};
-			sig;
-		}.value(sig),
-	].mean + sig;
-	sig1 = Compander.ar(sig, in, \cpt.kr(0.04), \cpbelow.kr(1.701), \cpabove.kr(1), \cpclamp.kr(0.01), \cprelax.kr(2.1));
-	sig = SelectX.ar(\compmix.kr(0), [sig, sig1]);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Limiter.ar(sig);
-	LocalOut.ar(sig);
-	sig = sig /2;
-	sig = RLPF.ar(sig, \lpf.kr(15000,0.6));
-	sig = HPF.ar(sig, \hpf.kr(150));
-	//sig = Limiter.ar(sig * \limit.kr(1.2)) / \limit.kr;
-	sig = SelectX.ar(\mix.kr(1), [DelayC.ar(in, 0.04,0.04), sig]);
-	sig = sig * \gain.kr(1);
-	Out.ar(out, sig);
-}).add;
-//Pdef(\part_meloxy).reset;
-);
+
 
 /////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////// PARTS
@@ -194,7 +19,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme1,
 			\freq, 900,
 			\dur, 1,
 			\sustain, 0.1 * Pseg(Pseq([1,8],inf),8),
-			\out, BusDef(\fx, \audio),
+			\out, BusDef(\fx2, \audio),
 			\amp, 0.1,
 		),
 		Pbind(
@@ -204,11 +29,11 @@ Pdef(\part_meloxy, Pdef(\trente_meme1,
 			],inf),
 			\sustain, 0.1,
 			\dur, 1 * Pwhite(1/4,2),
-			\out, BusDef(\fx, \audio),
+			\out, BusDef(\fx2, \audio),
 			\amp, 0.1,
 		),
 		Pmono(\memefx,
-			\inbus, BusDef(\fx, \audio),
+			\inbus, BusDef(\fx2, \audio),
 			\freq, Pseg(Pseq([0,1,10],inf),8)*200,
 			\freq, 500,
 			\shift, Pseg(Pseq([0,1],inf),8)*200,
@@ -223,23 +48,183 @@ Pdef(\part_meloxy, Pdef(\trente_meme1,
 
 (
 //	Ndef(\memefx).play;
+Pdef(\part_meloxy, Pdef(\trente_meme1b,
+	Ppar([
+		Pbind(
+			\instrument, \meme2,
+			\freq, ~pmodenv.(Pseq([1,2,1,4]*70,inf), 2),
+			\dur, 1/4,
+			\sustain, 0.1 * Pseg(Pseq([1,8],inf),8),
+			\out, BusDef(\fx2, \audio),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \meme2,
+			\freq, ~pmodenv.(Pseq([1,2,1,4]*900*3/5,inf), 1),
+			\dur, 1,
+			\sustain, 0.1 * Pseg(Pseq([1,8],inf),8),
+			\out, BusDef(\fx2, \audio),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \meme,
+			\note, Pseq([
+				1,14,5,7
+			],inf),
+			\sustain, 0.1,
+			\dur, 1 * Pwhite(1/4,2),
+			\out, BusDef(\fx2, \audio),
+			\amp, 0.1,
+		),
+		Pmono(\memefx3,
+			\addAction, \addToTail,
+			\lag, 0.0005,
+			\amamp, 0.1,
+			\inbus, BusDef(\fx2, \audio),
+			\freq, Pseg(Pseq([0,1,10],inf),8)*200,
+			\shift, Pseg(Pseq([0,1],inf),8)*200,
+			\gain, 0.3,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		Pmono(\memefx,
+			\addAction, \addToTail,
+			\lag, 0.0006,
+			\amamp, 0.51,
+			\inbus, BusDef(\fx2, \audio),
+			\freq, Pseg(Pseq([0.1,0,100,1,10],inf),4.1)*200*(5/3),
+			\shift, Pseg(Pseq([0,1],inf),7)*200*4,
+			\gain, 0.3,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+(
+//	Ndef(\memefx).play;
+Pdef(\part_meloxy, Pdef(\trente_meme1c,
+	Ppar([
+		Pbind(
+			\instrument, \meme2,
+			\freq, ~pmodenv.(Pseq([1,2,1,4]*70,inf), 2),
+			\dur, 1/4,
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+				1,1,1,1, 0,0,0,0,
+				1,1,1,1, 1,1,1,1,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1 * Pseg(Pseq([1,8],inf),8),
+			\out, BusDef(\fx2, \audio),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \meme2,
+			\freq, ~pmodenv.(Pseq([1,2,1,4]*900*3/5,inf), 1),
+			\dur, 1,
+			\isRest, Pseq([
+				1,1,1,1,
+				1,1,1,1,
+				1,1, 0,0,
+				0,0, 1,1,
+			],inf).coin.not,
+			\sustain, 0.1 * Pseg(Pseq([1,8],inf),8),
+			\out, BusDef(\fx2, \audio),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \meme,
+			\note, Pseq([
+				1,14,5,7
+			],inf),
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+				1,1,1,1, 0,0,0,0,
+				1,1,1,1, 1,1,1,1,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\dur, 1 * Pwhite(1/4,2,inf).stutter(4),
+			\out, BusDef(\fx2, \audio),
+			\amp, 0.1,
+		),
+		Pmono(\memefx2,
+			\addAction, \addToTail,
+			\lag, 0.0005,
+			\amamp, 0.1,
+			\inbus, BusDef(\fx2, \audio),
+			\freq, 500,
+			\freq, Pseg(Pseq([0,1,10],inf),1)*20,
+			\shift, Pseg(Pseq([0,1],inf),8)*20,
+			\gain, 0.1/2,
+			\dur, 1/2,
+			\amp, 0.1,
+			\out, BusDef(\comph, \audio),
+		),
+		Pmono(\memefx,
+			\addAction, \addToTail,
+			\lag, 0.0006,
+			\amamp, 0.51,
+			\inbus, BusDef(\fx2, \audio),
+			\freq, 500,
+			\freq, Pseg(Pseq([1,0,1/2,1,10],inf),4.1)*200*(5/3),
+			\shift, Pseg(Pseq([0,1,0.5],inf),1)*200*4,
+			\gain, 0.3,
+			\dur, 1/4,
+			\amp, 0.1,
+			\out, BusDef(\comph, \audio),
+		),
+		Pmono(\simplecomp,
+			\addAction, \addToTail,
+			\lag, 0.0007,
+			\inbus, BusDef(\comph, \audio),
+			\cpt, 0.01,
+			\pregain, 1,
+			\cpabove, 0.01,
+			\cpbelow, 4,
+			\cpclamp, 0.01,
+			\cprelax, 0.1,
+			\gain, 4,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+
+(
+//	Ndef(\memefx).play;
 Pdef(\part_meloxy, Pdef(\trente_meme2,
 	Ppar([
 		Pbind(
 			\instrument, \playersec,
 			\bufnum, BufDef('voices/kaspi.flac'),
 			\dur, 1,
-			\out, BusDef(\fx, \audio),
+			\out, BusDef(\fx2, \audio),
 			\amp, 0.1,
 		),
 		Pmono(\memefx,
-			\inbus, BusDef(\fx, \audio),
+			\inbus, BusDef(\fx2, \audio),
 			\fb, Pseg(Pseq([0,1,2,1],inf),8),
 			\freq, Pseg(Pseq([0,1,10],inf),8)*200,
 			\freq, 500,
 			\shift, Pseg(Pseq([0,1],inf),8)*200,
 			\dur, 1/2,
 			\amp, 0.1,
+			\out, BusDef(\comp, \audio),
+		),
+		Pmono(\simplecomp,
+			\inbus, BusDef(\comp, \audio),
+			\cpt, 0.05,
+			\pregain, 1,
+			\cpabove, 0.01,
+			\cpbelow, 1,
+			\cpclamp, 0.01,
+			\cprelax, 0.1,
+			\gain, 1,
+			\dur, 1,
 		),
 		
 	])
@@ -489,14 +474,20 @@ Pdef(\part_meloxy, Pdef(\trente_meme4b,
 				//0,
 			],inf),
 			\delays1, Pseq([
-				[ [ 0.001,0.00005,0.00001,0.00001 ].rand ],
+				Pfunc({ arg ev;
+					[ [ 0.001,0.00005,0.00001,0.00001 ].rand ]
+				}).stutter(1),
 			],inf),
 			\delays2, Pseq([
-				[ [ 0.08001,0.00005,0.00001,0.00001 ].rand ],
+				Pfunc({ arg ev;
+				[ [ 0.08001,0.00005,0.00001,0.00001 ].rand ]
+				}).stutter(3),
 			],inf),
 			\delays3, Pseq([
-				[ [ 0.00001,0.00005,0.00001,0.00001 ].rand ],
-			],inf).stutter(4),
+				Pfunc({ arg ev;
+				[ [ 0.00001,0.00005,0.00001,0.00001 ].rand ]
+				}).stutter(4),
+			],inf),
 			\hpf, 40,
 			\limit, 5,
 			\distamp, 80,
@@ -1865,7 +1856,7 @@ Pdef(\part_meloxy,
 				7,5,4,3,
 			],inf),1),
 			\dur, 1/2,
-			\amp, 0.4,
+			\gain, 0.2,
 			\isRest, true,
 		),	
 		Pbind(
@@ -1888,7 +1879,6 @@ Pdef(\part_meloxy,
 			],inf),1),
 			\mixlpf,1,
 			\dur, 1,
-			\amp, 0.4,
 		),	
 	])
 );
@@ -1919,7 +1909,7 @@ Pdef(\part_meloxy,
 			\mixlpf,1,
 			\dur, 1,
 			\amp, 0.4,
-			\gain, 0.5,
+			\gain, 0.12,
 				\trigfreq, 400 * 1/4 * Pseq([
 					0,0,0,-1,
 				],inf).midiratio,
@@ -1937,20 +1927,6 @@ Pdef(\part_meloxy,
 );
 
 
-(
-SynthDef(\xxx, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = SinOsc.ar(freq);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-
-"&é\"'azerqsdfwxcv".as(Array).collect(_.dump)
-
-WindowDef(\main).front
 
 (
 	~master.();
@@ -2442,7 +2418,6 @@ Pdef(\part,
 	~master.();
 Pdef(\part_melox, 
 	Ppar([
-		Pbind(\out, BusDef(\mixer3))<>
 		Ppar([
 			Pbind(
 				\instrument, \default,
@@ -2456,9 +2431,47 @@ Pdef(\part_melox,
 				\octave, 3,
 				\dur, 1,
 				\amp, 0.1,
+				\out, BusDef(\bassbus, \audio),
 			),
-		
 		]),
+		Pmono(\rdnroom,
+			\inbus, BusDef(\bassbus, \audio, 2),
+			\addAction, \addToTail,
+			\lag, 0.0005,
+			\dur, 1/8,
+			'wet10', 1.0,
+			'mix', 0.9,
+			'gain', 1/10,
+			'fb', 0.000000031,
+			'delay', 0.0001,
+			'delay3', 0.001001,
+			'delay2', ~pmodenv.(Pseq([1,100,4]*0.00001,inf), 1),
+			'delay3', ~pmodenv.(Pseq([1,1000,100,4]*0.00001,inf), 1),
+			'distamp', 1.604,
+			'distamp2', 0.23,
+			'distamp3', 0.89,
+			'shift', -5.0,
+			'shift2', -1.13,
+			'shift3', -2.478,
+			'shiftmix', 0.0,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 19000,
+			'prehpf', 17,
+			'lpf', 19900,
+			'hpf', 17,
+			'stereo', 1.0,
+			'fbdistamp', 0.923,
+			'fbdistmix', 0.911,
+			'postlpf', 19000,
+			'posthpf', 17,
+			'wetamp', 0.18,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			'brfrqfac', 0.37,
+			'brffac', 0.60,
+		),
 		Pbind(\out, BusDef(\mixer4))<>
 		Ppar([
 			PatKitDef(\ksh2).asPattern(Pbind(
@@ -2494,8 +2507,121 @@ Pdef(\part_melox,
 Pdef(\part_melox).stop;
 
 (
+Pdef(\part, Pdef(\trente_vox2, 
+	Pbind(
+		\gain, Pkey(\gain)*0.5,
+	)<>
+	Ppar([
+		Pbind(
+			\instrument, \playersec_looper,
+			\trigfreq, 3,
+			\bufnum, BufDef('voices/kaspi.flac'),
+			\pos, 1/~t + Pseq([
+				1,2,3,4
+			],inf).stutter(4),
+			\isRest, Pseq([
+				1,1, 1,1,
+				0,0, 1,1,
+				1,1, 1,1,
+				1,1, 0,0,
+			],inf).coin.not,
+			\dur, 1,
+			\gain, 1,
+		),
+		Pbind(
+			\instrument, \playersec_looper,
+			\trigfreq, 8,
+			\bufnum, BufDef('voices/kaspi.flac'),
+			\pos, 1/~t + Pseq([
+				Pwhite(1,1.0),
+			]/4,inf).stutter(8),
+			\isRest, Pseq([
+				1,1, 0,0,
+				1,1, 0,0,
+				0,0, 1,1,
+				1,1, 0,0,
+			],inf).coin.not,
+			\dur, 1/4,
+			\gain, 1,
+		),
+		Pbind(
+			\instrument, \playersec_looper,
+			\trigfreq, Prand([1,16,4,8],inf).stutter(2),
+			\pos, 1/~t + Pseq([
+				1,2,3,4
+			],inf).stutter(4),
+			\legato, Pseq([
+				0,0,2,0, 4,0,0,0,
+			],inf),
+			\speed, Pseq([1,2,4]/2,inf),
+			\speed, Prand([
+				~pmodenv.(Pseq([1,2],1), 1),
+				~pmodenv.(Pseq([1,1],1), 1),
+				~pmodenv.(Pseq([2,1],1), 1),
+				~pmodenv.(Pseq([1,4],1), 1),
+			],inf)/2,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\bufnum, BufDef('voices/kaspi.flac'),
+			\dur, 1/8,
+			\gain, 1,
+		),
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\trente_vox, 
+	Pbind(
+		\gain, Pkey(\gain)*0.5,
+	)<>
+	Ppar([
+		Pbind(
+			\instrument, \playersec_looper,
+			\trigfreq, 3,
+			\bufnum, BufDef('voices/kaspi.flac'),
+			\pos, 1/~t + Pseq([
+				1,2,3,4
+			],inf).stutter(4),
+			\dur, 1,
+			\gain, 1,
+		),
+		Pbind(
+			\instrument, \playersec_looper,
+			\trigfreq, 8,
+			\bufnum, BufDef('voices/kaspi.flac'),
+			\pos, 1/~t + Pseq([
+				Pwhite(1,1.0),
+			]/4,inf).stutter(8),
+			\dur, 1/4,
+			\gain, 1,
+		),
+		Pbind(
+			\instrument, \playersec_looper,
+			\trigfreq, Prand([1,16,4,8],inf).stutter(2),
+			\pos, 1/~t + Pseq([
+				1,2,3,4
+			],inf).stutter(4),
+			\legato, Pseq([
+				0,0,2,0, 4,0,0,0,
+			],inf),
+			\speed, Pseq([1,2,4]/2,inf),
+			\speed, Prand([
+				~pmodenv.(Pseq([1,2],1), 1),
+				~pmodenv.(Pseq([1,1],1), 1),
+				~pmodenv.(Pseq([2,1],1), 1),
+				~pmodenv.(Pseq([1,4],1), 1),
+			],inf)/2,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\bufnum, BufDef('voices/kaspi.flac'),
+			\dur, 1/8,
+			\gain, 1,
+		),
+	])
+)).play;
+);
+
+(
 	~master.();
-Pdef(\part, 
+Pdef(\part, Pdef(\trente_perc1,
 	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
@@ -2544,12 +2670,12 @@ Pdef(\part,
 		)),
 		
 	])
-).play;
-)
+)).play;
+);
 
 (
 	~master.();
-Pdef(\part, 
+Pdef(\part, Pdef(\trente_perc2,
 	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
@@ -2593,12 +2719,12 @@ Pdef(\part,
 		)),
 		
 	])
-).play;
-)
+)).play;
+);
 
 (
 	~master.();
-Pdef(\part, 
+Pdef(\part,Pdef(\trente_perc3,
 	Pbind(\out, BusDef(\mixer6))<>
 	Ppar([
 		PatKitDef(\ksh2).asPattern(Pbind(
@@ -2641,5 +2767,34 @@ Pdef(\part,
 		)),
 		
 	])
-).play;
-)
+)).play;
+);
+
+
+
+////////////////////////////////////:
+
+Pdef(\part2).clear;
+~master.();
+Pdef(\part, Pdef(\trente_meme3)).play;
+Pdef(\part, Pdef(\trente_meme4)).play;
+Pdef(\part, Pdef(\trente_meme4b)).play;
+Pdef(\part, Pdef(\trente_meme4fix)).play;
+Pdef(\part, Pdef(\trente_verse1)).play;
+Pdef(\part, Pdef(\trente_verse2)).play;
+Pdef(\part, Pdef(\trente_intro)).play;
+Pdef(\part, Pdef(\trente_intro2b)).play;
+Pdef(\part, Pdef(\trente_intro2)).play;
+Pdef(\part, Pdef(\trente_perc1)).play;
+Pdef(\part, Pdef(\trente_perc2)).play;
+Pdef(\part, Pdef(\trente_perc3)).play;
+Pdef(\part2, Pdef(\part_melox)).play;
+Pdef(\part2, Pdef(\trente_meme1)).play;
+Pdef(\part2, Pdef(\trente_meme1b)).play;
+Pdef(\part2, Pdef(\trente_meme1c)).play;
+Pdef(\part3, Pdef(\trente_meme2)).play;
+Pdef(\part3, Pdef(\trente_vox2)).play;
+Pdef(\part3, Pdef(\trente_vox)).play;
+PlayerWrapper(Pdef(\part)).stop;
+PlayerWrapper(Pdef(\part2)).stop;
+PlayerWrapper(Pdef(\part3)).stop;

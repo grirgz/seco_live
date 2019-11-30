@@ -597,6 +597,147 @@ Pdef(\plop, Pbind(
 )
 
 
+/////////////////////////////////////////////
+// synthetize snare, hat, pan, and any other metallic percussion
+// they key is there is an impact and a resonance
+// the impact should be very short to free the resonance
+// the resonent frequencies do everything else
+
+(
+SynthDef(\doublebell, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = WhiteNoise.ar;
+	sig = sig * EnvGen.ar(Env.perc(0.001,0.01),gate); // short impact of noise
+	sig = Ringz.ar(sig, \freqtab.kr({exprand(100,10000) }.dup(30)) * \freqr.kr(1), \res.kr(3)).mean; // resonance
+	sig = Ringz.ar(sig, \freqtab2.kr({exprand(100,10000) }.dup(30)) * \freqr2.kr(1), \res2.kr(0.1)).mean; // other layer of resonance
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,1.5)), gate, doneAction:2) * 0.1;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\zed, 
+	Ppar([
+		Plazy({ arg ev;
+			Pbind(
+				\instrument, \doublebell,
+				\freqtab, Pseq([
+					[{exprand(400,10000) }.dup(30)  ]
+				],inf),
+				\freqtab2, Pseq([
+					[{exprand(400,10000) }.dup(30)  ]
+				],inf),
+				\sustain, 0.1,
+				\dur, Pseq((1..10).reverse/20),
+				\freqr, Pkey(\dur),
+				\freqr, Pseg(Pseq([0,1],inf),8),
+				\amp, 0.1,
+			);
+		}).loop,
+		
+	])
+)).play;
+);
+
+
+////// tuned perc with the LFSaw as striker
+// added noise with envelope then filtered, this give the hall reverb style
+// then crossfade between two ring filters
+// can also use a ring filtered striker then ring filter it again
+(
+SynthDef(\doublebell, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var tabsize = 30;
+	sig = WhiteNoise.ar;
+	sig = LFSaw.ar(freq) + sig;
+	sig = sig * EnvGen.ar(Env.perc(0.001,0.04),gate);
+	sig = sig + ( HPF.ar(WhiteNoise.ar * EnvGen.kr(Env([1,1/2,0],[0.1,0.8],-1), 1), 1000)  );
+	sig1 = Ringz.ar(sig, \freqtab.kr({exprand(100,10000) }.dup(tabsize)) * \freqr.kr(1), \res.kr(3.dup(tabsize))).mean;
+	sig2 = Ringz.ar(sig, \freqtab2.kr({exprand(100,10000) }.dup(tabsize)) * \freqr2.kr(1), \res2.kr(0.1.dup(tabsize))).mean;
+	sig = SelectX.ar(Line.kr(0,0.5,1/2), [sig1 , sig2]);
+	//sig = LPF.ar(sig, EnvGen.kr(Env([1000,200,1000]+1000,[0.4,0.8]), 1));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,1.5,1,1)), gate, doneAction:2) * 0.1;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\zed, 
+	Ppar([
+		Plazy({ arg ev;
+			Pbind(
+				\degree, Pseq([
+					1,2,3,4,5,
+				],inf),
+				\instrument, \doublebell,
+				\freqtab, Pseq([
+					[{exprand(40,10000) }.dup(30)  ]
+				],inf),
+				\freqtab2, Pseq([
+					[{exprand(40,10000) }.dup(30)  ]
+				],inf),
+				\res, Pseq([
+					[{rrand(0.01,0.3) }.dup(30)  ]
+				],inf),
+				\res2, Pseq([
+					[{rrand(0.01,0.4) }.dup(30)  ]
+				],inf),
+				\sustain, 0.1,
+				\dur, Pseq(
+					(1-2.pow((0..10).neg/4).reverse/4)
+					* rrand(0.5,2)),
+				\freqr, 1,
+				\amp, 0.3,
+			);
+		}).loop,
+		
+	])
+)).play;
+);
+
+/// sorting the freq and rez random arrays make higher frequency ringz for longer
+// the reverse is also fun
+// use rotate to move the most resonent center on the frequency band
+(
+SynthDef(\ringme, { arg out=0, gate=1;
+	var sig;
+	var tabsize = 30;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = Ringz.ar(sig, { exprand(70,12000) }.dup(tabsize).sort, { exprand(0.5000,5.6000) }.dup(tabsize).sort) * 0.01;
+	//sig = Ringz.ar(sig, { exprand(70,12000) }.dup(tabsize).sort, { exprand(0.5000,5.6000) }.dup(tabsize).sort.reverse.rotate(10)) * 0.01;
+	sig = Splay.ar(sig, \spread.kr(0.8), 1, 0);
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+)
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		PatKitDef(\bat).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\velamp, 1/3,
+			\dur, 1/8,
+			\out, BusDef(\ring, \audio),
+		)),
+		Pmono(\ringme,
+			\inbus, BusDef(\ring, \audio),
+			\dur, 1,
+		),
+	])
+)).play;
+);
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 //////////////////////////////// architecture

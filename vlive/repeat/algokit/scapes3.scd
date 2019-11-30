@@ -173,6 +173,7 @@ Pdef(\trump_bass3, PmonoArtic(\trump,
 
 ))
 );
+Pdef(\trump_bass).play;
 Pdef(\trump_bass2).play;
 
 (

@@ -571,7 +571,7 @@ Pdef(\part, Pdef(\zed,
 SynthDef(\serenity, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	freq = freq * \ratio.kr([0,4,7]) * [1/2,1,2];
+	freq = freq * \ratio.kr([0,4,7].midiratio) * [1/2,1,2];
 	sig1 = SinOsc.kr((1..9)/10).range(0,1);
 	sig2 = SinOsc.kr((1..9)/20).range(0,1);
 	sig = SinOsc.ar(freq) * SinOsc.ar(freq+sig2, SinOsc.ar(freq+2+sig1), 1, SinOsc.ar(freq+2+sig2) );

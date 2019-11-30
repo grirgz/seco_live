@@ -1,4 +1,5 @@
 (
+~t = 158/4/60; TempoClock.default.tempo = ~t; // sufferer 158
 SynthDef(\crackle3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;

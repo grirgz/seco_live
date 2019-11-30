@@ -50,10 +50,12 @@ FileSystemProject.load("libdef/default_specs.scd");
 	FileSystemProject.load("capsule/sample_manager.scd");
 
 FileSystemProject.load("libdef/mysynthdefault.scd");
+FileSystemProject.load("libdef/FxManager.scd");
 FileSystemProject.load("libdef/drumkit.scd");
 FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
 
 
+FileSystemProject.load("libdef/WorkspaceView.scd");
 FileSystemProject.load("libdef/simple_main_panel.scd");
 FileSystemProject.load("libdef/ConfirmDialog.scd");
 

@@ -600,6 +600,340 @@ Pdef(\part, Pdef(\zed,
 )).play;
 )
 
+(
+	// higher
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+
+		Pbind(\out, BusDef(\sendbus0, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \snapkickx,
+				\bodyfreqenv, [ Env([361, 51, 51], [0.035, 0.08], curve: \exp) ],
+				\dur, 1/8,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,1,
+					1,0,1,0, 0,0,0,1,
+					1,0,0,1, 0,0,0,0,
+					1,1,0,1, 0,1,0,0,
+				],inf).coin.not,
+				\amp, 0.2,
+			),
+			PatKitDef(\rim).asPattern(Pbind(
+				\kitIndex, 1,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 0,0,0,1,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,1,
+					0,0,1,0, 0,0,1,0,
+				],inf).coin.not,
+				\sustain, 0.1,
+				\gain, 0.2,
+				\dur, 1/8,
+			)),
+			PatKitDef(\rim).asPattern(Pbind(
+				\kitIndex, 1,
+				\isRest, Pseq([
+					0,0,0,0, 0,1,1,1,
+					1,0,1,0, 0,1,1,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,1,0,0,
+					1,0,0,1, 0,0,0,1,
+				],inf).coin.not,
+				\sustain, 0.1/2,
+				\gain, 0.1,
+				\dur, 1/8,
+			)),
+			PatKitDef(\rim).asPattern(Pbind(
+				\kitIndex, 8,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1,
+				\gain, 0.2,
+				\dur, 1/8,
+			)),
+			PatKitDef(\rim).asPattern(Pbind(
+				\kitIndex, 8,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,1,0,1,
+					0,1,1,0, 0,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1/2,
+				\gain, 0.1,
+				\dur, 1/8,
+			)),
+			Pbind(
+				\instrument, \phyhat3,
+				\isRest, Pseq([
+					1,1,
+				],inf).coin.not,
+				\sustain, 0.05,
+				\fac1,0.1,
+				\dur, 1/8,
+				\amp, 0.01 * Pseq([1,0.7],inf),
+			),
+
+			Pbind(
+				\instrument, \basslok,
+				\note, Pseq([
+					0,4,
+				],inf).stutter(2),
+				\octave, 3,
+				\sustain, 0.1,
+				\lag, Pseq([
+					0,0,
+					0,0,
+					0,1/8/~t,
+					0,0,
+					0,1/4/~t,
+					0,0,
+					1/4/~t,0,
+				],inf),
+				\lpfr, 4,
+				\dur, 1,
+				\amp, 0.1,
+			),
+		]),
+
+
+		Pbind(\out, BusDef(\sendbus1, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \chordlock,
+				\note, Pseq([
+					[4,7,16],
+					[4,7-12,16],
+				],inf),
+				\octave, Prand([6,7],inf),
+				\fmamp, 0.1,
+				\strum,1/16,
+				\mix, ~pmodenv.(Pseq([0,1],inf), Pwhite(1.0,8)),
+				\legato, 1/2,
+				\dur, 2,
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \chordlock,
+				\mix, ~pmodenv.(Pseq([0,1],inf), Pwhite(1.0,8)),
+				\note, Pseq([
+					9,
+					11,
+					15,
+				],inf),
+				\octave, Pseq([
+					5,5,4, 5,5,3, 5,6,5, 6,
+				],inf),
+				\legato, 1/2,
+				\dur, Pseq([1,1/2,1/4],inf),
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \chordlock,
+				\mix, ~pmodenv.(Pseq([0,1],inf), Pwhite(1.0,8)),
+				\note, Pseq([
+					0,4,0,7,
+				],inf),
+				\octave, Pseq([
+					7,
+				],inf),
+				\sustain, 0.1,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				],inf),
+				\dur, Pseq([1/8,1/2,1/4,2],inf),
+				\amp, 0.1,
+			),
+		]),
+	])
+)).play;
+)
+
+(
+	// hat
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+
+		Pbind(\out, BusDef(\sendbus0, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \snapkickx,
+				\bodyfreqenv, [ Env([361, 51, 51], [0.035, 0.08], curve: \exp) ],
+				\dur, 1/8,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,1,
+					1,0,1,0, 0,0,0,1,
+					1,0,0,1, 0,0,0,0,
+					1,1,0,1, 0,1,0,0,
+				],inf).coin.not,
+				\amp, 0.2,
+			),
+			PatKitDef(\rim).asPattern(Pbind(
+				\kitIndex, 1,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 0,0,0,1,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,1,
+					0,0,1,0, 0,0,1,0,
+				],inf).coin.not,
+				\sustain, 0.1,
+				\gain, 0.2,
+				\dur, 1/8,
+			)),
+			PatKitDef(\rim).asPattern(Pbind(
+				\kitIndex, 1,
+				\isRest, Pseq([
+					0,0,0,0, 0,1,1,1,
+					1,0,1,0, 0,1,1,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,1,0,0,
+					1,0,0,1, 0,0,0,1,
+				],inf).coin.not,
+				\sustain, 0.1/2,
+				\gain, 0.1,
+				\dur, 1/8,
+			)),
+			PatKitDef(\rim).asPattern(Pbind(
+				\kitIndex, 8,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1,
+				\gain, 0.2,
+				\dur, 1/8,
+			)),
+			PatKitDef(\rim).asPattern(Pbind(
+				\kitIndex, 8,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,1,0,1,
+					0,1,1,0, 0,0,0,0,
+				],inf).coin.not,
+				\sustain, 0.1/2,
+				\gain, 0.1,
+				\dur, 1/8,
+			)),
+			Pbind(
+				\instrument, \phyhat3,
+				\isRest, Pseq([
+					1,1,
+				],inf).coin.not,
+				\sustain, 0.05,
+				\fac1,0.1,
+				\dur, 1/8,
+				\amp, 0.01 * Pseq([1,0.7],inf),
+			),
+
+			Pbind(
+				\instrument, \basslok,
+				\note, Pseq([
+					0,4,
+				],inf).stutter(2),
+				\octave, 3,
+				\sustain, 0.1,
+				\lag, Pseq([
+					0,0,
+					0,0,
+					0,1/8/~t,
+					0,0,
+					0,1/4/~t,
+					0,0,
+					1/4/~t,0,
+				],inf),
+				\lpfr, 4,
+				\dur, 1,
+				\amp, 0.1,
+			),
+		]),
+
+		Pbind(\out, BusDef(\sendbus1, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[834].value,
+				\sustain, 1,
+				\dur, 1/8,
+				\gain, 0.2,
+				\lag, 0.04,
+			),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[844].value,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+				],inf).coin.not,
+				\dur, 1/8,
+				\gain, 0.2,
+				\lag, 0.04,
+			),
+		]),
+
+		//Pbind(\out, BusDef(\sendbus1, \audio)) <>
+		//Ppar([
+			//Pbind(
+				//\instrument, \chordlock,
+				//\note, Pseq([
+					//[4,7,16],
+					//[4,7-12,16],
+				//],inf),
+				//\octave, Prand([6,7],inf),
+				//\fmamp, 0.1,
+				//\strum,1/16,
+				//\mix, ~pmodenv.(Pseq([0,1],inf), Pwhite(1.0,8)),
+				//\legato, 1/2,
+				//\dur, 2,
+				//\amp, 0.1,
+			//),
+			//Pbind(
+				//\instrument, \chordlock,
+				//\mix, ~pmodenv.(Pseq([0,1],inf), Pwhite(1.0,8)),
+				//\note, Pseq([
+					//9,
+					//11,
+					//15,
+				//],inf),
+				//\octave, Pseq([
+					//5,5,4, 5,5,3, 5,6,5, 6,
+				//],inf),
+				//\legato, 1/2,
+				//\dur, Pseq([1,1/2,1/4],inf),
+				//\amp, 0.1,
+			//),
+			//Pbind(
+				//\instrument, \chordlock,
+				//\mix, ~pmodenv.(Pseq([0,1],inf), Pwhite(1.0,8)),
+				//\note, Pseq([
+					//0,4,0,7,
+				//],inf),
+				//\octave, Pseq([
+					//7,
+				//],inf),
+				//\sustain, 0.1,
+				//\adsr, Pseq([
+					//[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				//],inf),
+				//\dur, Pseq([1/8,1/2,1/4,2],inf),
+				//\amp, 0.1,
+			//),
+		//]),
+	])
+)).play;
+)
 
 /////////////////////////:
 

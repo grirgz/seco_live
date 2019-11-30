@@ -40,15 +40,28 @@ ProtoDef(\simpleMixer, (
 		self.sidePlayers.do(_.play);
 		self;
 	},
+	
+	isPlaying: { arg self;
+		self.tracks.notNil 
+			and:{ self.tracks.every({ arg tr; PlayerWrapper(tr.proxy).isPlaying  })
+			and:{ self.sidePlayers.isNil or: {self.sidePlayers.every(_.isPlaying);
+		}}}
+	},
 
 	stop: { arg self;
 		self.tracks.do(_.stop);
 		self.sidePlayers.do(_.stop);
+		self.changed(\isPlaying);
 		self;
 	},
 
 ));
 ProtoDef(\simpleMixer).init;
+	//ProtoDef(\simpleMixer).stop;
+	//ProtoDef(\simpleMixer).changed(\isPlaying, false)
+	//ProtoDef(\simpleMixer).tracks[0].proxy.isPlaying
+	//PlayerWrapper(ProtoDef(\simpleMixer).tracks[0]y).isPlaying
+	//ProtoDef(\simpleMixer).play;
 
 WindowDef(\simpleMixer, { arg def, simpleMixer;
 	var mixerView = { arg mixer;

@@ -5,6 +5,7 @@ Pdef.defaultQuant = 2;
 s.waitForBoot {
 	"lib.scd".loadRelative;
 	//FileSystemProject.load("capsule/lib.scd");
+	FileSystemProject.load("capsule/ile_lib.scd");
 	FileSystemProject.load("capsule/mainwindow.scd");
 	FileSystemProject.load("capsule/track1.scd");
 	FileSystemProject.load("capsule/draftsynth.scd");
@@ -14,7 +15,6 @@ s.waitForBoot {
 };
 );
 
-8 * 8 
 
 (
 

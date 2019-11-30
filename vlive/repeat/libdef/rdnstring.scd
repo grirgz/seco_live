@@ -4,7 +4,7 @@
 	~rdn_to_string = { arg rdn, code;
 		var tree;
 		if(code.notNil) {
-			tree = ~simplify_tree.(rdn.codeToTree(nil, code));
+			tree = ~simplify_tree.(rdn.codeToTree(code));
 		} {
 			tree = ~simplify_tree.(rdn.tree);
 		};
