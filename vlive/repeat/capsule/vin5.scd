@@ -926,7 +926,43 @@ ClipTimeline('recme').eventList = XEventList.newFrom([
 
 ClipTimeline(\recme).edit
 ClipTimeline(\recme2).edit
+ClipTimeline(\recme3).edit
 ProtoDef(\simpleMixer).edit
+
+ClipTimeline(\recme3).presetCompileString.editorInsert
+(
+ClipTimeline('recme3').tracks = [ ( 'index': 0, 'recordArmed': true, 'recordBus': BusDef(\mixer0), 'muted': false ), ( 'index': 1, 'recordArmed': true, 'recordBus': BusDef(\mixer1), 'muted': false ), ( 'index': 2, 'recordArmed': true, 'recordBus': BusDef(\mixer2), 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+ClipTimeline('recme3').eventList = XEventList.newFrom([
+	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	PatternEvent((\absTime: 0.0, \dur: 0.0, \midinote: 0, \playDur: 0.0, \relDur: 0.0, \sustain: 640.0, \timeline: { SampleTimeline('rec_recme3_t0_191229_235001') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 0.0, \dur: 0.0, \midinote: 1, \playDur: 0.0, \relDur: 0.0, \sustain: 640.0, \timeline: { SampleTimeline('rec_recme3_t1_191229_235001') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 0.0, \dur: 0.5, \midinote: 2, \playDur: 0.5, \relDur: 0.5, \sustain: 640.0, \timeline: { SampleTimeline('rec_recme3_t2_191229_235001') }, \type: 'pattern', )),
+	(\absTime: 0.5, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+);
+
+ClipTimeline(\recme3).samplesPresetCompileString.editorInsert
+(
+
+(
+SampleTimeline('rec_recme3_t1_191229_235001').eventList = XEventList.newFrom([
+	(\absTime: 0, \dur: 640.0, \playDur: 640.0, \relDur: 640.0, \sustain: 0, \type: 'start', ),
+	(\absTime: 640.0, \dur: 0, \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+SampleTimeline('rec_recme3_t1_191229_235001').buffer = BufDef('./rec_recme3_t1_191229_235001.wav');
+SampleTimeline('rec_recme3_t0_191229_235001').eventList = XEventList.newFrom([
+	(\absTime: 0, \dur: 640.0, \label: 'start', \playDur: 640.0, \relDur: 640.0, \sustain: 0, \type: 'start', ),
+	(\absTime: 640.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+SampleTimeline('rec_recme3_t0_191229_235001').buffer = BufDef('./rec_recme3_t0_191229_235001.wav');
+SampleTimeline('rec_recme3_t2_191229_235001').eventList = XEventList.newFrom([
+	(\absTime: 0, \dur: 640.0, \playDur: 640.0, \relDur: 640.0, \sustain: 0, \type: 'start', ),
+	(\absTime: 640.0, \dur: 0, \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+SampleTimeline('rec_recme3_t2_191229_235001').buffer = BufDef('./rec_recme3_t2_191229_235001.wav');
+)
+
+);
 
 
 /////////
@@ -1448,7 +1484,6 @@ Ndef('rdn4').put(100, \pset -> Pbind(
 ).keep(1));
 
 );
-
 
 
 

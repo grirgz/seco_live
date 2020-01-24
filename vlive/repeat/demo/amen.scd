@@ -15,6 +15,43 @@ Pdef(\amen, Pbind(
 
 /////////////////
 // TODO: find how to play the whole file without hole at any tempo
+(
+BufDef(\amen, "vipere/amenbreak.wav");
+Pdef(\amen, Pbind(
+	\instrument, \playersec,
+	\bufnum, BufDef(\amen),
+	\degree, Pseq([0],inf),
+	\speed, 4*~t/(137/60),
+	\speed, 1/2*~t/(137/60),
+	\pos, Pseg(Pseq([0,1],inf),8),
+	\legato, 0.9981,
+	\dur, 16,
+	\pos, Pkey(\dur) * Pkey(\speed) * Pseq([
+		0,
+	],inf) / 2,
+	\amp, 0.1
+)).play;
+);
+
+(
+BufDef(\amen, "vipere/amenbreak.wav");
+Pdef(\amen, Pfindur(32,Pmono(
+	 \playersec,
+	\bufnum, BufDef(\amen),
+	\degree, Pseq([0],inf),
+	\speed, 4*~t/(137/60),
+	\speed, 1/2*~t/(137/60),
+	\pos, Pseg(Pseq([0,1],inf),8),
+	\legato, 0.9981,
+	\dur, 1,
+	\pos, Pkey(\dur) * Pkey(\speed) * Pseq([
+		0,
+	],inf) / 2,
+	\amp, 0.1
+)).loop).play;
+);
+
+/////////////////////////////////////////
 
 (
 	~t = 137/1/60; TempoClock.default.tempo = ~t;

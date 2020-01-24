@@ -1,4 +1,5 @@
-i// suft30
+// suft30
+/// no lib!
 
 ~t = 135/4/60; TempoClock.default.tempo = ~t;
 
@@ -2386,6 +2387,7 @@ Pdef(\part).clear;
 							\legato, 1,
 							\dur, Pn(time,1),
 							\gain, 1,
+							\out, BusDef(\sendbus1, \audio),
 						);
 						acc = time + acc;
 						pat;

@@ -11,7 +11,7 @@
 
 (
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, Pdef(\trente_meme1,
+Pdef(\part2, Pdef(\trente_meme1,
 	Ppar([
 		Pbind(
 			\instrument, \meme2,
@@ -48,7 +48,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme1,
 
 (
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, Pdef(\trente_meme1b,
+Pdef(\part2, Pdef(\trente_meme1b,
 	Ppar([
 		Pbind(
 			\instrument, \meme2,
@@ -104,7 +104,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme1b,
 );
 (
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, Pdef(\trente_meme1c,
+Pdef(\part2, Pdef(\trente_meme1c,
 	Ppar([
 		Pbind(
 			\instrument, \meme2,
@@ -196,7 +196,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme1c,
 
 (
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, Pdef(\trente_meme2,
+Pdef(\part2, Pdef(\trente_meme2,
 	Ppar([
 		Pbind(
 			\instrument, \playersec,
@@ -234,7 +234,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme2,
 (
 	~master.();
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, Pdef(\trente_meme3,
+Pdef(\part2, Pdef(\trente_meme3,
 	Ppar([
 		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
@@ -349,7 +349,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme3,
 (
 	~master.();
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, Pdef(\trente_meme4b,
+Pdef(\part2, Pdef(\trente_meme4b,
 	Ppar([
 		Pbind(\out, BusDef(\mixer6))<>
 		//Pbind(\isRest, true)<>
@@ -507,7 +507,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme4b,
 (
 	~master.();
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, Pdef(\trente_meme4,
+Pdef(\part2, Pdef(\trente_meme4,
 	Ppar([
 		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
@@ -692,7 +692,7 @@ Pdef(\part_meloxy, Pdef(\trente_meme4,
 (
 	~master.();
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, Pdef(\trente_meme4fix,
+Pdef(\part2, Pdef(\trente_meme4fix,
 	Ppar([
 		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
@@ -1468,7 +1468,7 @@ Pdef(\part, Pdef(\trente_verse2,
 (
 	~master.();
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, Pdef(\trente_meme5,
+Pdef(\part, Pdef(\trente_meme5,
 	Ppar([
 		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
@@ -1672,7 +1672,7 @@ Pdef(\main,
 	Ppar([
 		Pdef(\part),
 		Pdef(\part_melox),
-		Pdef(\part_meloxy),
+		Pdef(\part2),
 		
 	])
 ).play;
@@ -1704,7 +1704,7 @@ Pdef(\plop,
 (
 	~master.();
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, 
+Pdef(\part2, 
 	Ppar([
 		Pbind(\out, BusDef(\mixer6))<>
 		Ppar([
@@ -1837,7 +1837,7 @@ Pdef(\part_meloxy,
 
 (
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, 
+Pdef(\part2, 
 	Ppar([
 		Pbind(
 			\instrument, \oscsampler3,
@@ -1886,7 +1886,7 @@ Pdef(\part_meloxy,
 
 (
 //	Ndef(\memefx).play;
-Pdef(\part_meloxy, 
+Pdef(\part2, 
 	Ppar([
 		Pbind(
 			\instrument, \playersec_osczig_stereo,
@@ -2064,7 +2064,7 @@ Pdef(\part,
 		
 	])
 ).play;
-)
+);
 
 Pdef(\part).clear
 (
@@ -2161,7 +2161,7 @@ Pdef(\part,
 		
 	])
 ).play;
-)
+);
 
 (
 	~master.();
@@ -2237,7 +2237,7 @@ Pdef(\part,
 		
 	])
 ).play;
-)
+);
 
 (
 	~master.();
@@ -2327,7 +2327,7 @@ Pdef(\part,
 		]),
 	]),
 ).play;
-)
+);
 
 (
 	~master.();
@@ -2411,7 +2411,7 @@ Pdef(\part,
 		]),
 	]),
 ).play;
-)
+);
 
 
 (

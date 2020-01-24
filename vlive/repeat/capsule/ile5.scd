@@ -10,10 +10,16 @@ ProtoDef(\rdn).inbus = BusDef(\sendbus1);
 ProtoDef(\rdn2).inbus = BusDef(\sendbus2);
 ProtoDef(\rdn3).inbus = BusDef(\sendbus3);
 
-ProtoDef(\rdn).loadFromPresetLib("ile5_kick");
-ProtoDef(\rdn).loadFromPresetLib("ile5_kickdist");
-ProtoDef(\rdn2).loadFromPresetLib("ile5_snare");
-ProtoDef(\rdn2).loadFromPresetLib("ile5_snaredist");
+~qdo.({
+	ProtoDef(\rdn).loadFromPresetLib("ile5_kick")
+*});
+~qdo.({ProtoDef(\rdn).loadFromPresetLib("ile5_kickdist")});
+~qdo.({
+	ProtoDef(\rdn2).loadFromPresetLib("ile5_snare")
+});
+~qdo.({
+	ProtoDef(\rdn2).loadFromPresetLib("ile5_snaredist")
+});
 
 
 ~t = 135/4/60; TempoClock.default.tempo = ~t;
@@ -900,7 +906,7 @@ Pdef(\part, Pdef(\zed,
 
 
 (
-	Pdef(\part, Pdef(\zed, 
+	Pdef(\part2, Pdef(\zed, 
 		Ppar([
 		Pdef(\evolbass),
 		Pdef(\evoltreb),
@@ -1079,7 +1085,7 @@ Pdef(\part, Pdef(\vorster,
 			\speed, ~pmodenv.(Pseq([1,2,1,4]/2,inf), 8),
 			\pos, Pwhite(0,10.0),
 			\legato, 1,
-			\out, BusDef(\sendbus3, \audio),
+			\out, BusDef(\sendbus1, \audio),
 			\dur, 1,
 			\gain, 0.1,
 		)

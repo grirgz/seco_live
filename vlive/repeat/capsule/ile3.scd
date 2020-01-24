@@ -84,6 +84,7 @@ Ndef(\fee).put(0, { arg amp=0.1;
 }).play;
 
 )
+Ndef(\fee).end(10);
 
 
 (
@@ -109,6 +110,7 @@ Ndef(\eyes, { arg freq=80, pan=0, amp=0.1;
 }).play
 );
 Ndef(\eyes).clear
+Ndef(\eyes).end(10)
 
 
 
@@ -125,6 +127,7 @@ ProtoDef(\rdn).loadFromPresetLib("ile5_kick");
 ProtoDef(\rdn3).loadFromPresetLib("ile5_kick");
 ProtoDef(\rdn).loadFromPresetLib("ile5_kickdist");
 ProtoDef(\rdn3).loadFromPresetLib("ile5_rdn2");
+Pdef(\part).clear
 ProtoDef(\rdn3).loadFromPresetLib("ile5_snare");
 ProtoDef(\rdn2).loadFromPresetLib("ile5_snare");
 ProtoDef(\rdn2).loadFromPresetLib("ile5_snaredist");
