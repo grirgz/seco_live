@@ -1,3 +1,46 @@
+(
+SynthDef(\bilin, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freq = freq * [1,2,1/2] * (\bilintab.kr({ 1.0.bilinrand }!100) * \fspread.kr(0.01) + 1);
+	sig = sig1 = LFSaw.ar(freq);
+	sig2 = LFPulse.ar(freq);
+	sig3 = SinOsc.ar(freq);
+	sig = SelectX.ar(\oscmix.kr(0.5)*2, [sig1, sig2, sig3]);
+	//sig = LFSaw.ar(freq * [1,2,1/2] * ({ 1.0.bilinrand }!100 * 0.01 + 1)).clump(2).mean;
+	sig = sig.clump(2).mean;
+	sig.debug("sig");
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Pdef(\demo, Pdef(\demox, 
+	Ppar([
+		Pbind(
+			\instrument, \bilin,
+			\note, Pseq([
+				[0,3,7],
+				[0,3,7]+4,
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,1.1) ],
+			],inf),
+			\oscmix, Pseq([0,1/2,1,Pwhite(0,1.0,1)],inf),
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+///////////////////////
+
 SynthDef(\chordb, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
 	var sig, sig1, sig2, sig3;
 	sig = {arg x; 

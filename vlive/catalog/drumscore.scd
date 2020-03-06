@@ -1229,3 +1229,166 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 )
+
+
+
+///////////////////////////////////////////////////////////
+//////// cool randomized breakbeat drum with 6/8
+// from capsule/vin11.scd
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+	Pbind(
+		\instrument, \snapkickx,
+		\bodyfreqenv, [ Env([261, 54, 21], [0.035, 0.08], curve: \exp) ],
+		\dur, 1/8,
+		\isRest, Pseq([
+			Prand([
+				Pseq([ 
+					1,0,0,0, 0,0,0,1, 
+					0,1,0,0, 0,0,0,1, 
+					1,0,0,0, 0,0,1,0, 
+					0,1,0,0, 0,0,0,1, 
+
+					1,0,0,0, 0,0,0,1, 
+					0,0,0,1, 0,0,0,1, 
+					0,1,0,1, 0,0,0,0, 
+					0,0,1,0, 0,0,0,1, 
+				],1),
+			],1),
+		],inf).coin.not,
+		\amp, 0.2,
+	),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.snare[0575].value,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,1,0,0, 1,0,0,1,
+				],inf).coin.not,
+				\dur, 1/8,
+				\gain, 0.21,
+			),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[1064].value,
+				\isRest, Pseq([
+					Prand([
+						Pseq([ 0,0,1,0, 0,0,0,0, 1,0,0,0, 0,0,1,0, ],1),
+						Pseq([ 0,0,0,0, 1,0,0,0, 1,0,0,0, 0,0,1,0, ],1),
+						Pseq([ 0,0,0,0, 1,0,0,0, 0,0,1,0, 0,0,1,0, ],1),
+					],1),
+				],inf).coin.not,
+				\dur, 1/16,
+				\gain, 0.31,
+				\gain, Pkey(\gain) * Pseq([
+					Prand([
+						Pseq([ 0,0,0,0, 0,0,0,0, ]-0.7,1),
+						Pseq([ 1,1,0,1, 1,0,1,0, ],1),
+						Pseq([ 1,0,1,1, 0,1,1,0, ],1),
+						Pseq([ 1,1,0,1, 0,1,1,0, ],1),
+					],inf) + 0.7 / 1.7,
+				],1),
+			),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[1066].value,
+				\isRest, Pseq([
+					Prand([
+						Pseq([ 1,1,0,1, 1,0,1,0, ],1),
+						Pseq([ 1,0,1,1, 0,1,1,0, ],1),
+						Pseq([ 1,1,0,1, 0,1,1,0, ],1),
+					],inf),
+					0,0,0,0, 0,0,0,1, 0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+					1,0,0,0, 1,0,1,1, 0,0,0,1, 1,0,0,0,
+				],inf).coin.not,
+				\dur, 1/16,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				],inf),
+				\sustain, 0.01,
+				\gain, 0.05,
+				\gain, Pkey(\gain) * Pseq([
+					Prand([
+						Pseq([ 1,1,1,1, 0,0,0,0, ]-0.7,1),
+						Pseq([ 0,0,0,0, 1,1,1,1, ]-0.7,1),
+						Pseq([ 0,0,0,0, 0,0,0,0, ]-0.7,1),
+						Pseq([ 1,1,0,1, 1,0,1,0, ]-0.7,1),
+						Pseq([ 1,1,0,1, 1,0,1,0, ],1),
+						Pseq([ 1,0,1,1, 0,1,1,0, ],1),
+						Pseq([ 1,1,0,1, 0,1,1,0, ],1),
+					],inf) + 0.7 / 1.7,
+				],1),
+			),
+		
+	])
+)).play;
+);
+
+
+/////////////////////////////////////
+///// trap capsule/vin15.scd
+
+
+~t = 140/4/60; TempoClock.default.tempo = ~t; // trap tempo
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\bufnum, ~buflib.kick[1153].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,1,0,
+				0,0,1,0, 0,0,1,1,
+				1,0,0,1, 0,0,1,0,
+				0,0,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.3,
+		),
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[1960].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.61,
+		),
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\bufnum, ~buflib.hat[849].value,
+			\isRest, Pseq([
+				Pseq([
+					1,0,0,1, 0,0,1,0, 0,1,1,1, 0,0,1,0,
+					0,1,0,1, 0,1,0,0, 0,0,1,0, 1,0,1,0,
+					1,0,0,1, 0,0,1,0, 0,1,1,1, 0,0,1,0,
+					0,0,1,0, 0,1,0,1, 0,0,1,1, 0,1,0,0,
+				],inf),
+			],inf).coin.not,
+			
+			\dur, 1/16,
+			\gain, 0.31 * Pseq([
+				1/8,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,
+			],inf),
+		),
+
+		
+	])
+)).play;
+);

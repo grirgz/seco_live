@@ -1323,3 +1323,52 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 );
+
+
+~t = 1; TempoClock.default.tempo = ~t;
+(
+SynthDef(\ambifall3, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	//thisThread.randSeed = 1923;
+
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+	sig = ( WhiteNoise.ar + 0.8 ) * LFSaw.ar({ exprand(10.0,10000) }!20 * ( 1 + ( SinOsc.ar((1..4).rand(0.0)/18 * XLine.kr(1,121200,80)) * 1/41 * XLine.kr(1,0.1,60) )));
+	sig = DelayC.ar(sig, 0.2, {rrand(1/5,1/10000) * ( 1 + ( SinOsc.ar((1..2).rand(0.0)/18 * XLine.kr(42,11200,60)) * 1/41 * XLine.kr(1,180,60) ))}!4) + sig / 2;
+	sig = DelayC.ar(sig, 0.2, {rrand(1/5,1/10000) * XLine.kr(1/1000,1/20001,14)}!4) + sig / 2;
+	sig = sig + BPF.ar(
+		sig, 
+		{ ( exprand(100.0,10000) * LFNoise1.ar(1/100.0.rand).range(1,2) ).clip(20,20000) }!10,
+		{ ( rand(0.01,1) * LFNoise1.ar(1/100.0.rand).range(1,2) ).clip(0.01,1) }!10
+	);
+	sig = BRF.ar(
+		sig, 
+		{ ( exprand(100.0,10000) * LFNoise1.ar(1/100.0.rand).range(1,2) ).clip(20,20000) }!10,
+		{ ( rand(0.01,1) * LFNoise1.ar(1/100.0.rand).range(1,2) ).clip(0.01,1) }!10
+	);
+	sig = LeakDC.ar(sig);
+	sig = LPF.ar(sig, 17000 * XLine.kr(1,1/100,4));
+	sig = sig * 5 * 3;
+	sig = sig.mean;
+	//sig = sig.clip;
+	//sig = Compander.ar(sig, sig, \cpt.kr(0.4), \cpbelow.kr(1.001), \cpabove.kr(0.009), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	sig = Limiter.ar(sig, 1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,4.1)), gate, doneAction:2);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);
+(
+Pdef(\part, Pdef(\ambifall3, 
+	Ppar([
+		Pseq([
+			Pmono(\ambifall3,
+				\freq, 2,
+				\dur, Pseq([1],4),
+				\amp, 0.1,
+			),
+			Event.silent(4),
+		],inf),
+	])
+)).play;
+);

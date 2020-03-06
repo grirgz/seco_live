@@ -117,6 +117,7 @@ WindowDef(\simpleMixer, { arg def, simpleMixer;
 				PlayerWrapper(mixer.proxy).label_(mixer.key).asView,
 				mixerview = mixerView.(mixer),
 				HLayout(StaticText.new.string_("postdelay:"), delayview),
+				Param(Message(mixer), \outbus,TagSpecDef(\BusDef)).asPopUpMenu.minWidth_(60),
 			);
 			boxview.background = Color.gray;
 			mixerview.slider.minWidth_(10);

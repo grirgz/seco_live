@@ -173,6 +173,7 @@ Ndef(\fall, { arg freq=200, pan=0, amp=0.1;
 	sig = LPF.ar(sig, 17000 * XLine.kr(1/100,1,4));
 	sig = sig * 5 * 3;
 	sig = sig.mean;
+	sig.debug("sig");
 	sig = sig * amp;
 	sig;
 }).play;

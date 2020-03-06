@@ -35,7 +35,7 @@
 	}.value,
 
 	drum: {
-		"/home/ggz/Musique/sc/samplekit/com/HandDrum/*".pathMatch.collect({ arg path;
+		"/home/ggz/Musique/sc/samplekit/com/Hand Drum/*".pathMatch.collect({ arg path;
 			{ BufDef.stereo(path); }
 		})
 	}.value,

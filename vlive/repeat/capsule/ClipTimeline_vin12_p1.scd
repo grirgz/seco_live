@@ -1,0 +1,32 @@
+ClipTimeline('vin12_p1').presetCompileStringSavePath = "capsule/ClipTimeline_vin12_p1.scd";
+
+ClipTimeline('vin12_p1').tracks = [ ( 'index': 0, 'recordArmed': false, 'recordBus': 0, 'muted': true ), ( 'index': 1, 'recordArmed': true, 'recordBus': BusDef(\mixer0), 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 4, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 5, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 6, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 7, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 8, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+ClipTimeline('vin12_p1').eventList = XEventList.newFrom([
+	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	PatternEvent((\absTime: 0.0, \dur: 0.0, \label: 'rec_intro_perc', \midinote: 3.0, \playDur: 0.0, \relDur: 0.0, \sustain: 8.0, \timeline: { SampleTimeline('rec_vin12_p1_t2_200216_192348') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 0.0, \dur: 0.0, \label: 'rec_perc1ghost', \midinote: 6.0, \playDur: 0.0, \relDur: 0.0, \sustain: 76.0, \timeline: { SampleTimeline('rec_vin12_p1_t1_200216_211303') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 0.0, \dur: 5.75, \event_dropdur: 2, \label: 'rec_intro2', \midinote: 8.0, \playDur: 5.75, \relDur: 5.75, \sustain: 4.0, \timeline: { SampleTimeline('rec_vin12_p1_t1_200216_212021') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 5.75, \dur: 2.25, \legato: 1, \midinote: 4.0, \playDur: 2.25, \relDur: 2.25, \sustain: 80.75, \timeline: { SampleTimeline('wishing') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 8.0, \dur: 0.0, \label: 'rec_perc_basic', \midinote: 5.0, \playDur: 0.0, \relDur: 0.0, \sustain: 24.0, \timeline: { SampleTimeline('rec_vin12_p1_t2_200216_193941') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 8.0, \dur: 0.0, \legato: 1, \midinote: 0.0, \pattern: Pdef('part'), \playDur: 0.0, \relDur: 0.0, \sustain: 99.75, \type: 'pattern', )),
+	PatternEvent((\absTime: 8.0, \dur: 0.0, \event_dropdur: 2, \label: 'rec_bass', \midinote: 2.0, \playDur: 0.0, \relDur: 0.0, \sustain: 54.5, \timeline: { SampleTimeline('rec_vin12_p1_t1_200216_195941') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 8.0, \dur: 16.0, \legato: 1, \midinote: 7.0, \pattern: Pdef('ambifall3'), \playDur: 16.0, \relDur: 16.0, \sustain: 2.0, \type: 'pattern', )),
+	PatternEvent((\absTime: 24.0, \dur: 9.5, \legato: 1, \midinote: 7.0, \pattern: Pdef('ambifall3'), \playDur: 9.5, \relDur: 9.5, \sustain: 4.0, \type: 'pattern', )),
+	PatternEvent((\absTime: 33.5, \dur: 8.5, \event_dropdur: 25.5, \label: "rec_perc_basic-28", \midinote: 5.0, \playDur: 8.5, \relDur: 8.5, \sustain: 6.5, \timeline: { SampleTimeline('rec_vin12_p1_t2_200216_193941') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 42.0, \dur: 2.0, \legato: 1, \midinote: 7.0, \pattern: Pdef('ambifall'), \playDur: 2.0, \relDur: 2.0, \sustain: 2.0, \type: 'pattern', )),
+	PatternEvent((\absTime: 44.0, \dur: 13.5, \event_dropdur: 36.0, \label: "rec_perc_basic-28-36", \midinote: 5.0, \playDur: 13.5, \relDur: 13.5, \sustain: 12.0, \timeline: { SampleTimeline('rec_vin12_p1_t2_200216_193941') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 57.5, \dur: 6.5, \event_dropdur: 49.5, \label: "rec_perc_basic-28-36-50", \midinote: 5.0, \playDur: 6.5, \relDur: 6.5, \sustain: 29.0, \timeline: { SampleTimeline('rec_vin12_p1_t2_200216_193941') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 64.0, \dur: 0.0, \event_dropdur: 58.0, \label: "rec_bass-58", \midinote: 2.0, \playDur: 0.0, \relDur: 0.0, \sustain: 39.5, \timeline: { SampleTimeline('rec_vin12_p1_t1_200216_195941') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 64.0, \dur: 14.0, \legato: 1, \midinote: 7.0, \pattern: Pdef('ambifall3'), \playDur: 14.0, \relDur: 14.0, \sustain: 4.0, \type: 'pattern', )),
+	PatternEvent((\absTime: 78.0, \dur: 0.0, \legato: 1, \midinote: 8.0, \pattern: Pdef('ambifall2'), \playDur: 0.0, \relDur: 0.0, \sustain: 2.0, \type: 'pattern', )),
+	PatternEvent((\absTime: 78.0, \dur: 8.5, \event_dropdur: 78.0, \label: "rec_perc1ghost-78", \midinote: 6.0, \playDur: 8.5, \relDur: 8.5, \sustain: 8.5, \timeline: { SampleTimeline('rec_vin12_p1_t1_200216_211303') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 86.5, \dur: 0.0, \event_dropdur: 80.75, \label: "wishing-80.75", \legato: 1, \midinote: 4.0, \playDur: 0.0, \relDur: 0.0, \sustain: 1.5, \timeline: { SampleTimeline('wishing') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 86.5, \dur: 1.5, \event_dropdur: 86.5, \label: "rec_perc1ghost-78-86.5", \midinote: 6.0, \playDur: 1.5, \relDur: 1.5, \sustain: 1.5, \timeline: { SampleTimeline('rec_vin12_p1_t1_200216_211303') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 88.0, \dur: 0.0, \legato: 1, \midinote: 7.0, \pattern: Pdef('ambifall3'), \playDur: 0.0, \relDur: 0.0, \sustain: 4.0, \type: 'pattern', )),
+	PatternEvent((\absTime: 88.0, \dur: 0.0, \event_dropdur: 82.25, \label: "wishing-82.25", \legato: 1, \midinote: 4.0, \playDur: 0.0, \relDur: 0.0, \sustain: 14.0, \timeline: { SampleTimeline('wishing') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 88.0, \dur: 0.0, \event_dropdur: 80.0, \label: "rec_perc_basic-28-36-50-78.5-80", \midinote: 5.0, \playDur: 0.0, \relDur: 0.0, \sustain: 13.5, \timeline: { SampleTimeline('rec_vin12_p1_t2_200216_193941') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 88.0, \dur: 8.0, \event_dropdur: 88.0, \label: "rec_perc1ghost-78-88", \midinote: 6.0, \playDur: 8.0, \relDur: 8.0, \sustain: 20.5, \timeline: { SampleTimeline('rec_vin12_p1_t1_200216_211303') }, \type: 'pattern', )),
+	PatternEvent((\absTime: 96.0, \dur: 4.5, \legato: 1, \midinote: 7.0, \pattern: Pdef('ambifall3'), \playDur: 4.5, \relDur: 4.5, \sustain: 4.0, \type: 'pattern', )),
+	PatternEvent((\absTime: 100.5, \dur: 15.5, \label: 'rec_outro', \midinote: 8.0, \playDur: 15.5, \relDur: 15.5, \sustain: 9.5, \timeline: { SampleTimeline('rec_vin12_p1_t1_200216_232429') }, \type: 'pattern', )),
+	(\absTime: 116.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
