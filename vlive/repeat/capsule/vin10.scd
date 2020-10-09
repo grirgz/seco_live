@@ -407,6 +407,8 @@ Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 }).play;
 );
 
+Ndef(\zed).stop;
+
 (
 SynthDef(\rizmok, { arg out=0, gate=1;
 	var sig;

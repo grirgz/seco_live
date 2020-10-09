@@ -26,7 +26,7 @@ WindowDef(\RenameDialog, { arg me, question, defaultValue="", savefun, cancelfun
 		textfield = TextField.new.string_(defaultValue),
 		HLayout(
 			nil,
-			BasicButton.new.string_("Yes").action_({ 
+			BasicButton.new.string_("Confirm").action_({ 
 				savefun.(textfield.value);
 				me.closeWindow;
 			}),
@@ -41,3 +41,4 @@ WindowDef(\RenameDialog, { arg me, question, defaultValue="", savefun, cancelfun
 // END
 
 WindowDef(\ConfirmDialog).front("this will destroy everything, are you shure????")
+WindowDef(\RenameDialog).front("what name will it be ?")

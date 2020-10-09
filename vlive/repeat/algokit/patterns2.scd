@@ -592,9 +592,9 @@ Pdef(\main,
 						]).play;
 
 Pdef(\algopat3).clear
-Pdef(\algomain, Pdef(\algopat2)).play;
 Pdef(\algomain, Pdef(\algopat3)).play;
-Pdef(\algomain).stop
+Pdef(\algomain, Pdef(\algopat7)).play;
+Pdef(\algomain).clear
 PlayerWrapper(~kitlib.hiphop.kick).playWithQuant
 EventPatternProxy(~kitlib.hiphop.kick).play
 EventPatternProxy(~kitlib.hiphop.hat).play

@@ -75,6 +75,30 @@ WindowDef(\SimpleMainPanel, { arg def;
 				}).maxWidth_(30),
 				nil,
 			),
+			HLayout (
+				BasicButton.new.string_("New Project").action_({
+					WindowDef(\filedialog_save).front(nil, { arg path, name;
+						var proj;
+						[path, name].debug("new project");
+						proj = FileSystemProject(path +/+ name, ProtoTemplateDef(\MainProject));
+						proj.projectPath = path +/+ name;
+						FileSystemProject.current = proj;
+					}); 
+				}),
+				BasicButton.new.string_("Open Project").action_({
+					WindowDef(\filedialog).front(nil, { arg path, name;
+						var proj = FileSystemProject(name, ProtoTemplateDef(\MainProject));
+						proj.projectPath = path +/+ name;
+						FileSystemProject.current = proj;
+						FileSystemProject(name).loadProject;
+					}); 
+				}),
+				BasicButton.new.string_("Save Project").action_({
+					FileSystemProject.current.saveProject;
+				}),
+				nil,
+			),
+
 		), stretch:2],
 	).margins_(5).spacing_(5)
 });
@@ -132,6 +156,29 @@ WindowDef(\SimpleServerMeterViewTest, {
 }).front;
 )
 
+(
+WindowDef(\SimpleServerMeterViewTest, {
+	HLayout (
+		SimpleServerMeterView.new(Server.default, 0, 2, BusDef(\fx4, \audio, 2)).view, // listen to bus
+		SimpleServerMeterView.new(Server.default, 0, 2, BusDef(\soundin, \audio, 2)).view,
+		SimpleServerMeterView.new(Server.default, 2, 2).view, // in and out
+	)
+	//View.new.layout_(HLayout(BasicButton.new))
+}).front;
+)
+
+(
+Ndef(\soundin, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SoundIn.ar([0,1]);
+	sig = sig * \gain.kr(1);
+	//sig = sig * ( LFSaw.kr( LFNoise0.kr(1).unipolar * 5600 ) * 1 + 1 );
+}).play(BusDef(\soundin, \audio, 2).index, 2);
+);
+Ndef(\soundin).play(0,2)
+Ndef(\soundin).edit;
+Ndef(\soundin).stop
+
 SimpleServerMeterView.serverMeterViews
 ~a = MultiLevelIdentityDictionary.new
 ~a.put(1,2,43)
@@ -170,3 +217,7 @@ Pbind(
 	\amp, 0.1,
 ).play
 )
+
+
+
+

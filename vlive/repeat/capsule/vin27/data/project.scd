@@ -1,0 +1,1 @@
+FileSystemProject('/home/ggz/code/sc/seco/vlive/repeat/capsule/vin27', ProtoTemplateDef(\MainProject))

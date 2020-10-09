@@ -376,3 +376,71 @@ Pdef(\demo, Pdef(\xdemo,
 	])
 )).play;
 )
+
+/////////////////////////////////:
+// tremblement continue
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,2,1],[0.1,0.1]), Dust.kr(10));
+	sig = SinOsc.ar(freq * env1);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+SynthDef(\sifle, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	//env1 = EnvGen.kr(Env([1,1,2,1],[0,0.1,0.1]), Dust.kr(10));
+	env1 = EnvGen.kr(Env([1,2,1,1],[0.1,0.1,0.1]), Impulse.kr(~t*8) + Dust.kr(4));
+	env2 = EnvGen.kr(Env([1,2,4,1],[0.1,0.1,0.1]), Impulse.kr(~t*4) + Dust.kr(4));
+	env3 = EnvGen.kr(Env([1,1/2,4,1],[0.1,0.1,0.1]*2), Impulse.kr(~t*2) + Dust.kr(4));
+	sig = LFSaw.ar(freq * [2,1.01,1/2,1,2.01] * env1);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * env2 * freq, \rq.kr(0.5) * env3);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1582].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,1,0,
+				0,0,1,0, 0,0,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[2204].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\pan, 1,
+			\gain, 0.21,
+		),
+		Pmono(\sifle,
+			\note, Pseq([
+				1,3,1,0,
+			],inf).stutter(1),
+			\lpfr, 2.3,
+			\octave, 4,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);

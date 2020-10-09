@@ -8,12 +8,26 @@ ProtoDef(\piano, (
 			target = Pdef(\piano_player, Pbind(\instrument, \default));
 			MIDIMap(\apk9,Param(Pdef(\piano_player), \amp).setBusMode);
 		};
+		self.pianoTarget = target;
 		if(~apro_device_id.notNil) {
 			self.apro(~seqPlayerGroup.new(target));
 		};
 		if(~nektar_device_id.notNil) {
 			self.nektar(~seqPlayerGroup.new(target));
 		};
+		if(~nektar_device_id.isNil and: {~apro_device_id.isNil}) {
+			"unable to find nektar or apro, try init midi".debug;
+		}
+	},
+
+	edit: { arg self, target;
+		target = target ? self.pianoTarget;
+		WindowDef(\piano_pdef_editor, {
+			VLayout (
+				WindowDef(\PdefEditor).asView(target),
+				WindowDef(\pianokeyboard).asView(target).minSize_(800@120),
+			)
+		}).front;
 	},
 
 	apro: { arg self, playergroup;
@@ -73,29 +87,29 @@ ProtoDef(\piano, (
 	permanent: true,
 ));
 
-	WindowDef(\pianokeyboard, { arg def, target;
-		var kb = MIDIKeyboardView.new;
-		if(target.notNil) {
-			var player = ~seqPlayerGroup.new(target);
-			kb.keyDownAction = { arg midinote, old;
-				if(old.notNil) {
-					player.elAt(old).stop;
-				};
-				player.elAt(midinote).play;
-			};
-			kb.keyTrackAction = { arg midinote, old;
+WindowDef(\pianokeyboard, { arg def, target;
+	var kb = MIDIKeyboardView.new;
+	if(target.notNil) {
+		var player = ~seqPlayerGroup.new(target);
+		kb.keyDownAction = { arg midinote, old;
+			if(old.notNil) {
 				player.elAt(old).stop;
-				player.elAt(midinote).play;
 			};
-			kb.keyUpAction = { arg midinote;
-				player.elAt(midinote).stop;
-			};
+			player.elAt(midinote).play;
 		};
-		def.windowDo { arg win;
-			win.setInnerExtent(800,120)
+		kb.keyTrackAction = { arg midinote, old;
+			player.elAt(old).stop;
+			player.elAt(midinote).play;
 		};
-		kb.asView;
-	});
+		kb.keyUpAction = { arg midinote;
+			player.elAt(midinote).stop;
+		};
+	};
+	def.windowDo { arg win;
+		win.setInnerExtent(800,120)
+	};
+	kb.asView;
+});
 
 ProtoDef(\nektar, (
 	parent: ProtoDef(\piano),

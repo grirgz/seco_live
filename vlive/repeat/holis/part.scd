@@ -253,6 +253,7 @@ Pdef(\part, Pdef(\ze_fmsaw_scratch,
 		Pbind(
 			// scratching!
 			\instrument, \fmsaw,
+			//\fmfreq, Pstep(Pseq([1,4,8,16],inf),1),
 			\note, Pseq([
 				[1,5,8],
 				[1,6,10],

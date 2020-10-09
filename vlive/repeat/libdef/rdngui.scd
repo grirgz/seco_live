@@ -42,13 +42,13 @@ ProtoTemplateDef(\rdn, (
 	},
 
 	outBus_: { arg self, val;
-		PlayerWrapper(Ndef(self.fxkey)).outBus = val;
+		PlayerWrapper(self.proxy).outBus = val;
 		self.changed(\outBus);
 		self;
 	},
 
 	outBus: { arg self;
-		PlayerWrapper(Ndef(self.fxkey)).outBus;
+		PlayerWrapper(self.proxy).outBus;
 	},
 
 	inBus: { arg self;

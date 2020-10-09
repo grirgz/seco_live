@@ -801,6 +801,7 @@
 
 
 Pdef(\algo2, ~kiterize.(Pdef(\algo2_p5))).play
+Pdef(\algo2, ~kiterize.(Pdef(\algo2_p4))).play
 Pdef(\algo2).play;
 false.asInteger
 

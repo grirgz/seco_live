@@ -308,7 +308,7 @@ Pdef(\part, Pdef(\plop,
 			),
 		Plazy({
 			var stut = Pseq([
-				1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,
+				1,8,4,1, 4,4,4,4, 1,1,1,1, 1,1,1,1,
 			],inf);
 			Pbind(
 				\instrument, \playersec,
@@ -608,6 +608,169 @@ Pdef(\part, Pdef(\plop,
 	])
 )).play;
 )
+
+(
+	// simplifed
+	// the secret is the effect doing a 8/8 pattern, i recreated it with a hat pattern with two alternating timbre
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \sibass,
+			\degree, Pstep(Pseq([
+				0,0,0,-1,
+			],inf),1),
+			\legato, 0.9,
+			\octave, 3,
+			\dur, 1/1,
+			\out, BusDef(\sendbus1, \audio),
+			\amp, 0.1,
+			\isRest, true,
+		),
+		Pmono( \rdncleandist_fulllight,
+			\inbus, BusDef(\sendbus1, \audio, 2),
+			\addAction, \addToTail,
+			'wet10', 1.0,
+			'mix', 0.45714285714286,
+			'gain', 0.6344889782792,
+			'fb', 0.00099467303085 * Pseq([
+				100,1,
+				10,1,
+				1,10,
+				1,100,
+				1,10,
+				10,1,
+			],inf),
+			'delay', 0.00000600001231 * Pseq([
+				100,
+				1,
+				100,
+				10000,
+			],inf).stutter(1),
+			'delay2', 0.001000543560101,
+			'distamp', 0.361836201538 * Pseq([
+				1,2,10,10,
+				41,42,40,1,
+			],inf),
+			'prelpf', 17000,
+			'prehpf', 17,
+			'lpf', 17000 * Pseq([
+				1,1/2,
+			],inf),
+			'hpf', 17,
+			'fbdistamp', 4.5388371966577,
+			'fbdistmix', 0.98176470588235,
+			'postlpf', 17000,
+			'posthpf', 17,
+			\bpmix, 0,
+			'wetamp', 0.20503372119697,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			\dur, 1/8,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1064].value,
+			\bufnum, Pseq(~buflib.hat[~buflib.hat.size.rand.debug("h") + [1,0]].collect(_.value),inf),
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf).coin.not,
+			\sustain, 0.03,
+			\dur, 1/8,
+			\lag, 0.04,
+			\gain, 0.05,
+			\isRest, true,
+		),
+		Pbind(
+			\instrument, \playersec_hlpf,
+			\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf).coin.not,
+			\pos, 0.002,
+			\sustain, 0.03 + Pseq([0,0.03],inf),
+			\speed, Pseq([1.2,1],inf),
+			\hpf, 100,
+			\dur, 1/8,
+			\lag, 0.04,
+			\gain, 0.15 * Pseq([0.7,1],inf),
+		),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 8,
+			\isRest, Pseq({[
+				1,1,1,1, 1,1,1,1,
+				1,0,1,0, 1,0,1,0,
+				1,0,0,0, 1,0,0,0,
+				0,0,1,0, 0,0,1,0,
+			].clump(8).choose}.dup(8).flat,inf).coin.not,
+			\sustain, 0.1,
+			\dur, 1/8,
+			\amp, 0.1,
+			\lag, 0.04,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,1,0,0, 0,0,0,0,
+				1,0,0,1, 0,0,0,0,
+				0,1,0,0, 0,0,1,0,
+				1,0,0,1, 0,0,0,0,
+		
+				1,0,1,0, 0,1,0,0,
+				1,0,0,1, 0,0,1,0,
+				0,0,1,1, 0,0,1,1,
+				1,0,0,1, 0,0,1,0,
+			],inf).coin.not,
+			\sustain, 0.1/4 * Pseq([1,2],inf),
+			\gain, 0.8,
+			\dur, 1/8,
+		//	\out, BusDef(\fx1, \audio),
+			\amp, 0.1,
+			\lag, 0.04,
+			\isRest, true,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 0,
+			\isRest, Pseq([
+				1,0,1,0, 0,0,0,1,
+				1,0,1,0, 0,0,0,1,
+				1,0,1,0, 0,0,0,1,
+				0,0,1,0, 0,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\dur, 1/8,
+			\amp, 0.1,
+			\lag, 0.04,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,1,
+				0,0,0,0, 0,0,0,1,
+				0,0,0,0, 0,0,1,0,
+				0,1,0,0, 0,0,0,1,
+			],inf).coin.not,
+			\sustain, 0.1/2,
+			\speed, 0.99,
+			\gain, 0.4,
+			\dur, 1/8,
+			\amp, 0.1,
+			\lag, 0.04,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\dur, 1/8,
+			\amp, 0.1,
+			\lag, 0.04,
+		)),
+	])
+)).play;
+);
 
 
 

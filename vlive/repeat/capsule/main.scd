@@ -15,8 +15,16 @@ s.waitForBoot {
 };
 );
 
+RandDelayNetwork(\deldefault).define_specs[\posthpf]
+\freq.asSpec
+Spec.specs[\freq]
 { SinOsc.ar(2500) ! 2 * 0.1}.play;
 ParamProto.init(true)
+ProtoDef(\piano).startControl()
+SCVim.generateTagsFile
+Help.gui
+SCDoc.findHelpFile("Pdef")
+HelpBrowser.openHelpFor("Pdef")
 
 (
 

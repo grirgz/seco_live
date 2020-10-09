@@ -1990,7 +1990,7 @@ SynthDef(\multi, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 
 
 (
-Pdef(\zed, 
+Pdef(\part, 
 	Pbind(\out, BusDef(\sendbus1, \audio)) <>
 	Ppar([
 		Pbind(

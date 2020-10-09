@@ -1,3 +1,4 @@
+		~t = 71/2/60; TempoClock.default.tempo = ~t;
 
 (
 SynthDef(\doublebell, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;

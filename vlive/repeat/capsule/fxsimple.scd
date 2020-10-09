@@ -338,6 +338,18 @@ SynthDef(\fx_echo, { arg out=0, amp=0.1, gate=1;
 	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\fx_pingpong, { arg out=0, gate=1;
+	var sig;
+	var buf = LocalBuf(SampleRate.ir*5,2).clear;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+
+	sig = PingPong.ar(buf, in, \delay.kr(0.2), \fb.kr(0.5), 1);
+
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\fx_expecho, { arg out=0, gate=1,
 		decayFactor = 0.75,
 		lpfCutoff = 500,
@@ -455,6 +467,41 @@ SynthDef(\chorusdistlim, { arg out=0, amp=0.1, gate=1;
 }).add;
 );
 
+(
+SynthDef(\fx_phaser, {arg out=0, freq=0.2, gate=1;
+	//phasing = play a signal back in combination with a phase shifted copy of itself (using an allpass filter); vary the delaytime under 20 msec
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = AllpassN.ar(sig,\maxdelay.kr(0.02),( SinOsc.ar(freq,0,\lfomul.kr(0.01),\delay.kr(0.01)) ).poll, \decay.kr(0.002)); //max delay of 20msec
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	Out.ar(out, sig);
+
+}).add;  
+
+
+
+SynthDef(\fx_flanger, {arg out=0, gate=1, flangefreq=0.1, fb=0.1;
+	//flanging= play a signal back in combination with a delayed copy of itself; vary the delaytime around 10 msec
+	//flanging usually also involves some feedback, achieved here using LocalIn and LocalOut
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+
+	sig = in+ LocalIn.ar(2); //add some feedback
+	sig= DelayN.ar(sig,\maxdelay.kr(0.02),SinOsc.kr(flangefreq,0,\lfomul.kr(0.01),\delay.kr(0.005))); //max delay of 20msec
+	LocalOut.ar(fb*sig);
+
+	//LocalOut.ar(fdback*BPF.ar(effect,MouseX.kr(1000,10000),0.1)); //alternative with filter in the feedback loop
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	Out.ar(out, sig);
+
+}).add;  
+);
+
 
 (
 SynthDef(\simplecomp, { arg out=0, gate=1;
@@ -496,6 +543,38 @@ SynthDef(\fx_sidechain, { arg out=0, gate=1, sidemode=1;
 	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
 	Out.ar(out, sig);
 }).add;
+
+SynthDef(\fx_bandcomp, { arg out=0, gate=1, low = 1200, hi = 10000, lowlevel = -24;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	//var sidein = InFeedback.ar(\sideinbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = sig * \pregain.kr(1);
+
+	sig1 = sig * \pregainlow.kr(1);
+	sig1 = BHiShelf.ar(sig1, low, 1, lowlevel);
+	sig1 = Compander.ar(sig1, sig1, \cptlow.kr(0.4), \cpbelowlow.kr(1.001), \cpabovelow.kr(0.9), \cpclamplow.kr(0.01), \cprelaxlow.kr(0.1));
+	sig1 = sig1 * \gainlow.kr(1);
+
+	sig2 = sig * \pregainlow.kr(1);
+	sig2 = BLowShelf.ar(sig2, low, 1, lowlevel);
+	sig2 = BHiShelf.ar(sig2, hi, 1, lowlevel);
+	sig2 = Compander.ar(sig2, sig2, \cptmid.kr(0.4), \cpbelowmid.kr(1.001), \cpabovemid.kr(0.9), \cpclampmid.kr(0.01), \cprelaxmid.kr(0.1));
+	sig2 = sig2 * \gainmid.kr(1);
+
+	sig3 = sig * \pregainhi.kr(1);
+	sig3 = BLowShelf.ar(sig3, hi, 1, lowlevel);
+	sig3 = Compander.ar(sig3, sig3, \cpthi.kr(0.4), \cpbelowhi.kr(1.001), \cpabovehi.kr(0.9), \cpclamphi.kr(0.01), \cprelaxhi.kr(0.1));
+	sig3 = sig3 * \gainhi.kr(1);
+
+	sig = [sig1, sig2, sig3].sum;
+
+	sig = SelectX.ar(\mix.kr(1), [in, sig]);
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
 );
 
 
@@ -518,6 +597,8 @@ SynthDef(\fx_sidechain, { arg out=0, gate=1, sidemode=1;
 		\fx_tapeslow,
 		\fx_stutter,
 		\fx_chorus,
+		\fx_flanger,
+		\fx_phaser,
 		\fx_ring,
 		\fx_freqshift,
 		\fx_eqhi,
@@ -533,12 +614,37 @@ SynthDef(\fx_sidechain, { arg out=0, gate=1, sidemode=1;
 		\simplecomp,
 		\fx_compander,
 		\fx_sidechain,
+		\fx_bandcomp,
 	].do { arg key;
 		TagSpecDef(\SynthDef_fx).addUnique(key)
 	};
-)
+);
 
+Spec.add(\sideinbus, TagSpecDef(\BusDef_object));
+
+
+/////////////////////////////////////////////////////////////////////////:
 // END
+
+(
+SynthDef(\riseflang, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	freq = freq * EnvGen.kr(Env([1,1.02,1],[0.01,0.8]), 1);
+	freq = freq * [1,4.000001,2.00001];
+	sig = LFSaw.ar(freq);
+	sig = LocalIn.ar(2) * \fb.kr(0.5) + sig;
+	sig = DelayC.ar(sig, 1, XLine.kr(0.001,1,2/~t)) + sig;
+	sig = DelayC.ar(sig, 1, XLine.kr(0.000123,1,2/~t)) + sig;
+	sig = DelayC.ar(sig, 1, XLine.kr(0.0000123,1,2/~t)) + sig;
+	sig = sig / 4;
+	sig = ( sig*\distamp.kr(10) * XLine.kr(32,1/8,2) ).tanh * \distpostamp.kr(1/2);
+	sig = RLPF.ar(sig, EnvGen.kr(Env([110,6200,12001],[0.1,0.8]), 1), \rq.kr(0.5));
+	LocalOut.ar(sig);
+	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan + [-0.001,0,0.002], amp).mean;
+	Out.ar(out, sig);
+}).add;
+)
 
 LocalBuf(1000).size
 
@@ -626,6 +732,24 @@ Pdef(\part, Pdef(\plop,
 				//\dur, Pser([1],1),
 				//\amp, 0.1,
 			//),
+			Pmono(\fx_flanger,
+				\freq, 0.2,
+				\mix, 1/2,
+				\lfomul, 0.005,
+				\delay, 0.005,
+				\maxdelay, 0.02,
+				\fb, 0.2,
+				\dur, Pser([1/4],8),
+			),
+			Pmono(\fx_phaser,
+				\freq, 0.2,
+				\mix, 1/2,
+				\lfomul, 0.008,
+				\delay, 0.01,
+				\maxdelay, 0.03,
+				\decay, 0.1,
+				\dur, Pser([1/4],8),
+			),
 			Pmono(\fx_ring,
 				\freq, 200,
 				\mix, 1,
@@ -724,6 +848,32 @@ Pdef(\demo, Pdef(\demozed,
 				[ Env([1, 1,0.4,1.3,1], [0, 1,1,1]) ],
 			],inf),
 			\time, 2,
+			\dur, 1,
+		),
+
+	])
+)).play;
+)
+
+(
+Pdef(\demo, Pdef(\demozed, 
+	Ppar([
+		Pbind(
+			\instrument, \basicbass,
+			\out, BusDef(\sendbus1, \audio),
+			\lpf, 10000,
+			\note, Pseq([
+				0,11,7,
+			],inf),
+			\sustain, 0.1,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		Pmono(\fx_pingpong,
+			\inbus, BusDef(\sendbus1),
+			\mix, 1/2,
+			\delay, 1/3.1/~t,
+			\fb, 0.6,
 			\dur, 1,
 		),
 

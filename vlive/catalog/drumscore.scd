@@ -432,6 +432,7 @@ Pdef(\part, Pdef(\plop,
 ///////////// tyler yonker hiphop beat
 // - swing
 // - advanced hat score (amen sample)
+// FIXME: why it freeze the interpreter ?
 
 
 (
@@ -782,6 +783,7 @@ Pdef(\fadrum,
 
 ///////////////////////////////////////////////////////////
 //////// swing and ternary
+~t = 185/2/60; TempoClock.default.tempo = ~t;
 
 
 // ternary
@@ -1388,6 +1390,111 @@ Pdef(\part, Pdef(\zed,
 			],inf),
 		),
 
+		
+	])
+)).play;
+);
+
+
+
+/////////////////////////////////////
+///// jazz
+// 4 * 3 steps
+~t = 185/4/60; TempoClock.default.tempo = ~t;
+(
+	// jazz drums
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\bufnum, ~buflib.kick[1010].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.3,
+		),
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\bufnum, ~buflib.kick[1277].value,
+			\isRest, Pseq([
+				0,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[1916].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.61,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1064].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\bufnum, ~buflib.hat[1128].value,
+			\isRest, Pseq([
+				1,0,0, 1,0,1, 1,0,0, 1,0,1
+			],inf).coin.not,
+			\accent, Pseq([
+				1,0,0, 5,0,0, 1,0,0, 5,0,0
+			],inf),
+			\dur, 1/12,
+			\gain, 0.31 * ( Pkey(\accent)/5+1 / 2 ),
+		),
+		
+	])
+)).play;
+);
+
+(
+	// jazz drums + hiphop
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\bufnum, ~buflib.kick[1010].value,
+			\isRest, Pseq([
+				1,0,0, 0,0,1, 0,0,0, 1,0,0,
+				0,0,1, 1,0,0, 1,0,0, 1,0,1,
+			],inf).coin.not,
+			\dur, 1/12,
+			\gain, 0.3,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[1916].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.61,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1064].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\bufnum, ~buflib.hat[1128].value,
+			\isRest, Pseq([
+				1,0,0, 1,0,1, 1,0,0, 1,0,1
+			],inf).coin.not,
+			\accent, Pseq([
+				1,0,0, 5,0,0, 1,0,0, 5,0,0
+			],inf),
+			\dur, 1/12,
+			\gain, 0.31 * ( Pkey(\accent)/5+1 / 2 ),
+		),
 		
 	])
 )).play;

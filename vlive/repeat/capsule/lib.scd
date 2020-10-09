@@ -65,6 +65,8 @@ FileSystemProject.load("libdef/track_rdnpreset.scd");
 FileSystemProject.load("libdef/apc.scd");
 FileSystemProject.load("libdef/patkitdef_apc.scd");
 
+FileSystemProject.load("libdef/macros.scd");
+
 FileSystemProject.load("libdef/piano.scd");
 FileSystemProject.load("libdef/synthplayrec.scd");
 FileSystemProject.load("libdef/multifbdel.scd");
@@ -72,12 +74,19 @@ FileSystemProject.load("libdef/basicrecorder.scd");
 FileSystemProject.load("libdef/rdngui.scd");
 FileSystemProject.load("libdef/simplemixer.scd");
 FileSystemProject.load("libdef/pmodenv.scd");
+FileSystemProject.load("libdef/bufEditor.scd");
+
+FileSystemProject.load("libdef/MainProject.scd");
+FileSystemProject.load("libdef/tracklist.scd");
+
 FileSystemProject.load("capsule/RDN_track1.scd");
 FileSystemProject.load("capsule/RDN_track1.scd");
 FileSystemProject.load("capsule/PatKitDef_ksh.scd");
 FileSystemProject.load("capsule/PatKitDef_rim.scd");
 FileSystemProject.load("capsule/fxsimple.scd");
 FileSystemProject.load("capsule/fxheavy.scd");
+
+
 FileSystemProject.load("~/.local/share/SuperCollider/Extensions/seco/seco/veco/inline_editor.scd");
 
 ///////////////////// control

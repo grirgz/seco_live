@@ -21,3 +21,4 @@ BufDef.mono(\moeten, "voices/02_moeten.flac")
 BufDef.mono(\crepe, "field/crepe.flac");
 BufDef.mono(\oeuf, "field/oeuf.flac");
 
+Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav");

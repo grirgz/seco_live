@@ -642,3 +642,280 @@ Pdef(\zed,
 	)
 ).play;
 );
+
+
+////////////////////////
+
+
+(
+SynthDef(\bouly, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env2 = EnvGen.ar(\env2.kr(Env([0,1,0],[1.001,1.08])), Impulse.ar(\imp2f.kr(1/4)));
+	env1 = EnvGen.ar(\env1.kr(Env([0,1,0],[0.001,0.08])), Impulse.ar(\imp1f.kr(100) * env2));
+	sig = SinOsc.ar(freq) * env1;
+	sig = RLPF.ar(sig, \lpfr.kr(5.1) * freq * (env2 * 0.5 +1), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+SynthDef(\boulyharm, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var fratio;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env2 = EnvGen.ar(\env2.kr(Env([0,1,0],[1.001,1.08])), Impulse.ar(\imp2f.kr(1/4)));
+	env1 = EnvGen.ar(\env1.kr(Env([0,1,0],[0.001,0.08])), Impulse.ar(\imp1f.kr(100) * env2));
+	fratio = freq/2 * [1,2,3,4,5,6];
+	sig = (SinOsc.ar(fratio) * [0.51,1,0.2, 0.61,0.1,0.3] * 0.8).mean * env1;
+	sig = RLPF.ar(sig, \lpfr.kr(5.1) * freq * (env2 * 0.5 +1), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, Prand([\bouly, \boulyharm],inf),
+			\env1, Pseq([
+				[ Env([0,1,0],[0.001,0.08]) ],
+			],inf),
+			\env2, Pseq([
+				Ptuple(~pEnv.(Pwhite(0.0,1,inf)!3,Pwhite(0.001,2))!4),
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(1.1,0.1,0.8,3.1) ],
+			],inf),
+			\note, Pseq([
+				[0,7,3+12,11],
+				[0,3,9,11],
+				[0,3,9,11]+2,
+				[0+12,7,9,11]+2,
+			],inf),
+			\lpfr, ~pmodenv.(Pwhite(0.61,4,inf), Pwhite(0.4,6.0)),
+			\imp1f, Ptuple(Pwhite(1,100.0,inf)!4),
+			\dur, 2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+Pdef(\part).clear;
+
+
+/////////////////////////////////////
+
+
+
+(
+SynthDef(\plucky, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:0);
+	//sig = Decay.ar(WhiteNoise.ar, 0.1);
+	sig = Pluck.ar(WhiteNoise.ar, 1, 100.reciprocal, freq.reciprocal, \decay.kr(1));
+	sig = sig + (sig.tanh * \distamp.kr(1));
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * (env1 * \envfamt.kr(1) + 1), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\pluckym, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var xfreq = freq * ((0..7)/7 - 0.5 * \fspread.kr(0.1) + 1);
+	env1 = EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:0);
+	//sig = Decay.ar(WhiteNoise.ar, 0.1);
+	sig = Pluck.ar(WhiteNoise.ar, 1, 100.reciprocal, xfreq.reciprocal, \decay.kr(1));
+	sig = sig + (sig.tanh * \distamp.kr(1));
+	sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq * (env1 * \envfamt.kr(1) + 1) ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\demozed, 
+	Ppar([
+		Pbind(
+			\instrument, \plucky,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+				1,0,0,0, 1,0,1,1,
+			],inf).coin.not,
+			\legato, 2,
+			\envfamt, 5,
+			\env1, Pseq([
+				[ Env.adsr(0.1,0.351,0.3,0.4) ],
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.051,0.8,0.4) ],
+			],inf),
+			\decay, 4,
+			\note, Pseq([
+				Pseq([
+					[0,7,12,15],
+				],8+6),
+				[0,7,12,14],
+				[0,7,12,14],
+
+				[3,7,10,14],
+				Pseq([
+					[3,7,10,15],
+				],8+6),
+				[3,7,10,14],
+
+				Pseq([
+					[-4, 3,8,10],
+					Pseq([
+						[-4, 3,8,10, 12],
+					],8+6),
+					[-4, 3,8,10],
+				],2),
+			],inf),
+			\dur, 1/16,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\demo, Pdef(\demozed, 
+	Ppar([
+		Pbind(
+			\instrument, \pluckym,
+			\fspread, 0.001 * Pseg(Pseq([1,10],inf),8),
+			\legato, 0.2,
+			\legato, Pseq([
+				Pswitch1(
+					[
+						Pseg(Pseq([0.01,1],inf),9),
+						Pseg(Pseq([0.01,0.2],inf),7),
+						Pseg(Pseq([1,0.01],inf),10),
+						Pseg(Pseq([0.01,1],inf),11),
+						Pseg(Pseq([0,0.2],inf),12),
+						Pseg(Pseq([1,0.01],inf),13),
+					], 
+					Pseq([0,1,2,3,4,5],inf)
+				),
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0.05 }),
+			\envfamt, Pswitch1(
+					[
+						Pseg(Pseq([0.01,1],inf),8.3),
+						Pseg(Pseq([0,0.2],inf),6.1),
+						Pseg(Pseq([1,0.01],inf),9.2),
+						Pseg(Pseq([0.01,1],inf),9.1),
+						Pseg(Pseq([0,0.2],inf),8.1),
+						Pseg(Pseq([1,0.01],inf),10.1),
+					]* 5 , 
+					Pseq([0,1,2,3,4,5],inf)
+			),
+			\lpfr, ~pmodenv.(Pseq([1/4,2,1,1.4],inf), 8),
+			\env1, Pseq([
+				[ Env.adsr(0.1,0.351,0.3,0.4) ],
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.081,0.051,0.8,0.4) ],
+			],inf),
+			\decay, Pswitch1(
+				[
+					Pseg(Pseq([1/4,4],inf),6),
+					Pseg(Pseq([1/4,2],inf),7),
+					Pseg(Pseq([2,1/4],inf),9),
+					Pseg(Pseq([1/8,4],inf),10),
+					Pseg(Pseq([1/8,2],inf),11),
+					Pseg(Pseq([2,1/8],inf),12),
+				], 
+				Pseq([0,1,2,3,4,5],inf)
+			),
+			\note, Pseq([
+				Pseq([
+					[0,7,12,15],
+				],12+9),
+				[0,7,12,14],
+				[0,7,12,14],
+				[0,7,12,14],
+
+				[3,7,10,14],
+				[3,7,10,14],
+				[3,7,10,14],
+				Pseq([
+					[3,7,10,15],
+				],12+6),
+				[3,7,10,14],
+				[3,7,10,14],
+				[3,7,10,14],
+
+				Pseq([
+					[-4, 3,8,10],
+					[-4, 3,8,10],
+					[-4, 3,8,10],
+					Pseq([
+						[-4, 3,8,10, 12],
+					],12+6),
+					[-4, 3,8,10],
+					[-4, 3,8,10],
+					[-4, 3,8,10],
+				],2),
+			],inf),
+			\dur, 1/12,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+
+////////
+
+// Use latch to generate lfo patterns that are cyclic-like but with natural variation
+
+(
+SynthDef(\latchsaw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq * [1* LFNoise1.ar(0.1,mul:0.01,add:1),1/2 * LFNoise1.ar(0.1,mul:0.01,add:1),LFNoise1.ar(0.1,mul:0.01,add:1) ]).mean;
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * ( 
+		Latch.ar( SinOsc.ar(\fmf.kr(1000.2)).unipolar, Impulse.ar(\latchfreq.kr(10))).lag(\latchlag.kr(0.01)) * \latchamt.kr(0.1) + 1 
+	), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+ProtoDef(\piano).startControl
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pmono(
+			 \latchsaw,
+			 \latchamt, Pseg(Pseq([0,3.71],inf),8),
+			 \latchlag, Pseg(Pseq([0,0.01,1],inf),9),
+			 \fmf, Pseq([
+			 	[1000.2,1000.1,2000,1002]
+			 ],inf),
+			 \lpfr, 0.8,
+			 \latchfreq, 16*~t,
+			\note, Pseq([
+				[0,7,12,15],
+				[1,6,13,15],
+			],inf),
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);

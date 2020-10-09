@@ -2781,7 +2781,7 @@ SampleTimeline(\bigbass).edit
 SampleTimeline(\bigbass).play
 SampleTimeline(\bigbass).presetCompileString.editorInsert
 (
-SampleTimeline(\bigbass).buffer = BufDef( '~/Musique/sc/cliprec/rec_bigbass_190713_171701.wav' )
+SampleTimeline(\bigbass).buffer = BufDef( '~/Musique/sc/cliprec/rec_bigbass_190713_171701.wav' );
 SampleTimeline('bigbass').eventList = XEventList.newFrom([
 	(\absTime: 3.21875, \dur: 4.0, \label: 'start', \playDur: 4.0, \relDur: 4.0, \sustain: 0, \type: 'start', ),
 	(\absTime: 7.21875, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
@@ -2953,6 +2953,103 @@ SampleTimeline(\rec_perc2_t1_190717_200249).buffer,
 )).play;
 );
 
+( // add regular drums, doesnt' work
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \snapkickx,
+			\bodyfreqenv, [ Env([261, 54, 21], [0.035, 0.08], curve: \exp) ],
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,1,0,
+				0,0,0,0, 0,0,0,1,
+			],inf).coin.not,
+			\amp, 0.1,
+			\out, BusDef(\sendbus1, \audio),
+		),
+
+		PatKitDef(\bat).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\velamp, 1/3,
+			\dur, 1/8,
+			\out, BusDef(\sendbus2, \audio),
+		)),
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				1,1,
+			],inf).coin.not,
+			\sustain, 0.05,
+			\fac1,0.1,
+			\dur, 1/8,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+			\out, BusDef(\sendbus3, \audio),
+		),
+		Pseq([
+			Pbind(
+				\pos, Pkey(\pos) + ( Pser([0,1,2,3]/2,6)/~t ),
+				\dur, 1/2,
+			),
+			Pfindur(1, Pbind(
+				\pos, Pkey(\pos) + Pwhite(0,8.0,inf).stutter(4),
+				\dur, 1/8,
+			))
+		],inf)
+		<>
+		Pbind(
+				\instrument, \playersec,
+				\bufnum, 
+				Prand([
+					BufDef(\distkick),
+SampleTimeline(\rec_perc2_t2_190717_200249).buffer,
+SampleTimeline(\rec_perc2_t1_190717_200249).buffer,
+				],inf),
+				\pos, 3.308 + ( Pseq([
+					Pser([0,1,2,3,4]*8,8),
+					Prand([0,1,2,3,4]*8,8),
+					Pseq([
+						Pser([0,1,2,3,4]*8,8),
+						Prand([0,1,2,3,4]*8,8),
+					],1)+32,
+				],inf).stutter(Pseq([8,2,4],inf))/~t ),
+				\legato, 1,
+				\gain, 1,
+		),
+		Pbind(
+			\instrument, \playersec_hlpf,
+			\bufnum, SampleTimeline(\rec_perc2_t2_190717_200249).buffer,
+			\pos, Pseq((0..54*16)/16 + (3/16))+0/~t,
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+				1,0,0,0, 0,1,1,1,
+				1,1,1,1, 1,1,1,1,
+				1,0,1,0, 1,0,1,1,
+				1,1,1,1, 1,1,1,1,
+				1,1,1,1, 0,0,0,0,
+				1,1,1,1, 1,1,1,1,
+				1,1,0,0, 1,1,0,0,
+				1,1,1,1, 1,1,1,1,
+				1,1,1,1, 1,1,1,1,
+				0,1,1,0, 0,1,1,0,
+			],inf).coin.not,
+			\hpf, 300,
+			\hpmix, 0.1,
+			\legato, 1,
+			\dur, 1/16,
+			\gain, 0.8,
+		),
+		
+	])
+)).play;
+);
+
 (
 Pdef(\part, Pdef(\zed, 
 	Ppar([
@@ -3044,6 +3141,7 @@ SampleTimeline(\rec_perc2_t2_190717_200249).buffer,
 
 
 (
+	// down
 Pdef(\part, Pdef(\zed, 
 	Ppar([
 		

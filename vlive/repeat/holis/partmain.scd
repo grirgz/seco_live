@@ -206,3 +206,18 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 );
+
+
+(
+WindowDef(\butlib, { arg def;
+	HLayout ( *
+		~ze_list.clump(16).collect({ arg group;
+			VLayout (
+				* group.collect({ arg pl;
+					PlayerWrapper(pl).asView;
+				}) ++ [nil]
+			)
+		})
+	)
+}).front;
+)

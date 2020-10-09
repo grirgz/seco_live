@@ -738,6 +738,119 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 );
+
+
+////////
+
+// Use latch to generate lfo patterns that are cyclic-like but with natural variation
+
+(
+SynthDef(\latchsaw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq * [1* LFNoise1.ar(0.1,mul:0.01,add:1),1/2 * LFNoise1.ar(0.1,mul:0.01,add:1),LFNoise1.ar(0.1,mul:0.01,add:1) ]).mean;
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * ( 
+		Latch.ar( SinOsc.ar(\fmf.kr(1000.2)).unipolar, Impulse.ar(\latchfreq.kr(10))).lag(\latchlag.kr(0.01)) * \latchamt.kr(0.1) + 1 
+	), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+ProtoDef(\piano).startControl
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pmono(
+			 \latchsaw,
+			 \latchamt, Pseg(Pseq([0,3.71],inf),8),
+			 \latchlag, Pseg(Pseq([0,0.01,1],inf),9),
+			 \fmf, Pseq([
+			 	[1000.2,1000.1,2000,1002]
+			 ],inf),
+			 \lpfr, 0.8,
+			 \latchfreq, 16*~t,
+			\note, Pseq([
+				[0,7,12,15],
+				[1,6,13,15],
+			],inf),
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+/////// latch also good as a filter!
+
+(
+SynthDef(\latched, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Latch.ar(sig, Impulse.ar(MouseX.kr(10,4999)));
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, Pdef(\latched, 
+	Ppar([
+		Pbind(
+			\instrument, \latched,
+			\adsr, Pseq([
+				[ Env.adsr(0.3,0.3,0.8,2.1) ],
+			],inf),
+			\note, Pseq([
+				[0,7,12,15, 10],
+				[0,7,12,15, 8+12]+2,
+			],inf),
+			\dur, 1,
+			\amp, 0.1/2,
+		),
+		
+	])
+)).play;
+);
+
+////////////// impending doom or thx: let fm desync phase progressively
+(
+SynthDef(\doom, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(
+		( freq * ( ExpRand(0.100,0.7000!16) * 0.007 + 1 ) )
+		* ( SinOsc.ar(ExpRand(0.0100,0.07000!16)/1).round(0.01) * SinOsc.ar(Rand(0.100,0.7!16)/10).range(0,0.9) + 1 )
+		* ( SinOsc.ar(ExpRand(100,7000!16)) * SinOsc.ar(Rand(0.100,0.7!16)).range(0,0.03) + 1 ) 
+	);
+	sig = RLPF.ar(sig, \lpfr.kr(5.1) * freq, \rq.kr(0.5));
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \doom,
+			\note, Pseq([
+				0,4,12,
+			],inf),
+			\dur, 4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
 //////////////////////////////// architecture
@@ -756,6 +869,7 @@ soundscape
 - noise + filters // substractive
 - dust // soundscape
 - array of random frequency (metallic)
+- pluck + whitenoise + filter + dist
 
 //////////////////// synths
 - kick
@@ -784,6 +898,7 @@ soundscape
 
 /////////// random
 - random from -n to n with bias to 0: 10.0.bilinrand
+- latch
 
 /////////// pitch types
 - multitonnal Array.series 

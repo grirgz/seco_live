@@ -307,3 +307,111 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 );
+
+///////////////
+// use powerset to generate all combination, nice idea but take lot of code to generate a few lines that could be coped colled faster
+
+~hatcombi = [ [ 0, 1, 0, 1, 0, 1, 0, 1 ], [ 1, 1, 1, 1, 1, 1, 1, 1 ], [ 0, 1, 0, 1, 1, 1, 1, 1 ], [ 1, 0, 1, 0, 1, 0, 1, 0 ], [ 0, 1, 0, 1, 1, 0, 1, 0 ], [ 1, 1, 1, 1, 1, 0, 1, 0 ], [ 0, 0, 0, 0, 0, 0, 0, 0 ], [ 0, 1, 0, 1, 0, 0, 0, 0 ], [ 1, 1, 1, 1, 0, 0, 0, 0 ], [ 1, 0, 1, 0, 0, 0, 0, 0 ] ];
+]
+
+(
+Pdef(\demo, Pdef(\xdemo, 
+	Ppar([
+		PatKitDef(\bat).asPattern(Pbind(
+			\kitIndex, 8,
+			\isRest, Pseq([
+				Plazy({ arg ev;
+									var lib = [
+
+										[0,1],
+										[1,1],
+										[1,0],
+										[0,0],
+									].powerset.debug("p").collect({ arg set;
+										var acc = [];
+										if(set.size == 1) {
+											4.do {
+												acc = acc ++ set[0];
+											}
+										} {
+											if(set.size == 2) {
+												2.do {
+													acc = acc ++ set[0];
+												};
+												2.do {
+													acc = acc ++ set[1];
+												};
+											}
+										};
+										[set, acc].debug("sa");
+										acc
+									}).select({ arg x; x.size > 0 }).postln;
+									Pseq({ Pseq(lib.choose) }.dup( 8 ),4)
+				}).loop,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.1,0.8,0.1) ],
+			],inf),
+			\sustain, 0.1/2,
+			\velamp, 1/6,
+			\dur, 1/8,
+		)),
+		Pbind(
+			\instrument, \snapkickx,
+			\bodyfreqenv, [ Env([261, 54, 21], [0.035, 0.08], curve: \exp) ],
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				1,0,1,0, 0,0,0,0,
+			],inf).coin.not,
+			\amp, 0.1,
+		),
+		PatKitDef(\bat).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\velamp, 1/3,
+			\dur, 1/8,
+		)),
+		
+	])
+)).play;
+);
+
+////////////// Dealing with rests
+
+// silence arbitrary parts of a pattern
+// need to use Pswitch1 instead of Pstep because Pkey should execute each time
+// Pkey(\isRest).keep(1) doesn't work because it repeat the same
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\isRest, Pswitch1([
+				Pkey(\isRest),
+				true,
+			],Pstep( 
+				Pseq([
+					Pn(0,6), 
+					Pn(1,2)
+				],inf),
+		   	,1/2)),
+		)
+		<>
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				Pseq([0,1,2,3]),
+			],inf),
+			\isRest, Pseq([
+				1,1,0,1, 1,1,1,1,
+			],inf).coin.not,
+			\dur, Prand([1/8],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+);

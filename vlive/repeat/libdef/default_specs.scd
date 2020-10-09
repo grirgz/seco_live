@@ -1,12 +1,13 @@
 
 // param specs
 
+Spec.add(\mix, \unipolar.asSpec);
 Spec.add(\inbus, XBusSpec.new);
 Spec.add(\gate, XGateSpec.new);
 Spec.add(\adsr, XEnvSpec.adsr);
 Spec.add(\lag, ControlSpec(0, 1, 'linear', 0, 0, ""));
 Spec.add(\gain, ControlSpec(0,1,\lin, 0,1));
-Spec.add(\out, XBusSpec());
+Spec.add(\out, TagSpecDef(\BusDef));
 Spec.add(\trigger, \unipolar);
 Spec.add(\speed, ControlSpec(-2,2,\lin, 0, 1));
 
@@ -15,6 +16,17 @@ Spec.add(\speed, ControlSpec(-2,2,\lin, 0, 1));
 Spec.add(\cpmix, \unipolar);
 Spec.add(\cpt, ControlSpec(0.001,5,\exp));
 Spec.add(\verbmix, \unipolar);
+
+
+Spec.add(\wideamp, ControlSpec(0.001,5,\lin,0,1));
+Spec.add(\freqshift, ControlSpec(-1000,1000,\lin,0,0));
+Spec.add(\stretch, ControlSpec(0.001,4,\exp,0,1));
+Spec.add(\bistretch, ControlSpec(-4,4,\lin,0,1));
+Spec.add(\preamp, \amp.asSpec);
+
+Spec.add(\compt, ControlSpec(0,2,\lin));
+Spec.add(\complo, ControlSpec(0,2,\lin));
+Spec.add(\comphi, ControlSpec(0,2,\lin));
 
 // rdn
 

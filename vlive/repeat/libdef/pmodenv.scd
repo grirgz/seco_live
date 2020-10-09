@@ -1,8 +1,8 @@
 
 (
-SynthDef(\modenv, { arg out=0, amp=0.1, gate=1;
+SynthDef(\modenv, { arg out=0, amp=0.1, gate=1, levelBias=0, levelScale=1;
 	var sig;
-	sig = EnvGen.kr(\env.kr(Env([1,2,1],[0.1,0.8])), gate, doneAction:2);
+	sig = EnvGen.kr(\env.kr(Env([1,2,1],[0.1,0.8])), gate, levelBias: levelBias, levelScale: levelScale, doneAction:2);
 	Out.kr(out, sig);
 }).store;
 SynthDef(\modenvlag, { arg out=0, amp=0.1, gate=1;

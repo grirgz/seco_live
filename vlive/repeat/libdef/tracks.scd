@@ -15,7 +15,12 @@ WindowDef(\PdefEditor, { arg me, key=\default;
 		target = Pdef(key);
 	};
 	VLayout(
-		PlayerWrapper(target).asView,
+		HLayout (
+			PlayerWrapper(target).asView,
+			BasicButton.new.string_("Special edit").action_({
+				target.getHalo(\edit).value(target);
+			})
+		),
 		ParamGroupLayout.two_panes(target.asParamGroup),
 	);
 });

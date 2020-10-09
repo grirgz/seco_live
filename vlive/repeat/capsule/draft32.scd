@@ -108,7 +108,8 @@ Pdef(\part, Pdef(\plop,
 		);
 	])
 )).play;
-)
+);
+
 (
 SynthDef(\delbass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -193,7 +194,7 @@ SynthDef(\phyhat4, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = Pan2.ar(sig, pan, amp).sum;
 	Out.ar(out, sig);
 }).add;
-)
+);
 
 (
 Pdef(\part, Pdef(\plop, 
@@ -2228,7 +2229,7 @@ Pdef(\part, Pdef(\island_verse1a,
 		),
 	])
 )).play;
-)
+);
 
 (
 Pdef(\part, Pdef(\island_verse1, 
@@ -2536,7 +2537,7 @@ Pdef(\part, Pdef(\island_verse1,
 			],inf),
 	])
 )).play;
-)
+);
 
 
 
@@ -2816,7 +2817,7 @@ Pdef(\part, Pdef(\island_verse2,
 			],inf),
 	])
 )).play;
-)
+);
 
 
 (
@@ -3081,7 +3082,7 @@ Pdef(\part, Pdef(\island_verse3,
 				),
 	])
 )).play;
-)
+);
 
 
 (
@@ -3250,7 +3251,7 @@ Pdef(\part, Pdef(\island_break1,
 		),
 	])
 )).play;
-)
+);
 
 (
 Pdef(\part, Pdef(\island_break2, 
@@ -3467,9 +3468,8 @@ Pdef(\part, Pdef(\island_break2,
 			],inf),
 	])
 )).play;
-)
+);
 
-{ SinOsc.ar(200 * ( SinOsc.kr(1/9) * 1 + 1 )) ! 2 * 0.1}.play;
 (
 SynthDef(\siren, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -3488,9 +3488,8 @@ Pdef(\part, Pdef(\plop,
 		),
 	])
 )).play;
-)
-Pdef.defaultQuant= 1;
-Pdef.defaultQuant= 4;
+);
+
 
 (
 Pdef(\part, Pdef(\island_verse4, 
@@ -3777,7 +3776,7 @@ Pdef(\part, Pdef(\island_verse4,
 			],inf),
 	])
 )).play;
-)
+);
 
 (
 Pdef(\part, Pdef(\island_verse4outro, 
@@ -3992,8 +3991,10 @@ Pdef(\part, Pdef(\island_verse4outro,
 			]),
 	])
 )).play;
-)
+);
 
+Pdef.defaultQuant= 1;
+Pdef.defaultQuant= 4;
 /////////////////////////////// MAIN
 
 (

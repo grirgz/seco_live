@@ -6,7 +6,7 @@
 
 		//~t = 185/4/60; TempoClock.default.tempo = ~t;//orig
 		~t = 185/4/60; TempoClock.default.tempo = ~t;
-		Ndef.defaultQuant = 4;
+//		Ndef.defaultQuant = 4;
 		Pdef.defaultQuant = 4;
 		
 FileSystemProject.load("ex3/lib.scd");
