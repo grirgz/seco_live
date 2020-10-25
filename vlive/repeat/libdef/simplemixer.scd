@@ -87,6 +87,14 @@ ProtoTemplateDef(\simpleMixer, (
 		BusDef(\null, \audio, 2);
 	},
 
+	//asArchiveData: { arg self;
+		//var data = ();
+		//data.trackCount = self.trackCount;
+		//data.tracks = self.tracks.collect { arg track, idx;
+			//track.asParamGroup.getSetCompileString("%.tracks[%]".format(self.refCompileString, idx))
+		//};
+	//},
+
 	presetCompileString: { arg self;
 		"%\n\n%".format(
 			"%.trackCount = %;".format(self.refCompileString, self.trackCount),
@@ -107,15 +115,9 @@ ProtoTemplateDef(\simpleMixer, (
 		if(File.exists(self.presetCompileStringSavePath).not or: {self.loadedFromPath == self.presetCompileStringSavePath}) {
 			File.mkdir(self.presetCompileStringSavePath);
 			self.loadedFromPath = self.presetCompileStringSavePath;
-			path = path ? (self.presetCompileStringSavePath +/+ "TrackDef_%.scd".format(self.key));
+			path = path ? (self.presetCompileStringSavePath +/+ "Mixer_%.scd".format(self.key));
 			PlayerWrapper_Base.savePresetCompileStringHelper(path, onDoneAction, self.refCompileString, self.presetCompileString, false);
-			self.children.do({ arg column;
-				column.savePresetCompileString;
-			});
-			self.resources.do { arg res;
-				PlayerWrapper(res).savePresetCompileString;
-			}; 
-			Log(\Param).info("TrackList % saved.", self.key);
+			Log(\Param).info("simpleMixer % saved.", self.key);
 		} {
 			"savePresetCompileString: can't save on existing project".error;
 		}
@@ -211,7 +213,9 @@ WindowDef(\simpleMixer, { arg def, simpleMixer;
 			delayview = TextField.new;
 			delayview.mapParam( Param(mixer.proxy, \postdelay, ControlSpec(0,0.1,\lin)) );
 			boxview.layout = VLayout (
-				PlayerWrapper(mixer.proxy).label_(mixer.key).asView,
+				PlayerWrapper(mixer.proxy)
+					.label_("%: %".format(x, mixer.name ?? mixer.key))
+					.asView,
 				mixerview = mixerView.(mixer),
 				HLayout(StaticText.new.string_("postdelay:"), delayview),
 				Param(Message(mixer), \outbus,TagSpecDef(\BusDef)).asPopUpMenu.minWidth_(60).addAction({ 

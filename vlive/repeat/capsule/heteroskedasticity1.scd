@@ -1,6 +1,4 @@
 ~t = 150/2/60; TempoClock.default.tempo = ~t;
-// 256 beats = 3 min 24.8 seconds
-//256/16
 
 (
 ~master = {
@@ -13,7 +11,7 @@
 	ProtoDef(\rdn4).play;
 };
 ~master.();
-);
+)
 
 (
 SynthDef(\darkyoct, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
@@ -60,17 +58,8 @@ ProtoDef(\vin31_mainMixer).tracks[1].name = "hi1";
 ProtoDef(\vin31_mainMixer).tracks[2].name = "hi2";
 ProtoDef(\vin31_mainMixer).tracks[3].name = "harddrums";
 ProtoDef(\vin31_mainMixer).tracks[4].name = "bass";
-ProtoDef(\vin31_mainMixer).tracks[9].name = "fx1";
-ProtoDef(\vin31_mainMixer).tracks[10].name = "fx2";
-ProtoDef(\vin31_mainMixer).tracks[11].name = "fx3";
-ProtoDef(\vin31_mainMixer).tracks[12].name = "fx4";
 
 /////// trackgrid
-
-TrackDef('vin31_mainTrackGrid').enableMixer = true;
-TrackDef('vin31_mainTrackGrid').mixer = ProtoDef(\vin31_mainMixer);
-TrackDef('vin31_mainTrackGrid').mixer 
-
 (
 TrackDef('vin31_mainTrackGrid').elAt(0).source = [
 	Pdef(\introdrums),
@@ -119,7 +108,6 @@ TrackDef('vin31_mainTrackGrid').elAt(2).source = [
 TrackDef('vin31_mainTrackGrid').elAt(3).source = [
 	Pdef(\hi_const),
 	Pdef(\hi_const2),
-	Pdef(\hi_const3),
 	nil,
 	nil,
 	nil,
@@ -136,9 +124,9 @@ TrackDef('vin31_mainTrackGrid').elAt(7).source = [
 ];
 );
 
-//ProtoDef(\vin31_mainMixer).tracks.size
-//ProtoDef(\vin31_mainMixer).trackCount
-//ProtoDef(\vin31_mainMixer).trackCount = 13
+ProtoDef(\vin31_mainMixer).tracks.size
+ProtoDef(\vin31_mainMixer).trackCount
+ProtoDef(\vin31_mainMixer).trackCount = 13
 
 
 /////////
@@ -1158,8 +1146,6 @@ Pdef(\part2, Pdef(\harddrums,
 					1,0,0,0, 1,0,0,0,
 					0,0,1,0, 0,0,0,0,
 				],inf).coin.not,
-				\speed, 1 * Pseq([1,0.7,1.5,1.2],inf),
-				\speed, 1,
 				\dur, 1/8,
 				\gain, 0.4,
 			),
@@ -1185,7 +1171,7 @@ Pdef(\part2, Pdef(\harddrums,
 		
 		]),
 	])
-));
+)).play;
 );
 
 (
@@ -2606,10 +2592,6 @@ Pdef(\part, Pdef(\hi_const3,
 )).play;
 );
 
-/////////////////////////////////////// ///////////////////////////////////////
-/////////////////////////////////////// ///////////////////////////////////////
-
-///////////////////////////////////////
 ///////////: RDN Automatisation
 
 (
@@ -2667,7 +2649,6 @@ Ndef(\rdn3).quant = 1
 
 ClipTimeline(\vin31_aux1).edit
 ClipTimeline(\vin31_aux1).clear
-FileSystemProject('capsule/vin31').resources.add( ClipTimeline(\vin31_aux1) )
 
 
 (

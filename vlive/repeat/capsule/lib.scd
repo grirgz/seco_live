@@ -40,6 +40,7 @@ MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\playersec_hlpf);
 
 
 ParamProto.init;
+if(~t.isNil) { ~t = 1; TempoClock.default.tempo = ~t; };
 
 FileSystemProject.load("libdef/default_specs.scd");
 

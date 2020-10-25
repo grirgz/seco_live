@@ -86,13 +86,27 @@ TrackTemplateDef(\playerwrapper, (
 	},
 
 	edit: { arg self;
-		WindowDef(\playerwrapper, {
-			var track = self;
-			VLayout(
-				PlayerWrapper(track).asView,
-				ParamGroupLayout.two_panes(track.asParamGroup)
-			)
-		}).front;
+		var target = self.source;
+		if(target.getHalo(\edit).notNil) {
+			target.getHalo(\edit).value(target);
+		} {
+			if(target.isKindOf(Pdef)) {
+				WindowDef(\PdefEditor).front(target)
+			} {
+				if(target.isKindOf(Ndef)) {
+					WindowDef(\NdefEditor).front(target)
+				} {
+					target.edit
+				}
+			};
+		};
+		//WindowDef(\playerwrapper, {
+			//var track = self;
+			//VLayout(
+				//PlayerWrapper(track).asView,
+				//ParamGroupLayout.two_panes(track.asParamGroup)
+			//)
+		//}).front;
 	},
 
 	play: { arg self;
@@ -238,7 +252,7 @@ TrackTemplateDef(\playertrack, (
 	},
 
 	activateChild: { arg self, idx;
-		self.activeChild.play;
+		self.childAt(idx).play;
 	},
 
 	activeChild: { arg self;
@@ -339,12 +353,16 @@ TrackTemplateDef(\playertrack, (
 
 	mixer: { arg self;
 		if(self.enableMixer) {
-			if(self.mixer_obj.isNil) {
-				self.mixer_obj = ~trackMixerDef.new(self.parentTrack.key+++"."+++self.index);
-				self.mixer_obj.define_mixer;
-				self.init_mixer_busses;
-			};
-			self.mixer_obj;
+			if(self.parentTrack.mixer.notNil) {
+				self.parentTrack.mixer.tracks[self.index]
+			} {
+				if(self.mixer_obj.isNil) {
+					self.mixer_obj = ~trackMixerDef.new(self.parentTrack.key+++"."+++self.index);
+					self.mixer_obj.define_mixer;
+					self.init_mixer_busses;
+				};
+				self.mixer_obj;
+			}
 		} {
 			nil
 		}
@@ -425,7 +443,7 @@ TrackTemplateDef(\playergrid, (
 				track.presetCompileStringSavePath = val;
 			})
 		});
-		"===== saving resources".debug;
+		"===== setting path of resources".debug;
 		self.resources.do { arg track;
 			PlayerWrapper(track).presetCompileStringSavePath = "%%_%.scd".format(val, PlayerWrapper(track).targetClass, track.key);
 		};
@@ -518,10 +536,14 @@ TrackTemplateDef(\playergrid, (
 	},
 
 	edit: { arg self;
-		WindowDef(\playergrid).front(self);
+		WindowDef(\Grid_ +++ self.key, WindowDef(\playergrid))k).front(self);
 		{
-			WindowDef(\playergrid).window.bounds =  Rect(144, 217, 1090, 438);
+			WindowDef(\Grid_ +++ self.key).window.bounds =  Rect(144, 217, 1090, 438);
 		}.defer(1)
+	},
+
+	refCompileString: { arg self;
+		self.asCompileString;
 	},
 
 	activate: { arg self;
@@ -840,36 +862,41 @@ WindowDef(\playergrid, { arg me, maintrack;
 	mainview = View.new;
 	mainview.onChange(maintrack, \gridOffset, { {map_players.()}.defer });
 
-	playerviews = { { PlayerWrapperSelectorView.new } ! 8 } ! 9;
+	playerviews = { { PlayerWrapperGridCellView.new } ! 8 } ! 9;
 	//mixerviews = { WindowDef(\mixerView).asView } ! 9;
 	mixerviews = 9.collect({ arg x;
-			var boxview = View.new;
+			var boxview;
 			var delayview;
 			var child;
 			var mixer;
 			var mixerview;
-			child = maintrack.childAtOffset(x);
-			if(child.notNil) {
-				mixer = child.mixer;
-				delayview = TextField.new;
-				delayview.mapParam( Param(mixer.proxy, \postdelay, ControlSpec(0,0.1,\lin)) );
-				boxview.layout = VLayout (
-					PlayerWrapper(mixer.proxy).label_(mixer.key).asView,
-					mixerview = WindowDef(\mixerView).asView(child),
-					HLayout(StaticText.new.string_("postdelay:"), delayview),
-				);
-				boxview.background = Color.gray;
-				mixerview.slider.minWidth_(10);
-				boxview.maxWidth_(260);
-				boxview.addUniqueMethod(\model_, { arg me, val;
-					mixerview.model = val;
-				});
+			if(maintrack.enableMixer == false) {
+				nil
 			} {
-				boxview.addUniqueMethod(\model_, { arg me, val;
-					// NOOP
-				});
-			};
-			boxview;
+				boxview = View.new;
+				child = maintrack.childAtOffset(x);
+				if(child.notNil) {
+					mixer = child.mixer;
+					delayview = TextField.new;
+					delayview.mapParam( Param(mixer.proxy, \postdelay, ControlSpec(0,0.1,\lin)) );
+					boxview.layout = VLayout (
+						PlayerWrapper(mixer.proxy).label_(mixer.key).asView,
+						mixerview = WindowDef(\mixerView).asView(child),
+						HLayout(StaticText.new.string_("postdelay:"), delayview),
+					);
+					boxview.background = Color.gray;
+					mixerview.slider.minWidth_(10);
+					boxview.maxWidth_(260);
+					boxview.addUniqueMethod(\model_, { arg me, val;
+						mixerview.model = val;
+					});
+				} {
+					boxview.addUniqueMethod(\model_, { arg me, val;
+						// NOOP
+					});
+				};
+				boxview;
+			}
 	});
 
 	if(me.window.notNil) {
@@ -887,10 +914,12 @@ WindowDef(\playergrid, { arg me, maintrack;
 			};
 		});
 		mixerviews.do({ arg child, x;
-			if(x == 8) {
-				child.model = Server.default.volume;
-			} {
-				child.model = maintrack.childAtOffset(x);
+			if(child.notNil) {
+				if(x == 8) {
+					child.model = Server.default.volume;
+				} {
+					child.model = maintrack.childAtOffset(x);
+				}
 			}
 		})
 
@@ -906,20 +935,11 @@ WindowDef(\playergrid, { arg me, maintrack;
 						view.button.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 							//[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
 							if(buttonNumber == 1) {
-								var target = child.model.target.source;
-								if(target.getHalo(\edit).notNil) {
-									target.getHalo(\edit).value(target);
+								if(child.model.isKindOf(PlayerWrapper)) {
+									child.model.target.edit;
 								} {
-									if(target.isKindOf(Pdef)) {
-										WindowDef(\PdefEditor).front(target)
-									} {
-										if(target.isKindOf(Ndef)) {
-											WindowDef(\NdefEditor).front(target)
-										} {
-											target.edit
-										}
-									};
-								};
+									child.model.edit;
+								}
 							} 
 						});
 						view.layout.margins_(1);
@@ -928,9 +948,9 @@ WindowDef(\playergrid, { arg me, maintrack;
 						//view.fixedSize_(Point(300,20));
 						view.labelView.font_(Font.default.size_(10));
 						//child.model.target.debug("childmodeltarget");
-						if(child.model.target.isEmpty == true) {
-							child.color_deselected = Color.gray
-						};
+						//if(child.model.target.isEmpty == true) {
+							//child.color_deselected = Color.gray;
+						//};
 						child.selected = false;
 						view.labelView.mouseDownAction_({ arg label, x, y, modifiers, buttonNumber, clickCount;
 							//"DOWN".debug;
