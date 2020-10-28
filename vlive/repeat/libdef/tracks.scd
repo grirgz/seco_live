@@ -65,7 +65,7 @@ TrackTemplateDef(\playerwrapper, (
 
 	source_: { arg self, val;
 		self.proxy = PlayerWrapper(val);
-		if(self.mixer.notNil) {
+		if(self.mixer.notNil and: { self.parentTrack.enableAutoSetOutbus == true }) {
 			self.proxy.outBus = self.mixer.inbus;
 		}
 	},
@@ -225,10 +225,13 @@ TrackTemplateDef(\playerwrapper, (
 			playerwrapper = track.proxy;
 			player = playerwrapper.target;
 			player_prefix = playerwrapper.targetClass;
-			savepath = "%%_%.scd".format(val, player_prefix, player.key);
-			savepath.debug("savepath");
+			if(player.notNil) {
 
-			playerwrapper.presetCompileStringSavePath = savepath;
+				savepath = val +/+ "%_%.scd".format(player_prefix, player.key);
+				savepath.debug("savepath");
+
+				playerwrapper.presetCompileStringSavePath = savepath;
+			}
 		} { arg ex;
 			ex.reportError;
 			"Above error means track % can't infer saving path of player from name: %".format(track.key, player).postln;
@@ -351,6 +354,10 @@ TrackTemplateDef(\playertrack, (
 		self.parentTrack.enableMixer;
 	},
 
+	enableAutoSetOutbus: { arg self;
+		self.parentTrack.enableAutoSetOutbus;
+	},
+
 	mixer: { arg self;
 		if(self.enableMixer) {
 			if(self.parentTrack.mixer.notNil) {
@@ -372,6 +379,7 @@ TrackTemplateDef(\playergrid, (
 	label: { arg self; "%".format(self.key) },
 	protoClass: \playergrid,
 	childClass: { TrackTemplateDef(\playertrack) },
+	lineClass: { TrackTemplateDef(\lineplayer) },
 
 	source_: { arg self, array;
 		array.collect({ arg val, idx;
@@ -445,7 +453,7 @@ TrackTemplateDef(\playergrid, (
 		});
 		"===== setting path of resources".debug;
 		self.resources.do { arg track;
-			PlayerWrapper(track).presetCompileStringSavePath = "%%_%.scd".format(val, PlayerWrapper(track).targetClass, track.key);
+			PlayerWrapper(track).presetCompileStringSavePath = val +/+ "%_%.scd".format(PlayerWrapper(track).targetClass, track.key);
 		};
 	},
 
@@ -536,10 +544,15 @@ TrackTemplateDef(\playergrid, (
 	},
 
 	edit: { arg self;
-		WindowDef(\Grid_ +++ self.key, WindowDef(\playergrid))k).front(self);
-		{
-			WindowDef(\Grid_ +++ self.key).window.bounds =  Rect(144, 217, 1090, 438);
-		}.defer(1)
+		var wkey = \Grid_ +++ self.key;
+		if(WindowDef(wkey).isNil) {
+			WindowDef(wkey, WindowDef(\playergrid)).front(self);
+			{
+				WindowDef(\Grid_ +++ self.key).window.bounds =  Rect(144, 217, 1090, 438);
+			}.defer(1)
+		} {
+			WindowDef(wkey, WindowDef(\playergrid)).front(self);
+		}
 	},
 
 	refCompileString: { arg self;
@@ -552,7 +565,7 @@ TrackTemplateDef(\playergrid, (
 
 	linePlayerAt: { arg self, idx;
 		if(self.linePlayers[idx].isNil) {
-			self.linePlayers[idx] = TrackTemplateDef(\lineplayer).new(self, idx);
+			self.linePlayers[idx] = self.lineClass.new(self, idx);
 		}; 
 		self.linePlayers[idx];
 	},
@@ -566,6 +579,8 @@ TrackTemplateDef(\playergrid, (
 		}
 	},
 
+
+	enableAutoSetOutbus: true,
 	enableMixer: true,
 	//mixer:nil, // TODO: make a container for child mixers here with handy methods
 

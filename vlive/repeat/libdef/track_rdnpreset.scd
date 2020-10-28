@@ -1,3 +1,4 @@
+// see also ndefpreset.scd track_rdnpreset.scd and mixerPreset.scd
 
 (
 ProtoTemplateDef(\rdnpreset_item, (

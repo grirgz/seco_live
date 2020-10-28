@@ -52,6 +52,14 @@ ProtoTemplateDef('MainProject', (
 				FileSystemProject.load(file.fullPath)
 			}
 		};
+		// load first level of folders in data/ (for grids)
+		PathName(proj.dataPath).folders.do { arg folder;
+			folder.files.do { arg file;
+				if(file.extension == "scd" and: { file.fileName != "project.scd" }) {
+					FileSystemProject.load(file.fullPath)
+				}
+			};
+		};
 		proj;
 	},
 
@@ -262,16 +270,40 @@ WindowDef(\MainProjectOverlayMenu, { arg def, model, view, x=600, y=600;
 
 
 	layout = VLayout (
-		// access to default objects instead of project's ones
-		BasicButton.new.string_("mainTimeline").action_({
-			ClipTimeline(\mainTimeline).edit
+		// misc project tools
+		BasicButton.new.string_("MixerPresetGrid").action_({
+			if(model.mixerPresetGrid.isNil) {
+				model.mixerPresetGrid = TrackDef("%_mixerPresetGrid".format(model.name).asSymbol, TrackTemplateDef(\MixerPresetGrid));
+				model.addResource(model.mixerPresetGrid);
+			};
+			model.mixerPresetGrid.edit;
 		}),
+
+		StaticText.new,
+		// misc tools
 		BasicButton.new.string_("Workspace").action_({
 			WindowDef(\WorkspaceView).front;
 		}),
 		BasicButton.new.string_("Sample Manager").action_({
 			WindowDef(\SampleTimelineManager).front
 		}),
+
+		StaticText.new,
+		// access to default objects instead of project's ones
+		BasicButton.new.string_("mainTimeline").action_({
+			ClipTimeline(\mainTimeline).edit
+		}),
+		BasicButton.new.string_("simpleMixer").action_({
+			ProtoDef(\simpleMixer).edit
+		}),
+		BasicButton.new.string_("Fx").action_({
+			WindowDef(\FxManager).front
+		}),
+		BasicButton.new.string_("Main window").action_({
+			WindowDef(\main).front;
+		}),
+		StaticText.new,
+		// basic tools
 		BasicButton.new.string_("Scope").action_({
 			s.scope
 		}),
@@ -283,15 +315,6 @@ WindowDef(\MainProjectOverlayMenu, { arg def, model, view, x=600, y=600;
 		}),
 		BasicButton.new.string_("Meter").action_({
 			s.meter
-		}),
-		BasicButton.new.string_("simpleMixer").action_({
-			ProtoDef(\simpleMixer).edit
-		}),
-		BasicButton.new.string_("Fx").action_({
-			WindowDef(\FxManager).front
-		}),
-		BasicButton.new.string_("Main window").action_({
-			WindowDef(\main).front;
 		}),
 		nil
 	);

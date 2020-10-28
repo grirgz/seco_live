@@ -124,3 +124,18 @@ ClipTimeline(\bla1).clear
 ClipTimeline(\bla1).tracks.asCompileString
 ClipTimeline(\bla1).add_track
 ClipTimeline(\bla1).areasize
+
+
+/////////////////////////////// NoteTimeline
+
+(
+Pdef(\testpdef, 
+	Pbind(
+		\instrument, \default,
+	)
+).play;
+);
+
+NoteTimeline(\test1, Pdef(\testpdef)).edit
+NoteTimeline(\test1).eventList.print
+NoteTimeline(\test1).clear

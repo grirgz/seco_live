@@ -1,3 +1,4 @@
+// see also ndefpreset.scd track_rdnpreset.scd and mixerPreset.scd
 
 /// the goal is to have a trackgrid where each column is an object :
 // - mixer (with send)
@@ -8,29 +9,41 @@
 
 
 (
-	ParamProto.init;
-	s.boot;
-	FileSystemProject.load("libdef/tracks.scd");
-	FileSystemProject.load("libdef/simplemixer.scd");
-	FileSystemProject.load("libdef/FxManager.scd");
+	//ParamProto.init;
+	//s.boot;
+	//FileSystemProject.load("libdef/tracks.scd");
+	//FileSystemProject.load("libdef/simplemixer.scd");
+	//FileSystemProject.load("libdef/FxManager.scd");
+
+
+ProtoDef(\GridPresetWrapper, (
+	new: { arg self, grid;
+		self = self.deepCopy;
+	
+		self.grid = { grid };
+	
+		self;
+	},
+
+	presetCompileString: { arg self;
+		self.grid.children.collect({ arg child, colidx;
+			//child.index -> child.activeIndex;
+			if(child.isPlaying) {
+				"%.childAt(%,%).play;".format(self.grid.asCompileString, colidx, child.activeIndex)
+			} {
+				"%.childAt(%).stop;".format(self.grid.asCompileString, colidx)
+			}
+		}).join("\n")
+	},
+));
 
 TrackTemplateDef(\MixerPresetClip, ().putAll(TrackTemplateDef(\playerwrapper)).putAll((
 
-	prefix: { arg self;
-		self.parentTrack.prefix;
+	label: { arg self; 
+		"%: %".format(self.index, 
+			self.presetName ??  ( self.source !? _.key ?? "" )
+		)
 	},
-
-	//isEmpty: { arg self;
-		//if(self.source.isKindOf(ProtoClass)) {
-			//self.source.isEmpty;
-		//} {
-			//self.source.source.isNil
-		//}
-	//},
-
-	//defaultSource: { arg self;
-		//Pdef("%_%".format(self.prefix, self.index).asSymbol)
-	//},
 
 	source: { arg self;
 		self.parentTrack.target
@@ -38,13 +51,20 @@ TrackTemplateDef(\MixerPresetClip, ().putAll(TrackTemplateDef(\playerwrapper)).p
 
 	takeSnapshot: { arg self;
 		var mixer = self.source;
-		var str = mixer.presetCompileString;
-		self.snapshot = str;
-		self.changed(\content);
+		var str;
+		if(mixer.notNil) {
+			str = mixer.presetCompileString;
+			self.snapshot = str;
+			self.changed(\content);
+		}
 	},
 
 	eraseSnapshot: { arg self;
+		Log(\Param).info("Erase %".format(self.label));
+		self.snapshot.postln;
+		"//////////// END of erased snapshot".postln;
 		self.snapshot = nil;
+		self.presetName = nil;
 		self.changed(\content);
 	},
 
@@ -71,23 +91,73 @@ TrackTemplateDef(\MixerPresetClip, ().putAll(TrackTemplateDef(\playerwrapper)).p
 	},
 
 	presetCompileString: { arg self;
-		"%.childAt(%,%).snapshot = %;".format(self.parentTrack.parentTrack.asCompileString, self.parentTrack.index, self.index, self.snapshot.asCompileString)
+		var str = "";
+		var splitCompileString = { arg str;
+			if(str.isNil) {
+				nil.asCompileString
+			} {
+				str.clump(8000).collect({ arg istr;
+					istr.asCompileString
+				}).join("\n++ ");
+			}
+		};
+		if(self.presetName.notNil) {
+			str = str ++ "%.childAt(%,%).presetName = %;\n".format(self.parentTrack.parentTrack.asCompileString, self.parentTrack.index, self.index, self.presetName.asCompileString);
+		};
+		str = str ++ "%.childAt(%,%).snapshot = %;".format(self.parentTrack.parentTrack.asCompileString, self.parentTrack.index, self.index, splitCompileString.(self.snapshot));
+		str;
+	},
+
+	savePresetCompileString: { arg self;
+		if(self.isEmpty.not and: { self.presetCompileStringSavePath.notNil }) {
+			var path = self.presetCompileStringSaveFile;
+			File.use(path, "w") { arg file;
+				file.write(self.presetCompileString)
+			};
+			Log(\Param).info("Saved MixerPresetClip: %".format(path));
+		}
+	},
+
+	presetCompileStringSaveFile: { arg self;
+		self.presetCompileStringSavePath +/+ "%.%.%.scd".format(self.parentTrack.parentTrack.key, self.parentTrack.index, self.index);
 		
 	},
 
-	edit: { arg self;
-		WindowDef(\MixerPresetOverlay, { arg def, model;
-			VLayout (
-				PlayerWrapper(model).asView,
-				Button.new.string_("Take snapshot").action_({
-					self.takeSnapshot;
-				}),
-				Button.new.string_("Erase"),
-				nil,
-			)
-		}).front(self);
+	loadPresetCompileString: { arg self;
+		if(self.isEmpty and: { self.presetCompileStringSavePath.notNil }) {
+			var path = self.presetCompileStringSaveFile;
+			if(File.exists(path)) {
+				FileSystemProject.load(path)
+			}
+		}
 	},
 
+	presetCompileStringSavePath_: { arg self, val;
+		self[\presetCompileStringSavePath] = val;
+	},
+
+	edit: { arg self;
+		if(self.source.notNil) {
+			WindowDef(\MixerPresetOverlay, { arg def, model;
+				VLayout (
+					PlayerWrapper(model).asView,
+					HLayout(
+						StaticText.new.string_("name:"),
+						Param(Message(model), \presetName).asTextField,
+					),
+					Button.new.string_("Take snapshot").action_({
+						self.takeSnapshot;
+					}),
+					Button.new.string_("Erase").action_({
+						self.eraseSnapshot;
+					}),
+					nil,
+				)
+			}).front(self);
+		} {
+			Log(\Param).info("No target in this track column to snapshot");
+		}
+	},
 )));
 
 TrackTemplateDef(\MixerPresetTrack, ().putAll(TrackTemplateDef(\playertrack)).putAll((
@@ -99,43 +169,82 @@ TrackTemplateDef(\MixerPresetTrack, ().putAll(TrackTemplateDef(\playertrack)).pu
 		self.selectChild(0);
 		self.index = index;
 		self.parentTrack = {parent};
-		self.target = { target };
+		self.target = { target.value };
 		self;
 	},
 
-	presetCompileString: { arg self;
-		self.children.collect(_.presetCompileString).join("\n\n");
-	},
+	//presetCompileString: { arg self;
+		//self.children.collect(_.presetCompileString).join("\n\n");
+	//},
 
 	prefix: { arg self;
 		self.parentTrack.prefix+++self.index;
 	},
 	mixer: nil,
-
 )));
 
 TrackTemplateDef(\MixerPresetGrid, ().putAll(TrackTemplateDef(\playergrid)).putAll((
 	childClass: { TrackTemplateDef(\MixerPresetTrack) },
+	lineClass: { TrackTemplateDef(\MixerPresetLine) },
 
 	children: { arg self;
 		self[\obj_children] ?? { 
-
-			self[\obj_children] = SparseArray.new;
-			//self[\obj_children] = SparseArray[
-				//self.childClass.new(self, 0, FileSystemProject.current.mainMixer),
-				//self.childClass.new(self, 1, FileSystemProject.current.fxManager),
-				//self.childClass.new(self, 2, FileSystemProject.current.mainTrackGrid),
-			//];
+			//self[\obj_children] = SparseArray.new;
+			self[\obj_children] = SparseArray[
+				self.childClass.new(self, 0, { ProtoDef(\GridPresetWrapper).new(self.target.mainTrackGrid) }),
+				self.childClass.new(self, 1, { self.target.mainMixer }),
+				self.childClass.new(self, 2, { self.target.fxManager }),
+			];
 			self[\obj_children];
 		};
 	},
 
+	target: { arg self;
+		// FIXME: currently, changing project change the target of the new snapshots but not the snapshots already taken
+		if(FileSystemProject.current.isNil) {
+			// FIXME: hardcoded default project again
+			FileSystemProject.current = FileSystemProject('repeat/simpleProject');
+		};
+		FileSystemProject.current
+	},
+
 	presetCompileString: { arg self;
-		self.children.collect(_.presetCompileString).join("\n\n\n");
+		"TrackDef(%, TrackTemplateDef(\\MixerPresetGrid));\n".format(self.key.asCompileString);
+	},
+
+	savePresetCompileString: { arg self;
+		var mainfile = self.presetCompileStringSavePath +/+ "Grid_%.scd".format(self.key);
+		File.use(mainfile, "w") { arg file;
+			file.write(self.presetCompileString)
+		};
+		Log(\Param).info("Saved MixerPresetGrid: %".format(mainfile));
+		self.children.do({ arg column;
+			column.savePresetCompileString;
+			column.children.do({ arg track;
+				track.savePresetCompileString;
+			})
+		});
+		self.resources.do { arg res;
+			PlayerWrapper(res).savePresetCompileString;
+		}; 
 	},
 
 	presetCompileStringSavePath_: { arg self, val;
+		if(val.endsWith("/data") or: { val.endsWith("/data/") }) {
+			val = val +/+ "Grid_%/".format(self.key);
+			File.mkdir(val);
+		};
 		self[\presetCompileStringSavePath] = val;
+		self.children.do({ arg column;
+			column.presetCompileStringSavePath = val;
+			column.children.do({ arg track;
+				track.presetCompileStringSavePath = val;
+			})
+		});
+		"===== setting path of resources".debug;
+		self.resources.do { arg track;
+			PlayerWrapper(track).presetCompileStringSavePath = "%%_%.scd".format(val, PlayerWrapper(track).targetClass, track.key);
+		};
 	},
 
 	prefix: { arg self;
@@ -143,44 +252,122 @@ TrackTemplateDef(\MixerPresetGrid, ().putAll(TrackTemplateDef(\playergrid)).putA
 	},
 	enableMixer:false,
 	mixer:nil,
+)));
+
+TrackTemplateDef(\MixerPresetLine, ().putAll(TrackTemplateDef(\lineplayer)).putAll((
+	label: { arg self;
+		if(self.presetName.notNil) {
+			"line %: %".format(self.index, self.presetName)
+		} {
+			"% line %".format(self.parentTrack.label, self.index)
+		};
+	},
+	edit: { arg self;
+		WindowDef(\MixerPresetOverlay, { arg def, model;
+			VLayout (
+				PlayerWrapper(model).asView,
+				HLayout(
+					StaticText.new.string_("name:"),
+					Param(Message(model), \presetName).asTextField,
+				),
+				Button.new.string_("Take snapshot").action_({
+					model.children.do { arg child, idx;
+						if(child.source.notNil) {
+							child.takeSnapshot;
+							if(model.presetName.notNil) {
+								child.presetName = model.presetName;
+							}
+						}
+					};
+				}),
+				Button.new.string_("Erase").action_({
+					self.presetName = nil;
+					model.children.do { arg child, idx;
+						if(child.source.notNil) {
+							child.eraseSnapshot;
+						}
+					};
+				}),
+				nil,
+			)
+		}).front(self);
+		
+	},
 
 )));
 
-ProtoDef(\GridPresetWrapper, (
-	new: { arg self, grid;
-		self = self.deepCopy;
-	
-		self.grid = { grid };
-	
-		self;
-	},
-
-	presetCompileString: { arg self;
-		self.grid.children.collect({ arg child, colidx;
-			//child.index -> child.activeIndex;
-			if(child.isPlaying) {
-				"%.childAt(%,%).play;".format(self.grid.asCompileString, colidx, child.activeIndex)
-			} {
-				"%.childAt(%).stop;".format(self.grid.asCompileString, colidx)
-			}
-		}).join("\n")
-	},
-
-));
-
 TrackDef(\MixerPresetGrid, TrackTemplateDef(\MixerPresetGrid));
-TrackDef(\MixerPresetGrid).childAt(0).target = { ProtoDef(\simpleMixer) };
-TrackDef(\MixerPresetGrid).childAt(1).target = { ProtoDef(\GridPresetWrapper).new(TrackDef(\xxx)) };
-TrackDef(\MixerPresetGrid).childAt(2).target = { ProtoDef(\FxManager) };
+//TrackDef(\MixerPresetGrid).childAt(0).target = { ProtoDef(\simpleMixer) };
+//TrackDef(\MixerPresetGrid).childAt(1).target = { ProtoDef(\GridPresetWrapper).new(TrackDef(\xxx)) };
+//TrackDef(\MixerPresetGrid).childAt(2).target = { ProtoDef(\FxManager) };
 )
+
+
+// END
+// ==================================================
+
+
 TrackDef(\MixerPresetGrid).clear; TrackTemplateDef(\MixerPresetGrid).clear; TrackTemplateDef(\MixerPresetClip).clear;
+
+TrackDef(\MixerPresetGrid).edit
+TrackDef(\MixerPresetGrid).target.mainMixer
+TrackDef(\MixerPresetGrid).target
+TrackDef(\MixerPresetGrid).presetCompileString
+TrackDef(\MixerPresetGrid).presetCompileStringSavePath = "/tmp/bla1"
+TrackDef(\MixerPresetGrid).loadPresetCompileString
+TrackDef(\MixerPresetGrid).savePresetCompileString
+TrackDef(\MixerPresetGrid).presetCompileStringSavePath = "blaxxx.scd";
+TrackDef(\MixerPresetGrid).mixer
+TrackDef(\MixerPresetGrid).children
+TrackDef(\MixerPresetGrid).edit
+TrackDef(\MixerPresetGrid).e
+TrackDef(\MixerPresetGrid).source = []
+TrackDef(\MixerPresetGrid).source
+TrackDef(\MixerPresetGrid).childAt(0).target
+TrackDef(\MixerPresetGrid).childAt(0).target = { FileSystemProject.current.mainMixer }
+TrackDef(\MixerPresetGrid).childAt(0).target = { ProtoDef(\simpleMixer) }
+TrackDef(\MixerPresetGrid).childAt(0,0).isActive
+PlayerWrapper(TrackDef(\MixerPresetGrid).childAt(0,0)).isActive
+TrackDef(\MixerPresetGrid).childAt(0,0).edit
+TrackDef(\MixerPresetGrid).childAt(4,5).edit
+TrackDef(\MixerPresetGrid).childAt(0,0).snapshot.action
+TrackDef(\MixerPresetGrid).childAt(1,0).snapshot
+TrackDef(\MixerPresetGrid).childAt(0,0).snapshot
+TrackDef(\MixerPresetGrid).childAt(0,0).presetCompileString
+TrackDef(\MixerPresetGrid).childAt(1,0).presetCompileString
+TrackDef(\MixerPresetGrid).childAt(1,0).takeSnapshot
+TrackDef(\MixerPresetGrid).childAt(0,0).snapshot.compileString
+TrackDef(\MixerPresetGrid).childAt(1,0).snapshot.compileString
+
+FileSystemProject.current = FileSystemProject('repeat/simpleProject')
+FileSystemProject.default
+FileSystemProject.current.mainTrackGrid.presetCompileString
+FileSystemProject.current.mixerPresetGrid = nil
+FileSystemProject.current.mixerPresetGrid.clear
+FileSystemProject.current.resources.remove(ProtoDef(\simpleProject_mixerPresetGrid))
+FileSystemProject.current.mixerPresetGrid.children
+TrackTemplateDef(\MixerPresetGrid).keys
+
+TrackDef(\simpleProject_mixerPresetGrid).clearAll
+TrackDef(\simpleProject_mixerPresetGrid).clear
+TrackDef(\simpleProject_mixerPresetGrid).presetCompileStringSavePath
+TrackDef(\simpleProject_mixerPresetGrid).savePresetCompileString
+TrackDef(\simpleProject_mixerPresetGrid).presetCompileStringSavePath = "/tmp/bla1/data/"
+
+(
+TrackDef(\testpremix, TrackDef(\playergrid)).source = [
+	//8.collect { arg x; ProtoDef(\myndef+++x, ProtoDef(\NdefParamGroupDef).new(Ndef(\testpre))); },
+	8.collect { arg x; ProtoDef(\myndef+++x, ProtoDef(\NdefPreset).new(Ndef(\testpre))); },
+
+]
+)
+
+
 ProtoDef(\FxManager).edit
 	"caplib.scd".loadRelative;
 	FileSystemProject.load("capsule/lib.scd")
-// END
-
-// ==================================================
 ~a = SparseArray[\a]
+
 ~a[10]=123
 
 TrackDef(\xxx, TrackTemplateDef(\playergrid))
@@ -219,374 +406,52 @@ TrackDef(\xxx).source = [
 	]
 ];
 )
-TrackDef(\MixerPresetGrid).edit
-TrackDef(\MixerPresetGrid).presetCompileString
-TrackDef(\MixerPresetGrid).savePresetCompileString("blaxxx.scd")
-TrackDef(\MixerPresetGrid).presetCompileStringSavePath = "blaxxx.scd";
-TrackDef(\MixerPresetGrid).mixer
-TrackDef(\MixerPresetGrid).children
-TrackDef(\MixerPresetGrid).edit
-TrackDef(\MixerPresetGrid).e
-TrackDef(\MixerPresetGrid).source = []
-TrackDef(\MixerPresetGrid).source
-TrackDef(\MixerPresetGrid).childAt(0).target = { FileSystemProject.current.mainMixer }
-TrackDef(\MixerPresetGrid).childAt(0).target = { ProtoDef(\simpleMixer) }
-TrackDef(\MixerPresetGrid).childAt(0,0).isActive
-PlayerWrapper(TrackDef(\MixerPresetGrid).childAt(0,0)).isActive
-TrackDef(\MixerPresetGrid).childAt(0,0).edit
-TrackDef(\MixerPresetGrid).childAt(4,5).edit
-TrackDef(\MixerPresetGrid).childAt(0,0).snapshot.action
-TrackDef(\MixerPresetGrid).childAt(0,0).snapshot.compileString
-TrackDef(\MixerPresetGrid).childAt(1,0).snapshot.compileString
-
-FileSystemProject.current = FileSystemProject('repeat/simpleProject')
-FileSystemProject.default
-FileSystemProject.current.mainTrackGrid.presetCompileString
-
-(
-TrackDef(\testpremix, TrackDef(\playergrid)).source = [
-	//8.collect { arg x; ProtoDef(\myndef+++x, ProtoDef(\NdefParamGroupDef).new(Ndef(\testpre))); },
-	8.collect { arg x; ProtoDef(\myndef+++x, ProtoDef(\NdefPreset).new(Ndef(\testpre))); },
-
-]
-)
-
 
 
 FileSystemProject.current.mainMixer.presetCompileString.editorInsert
 FileSystemProject.current.mainMixer.clearAll
 FileSystemProject.current.mainMixer.edit
+FileSystemProject.current.mixerPresetGrid.childAt(0).target.edit
+FileSystemProject.current.mixerPresetGrid.childAt(0,0).snapshot
+FileSystemProject.current.mixerPresetGrid.childAt(0,0).takeSnapshot
+FileSystemProject.current.mixerPresetGrid.childAt(0,0).source
+FileSystemProject.current.mixerPresetGrid.childAt(0,0)[\takeSnapshot].asCompileString
 (
-//ProtoDef('simpleMixer').trackCount = 10;
+FileSystemProject.current.mainTrackGrid.source = [
+	[
+		Pdef(\zed1, Pbind(
+			\instrument, \default,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1,
+		)),
+		Pdef(\zed2, Pbind(
+			\instrument, \default,
+			\freq, 400,
+			\dur, 1,
+			\amp, 0.1,
+			\out, BusDef(\mixer0, \audio),
+		)),
+		Pdef(\zed3, Pbind(
+			\instrument, \default,
+			\freq, 400,
+			\dur, 1/2,
+			\amp, 0.1,
+			\out, BusDef(\mixer0, \audio),
+		)),
+		Pdef(\zed4, Pbind(
+			\instrument, \default,
+			\freq, 500,
+			\dur, 1/4,
+			\amp, 0.1,
+			\out, BusDef(\mixer0, \audio),
+		)),
+	]
+];
+)
 
-ProtoDef('simpleMixer').tracks[0].set('inbus', BusDef(\mixer0));
-ProtoDef('simpleMixer').tracks[0].set('wet1000', 1.0);
-ProtoDef('simpleMixer').tracks[0].set('prefader', 0);
-ProtoDef('simpleMixer').tracks[0].set('wet1100', 1.0);
-ProtoDef('simpleMixer').tracks[0].set('sendbus0', BusDef(\sendbus0));
-ProtoDef('simpleMixer').tracks[0].set('send0', 0);
-ProtoDef('simpleMixer').tracks[0].set('wet1101', 1.0);
-ProtoDef('simpleMixer').tracks[0].set('sendbus1', BusDef(\sendbus1));
-ProtoDef('simpleMixer').tracks[0].set('send1', 0);
-ProtoDef('simpleMixer').tracks[0].set('wet1102', 1.0);
-ProtoDef('simpleMixer').tracks[0].set('sendbus2', BusDef(\sendbus2));
-ProtoDef('simpleMixer').tracks[0].set('send2', 0);
-ProtoDef('simpleMixer').tracks[0].set('wet1103', 1.0);
-ProtoDef('simpleMixer').tracks[0].set('sendbus3', BusDef(\sendbus3));
-ProtoDef('simpleMixer').tracks[0].set('send3', 0);
-ProtoDef('simpleMixer').tracks[0].set('wet1104', 1.0);
-ProtoDef('simpleMixer').tracks[0].set('sendbus4', BusDef(\sendbus4));
-ProtoDef('simpleMixer').tracks[0].set('send4', 0);
-ProtoDef('simpleMixer').tracks[0].set('wet1105', 1.0);
-ProtoDef('simpleMixer').tracks[0].set('sendbus5', BusDef(\sendbus5));
-ProtoDef('simpleMixer').tracks[0].set('send5', 0);
-ProtoDef('simpleMixer').tracks[0].set('wet1106', 1.0);
-ProtoDef('simpleMixer').tracks[0].set('sendbus6', BusDef(\sendbus6));
-ProtoDef('simpleMixer').tracks[0].set('send6', 0);
-ProtoDef('simpleMixer').tracks[0].set('wet1107', 1.0);
-ProtoDef('simpleMixer').tracks[0].set('sendbus7', BusDef(\sendbus7));
-ProtoDef('simpleMixer').tracks[0].set('send7', 0);
-ProtoDef('simpleMixer').tracks[0].set('wet2001', 1.0);
-ProtoDef('simpleMixer').tracks[0].set('postdelay', 0);
-ProtoDef('simpleMixer').tracks[0].set('wet3000', 1.0);
-ProtoDef('simpleMixer').tracks[0].set('postfader', 0.0);
-//ProtoDef('simpleMixer').tracks[0].outBus = 0;
-
-ProtoDef('simpleMixer').tracks[1].set('inbus', BusDef(\mixer1));
-ProtoDef('simpleMixer').tracks[1].set('wet1000', 1.0);
-ProtoDef('simpleMixer').tracks[1].set('prefader', 0);
-ProtoDef('simpleMixer').tracks[1].set('wet1100', 1.0);
-ProtoDef('simpleMixer').tracks[1].set('sendbus0', BusDef(\sendbus0));
-ProtoDef('simpleMixer').tracks[1].set('send0', 0);
-ProtoDef('simpleMixer').tracks[1].set('wet1101', 1.0);
-ProtoDef('simpleMixer').tracks[1].set('sendbus1', BusDef(\sendbus1));
-ProtoDef('simpleMixer').tracks[1].set('send1', 0);
-ProtoDef('simpleMixer').tracks[1].set('wet1102', 1.0);
-ProtoDef('simpleMixer').tracks[1].set('sendbus2', BusDef(\sendbus2));
-ProtoDef('simpleMixer').tracks[1].set('send2', 0);
-ProtoDef('simpleMixer').tracks[1].set('wet1103', 1.0);
-ProtoDef('simpleMixer').tracks[1].set('sendbus3', BusDef(\sendbus3));
-ProtoDef('simpleMixer').tracks[1].set('send3', 0);
-ProtoDef('simpleMixer').tracks[1].set('wet1104', 1.0);
-ProtoDef('simpleMixer').tracks[1].set('sendbus4', BusDef(\sendbus4));
-ProtoDef('simpleMixer').tracks[1].set('send4', 0);
-ProtoDef('simpleMixer').tracks[1].set('wet1105', 1.0);
-ProtoDef('simpleMixer').tracks[1].set('sendbus5', BusDef(\sendbus5));
-ProtoDef('simpleMixer').tracks[1].set('send5', 0);
-ProtoDef('simpleMixer').tracks[1].set('wet1106', 1.0);
-ProtoDef('simpleMixer').tracks[1].set('sendbus6', BusDef(\sendbus6));
-ProtoDef('simpleMixer').tracks[1].set('send6', 0);
-ProtoDef('simpleMixer').tracks[1].set('wet1107', 1.0);
-ProtoDef('simpleMixer').tracks[1].set('sendbus7', BusDef(\sendbus7));
-ProtoDef('simpleMixer').tracks[1].set('send7', 0);
-ProtoDef('simpleMixer').tracks[1].set('wet2001', 1.0);
-ProtoDef('simpleMixer').tracks[1].set('postdelay', 0);
-ProtoDef('simpleMixer').tracks[1].set('wet3000', 1.0);
-ProtoDef('simpleMixer').tracks[1].set('postfader', 0.0);
-//ProtoDef('simpleMixer').tracks[1].outBus = 0;
-
-ProtoDef('simpleMixer').tracks[2].set('inbus', BusDef(\mixer2));
-ProtoDef('simpleMixer').tracks[2].set('wet1000', 1.0);
-ProtoDef('simpleMixer').tracks[2].set('prefader', 0);
-ProtoDef('simpleMixer').tracks[2].set('wet1100', 1.0);
-ProtoDef('simpleMixer').tracks[2].set('sendbus0', BusDef(\sendbus0));
-ProtoDef('simpleMixer').tracks[2].set('send0', 0);
-ProtoDef('simpleMixer').tracks[2].set('wet1101', 1.0);
-ProtoDef('simpleMixer').tracks[2].set('sendbus1', BusDef(\sendbus1));
-ProtoDef('simpleMixer').tracks[2].set('send1', 0);
-ProtoDef('simpleMixer').tracks[2].set('wet1102', 1.0);
-ProtoDef('simpleMixer').tracks[2].set('sendbus2', BusDef(\sendbus2));
-ProtoDef('simpleMixer').tracks[2].set('send2', 0);
-ProtoDef('simpleMixer').tracks[2].set('wet1103', 1.0);
-ProtoDef('simpleMixer').tracks[2].set('sendbus3', BusDef(\sendbus3));
-ProtoDef('simpleMixer').tracks[2].set('send3', 0);
-ProtoDef('simpleMixer').tracks[2].set('wet1104', 1.0);
-ProtoDef('simpleMixer').tracks[2].set('sendbus4', BusDef(\sendbus4));
-ProtoDef('simpleMixer').tracks[2].set('send4', 0);
-ProtoDef('simpleMixer').tracks[2].set('wet1105', 1.0);
-ProtoDef('simpleMixer').tracks[2].set('sendbus5', BusDef(\sendbus5));
-ProtoDef('simpleMixer').tracks[2].set('send5', 0);
-ProtoDef('simpleMixer').tracks[2].set('wet1106', 1.0);
-ProtoDef('simpleMixer').tracks[2].set('sendbus6', BusDef(\sendbus6));
-ProtoDef('simpleMixer').tracks[2].set('send6', 0);
-ProtoDef('simpleMixer').tracks[2].set('wet1107', 1.0);
-ProtoDef('simpleMixer').tracks[2].set('sendbus7', BusDef(\sendbus7));
-ProtoDef('simpleMixer').tracks[2].set('send7', 0);
-ProtoDef('simpleMixer').tracks[2].set('wet2001', 1.0);
-ProtoDef('simpleMixer').tracks[2].set('postdelay', 0);
-ProtoDef('simpleMixer').tracks[2].set('wet3000', 1.0);
-ProtoDef('simpleMixer').tracks[2].set('postfader', 0.0);
-//ProtoDef('simpleMixer').tracks[2].outBus = 0;
-
-ProtoDef('simpleMixer').tracks[3].set('inbus', BusDef(\mixer3));
-ProtoDef('simpleMixer').tracks[3].set('wet1000', 1.0);
-ProtoDef('simpleMixer').tracks[3].set('prefader', 0);
-ProtoDef('simpleMixer').tracks[3].set('wet1100', 1.0);
-ProtoDef('simpleMixer').tracks[3].set('sendbus0', BusDef(\sendbus0));
-ProtoDef('simpleMixer').tracks[3].set('send0', 0);
-ProtoDef('simpleMixer').tracks[3].set('wet1101', 1.0);
-ProtoDef('simpleMixer').tracks[3].set('sendbus1', BusDef(\sendbus1));
-ProtoDef('simpleMixer').tracks[3].set('send1', 0);
-ProtoDef('simpleMixer').tracks[3].set('wet1102', 1.0);
-ProtoDef('simpleMixer').tracks[3].set('sendbus2', BusDef(\sendbus2));
-ProtoDef('simpleMixer').tracks[3].set('send2', 0);
-ProtoDef('simpleMixer').tracks[3].set('wet1103', 1.0);
-ProtoDef('simpleMixer').tracks[3].set('sendbus3', BusDef(\sendbus3));
-ProtoDef('simpleMixer').tracks[3].set('send3', 0);
-ProtoDef('simpleMixer').tracks[3].set('wet1104', 1.0);
-ProtoDef('simpleMixer').tracks[3].set('sendbus4', BusDef(\sendbus4));
-ProtoDef('simpleMixer').tracks[3].set('send4', 0);
-ProtoDef('simpleMixer').tracks[3].set('wet1105', 1.0);
-ProtoDef('simpleMixer').tracks[3].set('sendbus5', BusDef(\sendbus5));
-ProtoDef('simpleMixer').tracks[3].set('send5', 0);
-ProtoDef('simpleMixer').tracks[3].set('wet1106', 1.0);
-ProtoDef('simpleMixer').tracks[3].set('sendbus6', BusDef(\sendbus6));
-ProtoDef('simpleMixer').tracks[3].set('send6', 0);
-ProtoDef('simpleMixer').tracks[3].set('wet1107', 1.0);
-ProtoDef('simpleMixer').tracks[3].set('sendbus7', BusDef(\sendbus7));
-ProtoDef('simpleMixer').tracks[3].set('send7', 0);
-ProtoDef('simpleMixer').tracks[3].set('wet2001', 1.0);
-ProtoDef('simpleMixer').tracks[3].set('postdelay', 0);
-ProtoDef('simpleMixer').tracks[3].set('wet3000', 1.0);
-ProtoDef('simpleMixer').tracks[3].set('postfader', 0.0);
-//ProtoDef('simpleMixer').tracks[3].outBus = 0;
-
-ProtoDef('simpleMixer').tracks[4].set('inbus', BusDef(\mixer4));
-ProtoDef('simpleMixer').tracks[4].set('wet1000', 1.0);
-ProtoDef('simpleMixer').tracks[4].set('prefader', 0);
-ProtoDef('simpleMixer').tracks[4].set('wet1100', 1.0);
-ProtoDef('simpleMixer').tracks[4].set('sendbus0', BusDef(\sendbus0));
-ProtoDef('simpleMixer').tracks[4].set('send0', 0);
-ProtoDef('simpleMixer').tracks[4].set('wet1101', 1.0);
-ProtoDef('simpleMixer').tracks[4].set('sendbus1', BusDef(\sendbus1));
-ProtoDef('simpleMixer').tracks[4].set('send1', 0);
-ProtoDef('simpleMixer').tracks[4].set('wet1102', 1.0);
-ProtoDef('simpleMixer').tracks[4].set('sendbus2', BusDef(\sendbus2));
-ProtoDef('simpleMixer').tracks[4].set('send2', 0);
-ProtoDef('simpleMixer').tracks[4].set('wet1103', 1.0);
-ProtoDef('simpleMixer').tracks[4].set('sendbus3', BusDef(\sendbus3));
-ProtoDef('simpleMixer').tracks[4].set('send3', 0);
-ProtoDef('simpleMixer').tracks[4].set('wet1104', 1.0);
-ProtoDef('simpleMixer').tracks[4].set('sendbus4', BusDef(\sendbus4));
-ProtoDef('simpleMixer').tracks[4].set('send4', 0);
-ProtoDef('simpleMixer').tracks[4].set('wet1105', 1.0);
-ProtoDef('simpleMixer').tracks[4].set('sendbus5', BusDef(\sendbus5));
-ProtoDef('simpleMixer').tracks[4].set('send5', 0);
-ProtoDef('simpleMixer').tracks[4].set('wet1106', 1.0);
-ProtoDef('simpleMixer').tracks[4].set('sendbus6', BusDef(\sendbus6));
-ProtoDef('simpleMixer').tracks[4].set('send6', 0);
-ProtoDef('simpleMixer').tracks[4].set('wet1107', 1.0);
-ProtoDef('simpleMixer').tracks[4].set('sendbus7', BusDef(\sendbus7));
-ProtoDef('simpleMixer').tracks[4].set('send7', 0);
-ProtoDef('simpleMixer').tracks[4].set('wet2001', 1.0);
-ProtoDef('simpleMixer').tracks[4].set('postdelay', 0);
-ProtoDef('simpleMixer').tracks[4].set('wet3000', 1.0);
-ProtoDef('simpleMixer').tracks[4].set('postfader', 0);
-//ProtoDef('simpleMixer').tracks[4].outBus = 0;
-
-ProtoDef('simpleMixer').tracks[5].set('inbus', BusDef(\mixer5));
-ProtoDef('simpleMixer').tracks[5].set('wet1000', 1.0);
-ProtoDef('simpleMixer').tracks[5].set('prefader', 0);
-ProtoDef('simpleMixer').tracks[5].set('wet1100', 1.0);
-ProtoDef('simpleMixer').tracks[5].set('sendbus0', BusDef(\sendbus0));
-ProtoDef('simpleMixer').tracks[5].set('send0', 0);
-ProtoDef('simpleMixer').tracks[5].set('wet1101', 1.0);
-ProtoDef('simpleMixer').tracks[5].set('sendbus1', BusDef(\sendbus1));
-ProtoDef('simpleMixer').tracks[5].set('send1', 0);
-ProtoDef('simpleMixer').tracks[5].set('wet1102', 1.0);
-ProtoDef('simpleMixer').tracks[5].set('sendbus2', BusDef(\sendbus2));
-ProtoDef('simpleMixer').tracks[5].set('send2', 0);
-ProtoDef('simpleMixer').tracks[5].set('wet1103', 1.0);
-ProtoDef('simpleMixer').tracks[5].set('sendbus3', BusDef(\sendbus3));
-ProtoDef('simpleMixer').tracks[5].set('send3', 0);
-ProtoDef('simpleMixer').tracks[5].set('wet1104', 1.0);
-ProtoDef('simpleMixer').tracks[5].set('sendbus4', BusDef(\sendbus4));
-ProtoDef('simpleMixer').tracks[5].set('send4', 0);
-ProtoDef('simpleMixer').tracks[5].set('wet1105', 1.0);
-ProtoDef('simpleMixer').tracks[5].set('sendbus5', BusDef(\sendbus5));
-ProtoDef('simpleMixer').tracks[5].set('send5', 0);
-ProtoDef('simpleMixer').tracks[5].set('wet1106', 1.0);
-ProtoDef('simpleMixer').tracks[5].set('sendbus6', BusDef(\sendbus6));
-ProtoDef('simpleMixer').tracks[5].set('send6', 0);
-ProtoDef('simpleMixer').tracks[5].set('wet1107', 1.0);
-ProtoDef('simpleMixer').tracks[5].set('sendbus7', BusDef(\sendbus7));
-ProtoDef('simpleMixer').tracks[5].set('send7', 0);
-ProtoDef('simpleMixer').tracks[5].set('wet2001', 1.0);
-ProtoDef('simpleMixer').tracks[5].set('postdelay', 0);
-ProtoDef('simpleMixer').tracks[5].set('wet3000', 1.0);
-ProtoDef('simpleMixer').tracks[5].set('postfader', 0);
-ProtoDef('simpleMixer').tracks[5].outBus = 0;
-
-ProtoDef('simpleMixer').tracks[6].set('inbus', BusDef(\mixer6));
-ProtoDef('simpleMixer').tracks[6].set('wet1000', 1.0);
-ProtoDef('simpleMixer').tracks[6].set('prefader', 0);
-ProtoDef('simpleMixer').tracks[6].set('wet1100', 1.0);
-ProtoDef('simpleMixer').tracks[6].set('sendbus0', BusDef(\sendbus0));
-ProtoDef('simpleMixer').tracks[6].set('send0', 0);
-ProtoDef('simpleMixer').tracks[6].set('wet1101', 1.0);
-ProtoDef('simpleMixer').tracks[6].set('sendbus1', BusDef(\sendbus1));
-ProtoDef('simpleMixer').tracks[6].set('send1', 0);
-ProtoDef('simpleMixer').tracks[6].set('wet1102', 1.0);
-ProtoDef('simpleMixer').tracks[6].set('sendbus2', BusDef(\sendbus2));
-ProtoDef('simpleMixer').tracks[6].set('send2', 0);
-ProtoDef('simpleMixer').tracks[6].set('wet1103', 1.0);
-ProtoDef('simpleMixer').tracks[6].set('sendbus3', BusDef(\sendbus3));
-ProtoDef('simpleMixer').tracks[6].set('send3', 0);
-ProtoDef('simpleMixer').tracks[6].set('wet1104', 1.0);
-ProtoDef('simpleMixer').tracks[6].set('sendbus4', BusDef(\sendbus4));
-ProtoDef('simpleMixer').tracks[6].set('send4', 0);
-ProtoDef('simpleMixer').tracks[6].set('wet1105', 1.0);
-ProtoDef('simpleMixer').tracks[6].set('sendbus5', BusDef(\sendbus5));
-ProtoDef('simpleMixer').tracks[6].set('send5', 0);
-ProtoDef('simpleMixer').tracks[6].set('wet1106', 1.0);
-ProtoDef('simpleMixer').tracks[6].set('sendbus6', BusDef(\sendbus6));
-ProtoDef('simpleMixer').tracks[6].set('send6', 0);
-ProtoDef('simpleMixer').tracks[6].set('wet1107', 1.0);
-ProtoDef('simpleMixer').tracks[6].set('sendbus7', BusDef(\sendbus7));
-ProtoDef('simpleMixer').tracks[6].set('send7', 0);
-ProtoDef('simpleMixer').tracks[6].set('wet2001', 1.0);
-ProtoDef('simpleMixer').tracks[6].set('postdelay', 0);
-ProtoDef('simpleMixer').tracks[6].set('wet3000', 1.0);
-ProtoDef('simpleMixer').tracks[6].set('postfader', 0);
-ProtoDef('simpleMixer').tracks[6].outBus = 0;
-
-ProtoDef('simpleMixer').tracks[7].set('inbus', BusDef(\mixer7));
-ProtoDef('simpleMixer').tracks[7].set('wet1000', 1.0);
-ProtoDef('simpleMixer').tracks[7].set('prefader', 0);
-ProtoDef('simpleMixer').tracks[7].set('wet1100', 1.0);
-ProtoDef('simpleMixer').tracks[7].set('sendbus0', BusDef(\sendbus0));
-ProtoDef('simpleMixer').tracks[7].set('send0', 0);
-ProtoDef('simpleMixer').tracks[7].set('wet1101', 1.0);
-ProtoDef('simpleMixer').tracks[7].set('sendbus1', BusDef(\sendbus1));
-ProtoDef('simpleMixer').tracks[7].set('send1', 0);
-ProtoDef('simpleMixer').tracks[7].set('wet1102', 1.0);
-ProtoDef('simpleMixer').tracks[7].set('sendbus2', BusDef(\sendbus2));
-ProtoDef('simpleMixer').tracks[7].set('send2', 0);
-ProtoDef('simpleMixer').tracks[7].set('wet1103', 1.0);
-ProtoDef('simpleMixer').tracks[7].set('sendbus3', BusDef(\sendbus3));
-ProtoDef('simpleMixer').tracks[7].set('send3', 0);
-ProtoDef('simpleMixer').tracks[7].set('wet1104', 1.0);
-ProtoDef('simpleMixer').tracks[7].set('sendbus4', BusDef(\sendbus4));
-ProtoDef('simpleMixer').tracks[7].set('send4', 0);
-ProtoDef('simpleMixer').tracks[7].set('wet1105', 1.0);
-ProtoDef('simpleMixer').tracks[7].set('sendbus5', BusDef(\sendbus5));
-ProtoDef('simpleMixer').tracks[7].set('send5', 0);
-ProtoDef('simpleMixer').tracks[7].set('wet1106', 1.0);
-ProtoDef('simpleMixer').tracks[7].set('sendbus6', BusDef(\sendbus6));
-ProtoDef('simpleMixer').tracks[7].set('send6', 0);
-ProtoDef('simpleMixer').tracks[7].set('wet1107', 1.0);
-ProtoDef('simpleMixer').tracks[7].set('sendbus7', BusDef(\sendbus7));
-ProtoDef('simpleMixer').tracks[7].set('send7', 0);
-ProtoDef('simpleMixer').tracks[7].set('wet2001', 1.0);
-ProtoDef('simpleMixer').tracks[7].set('postdelay', 0);
-ProtoDef('simpleMixer').tracks[7].set('wet3000', 1.0);
-ProtoDef('simpleMixer').tracks[7].set('postfader', -28.695723486512);
-ProtoDef('simpleMixer').tracks[7].outBus = 0;
-
-ProtoDef('simpleMixer').tracks[8].set('inbus', BusDef(\mixer8));
-ProtoDef('simpleMixer').tracks[8].set('wet1000', 1.0);
-ProtoDef('simpleMixer').tracks[8].set('prefader', 0);
-ProtoDef('simpleMixer').tracks[8].set('wet1100', 1.0);
-ProtoDef('simpleMixer').tracks[8].set('sendbus0', BusDef(\sendbus0));
-ProtoDef('simpleMixer').tracks[8].set('send0', 0);
-ProtoDef('simpleMixer').tracks[8].set('wet1101', 1.0);
-ProtoDef('simpleMixer').tracks[8].set('sendbus1', BusDef(\sendbus1));
-ProtoDef('simpleMixer').tracks[8].set('send1', 0);
-ProtoDef('simpleMixer').tracks[8].set('wet1102', 1.0);
-ProtoDef('simpleMixer').tracks[8].set('sendbus2', BusDef(\sendbus2));
-ProtoDef('simpleMixer').tracks[8].set('send2', 0);
-ProtoDef('simpleMixer').tracks[8].set('wet1103', 1.0);
-ProtoDef('simpleMixer').tracks[8].set('sendbus3', BusDef(\sendbus3));
-ProtoDef('simpleMixer').tracks[8].set('send3', 0);
-ProtoDef('simpleMixer').tracks[8].set('wet1104', 1.0);
-ProtoDef('simpleMixer').tracks[8].set('sendbus4', BusDef(\sendbus4));
-ProtoDef('simpleMixer').tracks[8].set('send4', 0);
-ProtoDef('simpleMixer').tracks[8].set('wet1105', 1.0);
-ProtoDef('simpleMixer').tracks[8].set('sendbus5', BusDef(\sendbus5));
-ProtoDef('simpleMixer').tracks[8].set('send5', 0);
-ProtoDef('simpleMixer').tracks[8].set('wet1106', 1.0);
-ProtoDef('simpleMixer').tracks[8].set('sendbus6', BusDef(\sendbus6));
-ProtoDef('simpleMixer').tracks[8].set('send6', 0);
-ProtoDef('simpleMixer').tracks[8].set('wet1107', 1.0);
-ProtoDef('simpleMixer').tracks[8].set('sendbus7', BusDef(\sendbus7));
-ProtoDef('simpleMixer').tracks[8].set('send7', 0);
-ProtoDef('simpleMixer').tracks[8].set('wet2001', 1.0);
-ProtoDef('simpleMixer').tracks[8].set('postdelay', 0);
-ProtoDef('simpleMixer').tracks[8].set('wet3000', 1.0);
-ProtoDef('simpleMixer').tracks[8].set('postfader', -29.586779274958);
-ProtoDef('simpleMixer').tracks[8].outBus = 0;
-
-ProtoDef('simpleMixer').tracks[9].set('inbus', BusDef(\mixer9));
-ProtoDef('simpleMixer').tracks[9].set('wet1000', 1.0);
-ProtoDef('simpleMixer').tracks[9].set('prefader', 0);
-ProtoDef('simpleMixer').tracks[9].set('wet1100', 1.0);
-ProtoDef('simpleMixer').tracks[9].set('sendbus0', BusDef(\sendbus0));
-ProtoDef('simpleMixer').tracks[9].set('send0', 0);
-ProtoDef('simpleMixer').tracks[9].set('wet1101', 1.0);
-ProtoDef('simpleMixer').tracks[9].set('sendbus1', BusDef(\sendbus1));
-ProtoDef('simpleMixer').tracks[9].set('send1', 0);
-ProtoDef('simpleMixer').tracks[9].set('wet1102', 1.0);
-ProtoDef('simpleMixer').tracks[9].set('sendbus2', BusDef(\sendbus2));
-ProtoDef('simpleMixer').tracks[9].set('send2', 0);
-ProtoDef('simpleMixer').tracks[9].set('wet1103', 1.0);
-ProtoDef('simpleMixer').tracks[9].set('sendbus3', BusDef(\sendbus3));
-ProtoDef('simpleMixer').tracks[9].set('send3', 0);
-ProtoDef('simpleMixer').tracks[9].set('wet1104', 1.0);
-ProtoDef('simpleMixer').tracks[9].set('sendbus4', BusDef(\sendbus4));
-ProtoDef('simpleMixer').tracks[9].set('send4', 0);
-ProtoDef('simpleMixer').tracks[9].set('wet1105', 1.0);
-ProtoDef('simpleMixer').tracks[9].set('sendbus5', BusDef(\sendbus5));
-ProtoDef('simpleMixer').tracks[9].set('send5', 0);
-ProtoDef('simpleMixer').tracks[9].set('wet1106', 1.0);
-ProtoDef('simpleMixer').tracks[9].set('sendbus6', BusDef(\sendbus6));
-ProtoDef('simpleMixer').tracks[9].set('send6', 0);
-ProtoDef('simpleMixer').tracks[9].set('wet1107', 1.0);
-ProtoDef('simpleMixer').tracks[9].set('sendbus7', BusDef(\sendbus7));
-ProtoDef('simpleMixer').tracks[9].set('send7', 0);
-ProtoDef('simpleMixer').tracks[9].set('wet2001', 1.0);
-ProtoDef('simpleMixer').tracks[9].set('postdelay', 0);
-ProtoDef('simpleMixer').tracks[9].set('wet3000', 1.0);
-ProtoDef('simpleMixer').tracks[9].set('postfader', 0);
-ProtoDef('simpleMixer').tracks[9].outBus = 0;
-);
-
+TrackDef(\testproj5_mixerPresetGrid, TrackTemplateDef(\MixerPresetGrid));
+TrackDef(\testproj5_mixerPresetGrid).childAt(1,0).snapshot.interpret;
+TrackDef(\testproj5_mixerPresetGrid).childAt(1,0).snapshot;
+TrackDef(\testproj5_mixerPresetGrid).childAt(1,0).snapshot.size;
+TrackDef(\testproj5_mixerPresetGrid).childAt(1,0).snapshot ++ "jjj"
