@@ -1,6 +1,8 @@
 ~t = 150/2/60; TempoClock.default.tempo = ~t;
 // 256 beats = 3 min 24.8 seconds
-//256/16
+// 64 beats = 51.2 seconds
+256/16
+64/~t%60
 
 (
 ~master = {
@@ -2928,3 +2930,445 @@ Pdef(\part, Pdef(\zed,
 )).play;
 );
 ClipTimeline(\vin31_aux1).edit
+ClipTimeline(\vin31_aux1).tracks= ClipTimeline(\vin31_aux1).tracks.keep(8)
+
+
+////////////////// more hiphop
+
+
+(
+	Pdef(\part, Pdef(\mdrums1, 
+		Ppar([
+			Pbind(\out, BusDef(\mixer0, \audio)) <>
+			Ppar([
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+					\bufnum, ~buflib.kick[56].value,
+					\isRest, Pseq([
+						1,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						1,0,0,0, 1,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						1,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,1,0,
+						1,0,0,0, 0,0,0,1,
+						0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/8,
+					\gain, 0.3,
+				),
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.snare[1719].value,
+					//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+					\bufnum, ~buflib.snare[1115].value,
+				\isRest, Pseq([
+					Pseq([
+						0,0,0,0, 0,0,0,0,
+						1,0,0,0, 0,0,0,0,
+					],7),
+					Prand([
+						Pseq([
+							0,0,1/2,0, 0,1/2,0,0,
+							1,0,1/2,0, 0,0,1/2,0,
+						],1),
+						Pseq([
+							0,0,0,1, 0,1,0,0,
+							1,0,0,0, 0,0,0,1,
+						],1),
+					],1),
+				],inf).coin.not,
+					\dur, 1/8,
+					\gain, 0.81,
+				),
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.hat[1064].value,
+					//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+					\bufnum, ~buflib.hat[125].value,
+					\bufnum, ~buflib.hat[273].value,
+					\isRest, Pseq([
+						1,0,1,0, 1,0,1,0,
+					],inf).coin.not,
+					\dur, 1/8,
+					\gain, 0.1 * Pseq([
+						//1,0.2,0.5,0.3,
+						Pseq([ 1,0.2,0.5,0.3, ],1) * Pwhite(0.7,1.2,1).stutter(4),
+					],inf).stutter(2),
+				),
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.hat[1064].value,
+					//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+					\bufnum, ~buflib.hat[1100].value,
+					\isRest, Pseq([
+						1,0,0, 0,0,0,
+						1,0,0, 0,0,0,
+						1,0,0, 1,0,0,
+						1,0,0, 0,0,1,
+				
+						1,0,0, 1,0,0,
+						1,0,0, 1,0,0,
+						1,0,0, 1,0,1,
+						1,0,1, 1,0,1,
+				
+						1,0,0, 1,0,1,
+						0,0,0, 1,0,0,
+						1,0,0, 0,0,1,
+						1,0,0, 1,0,1,
+				
+						1,0,0, 0,0,0,
+						1,0,0, 0,0,0,
+						1,0,0, 1,0,0,
+						1,0,0, 0,0,1,
+				
+					],inf).coin.not,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.1) ],
+					],inf),
+					\dur, 1/12,
+					\gain, 0.1 * Pseq([
+						//1,0.2,0.5,0.3,
+						Pn(1/4,inf),
+						Pseq([ 1,0.2,0.5,0.3, ],1) * Pwhite(0.7,1.2,1).stutter(4),
+					],inf).stutter(2),
+				),
+			]),
+
+		])
+	)).play;
+);
+
+
+
+(
+	Pdef(\part, Pdef(\mdrums2, 
+		Ppar([
+			Pbind(\out, BusDef(\mixer0, \audio)) <>
+			Ppar([
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+					\bufnum, ~buflib.kick[56].value,
+					\isRest, Pseq([
+						1,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						1,0,0,0, 1,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						1,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,1,0,
+						1,0,0,0, 0,0,0,1,
+						0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/8,
+					\gain, 0.3,
+				),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.kick[1010].value,
+				//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+				\bufnum, ~buflib.kick[465].value,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0,
+					0,0,0,1, 0,0,0,1,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,1,0,
+			
+					0,0,0,0, 0,0,0,0,
+					0,0,1,1, 0,0,0,1,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,1,0,
+			
+					0,0,0,0, 0,0,0,0,
+					0,0,1,0, 1,0,1,1,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,1,0,
+			
+					0,0,0,0, 0,0,0,0,
+					0,0,0,1, 1,0,0,1,
+					0,0,0,0, 0,0,0,0,
+					0,0,1,0, 0,1,1,0,
+
+					Prand([
+						Pseq([
+							0,0,0,0, 0,0,0,0,
+							0,0,0,0, 0,0,0,0,
+						],1),
+						Pseq([
+							0,0,0,0, 0,0,0,0,
+							0,0,1,1, 0,0,0,1,
+						],1),
+						Pseq([
+							0,0,0,0, 0,0,0,0,
+							0,0,0,1, 0,0,0,1,
+						],1),
+						Pseq([
+							0,1,0,1, 1,0,0,0,
+							0,0,0,0, 1,1,0,0,
+						],1),
+						Pseq([
+							0,0,0,0, 0,1,0,0,
+							1,0,0,1, 0,0,0,1,
+						],1),
+					],8),
+				],inf).coin.not,
+				\dur, 1/8,
+				\gain, 0.2,
+			),
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.snare[1719].value,
+					//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+					\bufnum, ~buflib.snare[1115].value,
+				\isRest, Pseq([
+					Pseq([
+						0,0,0,0, 0,0,0,0,
+						1,0,0,0, 0,0,0,0,
+					],7),
+					Prand([
+						Pseq([
+							0,0,1/2,0, 0,1/2,0,0,
+							1,0,1/2,0, 0,0,1/2,0,
+						],1),
+						Pseq([
+							0,0,0,1, 0,1,0,0,
+							1,0,0,0, 0,0,0,1,
+						],1),
+					],1),
+				],inf).coin.not,
+					\dur, 1/8,
+					\gain, 0.81,
+				),
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.hat[1064].value,
+					//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+					\bufnum, ~buflib.hat[125].value,
+					\bufnum, ~buflib.hat[273].value,
+					\isRest, Pseq([
+						1,0,1,0, 1,0,1,0,
+					],inf).coin.not,
+					\dur, 1/8,
+					\gain, 0.1 * Pseq([
+						//1,0.2,0.5,0.3,
+						Pseq([ 1,0.2,0.5,0.3, ],1) * Pwhite(0.7,1.2,1).stutter(4),
+					],inf).stutter(2),
+					\isRest, true,
+				),
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.hat[1064].value,
+					//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+					\bufnum, ~buflib.hat[1100].value,
+					\isRest, Pseq([
+						1,0,0, 0,0,0,
+						1,0,0, 0,0,0,
+						1,0,0, 1,0,0,
+						1,0,0, 0,0,1,
+				
+						1,0,0, 1,0,0,
+						1,0,0, 1,0,0,
+						1,0,0, 1,0,1,
+						1,0,1, 1,0,1,
+				
+						1,0,0, 1,0,1,
+						0,0,0, 1,0,0,
+						1,0,0, 0,0,1,
+						1,0,0, 1,0,1,
+				
+						1,0,0, 0,0,0,
+						1,0,0, 0,0,0,
+						1,0,0, 1,0,0,
+						1,0,0, 0,0,1,
+				
+					],inf).coin.not,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.1) ],
+					],inf),
+					\dur, 1/12,
+					\gain, 0.1 * Pseq([
+						//1,0.2,0.5,0.3,
+						Pn(1/4,inf),
+						Pseq([ 1,0.2,0.5,0.3, ],1) * Pwhite(0.7,1.2,1).stutter(4),
+					],inf).stutter(2),
+				),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[1064].value,
+				//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+				\bufnum, ~buflib.hat[126].value,
+					\bufnum, ~buflib.hat[273].value,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.01) ],
+				],inf),
+				//\speed, 0.9,
+				\isRest, Pseq([
+					0,0,1,0, 0,1,0,0,
+					0,0,0,0, 0,0,0,1,
+					0,0,0,0, 0,0,0,1,
+
+					0,0,1,0, 0,1,0,0,
+					0,0,0,0, 0,0,1,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+
+
+					Prand([
+						0,0,1,0, 0,1,0,0,
+						0,0,0,0, 0,0,0,1,
+						0,0,0,0, 0,0,0,1,
+						0,0,1,0, 0,1,0,0,
+						0,0,0,0, 0,0,1,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+					].clump(8).collect(Pseq(_)),8),
+				],inf).coin.not,
+				\dur, 1/8,
+				\gain, 0.1,
+			),
+			]),
+
+		])
+	)).play;
+);
+
+(
+	Pdef(\part, Pdef(\mdrums3, 
+		Ppar([
+			Pbind(\out, BusDef(\mixer0, \audio)) <>
+			Ppar([
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+					\bufnum, ~buflib.kick[56].value,
+					\isRest, Pseq([
+						1,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,1,0,1,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,1,0,
+						1,0,0,0, 0,0,0,1,
+						0,0,0,0, 0,0,0,0,
+
+						1,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,1,0, 0,0,0,1,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,1,0,
+						1,0,0,0, 0,0,0,1,
+						0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/8,
+					\gain, 0.3,
+				),
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.snare[1719].value,
+					//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+					\bufnum, ~buflib.snare[353].value,
+					\isRest, Pseq([
+						Pseq([
+							0,0,0,0, 0,0,0,0,
+						],5+8),
+						0,0,1,0, 0,1,0,1,
+						0,0,1,0, 1,0,0,1,
+						0,1,0,0, 1,0,0,1,
+					],inf).coin.not,
+					\dur, 1/8,
+					\gain, 0.31,
+				),
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.snare[1719].value,
+					//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+					\bufnum, ~buflib.snare[1115].value,
+				\isRest, Pseq([
+					Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						1,0,0,0, 0,0,0,0,
+					],3),
+					Prand([
+						Pseq([
+							0,0,1/2,0, 0,1/2,0,0,
+							1,0,1/2,0, 0,0,1/2,0,
+						],1),
+						Pseq([
+							0,0,0,1, 0,1,0,0,
+							1,0,0,0, 0,0,0,1,
+						],1),
+					],1),
+				],inf).coin.not,
+					\dur, 1/8,
+					\gain, 0.81,
+				),
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.hat[1064].value,
+					//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+					\bufnum, ~buflib.hat[125].value,
+					\bufnum, ~buflib.hat[273].value,
+					\isRest, Pseq([
+						1,0,1,0, 1,0,1,0,
+					],inf).coin.not,
+					\dur, 1/8,
+					\gain, 0.1 * Pseq([
+						//1,0.2,0.5,0.3,
+						Pseq([ 1,0.2,0.5,0.3, ],1) * Pwhite(0.7,1.2,1).stutter(4),
+					],inf).stutter(2),
+				),
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.hat[1064].value,
+					//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+					\bufnum, ~buflib.hat[1100].value,
+					\isRest, Pseq([
+						1,0,0, 0,0,0,
+						1,0,0, 0,0,0,
+						1,0,0, 1,0,0,
+						1,0,0, 0,0,1,
+				
+						1,0,0, 1,0,0,
+						1,0,0, 1,0,0,
+						1,0,0, 1,0,1,
+						1,0,1, 1,0,1,
+				
+						1,0,0, 1,0,1,
+						0,0,0, 1,0,0,
+						1,0,0, 0,0,1,
+						1,0,0, 1,0,1,
+				
+						1,0,0, 0,0,0,
+						1,0,0, 0,0,0,
+						1,0,0, 1,0,0,
+						1,0,0, 0,0,1,
+				
+					],inf).coin.not,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.1) ],
+					],inf),
+					\dur, 1/12,
+					\gain, 0.1 * Pseq([
+						//1,0.2,0.5,0.3,
+						Pn(1/4,inf),
+						Pseq([ 1,0.2,0.5,0.3, ],1) * Pwhite(0.7,1.2,1).stutter(4),
+					],inf).stutter(2),
+				),
+			]),
+
+		])
+	)).play;
+);
+
+//////////////////// AUX 2
+
+ClipTimeline(\vin31_aux2).edit
+ClipTimeline(\vin31_aux2).clear
+FileSystemProject('capsule/vin31').resources.add( ClipTimeline(\vin31_aux2) )
