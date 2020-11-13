@@ -42,6 +42,27 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 );
+
+ProtoDef(\piano).startControl(Pdef(\melo, Pbind(\instrument, \corniaud)))
+MKtl.find(\midi); // when was not connected
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \corniaud,
+			\fmamt, ~pmodenv.(Pseq([0,1,0,4],inf), 1/4),
+			//\fmant, Pseq([0.1,0.2],inf),
+			\note, Pseq([
+				[0,3,7],
+			],inf)+Pseq([0,3],inf).stutter(1),
+			\dur, 4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
 (
 SynthDef(\corniaudouble, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;

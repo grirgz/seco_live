@@ -19,6 +19,7 @@ s.waitForBoot {
 );
 { SinOsc.ar(500) ! 2 * 0.1}.play;
 
+BufDef
 RandDelayNetwork(\deldefault).define_specs[\posthpf]
 \freq.asSpec
 Spec.specs[\freq]
