@@ -18,6 +18,7 @@ s.waitForBoot {
 };
 );
 { SinOsc.ar(500) ! 2 * 0.1}.play;
+Spec.specs[\env]
 
 BufDef
 RandDelayNetwork(\deldefault).define_specs[\posthpf]

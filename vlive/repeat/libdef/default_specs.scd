@@ -5,6 +5,7 @@ Spec.add(\mix, \unipolar.asSpec);
 Spec.add(\inbus, XBusSpec.new);
 Spec.add(\gate, XGateSpec.new);
 Spec.add(\adsr, XEnvSpec.adsr);
+Spec.add(\env, XEnvSpec.new);
 Spec.add(\lag, ControlSpec(0, 1, 'linear', 0, 0, ""));
 Spec.add(\gain, ControlSpec(0,1,\lin, 0,1));
 Spec.add(\out, TagSpecDef(\BusDef));

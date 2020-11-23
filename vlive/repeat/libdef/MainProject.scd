@@ -1,3 +1,5 @@
+FileSystemProject.loadOnce("libdef/filedialog.scd");
+FileSystemProject.loadOnce("libdef/filedialog_project.scd");
 
 ProtoTemplateDef('MainProject', (
 	//parent: FileSystemProject.defaultParent,
@@ -191,20 +193,20 @@ WindowDef(\MainProject, { arg def, proj;
 			HLayout (
 				projlabel,
 				BasicButton.new.string_("New Project").action_({
-					WindowDef(\filedialog_save).front(nil, { arg path, name;
+					WindowDef(\filedialog_project_save).front(nil, { arg path, name;
 						[path, name].debug("new project");
 						proj = FileSystemProject(path +/+ name, ProtoTemplateDef(\MainProject));
 						//proj.projectPath = path +/+ name;
 						FileSystemProject.current = proj;
 						projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
-					}); 
+					}).windowName_("Choose New Project File"); 
 				}),
 				BasicButton.new.string_("Open Project").action_({
-					WindowDef(\filedialog).front(nil, { arg path;
+					WindowDef(\filedialog_project).front(nil, { arg path;
 						[path].debug("open project");
 						proj = ProtoTemplateDef(\MainProject).loadProject(path);
 						projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
-					}); 
+					}).windowName_("Open Project File"); 
 				}),
 				BasicButton.new.string_("Save Project").action_({
 					proj.saveProject;

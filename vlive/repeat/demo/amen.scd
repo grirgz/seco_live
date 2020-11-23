@@ -838,3 +838,23 @@ Pdef(\part3, Pdef(\zed3,
 	])
 )).play;
 );
+
+/////////////////////////////////
+/// change pitch according to tempo
+Pbind(
+	//\instrument, \basicbass,
+	\note, Pstep(Pseq([
+		0,0,5,7,
+	],inf)-4, 1),
+	\freq, Pkey(\freq) *  ~t * 1/8/(1/12.57), // here!!! (size of mesure: 12.57s)
+	\octave, 3,
+	\legato, 0.3,
+	\legato, Pseq([
+		0,0,0,0, 2,0,0,0,
+	],inf),
+	\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+	\lpfr, 3,
+	\dur, 1/8,
+	\amp, 0.6,
+	\out, BusDef(\mixer5, \audio),
+),
