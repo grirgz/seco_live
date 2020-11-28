@@ -1,47 +1,4 @@
 
-(
-// FIXME: used in Param quark
-WindowDef(\EventPatternProxyEditor, { arg me, target;
-	VLayout(
-		PlayerWrapper(target).asView,
-		ParamGroupLayout.two_panes(target.asParamGroup),
-	);
-});
-WindowDef(\PdefEditor, { arg me, key=\default;
-	var target;
-	if(key.isKindOf(Pdef) or: key.isKindOf(Ndef)) {
-		target = key;
-	} {
-		target = Pdef(key);
-	};
-	VLayout(
-		HLayout (
-			PlayerWrapper(target).asView,
-			BasicButton.new.string_("Special edit").action_({
-				target.getHalo(\edit).value(target);
-			})
-		),
-		ParamGroupLayout.two_panes(target.asParamGroup),
-	);
-});
-WindowDef(\NdefEditor, { arg me, key=\default;
-	var target;
-	var pg;
-	if(key.isKindOf(Pdef) or: key.isKindOf(Ndef)) {
-		target = key;
-	} {
-		target = Ndef(key);
-	};
-	pg = ParamGroupDef.update(\NdefParamGroup_ +++ target.key, target.asParamGroup);
-	VLayout(
-		HLayout(
-			PlayerWrapper(target).asView,
-			EventClass.presetSelectorView.(pg),
-		),
-		ParamGroupLayout.two_panes(target.asParamGroup)
-	);
-});
-);
 
 (
 TrackTemplateDef(\playerwrapper, (
@@ -122,6 +79,12 @@ TrackTemplateDef(\playerwrapper, (
 			self.proxy.play;
 			self.parentTrack.childPlayed;
 			self.changed(\play, self.quant);
+			self.changed(\PlayerWrapper, \userPlayed); // the view put directly the ProtoDef so need to simulate PlayerWrapper
+			self.proxy.doWithQuant {
+				self.changed(\PlayerWrapper, \playing); // the view put directly the ProtoDef so need to simulate PlayerWrapper
+
+			};
+			// it's not a good design this mean i should do it on every ProtoDef!
 		}
 	},
 
@@ -145,6 +108,7 @@ TrackTemplateDef(\playerwrapper, (
 			};
 			self.parentTrack.childPlayed;
 			self.changed(\play, self.quant);
+			self.changed(\PlayerWrapper, \playing); 
 		}
 		
 	},
@@ -158,6 +122,7 @@ TrackTemplateDef(\playerwrapper, (
 			self.proxy.playNow;
 			self.parentTrack.childPlayed;
 			self.changed(\play, self.quant);
+			self.changed(\PlayerWrapper, \playing); 
 		}
 	},
 
@@ -166,6 +131,10 @@ TrackTemplateDef(\playerwrapper, (
 			self.proxy.stop;
 			self.parentTrack.childStopped;
 			self.changed(\stop, self.quant);
+			self.changed(\PlayerWrapper, \userStopped); 
+			self.proxy.doWithQuant {
+				self.changed(\PlayerWrapper, \stopped); 
+			}
 		};
 	},
 
@@ -173,6 +142,7 @@ TrackTemplateDef(\playerwrapper, (
 		self.proxy.stopNow;
 		self.parentTrack.childStopped;
 		self.changed(\stop, self.quant);
+		self.changed(\PlayerWrapper, \stopped); 
 	},
 
 	quant: { arg self;
@@ -364,6 +334,7 @@ TrackTemplateDef(\playertrack, (
 				self.parentTrack.mixer.tracks[self.index]
 			} {
 				if(self.mixer_obj.isNil) {
+					ParamProto.init;
 					self.mixer_obj = ~trackMixerDef.new(self.parentTrack.key+++"."+++self.index);
 					self.mixer_obj.define_mixer;
 					self.init_mixer_busses;

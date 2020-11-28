@@ -46,6 +46,46 @@
 	Pseq((0..7),inf)
 ),
 
+////////////////// modulo is cool
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq((1..20),inf) % Pseq((3..17),inf),
+		\dur, 1/8,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq((1..20),inf).wrap(Pseq((3..7),inf),Pseq((3..17).mirror,inf)).trace,
+		\dur, 1/8,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq((1..20),inf).wrap(Pseq((3..7),inf),Pseq((3..17).mirror,inf)).trace,
+		\dur, Pseq([
+			Pwrand([ 
+				2, 1.0, 0.5, 0.25, 0.125,
+				1.5, 0.75, 0.375, 0.1875, 0.09375,
+		   	], ( (1..5)**2 ++ ( (1..5)**2 / 1.2 )).normalizeSum,inf)
+		]),
+		\amp, 0.1,
+	)
+).play;
+);
+
 ///// get same frequence as note pattern
 
 // setup
@@ -398,8 +438,75 @@ Pdef(\part, Pdef(\zed,
 					Pn(0,6), 
 					Pn(1,2)
 				],inf),
-		   	,1/2)),
+		   	1/2)),
 		)
+		<>
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				Pseq([0,1,2,3]),
+			],inf),
+			\isRest, Pseq([
+				1,1,0,1, 1,1,1,1,
+			],inf).coin.not,
+			\dur, Prand([1/8],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pseq([
+			Pfindur(3,Pbind()),
+			Pfindur(1,Pbind(\type, \rest)),
+		],inf)
+		<>
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				Pseq([0,1,2,3]),
+			],inf),
+			\isRest, Pseq([
+				1,1,0,1, 1,1,1,1,
+			],inf).coin.not,
+			\dur, Prand([1/8],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\type, Pstep(Pseq([
+				Pkey(\type).keep(1), \rest
+			],inf), Pseq([3,1],inf))
+		)
+		<>
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				Pseq([0,1,2,3]),
+			],inf),
+			\isRest, Pseq([
+				1,1,0,1, 1,1,1,1,
+			],inf).coin.not,
+			\dur, Prand([1/8],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		PschedMute(Pseq([0,1,3,3,1],inf)) // API could change
 		<>
 		Pbind(
 			\instrument, \default,

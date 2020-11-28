@@ -88,7 +88,7 @@ FileSystemProject.load("capsule/fxsimple.scd");
 FileSystemProject.load("capsule/fxheavy.scd");
 
 
-FileSystemProject.load("~/.local/share/SuperCollider/Extensions/seco/seco/veco/inline_editor.scd");
+FileSystemProject.load("libdef/inline_editor.scd");
 
 ///////////////////// control
 

@@ -27,16 +27,20 @@ ProtoDef(\ButtonSelector, (
 		}
 	},
 
+	selectButton: { arg self, idx;
+		self.deselectedIndex = self.selectedIndex;
+		self.selectedIndex = idx;
+		self.updateButton(self.selectedIndex);
+		self.updateButton(self.deselectedIndex);
+		self.selectedAction(idx)
+	},
+
 	makeButton: { arg self;
 		var but = BasicButton.new;
 		var idx = self.list.size;
 		self.list.add(but);
 		but.action = { 
-			self.deselectedIndex = self.selectedIndex;
-			self.selectedIndex = idx;
-			self.updateButton(self.selectedIndex);
-			self.updateButton(self.deselectedIndex);
-			self.selectedAction(idx)
+			self.selectButton(idx)
 		};
 		self.updateButton(idx);
 		but;

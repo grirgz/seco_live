@@ -72,7 +72,7 @@ Ndef(\plop).setBusMode(\inputs)
 					XStaticText.new.value_(pa.shortLabel).fixedWidth_(100),
 					case 
 						{ pa.spec.isKindOf(MenuSpec)  } {
-							pa.asView.fixedWidth_(200);
+							pa.asPopUpMenu.fixedWidth_(200);
 						}
 						//{ pa.spec.isKindOf(XBusSpec)  } {
 						//	//Param(pa.target, pa.property, ~route_bus_spec).asView.fixedWidth_(200);
@@ -84,7 +84,7 @@ Ndef(\plop).setBusMode(\inputs)
 					pa.asTextField.fixedWidth_(100),
 					if(pa.combinator.notNil) {
 						pa.combinator.rangeParam.at(0).set(1);
-						pa.combinator.inputParam.at(0).spec_(~lfo_bus_spec).asView.fixedWidth_(60);
+						pa.combinator.inputParam.at(0).spec_(~lfo_bus_spec).asPopUpMenu.fixedWidth_(60);
 					} {
 						XStaticText.new.fixedWidth_(50)
 					},
@@ -385,7 +385,7 @@ Ndef(\osc1).edit
 					XStaticText.new.value_(pa.shortLabel).fixedWidth_(80),
 					case 
 						{ pa.spec.isKindOf(MenuSpec)  } {
-							pa.asView.fixedWidth_(200);
+							pa.asPopUpMenu.fixedWidth_(200);
 						}
 						//{ pa.spec.isKindOf(XBusSpec)  } {
 						//	//Param(pa.target, pa.property, ~route_bus_spec).asView.fixedWidth_(200);
@@ -398,7 +398,7 @@ Ndef(\osc1).edit
 					if(pa.combinator.notNil) {
 						//pa.combinator.rangeParam.at(0).set(1);
 						HLayout (
-							pa.combinator.inputParam.at(0).spec_(~lfo_bus_spec).asView.fixedWidth_(60),
+							pa.combinator.inputParam.at(0).spec_(~lfo_bus_spec).asPopUpMenu.fixedWidth_(60),
 							pa.combinator.rangeParam.at(0).asKnob.centered_(true).fixedSize_(20),
 						)
 					} {
@@ -922,7 +922,7 @@ ParamProto.init;
 						XStaticText.new.value_(pa.shortLabel).fixedWidth_(80),
 						case 
 							{ pa.spec.isKindOf(MenuSpec)  } {
-								pa.asView.fixedWidth_(200);
+								pa.asPopUpMenu.fixedWidth_(200);
 							}
 							//{ pa.spec.isKindOf(XBusSpec)  } {
 							//	//Param(pa.target, pa.property, ~route_bus_spec).asView.fixedWidth_(200);
@@ -935,7 +935,7 @@ ParamProto.init;
 						if(pa.combinator.notNil) {
 							//pa.combinator.rangeParam.at(0).set(1);
 							HLayout (
-								pa.combinator.inputParam.at(0).spec_(~lfo_bus_spec).asView.fixedWidth_(60),
+								pa.combinator.inputParam.at(0).spec_(~lfo_bus_spec).asPopUpMenu.fixedWidth_(60),
 								pa.combinator.rangeParam.at(0).asKnob.centered_(true).fixedSize_(20),
 							)
 						} {
@@ -1360,7 +1360,7 @@ ParamProto.init;
 			mixer1: ~mixer_builder.new(\mixer1),
 			mixer2: ~mixer_builder.new(\mixer2),
 
-			noteline1: ~timeline_builder.new(\noteline1),
+			//noteline1: ~timeline_builder.new(\noteline1),
 			osc1: ~osc_builder.new(\osc1),
 			osc2: ~osc_builder.new(\osc2),
 			osc3: ~osc_builder.new(\osc3),

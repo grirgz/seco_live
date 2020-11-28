@@ -75,8 +75,11 @@ Pdef(\part, Pdef(\zed,
 			\instrument, \waver2d,
 			\wavetable, WavetableDef(\multi),
 			\consecutive, WavetableDef(\multi).consecutive.size,
-			\freq, 200,
-			\dur, 1,
+			\note, Pseq([
+				0,2,5,4,
+			],inf),
+			//\freq, 200,
+			\dur, 1/8,
 			\amp, 0.1,
 		),
 	])
@@ -300,6 +303,83 @@ Pdef(\part, Pdef(\zed,
 				0,2,4,1,
 			],inf),
 			\dur, 2,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+
+/////////////////// custom MouseX
+
+(
+WavetableDef(\multi2, [
+	"/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/Classic - Sine/Sine.wav",
+	"/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/Classic - Saw/Cos Saw.wav",
+	"/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/Misc - Assymetrical/Asymmetrical 018.wav",
+	"/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/Classic - Sine/Sine Power2.wav",
+])
+)
+
+(
+WavetableDef(\multi3, [
+	"/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/FM - Dual/FM Dual 1 9 2.wav",
+	"/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/AM - Simple NonSine/AM Squ07 Squ02.wav",
+	"/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/Formants - Sine/Formant 09.wav",
+])
+)
+
+(
+SynthDef(\waver3d, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, wavetable, consecutive, wavetable2, consecutive2, pos=0, pos2=0;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig1 = VOsc.ar(wavetable + (pos*(consecutive-1)), freq);
+	sig2 = VOsc.ar(wavetable2 + ( pos*(consecutive2-1) ), freq);
+	sig = SelectX.ar(pos2, [sig1, sig2]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \waver3d,
+			\wavetable, WavetableDef(\multi2),
+			\consecutive, WavetableDef(\multi2).consecutive.size,
+			\wavetable2, WavetableDef(\multi3),
+			\consecutive2, WavetableDef(\multi3).consecutive.size,
+			\pos, ~pmodenv.(Pseq([0,1,0.1,0.4],inf), 1.28),
+			\pos2, ~pmodenv.(Pseq([0,1,0.1,0.4],inf), 1.7),
+			\octave, 3,
+			\note, Pseq([
+				0,2,4,1,
+			],inf),
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \waver3d,
+			\wavetable, WavetableDef(\multi2),
+			\consecutive, WavetableDef(\multi2).consecutive.size,
+			\wavetable2, WavetableDef(\multi3),
+			\consecutive2, WavetableDef(\multi3).consecutive.size,
+			\pos, Ndef(\mouseX, { MouseX.kr(0,1) }),
+			\pos2, Ndef(\mouseY, { MouseY.kr(0,1) }),
+			\octave, 3,
+			\note, Pseq([
+				0,2,4,1,
+			],inf),
+			\dur, 1/2,
 			\amp, 0.1,
 		),
 	])

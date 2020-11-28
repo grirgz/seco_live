@@ -12,10 +12,24 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 );
+s.boot;
 ParamProto.init(true)
 SampleTimeline(\bla2).edit
+SampleTimeline(\bla2).recorder.filename
+SampleTimeline(\bla2).recorder.temporaryRecordFolder
+SampleTimeline(\bla2).editor.exportSelectionToBufferEditor
+SampleTimeline(\bla2).cursor.startPosition
+SampleTimeline(\bla2).selection_cursor.startPosition == SampleTimeline(\bla2).selection_cursor.endPosition
+SampleTimeline(\bla2).tempoClock
+SampleTimeline(\bla2).bufferInfo.bufferData
+SampleTimeline(\bla2).buffer
+SampleTimeline(\bla2).askBufferData
+SampleTimeline(\bla2).bufferInfo.bufferData = nil
 SampleTimeline(\bla2).clear
 SampleTimeline(\bla2).presetCompileString.editorInsert
+SampleTimeline.proto.recordDirectory
+BufDef(\rocksteady, "vipere/rocksteady.flac")
+BufDef(\rocksteady).clear
 (
 SampleTimeline('bla2').eventList = XEventList.newFrom([
 	(\absTime: 0, \dur: 4.0, \label: 'start', \playDur: 4.0, \relDur: 4.0, \sustain: 0, \type: 'start', ),
@@ -35,3 +49,19 @@ ClipTimeline('clip').eventList = XEventList.newFrom([
 
 );
 
+
+(
+Pdef(\zed, 
+	Prand(
+		( 8*4 ).collect { arg x; SampleTimeline(\bla2).asPatternAbs(0+( x/4 ),(x+1)/4 ,1) }, inf
+	)
+).play;
+);
+(
+Pdef(\zed, 
+	Pindex(
+		( 8*4 ).collect { arg x; SampleTimeline(\bla2).asPatternAbs(0+( x/4 ),(x+1)/4 ,1) },
+		Prand((0..8*4),inf).stutter(2)
+	)
+).play;
+);

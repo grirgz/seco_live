@@ -17,10 +17,13 @@ s.waitForBoot {
 
 };
 );
+"1".editorInsert
 { SinOsc.ar(500) ! 2 * 0.1}.play;
 Spec.specs[\env]
 
+Log(\Param).level = \info;
 BufDef
+BufDef('loop/pigs.flac').play
 RandDelayNetwork(\deldefault).define_specs[\posthpf]
 \freq.asSpec
 Spec.specs[\freq]
@@ -31,6 +34,11 @@ SCVim.generateTagsFile
 Help.gui
 SCDoc.findHelpFile("Pdef")
 HelpBrowser.openHelpFor("Pdef")
+SCDoc.indexAllDocuments(clearCache: false) // regenerate
+
+MIDIClient.list
+MIDIClient.init
+MIDIClient.restart
 
 (
 
@@ -161,3 +169,137 @@ ProtoDef(\simpleMixer).edit;
 		Ndef(\drumgroup, \busgroup).set(\inbus, BusDef(\sendbus0)).play(BusDef(\mixer6).index, 2);
 	};
 	)
+
+
+
+
+Refresh the list of available sources and destinations.
+If you have connected a MIDI device after MIDIClient initialization, you won't see it until this method is run.
+	////////////////
+MIDIClient.destinations
+
+
+This is Linux specific code.
+The function takes care of initializing MIDIClient, detects a MIDI device named SE25 and connects it to port 0 of SuperCollider.
+
+
+
+(
+~connect_midi_devices = { 
+	// init or refresh MIDIClient end points
+	if(MIDIClient.initialized == false) { 
+		MIDIClient.init; 
+	} {
+		MIDIClient.list; 
+	};
+
+	MIDIClient.sources.do({ arg endPoint;
+		if(endPoint.device == "SE25" and: { endPoint.name == "SE25 MIDI 1" }) {
+			// catch exception thrown when already connected
+			try {
+				// connect SuperCollider out port 0 to MIDI device
+				MIDIOut.connect(0, endPoint.uid); 
+			};
+			try {
+				// connect MIDI device to SuperCollider in port 0
+				MIDIIn.connect(0, endPoint.uid); 
+			}
+		}
+	})
+
+}
+)
+
+
+~connect_midi_devices = { 
+	var device_se25;
+
+	// init or refresh MIDIClient end points
+	if(MIDIClient.initialized == false) { 
+		MIDIClient.init; 
+	} {
+		MIDIClient.list; 
+	};
+
+	MIDIClient.destinations.do({ arg endPoint;
+		if(endPoint.device == "iCON iControls V2.00" and: { endPoint.name == "iCON iControls V2.00 MIDI 1" }) {
+			MIDIOut.connect(0, endPoint.uid); // connect in jackd
+			MIDIIn.connect(0, endPoint.uid); // connect in jackd
+		}
+	})
+
+}
+~connect_midi_devices.()
+
+
+~connect_jack_device = { arg idsymbol;
+	"==== %: Device id = %".format(idsymbol, topEnvironment[idsymbol]).debug;
+	if(topEnvironment[idsymbol].notNil) {
+		try {
+			MIDIOut.connect(0, topEnvironment[idsymbol]);
+		} {
+			"%: Probably already connected out".format(idsymbol).debug;
+		};
+		try {
+			MIDIIn.connect(0, topEnvironment[idsymbol]);
+		} {
+			"%: Probably already connected in".format(idsymbol).debug;
+		};
+	} {
+		"%: Device id is nil".format(idsymbol).debug;
+	};
+};
+
+~connect_jack = {
+	~launchpad_device_id = MIDIIn.findPort ("Launchpad S", "Launchpad S MIDI 1") !? (_.uid);
+	~icon_device_id = MIDIIn.findPort ("iCON iControls V2.00", "iCON iControls V2.00 MIDI 1") !? (_.uid);
+	~apro_device_id = MIDIIn.findPort ("A-PRO", "A-PRO MIDI 2") !? (_.uid);
+	~apc_device_id = MIDIIn.findPort ("APC40 mkII", "APC40 mkII MIDI 1") !? (_.uid);
+	~nektar_device_id = MIDIIn.findPort ("SE25", "SE25 MIDI 1") !? (_.uid);
+
+	[\launchpad_device_id, \icon_device_id, \apro_device_id, \apc_device_id, \nektar_device_id].do(~connect_jack_device);
+};
+
+~restart_jack = {
+
+	MIDIClient.list; // yes!!! stupid name for a refresh
+	//MIDIClient.destinations.debug;
+	//MIDIClient.restart;// does nothing
+	//MIDIClient.disposeClient; // does nothing
+};
+
+~initialize_jack = {
+	if(MIDIClient.initialized == false) { 
+		MIDIClient.init; 
+		//"~/bin/launchpad_connect".standardizePath.unixCmd;
+		//"jack_connect A-PRO:midi/playback_2 SuperCollider:midi/capture_1".unixCmd;
+	} {
+		"Midi already initialized, just connect.";
+		//MIDIClient.restart;
+		MIDIClient.list; // yes!!! stupid name for a refresh
+	};
+
+	~connect_jack.();
+	//~launchpad_device_id = MIDIIn.findPort ("Launchpad S-Launchpad S MIDI 1", "Launchpad S-Launchpad S MIDI 1") !? (_.uid);
+	//~icon_device_id = MIDIIn.findPort ("iCON iControls V2.00-iCON iControls V2.00 MIDI 1", "iCON iControls V2.00-iCON iControls V2.00 MIDI 1") !? (_.uid);
+	//MIDIOut(0).connect( MIDIClient.destinations.detectIndex { arg x; x.device == "Launchpad S-Launchpad S MIDI 1" } );
+	//MIDIOut(0).connect( MIDIClient.destinations.detectIndex { arg x; x.device == "iCON iControls V2.00-iCON iControls V2.00 MIDI 1" } );
+
+	// this worked in 3.7alpha
+	//MIDIOut(0).connect( MIDIClient.destinations.detectIndex { arg x; x.device == "Launchpad S" } );
+	//MIDIOut(0).connect( MIDIClient.destinations.detectIndex { arg x; x.device == "iCON iControls V2.00" } );
+	//MIDIIn.connect(0, ~launchpad_device_id);
+	//MIDIIn.connect(0, ~icon_device_id);
+};
+
+(
+{
+var n = 30;
+var f0 = 200;
+var freqs = Array.fill(n, {arg i; f0*(i+1)});
+var amps = Array.fill(n, {arg i; 1/(i+1)});
+var filtered_amps = n.collect {arg i; SelectX.kr(freqs[i] < MouseX.kr(80,10000,\exponential), [ amps[i] , 0 ])};
+var sig = Mix.ar(SinOsc.ar(freq:freqs, mul:filtered_amps));
+Pan2.ar(sig*0.5, 0.0);
+}.play;
+)

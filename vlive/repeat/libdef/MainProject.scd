@@ -17,8 +17,9 @@ ProtoTemplateDef('MainProject', (
 		PlayerWrapper_Base.savePresetCompileStringHelper(path, onDoneAction, self.refCompileString, self.presetCompileString, false);
 		self.resources.do { arg resource;
 			Log(\Param).debug("Saving resource %".format(resource));
-			resource.presetCompileStringSavePath = self.dataPath;
-			resource.loadedFromPath = self.dataPath; // bypass the overwrite protection mecanism for debug
+			resource.presetCompileStringSavePath = self.dataPath; // presetCompileStringProjectDataPath can be a file
+			resource.presetCompileStringProjectDataPath = self.dataPath; // always the datapath
+			resource.loadedFromPath = self.dataPath; // FIXME: this bypass the overwrite protection mecanism for debug
 			resource.savePresetCompileString;
 		}
 	},
@@ -70,10 +71,14 @@ ProtoTemplateDef('MainProject', (
 	},
 
 	addResource: { arg self, resource;
-		if(self.resources.isNil) {
-			self.resources = IdentitySet.new;
-		};
-		self.resources.add(resource);
+		// the path is only set at save time, don't know why
+		// maybe in case we added the wrong resource and want to remove it
+		if(resource.notNil) { // prevent error when ProtoTemplateDef proto are not loaded and return nil
+			if(self.resources.isNil) {
+				self.resources = IdentitySet.new;
+			};
+			self.resources.add(resource);
+		}
 	},
 
 	mainTrackList: { arg self;
@@ -101,6 +106,7 @@ ProtoTemplateDef('MainProject', (
 	mainMixer: { arg self;
 		if(self.mainMixer_value.isNil) {
 			self.mainMixer_value = ProtoDef("%_mainMixer".format(self.name).asSymbol, ProtoTemplateDef(\simpleMixer)).init;
+
 			self.addResource(self.mainMixer_value);
 		};
 		self.mainMixer_value;
