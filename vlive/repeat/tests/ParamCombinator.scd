@@ -13,6 +13,8 @@
 	}).add;
 
 
+Spec.add(\lpfr, ControlSpec(0.1,4,\lin));
+
 	~targetp = Param(Pdef(\param), \freq, \freq);
 	//Ndef(\default).clear;
 	//~pc.setBusMode(true);
@@ -23,9 +25,12 @@
 	Ndef(\lfo1, { SinOsc.kr(2.5).unipolar  });
 	Ndef(\lfo2, { LFPulse.kr(4.5).unipolar  });
 	Ndef(\lfo3, { LFSaw.kr(1.5).unipolar  });
+TagSpecDef(\ParamCombinatorInput).addUnique(\lfo1 -> Ndef(\lfo1));
+TagSpecDef(\ParamCombinatorInput).addUnique(\lfo2 -> Ndef(\lfo2));
+TagSpecDef(\ParamCombinatorInput).addUnique(\lfo3 -> Ndef(\lfo3));
 
-	BusDef(\bus1,\control);
-	BusDef(\bus2,\control);
+	BusDef(\krbus1,\control);
+	BusDef(\krbus2,\control);
 	BusDef(\arbus1,\audio);
 	BusDef(\arbus2,\audio);
 
@@ -43,7 +48,11 @@
 )
 Pdef(\param).addHalo(\instrument, \saw)
 	~pc = ParamCombinator(Param(Pdef(\param), \freq, \freq));
+	~pc = ParamCombinator(Param(Pdef(\param), \lpfr, ControlSpec(0.1,2,\lin)));
 	~pc.setBusMode(true);
+	~ev = Pdef(\param).asStream.next
+	~ev[\lpfr].dump
+	~ev.play
 Pdef(\param).edit
 WindowDef(\ParamCombinator).front(~pc)
 
@@ -52,6 +61,7 @@ WindowDef(\ParamCombinator).front(~pc)
 		var targetParam = Param(Pdef(\param), \freq, \freq);
 		VLayout (
 			PlayerWrapper(Pdef(\plop)).asView,
+			PlayerWrapper(combi.proxy).asView,
 			Button.new.string_("convert target param").action_({
 				var target = targetParam.target;
 				//targetParam.wrapper = targetParam.combinator.baseParam.wrapper;
@@ -234,8 +244,6 @@ Pdef(\rah,
 //		\freq, ProtoDef(\mod),
 		//\zfreq, DebugMethodTracer(),
 		//\dd, (),
-		\dur, 1,
-		\amp, 0.1,
 	)
 ).play;
 );
@@ -243,7 +251,9 @@ Pdef(\rah,
 Pdef(\rah).edit
 Pdef(\rah).asParamGroup.first.instrument
 
-WindowDef(\ParamCombinator).front(Pdef(\rah).getHalo(\ParamCombinator_freq))
+WindowDef(\ParamCombinatorEditor).front(Pdef(\rah).getHalo(\ParamCombinator_freq))
+~pc = Pdef(\rah).getHalo(\ParamCombinator_lpfr)
+~pc.inputParam.get
 Pdef(\rah).getHalo(\ParamCombinator_freq).setBusMode(true)
 Pdef(\rah).getHalo(\ParamCombinator_freq).inBusMode
 Pdef(\rah).getHalo(\ParamCombinator_freq).ranges.dump
@@ -345,3 +355,104 @@ Pdef.defaultQuant = 8
 //////////////////////////
 
 
+BusDef(\krbus3, \control).rate
+BusDef(\krbus3).rate
+BusDef(\krbus3).set(1)
+
+
+
+///////////////////// kr ar
+
+
+(
+SynthDef(\saw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = LFSaw.ar(freq * [1.01,1,0.99]);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).store;
+);
+(
+Spec.add(\lpfr, ControlSpec(0.1,4,\lin));
+	Ndef(\lfo1, { arg lofreq=2.5; SinOsc.kr(lofreq).unipolar  });
+	Ndef(\lfo2, { arg lofreq=4.5; LFPulse.kr(lofreq).unipolar  });
+	Ndef(\lfo3, { arg lofreq=1.5; LFSaw.kr(lofreq).unipolar  });
+TagSpecDef(\ParamCombinatorInput).addUnique(\lfo1 -> Ndef(\lfo1));
+TagSpecDef(\ParamCombinatorInput).addUnique(\lfo2 -> Ndef(\lfo2));
+TagSpecDef(\ParamCombinatorInput).addUnique(\lfo3 -> Ndef(\lfo3));
+
+	BusDef(\krbus1,\control);
+	BusDef(\krbus2,\control);
+	BusDef(\arbus1,\audio);
+	BusDef(\arbus2,\audio);
+Pdef(\rah, 
+	Pbind(
+		\instrument, \saw,
+		//\freq, 1000,
+//		\freq, ProtoDef(\mod),
+		//\zfreq, DebugMethodTracer(),
+		//\dd, (),
+	)
+).play;
+);
+
+Pdef(\rah).edit
+~pc = ParamCombinator( Param(Pdef(\rah), \freq) ).setBusMode(true);
+~pc.rangeParam.at(0).set(0.51);
+~pc.inputParam.at(0).set(Ndef(\lfo1).asMap)
+~pc.edit
+BusDef(\krbus1).rate
+
+
+~pc.inputParam.at(0).set(0.51)
+~pc.inputParam.get
+
+TagSpecDef(\ParamCombinatorInput).asDict[ TagSpecDef(\ParamCombinatorInput_asMap).unmapKey("c1") ]
+
+Pdef(\rah).asParamGroup.first.instrument
+Ndef(\lfo1).asMap
+BusDef(\krbus5)
+TagSpecDef(\ParamCombinatorInput).list
+TagSpecDef(\ParamCombinatorInput_asMap).list
+TagSpecDef(\ParamCombinatorInput_asMap).list.collect(_.postln)
+TagSpecDef(\ParamCombinatorInput_asMap).list.asDict[\krbus4]
+WindowDef(\ParamCombinatorEditor).front(Pdef(\rah).getHalo(\ParamCombinator_freq))
+~pc = Pdef(\rah).getHalo(\ParamCombinator_lpfr)
+~pc = Pdef(\rah).getHalo(\ParamCombinator_freq)
+~pc.inputParam.at(0).setRaw(BusDef(\krbus0).asMap)
+~pc.inputParam.at(0).setRaw(Ndef(\lfo2).asMap)
+~pc.inputParam.at(0).setRaw(Ndef(\lfo2).asMap)
+~pc.inputParam.at(0).set(Ndef(\lfo2).asMap)
+~pc.inputParam.at(0).setBus(BusDef(\krbus1))
+~pc.inputParam.at(0).set(0.51)
+~pc.inputParam.at(0).get
+~pc.inputParam.get
+~pc.inputParam.setRaw(1)
+~pc.inputParam.at(0).getRaw
+~pc.inputParam.setRaw([0,0,0])
+~pc.rangeParam.at(0).set(0.51)
+~pc.inputParam.setRaw([Ndef(\lfo1).asMap,0,0])
+~pc.inputParam.at(0).getRaw
+~pc.targetParam
+~pc.proxy.
+Pdef(\rah).getHalo(\ParamCombinator_freq).setBusMode(true)
+Pdef(\rah).getHalo(\ParamCombinator_freq).inBusMode
+Pdef(\rah).getHalo(\ParamCombinator_freq).ranges.dump
+Pdef(\rah).getHalo(\ParamCombinator_freq).inputParam.getRaw
+Pdef(\rah).getHalo(\ParamCombinator_freq).inputParam.getRaw.dump
+~pc2 = Pdef(\rah).getHalo(\ParamCombinator_freq)
+~pc2.inputParam.set([\c2,0,0])
+~pc.inputParam.getRaw.dump
+
+Ndef(\lfo1).wakeUp
+Ndef(\lfo1).quant = nil
+Ndef(\lfo1).free
+Ndef(\lfo1).rate
+Ndef(\lfo1).isPlaying
+PlayerWrapper(Ndef(\lfo1)).stop
+Param.trace=true
+Param.trace=false
+(
+)

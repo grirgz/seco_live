@@ -12,6 +12,8 @@ Spec.add(\out, TagSpecDef(\BusDef));
 Spec.add(\trigger, \unipolar);
 Spec.add(\speed, ControlSpec(-2,2,\lin, 0, 1));
 
+Spec.add(\isRest, ParamBoolSpec(reverse:true));
+
 // other
 
 Spec.add(\cpmix, \unipolar);

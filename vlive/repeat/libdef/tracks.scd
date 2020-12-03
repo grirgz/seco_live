@@ -501,7 +501,7 @@ TrackTemplateDef(\playergrid, (
 	},
 
 	isPlaying: { arg self;
-		self.children.every({ arg x; x.notNil and: {x.isEmpty or: {x.isPlaying}} });
+		self.children.any({ arg x; x.notNil and: {x.isPlaying} });
 	},
 
 	quant: { arg self;

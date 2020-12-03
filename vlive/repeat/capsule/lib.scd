@@ -58,7 +58,7 @@ FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
 
 FileSystemProject.load("libdef/WorkspaceView.scd");
 FileSystemProject.load("libdef/simple_main_panel.scd");
-FileSystemProject.load("libdef/ConfirmDialog.scd");
+// FileSystemProject.load("libdef/ConfirmDialog.scd"); // to quark
 
 FileSystemProject.load("libdef/tracks.scd");
 FileSystemProject.load("libdef/pdeftrack.scd");
@@ -80,7 +80,6 @@ FileSystemProject.load("libdef/bufEditor.scd");
 FileSystemProject.load("libdef/MainProject.scd");
 FileSystemProject.load("libdef/tracklist.scd");
 
-FileSystemProject.load("capsule/RDN_track1.scd");
 FileSystemProject.load("capsule/RDN_track1.scd");
 FileSystemProject.load("capsule/PatKitDef_ksh.scd");
 FileSystemProject.load("capsule/PatKitDef_rim.scd");

@@ -17,16 +17,8 @@ s.waitForBoot {
 
 };
 );
-"1".editorInsert
-{ SinOsc.ar(500) ! 2 * 0.1}.play;
-Spec.specs[\env]
 
-Log(\Param).level = \info;
-BufDef
-BufDef('loop/pigs.flac').play
-RandDelayNetwork(\deldefault).define_specs[\posthpf]
-\freq.asSpec
-Spec.specs[\freq]
+
 { SinOsc.ar(2500) ! 2 * 0.1}.play;
 ParamProto.init(true)
 ProtoDef(\piano).startControl()
@@ -303,3 +295,7 @@ var sig = Mix.ar(SinOsc.ar(freq:freqs, mul:filtered_amps));
 Pan2.ar(sig*0.5, 0.0);
 }.play;
 )
+
+NoteTimeline(\bla).edit
+ClipTimeline(\bla).edit
+{ SinOsc.ar(500) ! 2 * 0.1}.play;

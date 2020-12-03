@@ -1,8 +1,17 @@
 
 (
+
+FileSystemProject.loadOnce("libdef/PlayerTracker.scd");
+FileSystemProject.loadOnce("libdef/rdngui.scd");
 ProtoDef(\FxManager, (
 	edit: { arg self;
 		WindowDef(\FxManager).front;
+	},
+
+	playerTracker: { arg self;
+		// fx have always the same name, no need to update player list
+		self[\playerTracker] = ProtoDef(\FxManager_PlayerTracker, ProtoTemplateDef(\PlayerTracker));
+		self[\playerTracker];
 	},
 
 	presetCompileString: { arg self;
@@ -66,13 +75,24 @@ ProtoDef(\FxManager, (
 		}
 	},
 
+	play: { arg self;
+		self.playerTracker.play;
+	},
 
+	stop: { arg self;
+		self.playerTracker.stop;
+	},
+
+	isPlaying: { arg self;
+		self.playerTracker.isPlaying;
+	},
 
 ));
 
 
 WindowDef(\FxManager, {
 	var model = ProtoDef(\FxManager);
+	var playerman = model.playerTracker;
 	var save_it = { arg mypath;
 		Log(\Param).debug("Writing preset to file %".format(mypath.asCompileString));
 		File.use(mypath, "w", { arg file;
@@ -81,6 +101,7 @@ WindowDef(\FxManager, {
 	};
 	VLayout (
 		HLayout (
+			PlayerWrapper(model).asView,
 			BasicButton.new.string_("Save as").action_({
 				WindowDef(\filedialog_save).front(
 					PathName(Document.current.path).pathOnly +/+ "FxManager_.scd",
@@ -104,6 +125,7 @@ WindowDef(\FxManager, {
 			if(asso.value[\make].isNil) {
 				ProtoDef(key, ProtoTemplateDef(\rdn));
 			};
+			playerman.addPlayer(asso.value);
 			asso.key.debug("xx");
 			HLayout (
 				PlayerWrapper(asso.value).asView,
@@ -119,6 +141,7 @@ WindowDef(\FxManager, {
 		[\fx1, \fx2, \fx3, \fx4].collect({ arg key;
 			var asso = key -> Ndef(key);
 			asso.key.debug("xx");
+			playerman.addPlayer(asso.value);
 			HLayout (
 				PlayerWrapper(asso.value).asView,
 				BasicButton.new.string_("Edit").action_({
@@ -163,6 +186,7 @@ BusDef(\fx8, \audio, 2);
 Message(~a, \bla).value
 
 ProtoDef(\FxManager).presetCompileString
+ProtoDef(\FxManager).edit
 
 PlayerWrapper(ProtoDef(\rdn).proxy).outBus
 ProtoDef(\blaa).eventType

@@ -36,10 +36,11 @@ SynthDef(\osc_saw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, modfreq=1, sca
 	modfreq: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
 ))).add;
 
-SynthDef(\fil_rlpf, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, rq=0.5, cutoff=500, modcutoff=1, modrq=1, scale_modcutoff=1, scale_modrq=1;
+SynthDef(\fil_rlpf, { arg inbus=0, out=0, gate=1, amp=0.1, pan=0, freq=200, rq=0.5, cutoff=500, modcutoff=1, modrq=1, scale_modcutoff=1, scale_modrq=1;
 	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = RLPF.ar(in, cutoff * ( modcutoff * scale_modcutoff + 1 ), rq * ( modrq * scale_modrq + 1 ));
+	//var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var in = InFeedback.ar(inbus, 2); 
+	sig = RLPF.ar(in, cutoff * ( modcutoff.poll * scale_modcutoff + 1 ), rq * ( modrq * scale_modrq + 1 ));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
@@ -77,7 +78,7 @@ SynthDef(\fil_bpf, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, rq=0.5, cutoff
 
 SynthDef(\mod_seq, { arg out=0, gate=1, amp=0.1, pan=0, seqrate=1/4, modseqrate=1, scale_modseqrate=1;
 	var sig;
-	sig = Duty.ar(( 1/seqrate ).poll * (modseqrate * scale_modseqrate + 1), 0, Dseq([
+	sig = Duty.ar(( 1/seqrate ) * (modseqrate * scale_modseqrate + 1), 0, Dseq([
 		Dseq(\seqtab.kr(0!8)),
 	],inf));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
@@ -151,9 +152,14 @@ ProtoTemplateDef(\modular_module, (
 		};
 	},
 
+	preProxy: { arg self;
+		self[\preProxy] = EventPatternProxy.new.source_(Pbind());
+		self[\preProxy];
+	},
+
 	instrument_: { arg self, val;
 		self[\instrument] = val;
-		self.proxy.source = Pmono(val);
+		self.proxy.source = Pmono(val) <> self.preProxy;
 		//self.proxy.set(\instrument, val);
 		self.proxy.addHalo(\instrument, val);
 		self.changed(\instrument)
@@ -282,6 +288,19 @@ WindowDef(\bla, { Button.new }).front
 			})
 			)
 
+			(
+			Pdef(\zed, 
+				ProtoDef(\modular_pat).asPattern
+				<>
+				Pbind(
+					\degree, Pseq([0,2,5],inf),
+					\octave, Pwrand([4,5,3,6]+1,[10,2,1,1].normalizeSum,inf),
+					\dur, 1/4,
+					\amp, 0.1,
+				)
+			).play;
+			);
+			ProtoDef(\modular_pat).slots[0].proxy.set(\freq, Pkey(\freq))
 Window
 
 (

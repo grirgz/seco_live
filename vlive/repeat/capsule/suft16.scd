@@ -24,16 +24,18 @@ SynthDef(\bluk, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 );
 
 
+Pdef(\part).clear;
 (
 Pdef(\part, Pdef(\plop, 
 	Ppar([
 		Pbind(
 			\instrument, \snapkickx,
 			\dur, 1/8,
-			\isRest, Pseq([
-				1,0,0,0, 0,0,0,0,
-				1,0,1,0, 0,0,0,0,
-			],inf).coin.not,
+			\legato, Pseq([
+				4,0,0,0, 1,0,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			//\type, Pfunc({ arg ev; if( ev[\isRest] > 0  ){ \note } { \rest } }),
 			\amp, 0.1,
 		),
 		PatKitDef(\ksh2b).asPattern(Pbind(
@@ -1118,6 +1120,7 @@ SynthDef(\fadedelay2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 Pdef(\part).reset;
 );
 
+Pbind
 (
 Pdef(\part, Pdef(\plop, 
 	Ppar([

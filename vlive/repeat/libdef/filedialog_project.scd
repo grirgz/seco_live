@@ -1,6 +1,7 @@
 
 (
-ProtoTemplateDef(\filemanager_node_project, ProtoTemplateDef(\filemanager_node)).putAll((
+ProtoTemplateDef(\filemanager_node_project,(
+	parent: ProtoTemplateDef(\filemanager_node),
 	className: { arg self;
 		ProtoTemplateDef(\filemanager_node_project);
 	},

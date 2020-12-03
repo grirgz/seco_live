@@ -1,5 +1,9 @@
 FileSystemProject.loadOnce("libdef/filedialog.scd");
 FileSystemProject.loadOnce("libdef/filedialog_project.scd");
+FileSystemProject.loadOnce("libdef/PlayerTracker.scd");
+FileSystemProject.loadOnce("libdef/FxManager.scd");
+FileSystemProject.loadOnce("libdef/simplemixer.scd");
+FileSystemProject.loadOnce("libdef/tracks.scd");
 
 ProtoTemplateDef('MainProject', (
 	//parent: FileSystemProject.defaultParent,
@@ -29,12 +33,17 @@ ProtoTemplateDef('MainProject', (
 	},
 
 	refCompileString: { arg self;
-		"FileSystemProject(%)".format(self.key.asCompileString);
+		"FileSystemProject(%)".format(FileSystemProject.unresolve(self.key.asString).asCompileString);
+	},
+
+	label: { arg self;
+		FileSystemProject.unresolve(self.key.asString)
+		//self.name;
 	},
 
 	presetCompileString: { arg self;
 		[
-			"FileSystemProject(%, ProtoTemplateDef(\\MainProject));".format(self.key.asCompileString),
+			"FileSystemProject(%, ProtoTemplateDef(\\MainProject));".format(FileSystemProject.unresolve(self.key.asString).asCompileString),
 			"%.mainMixer; // create mixer".format(self.refCompileString),
 			"%; // return project\n".format(self.refCompileString),
 		].join("\n")
@@ -63,7 +72,14 @@ ProtoTemplateDef('MainProject', (
 				}
 			};
 		};
+		Log(\Param).debug("changed project!! c %, p %, s %", FileSystemProject.current, proj, self);
+		//FileSystemProject.changed(\project); // change should be central
 		proj;
+	},
+
+	playerTracker: { arg self;
+		self[\playerTracker] = ProtoDef("PlayerTracker_%".format(self.name).asSymbol, ProtoTemplateDef(\PlayerTracker));
+		self[\playerTracker];
 	},
 
 	name: { arg self;
@@ -127,6 +143,29 @@ ProtoTemplateDef('MainProject', (
 		};
 		self.fxManager_value;
 	},
+
+	/////////////
+
+	play: { arg self;
+		~master.();
+		self.playerTracker.play;
+		self.changed(\PlayerWrapper, \userPlayed);
+		PlayerWrapper(self).doWithQuant {
+			self.changed(\PlayerWrapper, \playing);
+		};
+	},
+
+	stop: { arg self;
+		self.playerTracker.stop;
+		self.changed(\PlayerWrapper, \userStopped);
+		PlayerWrapper(self).doWithQuant {
+			self.changed(\PlayerWrapper, \stopped);
+		};
+	},
+
+	isPlaying: { arg self;
+		self.playerTracker.isPlaying;
+	},
 ));
 
 ProtoTemplateDef(\SimpleProject, ( // this is like having no project
@@ -161,12 +200,24 @@ WindowDef(\MainProject, { arg def, proj;
 	var meter = SimpleServerMeterView.new(nil, 0,2);
 	var projlabel = StaticText.new;
 	var rdnbuttons;
+	var playerViewList;
 	proj = proj ?? { FileSystemProject.current ?? { FileSystemProject('repeat/simpleProject') } };
 	projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
 	//var meter = ServerMeterView.new;
 	def.windowDo { arg win;
 		win.autoRememberPosition(\SimpleMainPanel);
 	};
+	proj.playerTracker.addPlayer(*[
+		proj.mainMixer,
+		proj.fxManager,
+		proj.mainTimeline,
+		proj.mainTrackGrid,
+		Pdef(\main),
+		Pdef(\part),
+		Pdef(\part2),
+		Pdef(\part3),
+		Pdef(\part4),
+	]);
 
 	rdnbuttons = [\rdn, \rdn2, \rdn3, \rdn4].collect({ arg name;
 		var pl = PlayerWrapper(ProtoDef(name));
@@ -181,8 +232,25 @@ WindowDef(\MainProject, { arg def, proj;
 		butlayout;
 	});
 
+	playerViewList = PlayerWrapperView()!6;
+	rdnbuttons[0].button.followChange(FileSystemProject, \project, { arg ...args;
+		Log(\Param).debug("received changed project %", args);
+		proj = FileSystemProject.current ?? { FileSystemProject('repeat/simpleProject') };
+		[
+			proj,
+			proj.mainMixer,
+			proj.fxManager,
+			proj.mainTimeline,
+			proj.mainTrackList,
+			proj.mainTrackGrid,
+		].collect({ arg player, idx;
+			playerViewList[idx].model = player;
+		});
+	});
+
+
 	HLayout (
-		meter.view,
+		meter.view.minWidth_(40),
 		VLayout (
 			HLayout (
 				StaticText.new.string_("quant:"),
@@ -197,7 +265,8 @@ WindowDef(\MainProject, { arg def, proj;
 		),
 		[VLayout (
 			HLayout (
-				projlabel,
+				//projlabel,
+				playerViewList.first,
 				BasicButton.new.string_("New Project").action_({
 					WindowDef(\filedialog_project_save).front(nil, { arg path, name;
 						[path, name].debug("new project");
@@ -218,33 +287,53 @@ WindowDef(\MainProject, { arg def, proj;
 					proj.saveProject;
 				}),
 				nil,
-				BasicButton.new.string_("...").action_({
-					WindowDef(\MainProjectOverlayMenu).front(proj)
+				BasicButton.new.string_("...").mouseUpAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+					[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+					
+					// FIXME: can't put it near button because MainProject is always on top and overlay menu can't be over it for unknown reason
+					//WindowDef(\MainProjectOverlayMenu).front(proj, view, x, y);
+					WindowDef(\MainProjectOverlayMenu).front(proj);
 				}).maxWidth_(30)
 			),
 			HLayout (
-				BasicButton.new.string_("Mixer").action_({
-					proj.mainMixer.edit;
-				}),
-				BasicButton.new.string_("Fx").action_({
-					proj.fxManager.edit;
-				}),
-				BasicButton.new.string_("Timeline").action_({
-					proj.mainTimeline.edit;
-				}),
-				BasicButton.new.string_("TrackList").action_({
-					proj.mainTrackList.debug("traclist").edit;
-				}),
-				BasicButton.new.string_("TrackGrid").action_({
-					proj.mainTrackGrid.edit;
-					//TODO: show patterns as a grid
-					//TrackDef(\mygrid, TrackTemplateDef(\TrackList)).edit;
-				}),
+				HLayout(
+					*playerViewList.drop(1).collect({ arg pwv; 
+						pwv.asView.button.minWidth_(80);
+						pwv.asView.rightClickEditorEnabled_(true)
+					})
+				),
+				//PlayerWrapper(proj.mainMixer).asView.rightClickEditorEnabled_(true),
+				//PlayerWrapper(proj.fxManager).asView.rightClickEditorEnabled_(true),
+				//PlayerWrapper(proj.mainTimeline).asView.rightClickEditorEnabled_(true),
+				//BasicButton.new.string_("TrackList").action_({
+					//proj.mainTrackList.debug("traclist").edit;
+				//}),
+					////TODO: show patterns as a grid
+					////TrackDef(\mygrid, TrackTemplateDef(\TrackList)).edit;
+				//{
+					//var pv = PlayerWrapper(proj.mainTrackGrid).asView;
+					//pv.button.maxWidth_(100);
+					//pv.rightClickEditorEnabled_(true);
+				//}.value,
+
+
+				//BasicButton.new.string_("Mixer").action_({
+					//proj.mainMixer.edit;
+				//}),
+				//BasicButton.new.string_("Fx").action_({
+					//proj.fxManager.edit;
+				//}),
+				//BasicButton.new.string_("Timeline").action_({
+					//proj.mainTimeline.edit;
+				//}),
+				//BasicButton.new.string_("TrackGrid").action_({
+					//proj.mainTrackGrid.edit;
+				//}),
 			),
 			HLayout (
-				BasicButton.new.string_("Play master").action_({
-					~master.();
-				}),
+				//BasicButton.new.string_("Play master").action_({
+					//~master.();
+				//}),
 				PlayerWrapper(Pdef(\main)).asView,
 				PlayerWrapper(Pdef(\part)).asView,
 				PlayerWrapper(Pdef(\part2)).asView,
@@ -254,19 +343,79 @@ WindowDef(\MainProject, { arg def, proj;
 			),
 
 			HLayout (
-				*[PlayerWrapper(ProtoDef(\simpleMixer)).label_("mixer").asView]
-				++rdnbuttons
+				* rdnbuttons
 				++[BasicButton.new.string_("PANIC").action_({
 					CmdPeriod.run;
 				})],
 			),
 		), stretch:2],
-	).margins_(5).spacing_(5);
+	).margins_(3).spacing_(3);
 
 });
 //WindowDef(\MainProject).front(FileSystemProject('ex6'));
 
+
 WindowDef(\MainProjectOverlayMenu, { arg def, model, view, x=600, y=600;
+	WindowDef(\OverlayMenu).embedView(def, view, x, y, {
+		var inview, layout;
+		layout = VLayout (
+			// misc project tools
+			BasicButton.new.string_("MixerPresetGrid").action_({
+				if(model.mixerPresetGrid.isNil) {
+					model.mixerPresetGrid = TrackDef("%_mixerPresetGrid".format(model.name).asSymbol, TrackTemplateDef(\MixerPresetGrid));
+					model.addResource(model.mixerPresetGrid);
+				};
+				model.mixerPresetGrid.edit;
+			}),
+
+			StaticText.new,
+			// misc tools
+			BasicButton.new.string_("Workspace").action_({
+				WindowDef(\WorkspaceView).front;
+			}),
+			BasicButton.new.string_("Sample Manager").action_({
+				WindowDef(\SampleTimelineManager).front
+			}),
+
+			StaticText.new,
+			// access to default objects instead of project's ones
+			BasicButton.new.string_("mainTimeline").action_({
+				ClipTimeline(\mainTimeline).edit
+			}),
+			BasicButton.new.string_("simpleMixer").action_({
+				ProtoDef(\simpleMixer).edit
+			}),
+			BasicButton.new.string_("Fx").action_({
+				WindowDef(\FxManager).front
+			}),
+			BasicButton.new.string_("Main window").action_({
+				WindowDef(\main).front;
+			}),
+			StaticText.new,
+			// basic tools
+			BasicButton.new.string_("Scope").action_({
+				s.scope
+			}),
+			BasicButton.new.string_("FreqScope").action_({
+				s.freqscope
+			}),
+			BasicButton.new.string_("Nodes").action_({
+				s.plotTree
+			}),
+			BasicButton.new.string_("Meter").action_({
+				s.meter
+			}),
+			nil
+		);
+		//def.windowDo { arg win;
+		//win.setInnerExtent(view.bounds.extent.min(20));
+		//};
+		layout;
+	})
+	
+}).border_(false);
+
+WindowDef(\MainProjectOverlayMenu_old, { arg def, model, view, x=600, y=600;
 	var inview, layout;
 	[x, y].debug("xy");
 	def.windowDo { arg win;
@@ -344,13 +493,13 @@ WindowDef(\TempoMeter, { arg def, clock;
 	clock = clock ? TempoClock.default;
 
 	leds = surdiv.collect({ arg beat;
-		StaticText.new.background_(offColor)
+		StaticText.new.background_(offColor).minHeight_(6)
 	});
 	leds2 = clock.beatsPerBar.asInteger.collect({ arg beat;
-		StaticText.new.background_(offColor)
+		StaticText.new.background_(offColor).minHeight_(6)
 	});
 	leds3 = subdiv.collect({ arg beat;
-		StaticText.new.background_(offColor)
+		StaticText.new.background_(offColor).minHeight_(6)
 	});
 	allLeds = leds ++ leds2 ++ leds3;
 	~allLeds = allLeds;
