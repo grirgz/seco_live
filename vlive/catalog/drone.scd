@@ -931,3 +931,31 @@ Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 	sig = sig * 2;
 }).play;
 );
+
+///////////////////
+// the key is to modulate randomly the amp of each harmonic
+(
+SynthDef(\tump, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = FSinOsc.ar(freq* (1..8) * [ [1,3/2] ]) * (LFNoise1.kr(6!8!2) * ( 1/( (1..8)+1 ) ) * 0.8).max(0);
+	sig = sig.mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.3,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig * amp;
+	sig.debug("sig");
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, 
+	Pbind(
+		\instrument, \tump,
+		\degree, Pseq([0],inf),
+		\freq, 70,
+		\legato,20,
+		\dur, Pwhite(1.2,2),
+		\amp, 1.8,
+	)
+).play;
+);

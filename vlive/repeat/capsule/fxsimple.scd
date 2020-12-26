@@ -12,6 +12,8 @@
 // limiter
 // ring
 
+~t = ~t ? 1;
+
 (
 SynthDef(\fx_freeverb2, { arg out=0, gate=1;
 	var sig;
@@ -340,6 +342,23 @@ SynthDef(\fx_echo, { arg out=0, amp=0.1, gate=1;
 	//sig = sig + in;
 	sig = in;
 	sig = CombC.ar(sig, 1, \delay.kr(1),\decay.kr(1));
+	sig1 = sig;
+	sig1 = LPF.ar(sig1, \lpf.kr(15000));
+	sig1 = HPF.ar(sig1, \hpf.kr(50));
+	sig = SelectX.ar(\pfmix.kr(0.5), [sig, sig1]);
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fx_echopass, { arg out=0, amp=0.1, gate=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	//sig = LocalIn.ar(2) * \fb.kr(0.4);
+	//sig = sig + in;
+	sig = in;
+	sig = AllpassC.ar(sig, 1, \delay.kr(1),\decay.kr(1));
 	sig1 = sig;
 	sig1 = LPF.ar(sig1, \lpf.kr(15000));
 	sig1 = HPF.ar(sig1, \hpf.kr(50));

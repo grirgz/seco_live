@@ -131,6 +131,9 @@ Pdef(\snitch,
 
 // midicps
 
+// 
+( 60 + 0.03 ).midicps equalWithPrecision: ( 60.midicps * 0.03.midiratio );
+
 (
 Pdef(\snitch, 
 	Pbind(
@@ -519,6 +522,32 @@ Pdef(\part, Pdef(\zed,
 			\dur, Prand([1/8],inf),
 			\amp, 0.1,
 		),
+	])
+)).play;
+);
+
+
+//////////////// fast cluster of notes become its own sound
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				Plazy({ arg ev;
+					Pseq(12.collect { arg idx;
+						Pseq([
+							0,idx,
+						],inf) + Pseq((1..4),inf).stutter(2) - Pseq((1..6).mirror,1).stutter(8);
+					})
+				}).loop,
+			],inf),
+			\dur, 1/64,
+			\amp, 0.1/2,
+		),
+		
 	])
 )).play;
 );

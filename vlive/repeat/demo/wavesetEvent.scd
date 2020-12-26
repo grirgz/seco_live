@@ -1,0 +1,496 @@
+/*
+
+WavesetsEvent
+
+*/
+
+s.boot; // boot the server
+
+
+// if you like, record a soundfile (wait 8 sec)
+(
+var time = 8;
+var f = {
+	var mod = Line.kr(0, 1, time);
+	var imp = Impulse.ar(mod.linexp(0, 1, 1, 16) * [2, 3]);
+	var fmod =  SinOsc.ar(mod.linexp(0, 1, 244 * rrand(0.4, 1.4), 0.01));
+	fmod = fmod * Decay2.ar(imp, 0.02, 0.08, 2pi, 0.3pi);
+	SinOsc.ar(300 + (mod * 145), fmod) * 0.1
+};
+
+f.asBuffer(time, fadeTime:0.1, action: { |buffer|
+	buffer.write(Platform.resourceDir +/+ "sc-wavesets-test-mono.aiff");
+	"... finished writing ....".postln;
+	buffer.free;
+}
+);
+)
+
+// load two files for wavesets
+(
+a = WavesetsEvent.read(Platform.resourceDir +/+ "sounds/a11wlk01-44_1.aiff");
+b = WavesetsEvent.read( BufDef.relpath_to_abspath("loop/pigs.flac"));
+WavesetsEvent.prepareSynthDefs;
+)
+
+// how many wavesets?
+a.size;
+b.size;
+
+// play some.
+// you pass an event with parameters and get back an event with parameters
+a.asEvent((start: 76, end: 899)).play;
+b.asEvent((start: 76, end: 899)).play;
+a.asEvent((start: 136, num: 99)).play;
+a.asEvent((start: 136, num: 9911, rate: -1)).play; // backwards
+
+a.buffer.play
+
+// this sounds better in a repetition:
+(
+Tdef(\u, {
+	inf.do { |i|
+		a.asEvent((start: i * 10 % 1850, num: 39)).play;
+		0.05.wait;
+	}
+}).play
+)
+
+// what parameters can you pass?
+
+
+start: from which waveset to start
+num: how many wavesets to play
+end: up to which waveset to play (if given, overrides num)
+repeats: how many times to repeat the selected wavesets
+startTime: where to start in the file - will be rounded to the next waveset (if given, overrides start)
+endTime: where to end in the file - will be rounded to the next waveset (if given, overrides start)
+amp: scale the amplitude of the original sound
+wsamp: normalize the amplitude to that value
+wsustain: sustain time - will be rounded to the next waveset (if given, overrides end and num)
+fixsustain: sustain time - wavesets will be rate adjusted so it matches the sustain
+rate: playback speed of the audio file
+rate2: end playback speed of the audio file (will create a linear glisson sweep)
+pan: stereo panorama position
+
+
+// dur and legato
+
+the waveset event also includes a \dur value (usually, dur is the inter-onset time between events). it is calculated from the actual duration of the selected wavesets. if you provide \legato, it will scale the duration, so that wavesets will overlap or have gaps between them.
+
+
+// reproduce original
+(
+Tdef(\u, {
+	inf.do { |i|
+		var event = a.asEvent((start: i % a.size, num: 1, legato: 1));
+		event.play;
+		event[\dur].wait;
+	}
+}).play
+)
+
+
+// reproduce original with varying chunk size, but reverse the chunks
+(
+Tdef(\u, {
+	var start = 0, num = 1;
+	inf.do { |i|
+		var event;
+		event = a.asEvent((start: start, num: num, rate: -1));
+		event.play;
+		event[\dur].wait;
+
+		start = start + num % a.size;
+		num = rrand(1, 3) * (i / 10 % a.size + 1)
+	}
+}).play
+)
+
+
+
+// rate and legato
+(
+Tdef(\u, {
+	inf.do { |i|
+		var event = a.asEvent((start: i % a.size, num: 1, legato: 3/2, rate: 2/3));
+		event.play;
+		event[\dur].wait;
+	}
+}).play
+)
+
+// rate and legato
+(
+Tdef(\u, {
+	inf.do { |i|
+		var event = a.asEvent((start: i * 18 % a.size, num: 213, legato: 1, rate: 1.2, rate2: 0.8));
+		event.play;
+		event[\dur].wait;
+	}
+}).play
+)
+
+// repeats
+(
+Tdef(\u, {
+	inf.do { |i|
+		var event = a.asEvent((start: i % a.size, num: 1, legato: 1, repeats: 80, legato: 0.9));
+		event.play;
+		event[\dur].wait;
+	}
+}).play
+)
+
+
+
+// use a slider to search for interesting places. hit some key to post them, hit space to start the Tdef
+// edit the other parameters in the code as you like them.
+(
+Tdef(\u, {
+	inf.do { |i|
+		var event;
+		event = (
+			start: ~start ? 0,
+			num: rrand(1, 10),
+			rate: 1,
+			repeats:1
+		);
+		event = a.asEvent(event);
+		event.play;
+		event[\dur].wait;
+	}
+}).play;
+)
+
+(
+var w = Window("adjust start", Rect(100, 100, 820, 50)).front;
+var sl = Slider(w);
+sl.orientation = \horizontal;
+sl.action = { |view| ~start = view.value.linlin(0, 1, 0, a.size) };
+sl.keyDownAction = { |view, char| if(char == $ ) { Tdef(\u).play } { ~start.trunc.post; ",".postln; } };
+w.layout = HLayout(sl);
+)
+
+
+// e.g. put in a pseq for later on.
+(
+Pseq([
+	610,
+	805,
+	986,
+	298,
+	841,
+], inf);
+)
+
+// patterns
+// using Pwavesets, we can use wavesets in event patterns directly
+
+Pwavesets((start: 56, num: 78, wavesets: a)).play;
+
+// we can add a waveset to a global dictionary
+a.add(\one);
+b.add(\two);
+
+
+// then you can access by name:
+Pwavesets((start: 56, num: 78, name: \one)).play;
+
+// currentSize returns a stream with the wavesets size for the current name
+
+Pwavesets(Pbind(\name, \one, \start, Pseries(0, 1, Pwavesets.currentSize - 1))).play;
+Pwavesets(Pbind(\name, Pstutter(30, Prand([\one, \two], inf)), \start, Pseries(0, 1, Pwavesets.currentSize - 1))).play;
+
+
+(
+Pwavesets(
+	Pseq([
+		(start: 56, num: 78, name: \one),
+		(start: 123, num: 78, name: \one),
+		(start: 562, num: 118, name: \one, legato: 0.5),
+	], inf)
+).play;
+)
+
+(
+Pwavesets(
+	Pbind(
+		\name, \one,
+		\start, Pn(Pseries(0, 2, 1000)),
+		\end, Pn(Pseries(0, 2.6, 1000)),
+		\repeats, 3,
+		\legato, 1.0,
+		\amp, 0.1,
+		\pan, Pbrown(-0.5, 0.5, 0.001)
+	)
+).play
+)
+
+
+// for easy experimentation: use a Pdef
+(
+Pdef(\x,
+	Pwavesets(
+		Pbind(
+			\name, Prand([\one, \two], inf),
+			\start, Pn(Pseries(0, 2, a.size - 1)),
+			\end, Pn(Pseries(0, 2.6, a.size - 1)),
+			\repeats, 1,
+			\legato, 1.0,
+			\amp, 0.1,
+			\pan, Pbrown(-0.5, 0.5, 0.001)
+		)
+	)
+).play
+)
+
+(
+Pdef(\x,
+	Pwavesets(
+		Pbind(
+			\name, \one,
+			\start, Pn(Pseries(0, 2, a.size - 1)) + 900,
+			\num, Pn(Pseries(10, 0.6, 80)),
+			\repeats, 9,
+			\legato, 1,
+			\rate, Pbrown(0.5, 2, 0.01, inf),
+			\amp, 0.1,
+			\pan, Pbrown(-0.5, 0.5, 0.001)
+		)
+	)
+).play
+)
+
+// from the values above
+(
+Pdef(\x,
+	Pwavesets(
+		Pbind(
+			\name, \one,
+			\start, Pstep(Pseq([
+				610,
+				805,
+				986,
+				298,
+				841,
+			], inf),1),
+			\num, Pwhite(4,20,inf),
+			\repeats, 1,
+			\dur, 1/8,
+			\sustain, 0.3,
+			\legato, 1,
+			\rate, 1,
+			\amp, 0.1,
+			\pan, Pbrown(-0.5, 0.5, 0.001)
+		)
+	)
+).play
+)
+
+////////////////////////////////////////////////////////
+(
+a = WavesetsEvent.read(Platform.resourceDir +/+ "sounds/a11wlk01-44_1.aiff");
+b = WavesetsEvent.read( BufDef.relpath_to_abspath("loop/pigs.flac"));
+WavesetsEvent.read( BufDef.relpath_to_abspath("voices/feynman.flac")).add(\feynman);
+WavesetsEvent.prepareSynthDefs;
+a.add(\one);
+b.add(\two);
+)
+
+
+Pdef(\x).clear
+(
+Pdef(\x,
+	Pwavesets(
+		Pbind(
+			\name, \two,
+				\st, 92.10/4/60,
+				\startTime, Pseg(Pseq([0,1],inf),8) / Pkey(\st),
+			\repeats, 1,
+			\dur, 1/4,
+			\sustain, 0.3,
+			\legato, 1,
+			\rate, 1,
+			\amp, 0.1,
+			\pan, Pbrown(-0.5, 0.5, 0.001)
+		)
+	)
+).play
+)
+~t = 185/4/60; TempoClock.default.tempo = ~t;
+(
+	Pdef(\x,
+		Ppar([
+			Pbind(
+				\instrument, \snapkickx,
+				\bodyfreqenv, [ Env([261, 54, 21], [0.035, 0.08], curve: \exp) ],
+				\dur, 1/8,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\amp, 0.1/2,
+			),
+			Pwavesets(
+				Pseq([
+					(startTime: 1/2, wsustain:1/4, name: \two),
+					(startTime: 1/4, wsustain:1/4, name: \two),
+					(startTime: 5/4, wsustain:1/4, name: \two),
+					(startTime: 7/4, wsustain:1/4, name: \two),
+				], inf)
+			)
+		]),
+	).play;
+)
+Wavesets2
+WavesetsEvent
+
+BufDef(\amen, "vipere/amenbreak.wav");
+BufDef(\moeten, "voices/02_moeten.flac")
+BufDef(\crepe, "field/crepe.flac");
+BufDef(\oeuf, "field/oeuf.flac");
+BufDef(\ukraine, "bruit1/07_ukraine.flac");
+BufDef(\table, "field/table.flac");
+BufDef(\scream, "vipere/scream.flac");
+BufDef(\rocksteady, "vipere/rocksteady.flac");
+BufDef(\metal, "vipere/metal.flac");
+BufDef(\bomb, "vipere/bomb.flac");
+
+
+(
+	Pdef(\x,
+		Ppar([
+			Pwavesets(
+				Pbind(
+					\name, \feynman,
+					\start, Pseg(Pseq([0,10],inf),8),
+					\num, Pseg(Pseq([1,10,31,1,100]*10,inf),1),
+					\repeats, 1,
+					\legato, 1,
+					\rate, Pseg(Pseq([1/2,1/3],inf),1),
+					\amp, 0.1,
+					\pan, Pbrown(-0.5, 0.5, 0.001)
+				),
+			),
+
+			Pwavesets(
+				Pbind(
+					\name, \two,
+					\start, Pseg(Pseq([0,10],inf),8),
+					\num, Pseg(Pseq([1,10,31,1,100],inf),1),
+					\repeats, 1,
+					\legato, 1,
+					\rate, Pseg(Pseq([2,1/4],inf),8),
+					\amp, 0.1,
+					\pan, Pbrown(-0.5, 0.5, 0.001)
+				),
+			),
+			Pwavesets(
+				Pbind(
+					\name, \two,
+					\start, Pseg(Pseq([0,10],inf),7)+1100,
+					\num, Pseg(Pseq([1,10,31,1,100],inf),1.1),
+					\repeats, 1,
+					\legato, 1,
+					\rate, Pseg(Pseq([2,1/4],inf),7),
+					\amp, 0.1,
+					\pan, Pbrown(-0.5, 0.5, 0.001)
+				)
+			)
+		]),
+	).play
+)
+
+(
+	Pdef(\x,
+		Ppar([
+			Pbind(
+				\instrument, \snapkickx,
+				\bodyfreqenv, [ Env([261, 54, 21], [0.035, 0.08], curve: \exp) ],
+				\dur, 1/8,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\amp, 0.1/2,
+			),
+			Pwavesets(
+				Pbind(
+					\name, \feynman,
+					\start, Pseg(Pseq([0,10],inf),8)+1000,
+					\num, Pseg(Pseq([100,200]*1,inf),1),
+					\repeats, Prand([4],inf),
+					\legato, 1,
+					\dur, 1,
+					\rate, Pseg(Pseq([1/2,1/3],inf),1),
+					\amp, 0.1,
+					\pan, Pbrown(-0.5, 0.5, 0.001)
+				),
+			),
+
+		]),
+	).play
+)
+
+(
+	Pdef(\x,
+		Ppar([
+			Pbind(
+				\instrument, \snapkickx,
+				\bodyfreqenv, [ Env([261, 54, 21], [0.035, 0.08], curve: \exp) ],
+				\dur, 1/8,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+					1,0,0,0, 0,0,0,1,
+				],inf).coin.not,
+				\amp, 0.1/2,
+			),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[1064].value,
+				//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+				\bufnum, ~buflib.hat[1551].value,
+				\isRest, Pseq([
+					1,0,1,0, 1,0,1,0,
+				],inf).coin.not,
+				\dur, 1/8,
+				\gain, 0.31,
+				\out, BusDef(\echo, \audio),
+			),
+			Pmono(\fx_echopass,
+				\inbus, BusDef(\echo, \audio),
+				\addAction, \addToTail,
+				\lag, 0.0009,
+				\delay, Pseg(Pseq([0,1],inf),8),
+				\decay, Pseg(Pseq([0,4],inf),8),
+				\dur, 1,
+			),
+			Pwavesets(
+				Pbind(
+					\name, \two,
+					\start, Pseg(Pseq([0],inf),8)+1000,
+					\num, Pseg(Pseq([30,100]*1,inf),4),
+					\repeats, Prand([1],inf),
+					\legato, 1,
+					\dur, 1/4,
+					\rate, Pseg(Pseq([1],inf),1),
+					\amp, 0.1,
+					\pan, Pbrown(-0.5, 0.5, 0.001)
+				),
+			),
+			Pwavesets(
+				Pbind(
+					\name, \feynman,
+					\start, Pseg(Pseq([0,10],inf),8)+1000,
+					\num, Pseg(Pseq([100,20]*1,inf),4),
+					\repeats, Prand([4],inf),
+					\legato, 1,
+					\dur, 1,
+					\rate, Pseg(Pseq([1/2,1/3],inf),1),
+					\amp, 0.1,
+					\pan, Pbrown(-0.5, 0.5, 0.001),
+				),
+			),
+
+		]),
+	).play
+)

@@ -3,6 +3,7 @@
 SynthDef(\fx_equi, { arg out=0, gate=1, amp=0.1;
 	var sig, in;
 	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	in.poll;
 	sig = in.equi;
 	sig = SelectX.ar(\mix.kr(1), [in, sig]);
 	sig = sig * \gain.kr(1);
@@ -12,6 +13,7 @@ SynthDef(\fx_equi, { arg out=0, gate=1, amp=0.1;
 
 TagSpecDef(\SynthDef_fx).addUnique(\fx_equi);
 SynthDesc(\fx_equi).addHalo(\edit, { arg model; "edit!!".debug; WindowDef(\Equi).front(model) });
+
 
 (
 	ProtoTemplateDef(\Equi, (
@@ -26,9 +28,9 @@ SynthDesc(\fx_equi).addHalo(\edit, { arg model; "edit!!".debug; WindowDef(\Equi)
 		proxy: { arg self;
 			Pdef(self.proxyKey, 
 				Pmono(\fx_equi,
-					\inbus, Pfunc({ self.inbus }),
+					\inbus, Plazy({ Pkeyd(\inbus, self.inbus).keep(1) }).loop,
 					\dur, 1,
-				)
+				).trace
 			);
 			Pdef(self.proxyKey).addHalo(\edit, { self.edit; });
 			Pdef(self.proxyKey);
@@ -51,6 +53,9 @@ SynthDesc(\fx_equi).addHalo(\edit, { arg model; "edit!!".debug; WindowDef(\Equi)
 				scope.onClose = {
 					scope.kill;
 				};
+				scope.followChange(model, \set, {
+					scope.inBus = Param(model, \inbus).get;
+				});
 				
 				//equiparams = EQuiParams.new(
 					//* #[
@@ -107,12 +112,15 @@ SynthDesc(\fx_equi).addHalo(\edit, { arg model; "edit!!".debug; WindowDef(\Equi)
 				)
 			});
 ProtoDef(\equi, ProtoTemplateDef(\Equi));
-ProtoDef(\equi).edit;
+//ProtoDef(\equi).edit;
 
 );
 
 // END
-
+ProtoDef(\equi).proxy
+ProtoDef(\equi).inbus
+ProtoDef(\equi).proxy.get(\inbus)
+ProtoDef(\equi).edit;
 
 LPF.scopeResponse
 // basic usage. try these. Each one will open a new window
@@ -142,3 +150,31 @@ Median.scopeResponse // nonlinear, and therefore interesting
 TagSpecDef(\out)
 Spec.specs[\out].list
 :w
+
+
+///////////:
+
+
+(
+Pdef(\help, Pbind(\out, BusDef(\mybus, \audio))).play;
+WindowDef(\scope_help, { arg def;
+	var scope = FreqScopeView(nil, Rect(0,0,100,100))
+					.freqMode_(1)
+					.active_(true);
+	scope.inBus = BusDef(\mybus, \audio);
+	scope.onClose = {
+		scope.kill;
+	};
+}).front;
+)
+
+(
+SynthDef(\saw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = LFSaw.ar(freq * [1.01,1,0.99]);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+);

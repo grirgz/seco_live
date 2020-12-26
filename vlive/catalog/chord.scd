@@ -14,7 +14,10 @@ SynthDef(\bilin, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	//sig = Pan2.ar(sig, pan, amp);
 	sig = sig * amp;
 	Out.ar(out, sig);
-}).add;
+}, metadata:(specs:(
+	oscmix: \unipolar,
+	fspread: ControlSpec(0.001,0.2,\exp),
+))).add;
 );
 
 

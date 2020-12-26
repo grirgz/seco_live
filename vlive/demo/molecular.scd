@@ -503,7 +503,6 @@ Pdef(\realmol,
 
 
 (
-	// 4E3
 			~loopdur = 4;
 BufDef(\loop).zero;
 Pdef(\realmol, 
@@ -548,6 +547,7 @@ gcd(3,4)
 lcm(4,3)
 
 
+FileSystemProject.load("capsule/fxheavy.scd");
 (
 			~loopdur = 4;
 BufDef(\loop).zero;

@@ -156,6 +156,9 @@ SynthDef(\organ_tonewheel0, {
 	Out.ar(0, Pan2.ar(sig, pan, amp));
 //By Zé Craum
 }).add;
+12.midiratio
+( 1/12 ).midiratio
+( -12 ).midiratio*2
 
 SynthDef(\organ_tonewheel1, {
 	//additive tonewheel organ with more CPU usage

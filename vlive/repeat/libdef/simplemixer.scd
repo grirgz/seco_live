@@ -10,7 +10,7 @@ ProtoTemplateDef(\simpleMixer, (
 
 		self.tracks = self.trackCount.collect { arg index;
 			// trackMixerDef is defined in Param/proto/TrackMixerDef
-			var mix = ~trackMixerDef.new(\mixer+++index);
+			var mix = ProtoInst(\TrackMixerDef, \mixer+++index);
 			debug("create mixer: "++index);
 
 			mix.inbus = BusDef(\mixer+++index, \audio, 2);

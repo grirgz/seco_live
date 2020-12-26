@@ -477,6 +477,7 @@ Pdef(\sample,
 )
 
 (
+	// loop
 Pdef(\sample, Pdef(\zed, 
 	Ppar([
 		
@@ -511,6 +512,7 @@ Pdef(\sample, Pdef(\zed,
 )
 
 (
+	// perc
 Pdef(\sample, Pdef(\zed, 
 	Ppar([
 		
@@ -633,6 +635,7 @@ Ndef(\sample, { arg amp=0.5, pan=0, freq=200, mbufnum,
 
 (
 
+~buf = BufDef(\crepe, "field/crepe.flac");
 	Pdef(\sample, Pbind(
 		\instrument, \oscsampler3,
 		\pos, 0.014 + Pseq([0,1,0,2],inf).stutter(8)/100,
@@ -658,14 +661,14 @@ Ndef(\sample, { arg amp=0.5, pan=0, freq=200, mbufnum,
 		\adsr, Pseq([
 			[ Env.adsr(0.0001,0.3,0.5,0.11) ],
 		],inf),
-		\bufnum, ~buf,
+			\bufnum, ~buf,
 		\rq, 0.3,
 		\fshift, 0,
 		\lpmix, 0.81,
 		\ffreq, 8800,
 		\hpmix, 0.9,
 		\hpfreq, Pseq([1,100,200,500,1,1000],inf).stutter(4),
-		\amp, 389.0 * Pkey(\amp),
+		\amp, 1.1,
 	)).play;
 )
 
