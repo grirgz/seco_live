@@ -160,7 +160,7 @@ SynthDef(\pluck, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, coef=0, decay=1;
 	//sig = RLPF.ar(sig, \lpfr.kr(4)*freq, \rq.kr(0.5)) * 1 + ( sig/4 );
 	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,[0.2,0.1],0.8,0.4,1,4)),gate,doneAction:2);
 	//sig = Pan2.ar(sig, pan, amp);
-	sig = sig * amp;
+	sig = sig * amp * 0.7;
 	Out.ar(out, sig);
 }).add;
 

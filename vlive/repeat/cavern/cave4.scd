@@ -2895,3 +2895,65 @@ SynthDef(\grainenoise, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, pitch_stre
 	Out.ar(out, sig);
 }).add;
 )
+
+(
+Pdef(\part, Pdef(\house1,
+	Ppar([
+		Psched(0,
+		Pbind(
+			\instrument, \basicbass,
+			\degree, Pstep(Pseq([
+				0,2,
+			],inf),1),
+			\isRest, Pseq([
+				1,1/2,1/2,
+			],inf).coin.not,
+			\octave, 3,
+			\dur, 1/8,
+			\amp, 0.1,
+		)),
+		Pbind(
+			\instrument, \snapkickx,
+			\bodyfreqenv, [ Env([261, 54, 21], [0.035, 0.08], curve: \exp) ],
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,
+			],inf).coin.not,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				Pser([
+					1,0,0,
+				],16),
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1064].value,
+			\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('mexico'),
+			\legato, 0.71,
+			\speed, 1,
+			\pos, 21+Pwhite(0,10,inf),
+			\dur, 1/8,
+			\gain, 0.1,
+		)
+	]),
+)).play;
+);

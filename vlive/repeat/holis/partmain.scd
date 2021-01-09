@@ -166,6 +166,98 @@ Pdef(\part, Pdef(\main,
 ]
 )
 
+(
+~holis_instruments = [
+
+				Pdef(\ze_kalimba),
+				Pdef(\ze_brownbass),
+				Pdef(\ze_fmbass),
+				Pdef(\ze_fmbell),
+				Pdef(\ze_vlip),
+				Pdef(\ze_pluck),
+				Pdef(\ze_chordar),
+				Pdef(\ze_fmsaw_scratch),
+				Pdef(\ze_sibass),
+				Pdef(\ze_stringsx),
+				Pdef(\ze_basicbass),
+				Pdef(\ze_organ_tonewheel1),
+				Pdef(\ze_hech),
+				Pdef(\ze_fzion3),
+				Pdef(\ze_fzion4),
+				Pdef(\ze_fzion2),
+				Pdef(\ze_fzion),
+				Pdef(\ze_iron),
+				Pdef(\ze_bassgrise),
+				Pdef(\ze_chovar),
+				Pdef(\ze_organ),
+				Pdef(\ze_wavechord),
+				Pdef(\ze_grancru),
+				Pdef(\ze_simpleacid),
+				Pdef(\ze_stepchord1),
+				Pdef(\ze_stepchord2),
+				Pdef(\ze_chordlock2),
+				Pdef(\ze_chordlock3),
+				Pdef(\ze_basslok),
+			Pdef(\ze_tassbass),
+			Pdef(\ze_chordo),
+			Pdef(\ze_perctone),
+			Pdef(\ze_aigu),
+			Pdef(\ze_longf),
+			Pdef(\ze_chordo2),
+			Pdef(\ze_plouc),
+			Pdef(\ze_hipass),
+			Pdef(\ze_hipasswide),
+			Pdef(\ze_chordodo),
+			Pdef(\ze_basicpadfm),
+			Pdef(\ze_oneone),
+			Pdef(\ze_oneone2),
+]
+);
+
+(
+	~holis_synthdefs = [
+		\fmbell,
+		\fmbass,
+		\chordar,
+		\pluck,
+		\brownbass,
+		\vlip,
+		\kalimba,
+		//\fmsaw,
+		\stringsx,
+		\stringsx2,
+		\sibass,
+		\basicbass,
+		\organ_tonewheel1,
+		\organ_tonewheel0,
+		\iron,
+		\nidi,
+		\bassgrise,
+		\chovar,
+		\organ,
+		\wavechord,
+		\simpleacid,
+		\stepchord1,
+		\stepchord2,
+		\chordlock2,
+		\chordlock3,
+		\basslok,
+		\tassbass,
+		\perctone,
+		\chordo,
+		//\longf,
+		\chordo2,
+		\plouc,
+		\chordodo,
+		\basicpadfm,
+		\oneone,
+		\oneone2,
+
+
+
+	];
+)
+
 //// rand part
 (
 Pdef(\part, Pdef(\zed, 

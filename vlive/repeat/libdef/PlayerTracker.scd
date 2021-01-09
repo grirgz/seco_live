@@ -65,7 +65,7 @@
 			self.key;
 		},
 		update: { arg self, player, changed, status;
-			[ player, changed, status ].debug("update============");
+			//[ player, changed, status ].debug("update============");
 			if(self.playerList.includesEqual(PlayerWrapper(player))) {
 				Log(\Param).debug("PlayerTracker: update OK: % is part of %", player, self.key);
 				if(self.captureEnabled == true) {
