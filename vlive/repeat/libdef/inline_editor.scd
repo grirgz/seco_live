@@ -378,6 +378,33 @@
 		})
 	},
 
+	edit_instrument: { arg self, start, end, line, col, code;
+		var instr;
+
+		instr = self.get_line(line, code).debug("line").split($,).reject({ arg x; x.asCompileString.debug("x"); x.stripWhiteSpace == "\\instrument" }).first.interpret;
+		instr.debug("instr");
+		self.insert_after( self.gen_pbind_arguments(instr) );
+		
+	},
+
+	gen_pbind_arguments: { arg self, synthDef=\default;
+		var controls = SynthDescLib.global.synthDescs.at(synthDef).asParamGroup(()).rejectSystemParams;
+		var str = "";
+		controls.debug("con");
+		controls.do{|control| 
+			var name = control.property;
+			var val = control.default;
+			if([\array, \env].includes(control.type)) {
+				val = "[ % ]".format(val);
+			};
+
+			// Check that synth doesn't have a duration of 0 by default (making sc explode)
+			val = if(name == \dur && val == 0.0, { 1.0 }, { val });
+			str = str ++ "\t\t%%, %,\n".format("\\", name, val)
+		};
+		str;
+	},
+
 	find_token_limit: { arg self, line, col, charlist, direction=\left;
 		var char, pos;
 		block { arg break;

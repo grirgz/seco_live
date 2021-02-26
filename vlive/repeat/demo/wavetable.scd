@@ -2,6 +2,9 @@
 /////////////////////////////////////////////
 ///////////////////// Osc: wavetable
 
+WavetableDef.addPath("/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/");
+
+WavetableDef(\saw2, "Classic - Saw/Cos Saw.wav");
 WavetableDef(\saw, "/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/Classic - Saw/Cos Saw.wav");
 WavetableDef(\sin, "/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/Classic - Sine/Sine.wav");
 WavetableDef(\sinpower2, "/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/Classic - Sine/Sine Power2.wav");
@@ -21,10 +24,9 @@ Pdef(\part, Pdef(\zed,
 	Ppar([
 		Pbind(
 			\instrument, \waver,
-			\wavetable, b,
 			\wavetable, WavetableDef(\saw),
 			\wavetable, WavetableDef(\sinpower2),
-			\wavetable, WavetableDef(\sin),
+			\wavetable, WavetableDef(\saw2),
 			\freq, 200,
 			\dur, 1,
 			\amp, 0.1,
@@ -384,4 +386,74 @@ Pdef(\part, Pdef(\zed,
 		),
 	])
 )).play;
+);
+
+
+
+////// Simple example
+
+WavetableDef(\saw, "/path/to/Cos Saw.wav");
+WavetableDef(\sin, "/path/to/Sine.wav");
+
+(
+// Use Osc UGen to play wavetables
+SynthDef(\waver, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, wavetable;
+	var sig;
+	sig = Osc.ar(wavetable, freq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\help,
+	Ppar([
+		Pbind(
+			\instrument, \waver,
+			\note, Pseq((0..10),inf) % Pseq((4..9),inf).stutter(2),
+			\wavetable, WavetableDef(\saw),
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+	])
+).play;
+);
+
+////// Morph between several wavetables
+
+(
+// allocate consecutive buffers to be used with VOsc UGen
+WavetableDef(\multi, [
+	"/path/to/Cos Saw.wav",
+	"/path/to/Sine.wav",
+])
+)
+
+(
+// Use mouse to change wavetable position
+SynthDef(\waver2d, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, wavetable, consecutive;
+	var sig;
+	sig = VOsc.ar(wavetable + MouseX.kr(0,consecutive-1), freq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\help, 
+	Ppar([
+		Pbind(
+			\instrument, \waver2d,
+			\wavetable, WavetableDef(\multi),
+			\consecutive, WavetableDef(\multi).consecutive.size, // need size to know upper range
+			\note, Pseq([
+				0,2,5,4,
+			],inf) + Pseq([0,7],inf).stutter(6) % Pseq((1..10),inf).stutter(3),
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+	])
+).play;
 );

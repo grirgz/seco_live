@@ -18,6 +18,7 @@ s.waitForBoot {
 };
 );
 
+[1]++"kjk"
 
 { SinOsc.ar(2500) ! 2 * 0.1}.play;
 ParamProto.init(true)

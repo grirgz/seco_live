@@ -84,3 +84,48 @@ Ndef('rdn').put(100, \pset -> Pbind(
 
 );
 
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(\out, BusDef(\sendbus1, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.kick[1010].value,
+				//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+				\bufnum, ~buflib.kick[939].value,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\dur, 1/8,
+				\gain, 0.3,
+			),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.snare[1719].value,
+				//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+				\bufnum, ~buflib.snare[2412].value,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\dur, 1/8,
+				\gain, 0.61,
+			),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[1064].value,
+				//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+				\bufnum, ~buflib.hat[226].value,
+				\isRest, Pseq([
+					1,0,0,1, 1,0,1,0,
+				],inf).coin.not,
+				\dur, 1/8,
+				\gain, 0.31,
+				\isRest, true,
+			),
+		]),
+		
+	])
+)).play;
+);
