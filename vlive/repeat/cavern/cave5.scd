@@ -63,6 +63,68 @@ Pdef(\part2, Pdef(\zedpart,
 );
 
 (
+Pdef(\part2, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \snapkickx,
+			\bodyfreqenv, [ Env([261, 54, 21], [0.035, 0.08], curve: \exp) ],
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\amp, 0.1,
+			\out, BusDef(\mixer0, \audio),
+		),
+		Pmono( \rdncleandist_fulllight,
+			\inbus, BusDef(\bus1, \audio, 2),
+			//\out, BusDef(\bus2, \audio, 2),
+			\addAction, \addToTail,
+			'mix', 0.5714285714286,
+			'gain', 0.7344889782792,
+			'fb', 0.0002099467303085,
+			//'delay', 0.000600001231 * Pseq([
+				//~pmodenv.(Pseq([1,2,1,4,1000],inf), 7),
+			//],inf).stutter(1),
+			\delay, 0.000001,
+			'delay2', 0.000000543560101,
+			'distamp', 1.361836201538,
+			'prelpf', 19900,
+			'prehpf', 17,
+			'lpf', 19900,
+			'hpf', 17,
+			'fbdistamp', 4.5388371966577,
+			'fbdistmix', 0.98176470588235,
+			'postlpf', 19900,
+			'posthpf', 17,
+			\bpmix, 0,
+			'wetamp', 0.20503372119697,
+			'indelay', 0.04,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+
+
+(
+Pdef(\part3, Pdef(\zedpart3, 
+	Ppar([
+		
+		Pmono(\looper,
+			\inbus, BusDef(\sendbus2, \audio, 2),
+			\loopdur, 4/~t,
+			\preLevel, 0.8,
+			\bufnum, BufDef(\loop),
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
 SynthDef(\saw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
 	var sig, sig1, sig2, sig3;
 	sig = LFSaw.ar(freq * [1.01,4/5,1,4/5+0.01,0.99]);
@@ -382,6 +444,7 @@ Pdef(\part, Pdef(\apoca1,
 
 (
 Pdef(\part2, Pdef(\zedpart2, 
+
 	Ppar([
 		
 			Pbind(

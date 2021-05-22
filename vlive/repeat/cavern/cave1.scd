@@ -452,7 +452,25 @@ WindowDef(\modularRack, { arg def;
 
 // END
 
-WindowDef(\rack).front;
+ProtoDef(\modularRack).edit;
+WindowDef(\modularRack).front;
+
+(
+Pbindef(\osc1, 
+	\note, Pseq([
+		4,4,4,2, 1,0,0,0,
+	],inf),
+	\octave, 3,
+	\dur, 1/4,
+);
+Pbindef(\osc2, 
+	\note, Pseq([
+		4,4,4,2, 1,0,0,0,
+	],inf),
+	\octave, 3,
+	\dur, 1/4,
+)
+)
 
 (
 Pdef(\demo, 
@@ -553,6 +571,137 @@ Pdef(\demo,
 			\adsr, Pseq([
 				[ Env.adsr(0.01,0.1,0.8,0.1) ],
 			],inf),
+		\isRest, Pseq([
+			Plazy({ arg ev;
+				Pseq([
+					Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						1,1,1,1, 1,1,1,1,
+						1,1,1,1, 1,1,1,1,
+					].scramble,4),
+					Pseq([
+						0,0,0,0, 0,0,0,0,
+						1,1,1,1, 1,1,1,1,
+						1,1,1,1, 1,1,1,1,
+						1,1,1,1, 1,1,1,1,
+					].scramble,4),
+				],1)
+			}).loop,
+		],inf).coin.not,
+			\dur, 1/16,
+			\gain, 1.01,
+		)
+	]),
+).play
+)
+
+
+// with mixer
+(
+Pdef(\demo, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[693].value,
+			\bufnum, ~buflib.kick[701].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\bufnum, ~buflib.kick[1459].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,1,
+				1,0,0,1, 0,0,0,0,
+				1,0,0,0, 0,0,0,1,
+				0,0,1,0, 0,1,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.2,
+		\out, BusDef(\mixer3, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			\bufnum, ~buflib.snare[1329].value,
+			\bufnum, ~buflib.snare[1708].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.21,
+		\out, BusDef(\mixer4, \audio),
+		),
+	Pbind(
+		\instrument, \playersec,
+		\bufnum, BufDef('vipere/amenbreak.wav'),
+		\legato, Pseq([1.91,0.4,1],inf),
+		\speed, 1 * (~t/( 137/4/60 )),
+		\pos, Pseg(Pseq([0,2,1,2],1),Pseq([4,0,1,0],inf)).loop/(137/4/60),
+		\isRest, Pseq([
+			Plazy({ arg ev;
+				Pseq([
+					Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						1,1,1,1, 1,1,1,1,
+					].scramble,4),
+					Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						1,1,1,1, 1,1,1,1,
+						1,1,1,1, 1,1,1,1,
+					].scramble,4),
+				],1)
+			}).loop,
+		],inf).coin.not,
+		\dur, 1/8,
+		\gain, 0.1,
+		\out, BusDef(\mixer5, \audio),
+	),
+	Pbind(
+		\instrument, \playersec,
+		\bufnum, BufDef('vipere/amenbreak.wav'),
+		\legato, 1.91,
+		\speed, 1/2 * (~t/( 137/4/60 )),
+		\pos, Pseg(Pseq([0,2],1),4).loop/(137/4/60),
+		\isRest, Pseq([
+			Plazy({ arg ev;
+				Pseq([
+					Pseq([
+						0,0,0,0, 0,0,0,0,
+						0,0,0,0, 0,0,0,0,
+						1,1,1,1, 1,1,1,1,
+						1,1,1,1, 1,1,1,1,
+					].scramble,4),
+					Pseq([
+						0,0,0,0, 0,0,0,0,
+						1,1,1,1, 1,1,1,1,
+						1,1,1,1, 1,1,1,1,
+						1,1,1,1, 1,1,1,1,
+					].scramble,4),
+				],1)
+			}).loop,
+		],inf).coin.not,
+		\dur, 1/8,
+		\gain, 0.1,
+		\out, BusDef(\mixer6, \audio),
+	),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/pigs.flac'),
+			\legato, 0.51,
+			\st, ( 92.20/4/60 ) ,
+			\speed, 1/1.5 * ~t/ Pkey(\st) ,
+			\pos, Pseg(Pseq([
+				0,1,1,4,
+				0,1,0,3,
+				2,1,0,3,
+				0,1/2,0,3,
+			]/2,1),Pseq([1,0,1,0],inf)).loop/Pkey(\st),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+		\out, BusDef(\mixer7, \audio),
 		\isRest, Pseq([
 			Plazy({ arg ev;
 				Pseq([

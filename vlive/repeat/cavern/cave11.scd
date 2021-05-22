@@ -1,5 +1,5 @@
 
-// very slow and dist with fast bursts
+// very slow beat and dist with fast bursts
 
 ~t = 135/4/60; TempoClock.default.tempo = ~t;
 

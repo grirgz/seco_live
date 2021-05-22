@@ -1,5 +1,10 @@
 
 
+	(
+	FileSystemProject.load("holis/main.scd");
+	FileSystemProject.load("holis/partmain.scd");
+	)
+(
 ~t = 195/4/60; TempoClock.default.tempo = ~t;
 ~swing = 0.3;
 )

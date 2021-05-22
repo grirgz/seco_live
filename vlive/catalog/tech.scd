@@ -851,9 +851,127 @@ Pdef(\part, Pdef(\zed,
 )).play;
 );
 
+//////////////////// grain enveloppe
+
+// serie
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * [0, 3, 7, 12, 15].midiratio);
+	sig = sig * Decay.kr(Impulse.kr((0..sig.size-1)), 0.4);
+	sig = Pan2.ar(sig, pan, amp).mean;
+}).play;
+);
+
+// polyrythm
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * [0, 3, 7, 12, 15].midiratio);
+	sig = sig * Decay.kr(Impulse.kr([2,3,5,7]), 0.4);
+	sig = Pan2.ar(sig, pan, amp).mean;
+}).play;
+);
+
+
+(
+// 30 channels with random freq, apply env serie
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var num = 30;
+	sig = SinOsc.ar(freq * TWChoose.kr(Dust.kr(1.1!num), [0, 3, 7, 12, 15].midiratio, 1!5,1).poll);
+	sig = sig * Decay.kr(Impulse.kr((0..sig.size-1)/10), 0.8);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig * 8*2;
+}).play;
+);
+
+(
+// random grain duration
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var num = 30;
+	sig = SinOsc.ar(freq * TWChoose.kr(Dust.kr(0.1!num), [0, 3, 7, 12, 15].midiratio, 1!5,1).poll);
+	sig = sig * Decay.kr(Impulse.kr((0..sig.size-1)/30), LFNoise1.kr(1/2!num).range(0.01,4.0));
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig * 8*2;
+}).play;
+);
+
+(
+// Dust triggered grains
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var num = 30;
+	sig = SinOsc.ar(freq * TWChoose.kr(Dust.kr(0.1!num), [0, 3, 7, 12, 15].midiratio, 1!5,1).poll);
+	sig = sig * Decay.kr(Dust.kr((0..sig.size-1)/30), LFNoise1.kr(1/2!num).range(0.01,4.0));
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig * 8*2;
+}).play;
+);
+
+(
+// Dust triggered grains filtered
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var num = 30;
+	sig = SinOsc.ar(freq * TWChoose.kr(Dust.kr(0.1!num), [0, 3, 7, 12, 15].midiratio, 1!5,1).poll);
+	sig = sig * Decay.kr(Dust.kr(0.7!num), LFNoise1.kr(1/32!num).exprange(1.5,4.0)) * 3;
+	sig = RHPF.ar(sig, \hpf.kr(100) * LFNoise1.kr(1/12!2).range(1.0,30.0), \rq.kr(0.3))*5*2;
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig *8 ;
+}).play;
+);
+
+(
+// Dust triggered grains + allpass
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var num = 30;
+	sig = SinOsc.ar(freq * TWChoose.kr(Dust.kr(0.1!num), [0, 3, 7, 12, 15].midiratio, 1!5,1).poll);
+	//sig = sig * Decay.kr(Dust.kr(0.7!num), LFNoise1.kr(1/32!num).range(0.41,4.0));
+	sig = sig * Decay.kr(Dust.kr(0.1!num), LFNoise1.kr(1/32!num).exprange(1.5,4.0)) * 3;
+	//sig = RHPF.ar(sig, \hpf.kr(100) * LFNoise1.kr(1/22!num).range(1.0,30.0), \rq.kr(0.3))*5*2;
+	//sig = RHPF.ar(sig, \hpf.kr(100) * LFNoise1.kr(1/12!2).range(1.0,30.0), \rq.kr(0.3))*5*2;
+	sig = AllpassL.ar(sig, 4/~t, 0.101 * LFNoise1.kr(1/4!4).range(0.9,2.1),0.3)*3 + sig;
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig *2 *8;
+}).play;
+);
+
+(
+// full parrallel grain
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var num = 30;
+	var grainimp = Dust.kr(0.1!num);
+	sig = SinOsc.ar(freq * TWChoose.kr(grainimp, [0, 3, 7, 12, 15].midiratio, 1!5,1).poll);
+	//sig = sig * Decay.kr(grainimp, TRand.kr(3.1,9,grainimp)) * 3;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.5,0.1)), Trig.kr(grainimp, TRand.kr(1.1,9,grainimp)), doneAction:0);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig *2 *8;
+}).play;
+);
+
+(
+// full parrallel grain
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var num = 30;
+	var grainimp = Dust.kr(0.1!num);
+	sig = LFSaw.ar(freq * TWChoose.kr(grainimp, ( [0, 3, 7, 12, 15]+0 ).midiratio, 1!5,1).poll);
+	//sig = sig * Decay.kr(grainimp, TRand.kr(3.1,9,grainimp)) * 3;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.5,1.5)), Trig.kr(grainimp, TRand.kr(0.1,0.3,grainimp)), doneAction:0);
+	sig = RLPF.ar(sig, freq * TWChoose.kr(grainimp, [0, 3, 7, 12, 15].midiratio, 1!5,1), \rq.kr(0.1));
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig *2 *8;
+}).play;
+);
+
+
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
-//////////////////////////////// architecture
+//////////////////////////////// synthdef architecture
 
 soundscape
 	- pdef with random dur and short synthdef as grain
@@ -902,6 +1020,25 @@ soundscape
 
 /////////// pitch types
 - multitonnal Array.series 
+- dust chord chooser
+	(
+	Ndef(\jupiter, { arg freq=200, pan=0, amp=0.1;
+		var sig;
+		var num = 10;
+		freq = freq * num.collect({ 
+			TWChoose.kr(
+				Dust.kr(0.1),
+				[0,3,7,0+12].midiratio,
+				[1,1,1,1],
+				1,
+			);
+		});
+		sig = SinOsc.ar(freq);
+		sig = Pan2.ar(sig, pan, amp).mean;
+		sig.debug("sig");
+	}).play;
+	);
+
 
 ////////////// processing
 - freqshift the freq to double tune
@@ -914,6 +1051,8 @@ soundscape
 - am
 - add am : sig = sig * (mod + 1)
 - self am:  sig = sig * (sig +1);
+- enveloppe:
+	
 
 ///////////// how to elabore a more complex synthdef
 

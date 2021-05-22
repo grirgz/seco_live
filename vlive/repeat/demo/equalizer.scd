@@ -16,6 +16,7 @@ EQui()
 		EQui(nil,nil,model)
 	}).front(Ndef(\equi));
 )
+Ndef(\equi).edit
 
 /// Pdef way
 
@@ -43,8 +44,14 @@ Pdef(\myequi).presetCompileString
 
 (
 	WindowDef(\equi, { arg def, model;
-		EQui(nil,nil,model)
-	}).front(Pdef(\myequi));
+
+		VLayout (
+			EQui(nil,nil,model),
+			HLayout (
+				Param(Ndef(\equi), \inbus)
+			)
+		)
+	}).front(Ndef(\equi));
 )
 
 ////////////////////////////////////////

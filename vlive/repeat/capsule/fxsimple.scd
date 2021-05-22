@@ -12,9 +12,21 @@
 // limiter
 // ring
 
+//// tools
+// env
+// mixer
+
 ~t = ~t ? 1;
 
 (
+SynthDef(\fx_env, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\fx_freeverb2, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -37,6 +49,16 @@ SynthDef(\fx_bpf, { arg out=0, amp=0.1, gate=1;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = in;
 	sig = BPF.ar(sig, \bpf.kr(2301), \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.1),gate,doneAction:2);
+	sig = SelectX.ar(\mix.kr(1), [in, sig]);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fx_brf, { arg out=0, amp=0.1, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = BRF.ar(sig, \brf.kr(2301), \rq.kr(0.5));
 	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,0.1),gate,doneAction:2);
 	sig = SelectX.ar(\mix.kr(1), [in, sig]);
 	sig = sig * \gain.kr(1);
@@ -613,6 +635,7 @@ SynthDef(\fx_bandcomp, { arg out=0, gate=1, low = 1200, hi = 10000, lowlevel = -
 		\fx_freeverb2,
 		\fx_gain,
 		\fx_bpf,
+		\fx_brf,
 		\fx_lpf,
 		\fx_hpf,
 		\fx_rlpf,

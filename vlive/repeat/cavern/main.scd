@@ -122,3 +122,5 @@ MIDIdef.noteOff(\piano_off, { arg velocity, noteNum, channel, deviceId;
 	~pgroup.elAt(noteNum).stop;
 });
 )
+
+Bus.control

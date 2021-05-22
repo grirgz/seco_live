@@ -922,3 +922,68 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 );
+
+/////////////////
+
+
+(
+SynthDef(\nappy, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var cfreq = freq * \chord.kr(1!4);
+	var num = 4 * 2 * 5;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var amps;
+	freq.poll(label:"freq");
+	lfo1 = SinOsc.kr(0.1) * 0.001 * \lfo1range.kr(1);
+	lfo3 = LFNoise1.kr(0.1!num).range(0.3,3); 
+	lfo5 = LFNoise1.kr(0.1!num).range(0.3,0.7); 
+	lfo2 = EnvGen.kr(Env([1,1.2,1],[0.1,1.8]), 1, timeScale: lfo3, levelScale: lfo5);
+	lfo4 = EnvGen.kr(Env([1,2,1],[0.7,0.8]), 1, timeScale: lfo3);
+	cfreq = cfreq *.x [1 - lfo1,1 + lfo1] * [ [1/2,1,2,7,9] ];
+	amps = [0.6,1,0.6,0.1,0.1];
+	cfreq.debug("cfreq");
+	sig = SelectX.ar( LFNoise1.kr(1/2!num).range(0.0,1.0) ,[
+		SinOsc.ar(cfreq) * amps,
+		LFSaw.ar(cfreq) * amps,
+	].collect(_.flatten)) * 5;
+	sig.debug("sig");
+	//sig = sig * ( SinOsc.ar(freq/2 * ( SinOsc.ar(freq/4 + Rand(0.0,1!sig.size)) * 0.71 + 1 )) * 0.7 + 1 );
+	sig = sig * sig.fold( ( SinOsc.kr(0.11) * 0.1 + 1 ).neg, ( SinOsc.kr(0.3) * 1 + 1 ) );
+	//sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq * lfo2 ).poll, \rq.kr(0.5) * lfo4);
+	sig = RLPF.ar(sig, ( \lpf.kr(10001.1) * lfo2 ).clip(10,20000).poll, \rq.kr(0.5) * lfo4);
+	sig = HPF.ar(sig,\hpf.kr(30));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	pan = pan + LFNoise1.kr(0.1!sig.size);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \nappy,
+			\note, Pseq([
+				0,
+				-1,
+			],inf),
+			\octave,5,
+			//\lpfr, ~pmodenv.(Pseq([1,2,1,4]+18,1), 8).loop,
+			\lpf, ~pmodenv.(Pseq([300,1200]+18,1), 8).loop,
+			\lfo1range, ~pmodenv.(Pseq([0,0.0001],1), 8).loop,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,2.1) ],
+			],inf),
+			\chord, Pseq([
+				[ [0,3,7,9].midiratio ],
+				[ [0,3,7,10].midiratio ],
+			],inf),
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
