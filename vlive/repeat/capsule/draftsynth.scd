@@ -331,6 +331,29 @@ SynthDef(\simpleacid, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }).add;
 );
 
+
+(
+// use in Pmono to keep the comb decay
+SynthDef(\jmcpiano, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env;
+	var delayTime, detune, pitch;
+	var strike = \strike.tr(1);
+	strike = Trig.ar(strike, 1/Server.default.sampleRate)*0.1;
+	env = Decay2.ar(strike, \hamat.kr(0.008), \hamrel.kr(0.04));
+	detune = \detunetab.kr([-0.05, 0, 0.04].midiratio);
+	delayTime = 1 / ( freq * detune );
+	sig = LFNoise2.ar(\hamfreq.kr(3000)!detune.size, env);
+	sig = CombL.ar(sig, delayTime, delayTime, \decay.kr(6));
+	sig.debug("sig");
+	sig = sig.mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * 4*2*4*2;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
 ///////////// OTHER
 
 

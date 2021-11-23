@@ -25,6 +25,7 @@ ExpandView
 { SinOsc.ar(500) ! 2 * 0.1}.play;
 
 
+Log(\Param).level = \error
 
 ///////////// auto generate a GUI for a synth controlled by keyboard
 // 1) what system is used to listen to piano

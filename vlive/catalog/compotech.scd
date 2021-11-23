@@ -109,7 +109,7 @@ SynthDef(\snitch2, { arg out=0, amp=0.1, gate=1, pan=0, freq2=200;
 Pdef(\snitch, 
 	Pbind(
 		\instrument, \snitch,
-		\note, 0, // default
+		\note, 0, // default = C3 = 261.626Hz = Do = 60.midicps
 		\octave, 5, // default
 		\dur, 1,
 		\amp, 0.1,
@@ -122,7 +122,7 @@ Pdef(\snitch,
 	Pbind(
 		\instrument, \snitch2,
 		\note, 0,
-		\freq2, Pkey(\freq),
+		\freq2, Pkey(\freq), // can break with multichannel in specific conditions
 		\dur, 1,
 		\amp, 0.1,
 	),

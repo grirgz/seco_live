@@ -193,6 +193,7 @@ Ndef(\custom_pulse, { arg freq=200, pan=0, amp=0.1;
 
 //////////////////////// stereo
 // ne pas confondre plusieurs sources reparties dans le champ stereo, et le fait d'etaler un son dans le champ stereo
+// en fait les 6 canaux sont dupliqués a gauche et a droite, mais avec une difference de phase grace a [[0,1]]
 (
 // multiple sources moving in stereo
 Ndef(\stereo, { arg freq=200, pan=0, amp=0.1;
@@ -968,10 +969,193 @@ Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 }).play;
 );
 
+//////////////////////////////////////
+// how to get a resonant body effect
+// - Integrator
+// - Decay2
+// - feedback
+
+
+
+
+//////////////////////////////////////////////////////////////
+///////////////// FM
+
+
+// simple fm
+
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq * ( SinOsc.ar(freq) * 1 + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \zed,
+		\degree, Pseq([0],inf),
+		\dur, 8,
+		\amp, 0.1,
+	)
+).play;
+);
+
+// detune in stereo to get slow moving effect
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq * ( SinOsc.ar(freq + [0,0.7]) * 1 + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+	Out.ar(out, sig);
+}).add;
+);
+
+// different way: do not add freq, add a small frequency like 0.2, this will be the moving frequency
+// do not multiply between 0 and 1, but go above 1
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(SinOsc.ar(freq) * freq * 4 + 0.2 );
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+	Out.ar(out, sig);
+}).add;
+);
+
+// now you can modulate with noise to get all kind of texture
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(SinOsc.ar(freq) * freq * LFNoise1.kr(0.21).range(1,10) + 0.2 );
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+	Out.ar(out, sig);
+}).add;
+);
+
+// modulate carrier
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(SinOsc.ar(freq) * freq * 4 + LFNoise1.kr(0.2).exprange(0.01,10) );
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+	Out.ar(out, sig);
+}).add;
+);
+
+// all in one
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(SinOsc.ar(freq/2 + [0,0.7]) * freq * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.2).exprange(0.01,1) );
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+	Out.ar(out, sig);
+}).add;
+);
+
+// small delta
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(SinOsc.ar(freq/2 + [0,0.07]) * freq * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.2).exprange(0.01,1) );
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+	Out.ar(out, sig);
+}).add;
+);
+
+// high delta
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(SinOsc.ar(freq/2 + [0,1.07]) * freq * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.2).exprange(0.01,1) );
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+	Out.ar(out, sig);
+}).add;
+);
+
+
+// several fm op, harmonic 1, 2, 3
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig1 = SinOsc.ar(SinOsc.ar(freq + [0,0.07]) * freq * LFNoise1.kr(0.21).range(1,30) + LFNoise1.kr(0.2).exprange(0.01,2) );
+	sig2 = SinOsc.ar(SinOsc.ar(freq*2 + [0,0.27] ) * freq*2  * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.012).exprange(0.01,2) );
+	sig3 = SinOsc.ar(SinOsc.ar(freq*3 + [0,1.27]) * freq*3  * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.012).exprange(0.01,2) );
+	sig = sig1 + sig2 + sig3;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\zed, 
+	Pmono(
+		 \zed,
+		\degree, Pseq([0,2,-1,3],inf),
+		\octave, 2,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+////
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig1 = SinOsc.ar(SinOsc.ar(freq + [0,0.07]) * freq * LFNoise1.kr(0.21).range(1,30) + LFNoise1.kr(0.2).exprange(0.01,2) );
+	sig2 = SinOsc.ar(SinOsc.ar(freq*2 + [0,0.27] * ( sig1 * LFNoise1.kr(0.12).range(0,0.41) + 1 )) * freq*2  * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.012).exprange(0.01,2) );
+	sig3 = SinOsc.ar(SinOsc.ar(freq*3 + [0,1.27] * ( sig2 * LFNoise1.kr(0.12).range(0,0.41) + 1 )) * freq*3  * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.012).exprange(0.01,2) );
+	sig = sig1 + sig2 + sig3;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+	Out.ar(out, sig);
+}).add;
+Pdef(\zed).reset;
+);
+
+(
+Pdef(\zed, 
+	Pmono(
+		 \zed,
+		\degree, Pseq([0,2,-1,3],inf),
+		\octave, 2,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pmono(
+		 \zed,
+		\degree, Pseq([0],inf),
+		\octave, 2,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
 
 //////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
 //////////////////////////////// synthdef architecture
+//////////////////////////////////////////////////////////
 
 soundscape
 	- pdef with random dur and short synthdef as grain
@@ -1074,3 +1258,6 @@ soundscape
 
 ///////////// advanced
 - sample a synthdef, apply rdn multiple time
+
+
+

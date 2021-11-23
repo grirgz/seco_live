@@ -1,4 +1,5 @@
 
+FileSystemProject.load("capsule/fxheavy.scd")
 
 (
 SynthDef(\wallgrain, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, pitch_stretch=1, gdur=0.1, mbufnum=0;

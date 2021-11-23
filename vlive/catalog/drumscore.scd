@@ -226,6 +226,8 @@ SynthDef(\dubecho,{|delay = 1, fb = 0.8, sep = 0.012|
 ~t = 71/2/60; TempoClock.default.tempo = ~t;
 Pdef(\part).clear
 
+FileSystemProject.load("capsule/PatKitDef_ksh.scd");
+FileSystemProject.load("capsule/PatKitDef_bat.scd");
 
 (
 Pdef(\part, Pdef(\plop, 
@@ -477,6 +479,8 @@ SynthDef(\pico, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(out, sig);
 }).add;
 );
+
+FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
 
 (
 r = \r;
@@ -785,6 +789,7 @@ Pdef(\fadrum,
 //////// swing and ternary
 ~t = 185/2/60; TempoClock.default.tempo = ~t;
 
+FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
 
 // ternary
 (
@@ -832,7 +837,6 @@ Pdef(\part, Pdef(\zed,
 		PatKitDef(\sample1).asPattern(Pbind(
 			\kitIndex, 0,
 			\isRest, Pseq([
-				1,0, 0,0,
 				0,0, 0,1,
 				1,0, 1,0,
 				0,0, 1,0,
@@ -1100,6 +1104,7 @@ Pdef(\part, Pdef(\zed,
 ///////////////////////////////////////////////////////////
 //////// hip hop with dub hat
 // from capsule/suft73.scd
+FileSystemProject.load("capsule/PatKitDef_bat.scd");
 (
 SynthDef(\subass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -1494,6 +1499,55 @@ Pdef(\part, Pdef(\zed,
 			],inf),
 			\dur, 1/12,
 			\gain, 0.31 * ( Pkey(\accent)/5+1 / 2 ),
+		),
+		
+	])
+)).play;
+);
+
+
+//////////////////////////////////
+//// swing sing sing
+
+(
+	// sing sing
+~t = 120/2/60; TempoClock.default.tempo = ~t;
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1036].value,
+			\isRest, Pseq([
+				1,0,0, 1,0,0, 1,0,0, 1,0,0,
+				1,0,0, 1,0,0, 1,0,0, 1,0,1,
+			],inf).coin.not,
+			\dur, 1/12,
+			\gain, 0.1 * Pseq([
+				1,0,0, 0.1,0,0, 0.3,0,1, 0.1,0,0.1,
+				1,0,0, 0.1,0,0, 0.3,0,1, 0.4,0,0.1,
+			],inf),
+		),
+		Pbind( // sing
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1624].value,
+			\isRest, Pseq([
+				1,0,0, 1,0,0,  1,0,1, 1,0,1,
+				1,0,0, 1,0,1,  1,0,1, 1,0,1,
+			],inf).coin.not,
+			\dur, 1/12,
+			\gain, 0.1 * Pseq([
+				1,0,0, 1,0,0, 0.2,0,1, 0.2,0,0.2,
+				1,0,0, 0.2,0,1, 0.2,0,1, 0.2,0,0.2,
+			],inf),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[28].value,
+			\isRest, Pseq([
+				0,0,0, 1,0,0,  0,0,0, 1,0,0,
+			],inf).coin.not,
+			\dur, 1/12,
+			\gain, 0.11,
 		),
 		
 	])

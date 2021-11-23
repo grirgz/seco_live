@@ -157,6 +157,7 @@ Pdef(\part2, Pdef(\zedpart2,
 			\dur, Pkey(\dur) * (1 + (~swing * Pseq([1,-1],inf))),
 			\lag, 0.4,
 			\gain, 0.21 * Pseq([1,Pwhite(0.4,0.8,1)],inf),
+			\out, BusDef(\sendbus2, \audio),
 		),
 		Pbind(
 			\instrument, \playersec,

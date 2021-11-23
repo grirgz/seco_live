@@ -361,6 +361,6 @@ Pdef(\plopx, Pbind(
 	\sustain, 0.1,
 	\dur, 1/2,
 	\amp, 0.1,
-	\out, BusDef(\sendbus1, \audio),
+	//\out, BusDef(\sendbus1, \audio),
 )).play;
 );

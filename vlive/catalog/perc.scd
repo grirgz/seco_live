@@ -1324,6 +1324,7 @@ Pdef(\part, Pdef(\zed,
 )).play;
 );
 
+/////////////////////////////////////
 
 ~t = 1; TempoClock.default.tempo = ~t;
 (
@@ -1352,6 +1353,7 @@ SynthDef(\ambifall3, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = sig.mean;
 	//sig = sig.clip;
 	//sig = Compander.ar(sig, sig, \cpt.kr(0.4), \cpbelow.kr(1.001), \cpabove.kr(0.009), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	sig = HPF.ar(sig, 50);
 	sig = Limiter.ar(sig, 1);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,4.1)), gate, doneAction:2);
 	sig = sig * amp;

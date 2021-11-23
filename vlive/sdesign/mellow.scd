@@ -31,7 +31,7 @@ Pdef(\part, Pdef(\mellow,
 )
 
 
-////////////////////////
+///////////////////////
 
 (
 SynthDef(\mellow, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
@@ -126,7 +126,7 @@ Pdef(\part, Pdef(\zed,
 		Pmono( \rdncleandist_fulllight,
 			\inbus, BusDef(\sendbus1, \audio, 2),
 			\addAction, \addToTail,
-			'mix', 0.5714285714286,
+			'mix', 0.2714285714286,
 			'gain', 0.7344889782792,
 			'fb', 0.0002099467303085,
 			'delay', 0.000600001231 * Pseq([
@@ -192,15 +192,26 @@ Pdef(\part, Pdef(\zed,
 			\amp, 0.1,
 			\out, BusDef(\sendbus1, \audio),
 		),
+		Pbind(
+			\instrument, \mellow,
+			\note, Pseq([
+				4,3,
+			],inf),
+			\dur, 2,
+			\octave, 6,
+			\amp, 0.1,
+			\out, BusDef(\sendbus1, \audio),
+		),
 		Pmono( \fakerdn,
 			\inbus, BusDef(\sendbus1, \audio, 2),
 			\addAction, \addToTail,
 			'mix', 1.0714285714286,
-			'gain', 0.7344889782792,
+			'gain', 0.144889782792,
 			'fb', 0.0002099467303085,
-			\phaserfreq, Pseq([0])
+			\phaserfreq, Pseq([0,4*~t],inf),
+			\phaseramp, Pseq([0,10],inf),
 			'delay', 0.000600001231 * Pseq([
-				1,
+				1,10,2,
 			],inf).stutter(1),
 			'delay2', 0.210000543560101,
 			'distamp', 0.361836201538,
@@ -221,3 +232,49 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 )
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \mellowslide,
+			\note, Pseq([
+				4,3,
+			],inf),
+			\freq2, (Pkey(\note) + Pseq([-1,1],inf) + 60).midicps,
+			\dur, 2,
+			\octave, 6,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+SynthDef(\mellowslide, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	env1 = EnvGen.kr(Env([0.9,1,1.01],[0.4,2.8],[-4]), 1);
+	env2 = EnvGen.kr(Env([0,1,0],[8.1,4.8],[-2]), 1);
+
+	freq = SelectX.kr(Duty.kr(1/8/~t, 0, Dseq([
+		0,0,0,0, 0,0,0,0,
+		0,1,1,1,1,0,0,
+	],inf)), [freq, \freq2.kr(0).poll]).lag2ud(0.01,0.1);
+
+	sig1 = SinOsc.ar(freq *env1* [ [1 / env1,1.0001 * env1] ] * [2,1], mul:[0.25,0.76]).sum;
+	
+	sig2 = Pulse.ar(freq * 2 *env1* [ [1 / env1,1.0001 * env1] ] * [2,1], mul:[0.25,0.76]).sum;
+	sig2 = RLPF.ar(sig2, \lpfr.kr(3.1) * freq, \rq.kr(0.5));
+
+	sig = SelectX.ar(env2 + SinOsc.kr([1,2.1,3]*4.3).range(0,env2/2).sum, [sig1, sig2]);
+
+	sig.debug("sig");
+	sig = sig * SinOsc.ar(8.4).range(1,0.7);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,1,0.7)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp).sum;
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);

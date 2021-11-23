@@ -1,4 +1,69 @@
 
+- perc
+	- kick
+	- snare
+	- hat
+	- tom
+	- cymbal
+	- clap
+- drone
+- bass
+	- big bass
+	- sub
+	- guitar bass
+
+
+
+(
+SynthDef(\bowed, { arg out=0, pan=0, amp=1.0, gate=1, freq=420, bowOffset = 0.0, bowSlope = 0.5, bowPosition = 0.75, vibFreq=6.127, vibGain=0.0;
+	var betaRatio = 0.027236 + (0.2*bowPosition);
+	var baseDelay = freq.reciprocal;
+	var lastOut = LocalIn.ar(2);
+	var vibrato = SinOsc.ar(vibFreq, 0, vibGain);
+	var neckDelay = baseDelay*(1.0-betaRatio) + (baseDelay*vibrato);
+	var neck = DelayL.ar(lastOut[0], 0.05, neckDelay);
+	var bridge = DelayL.ar(lastOut[1], 0.025, baseDelay*betaRatio);
+	var stringFilter = OnePole.ar(bridge*0.95, 0.55);
+	var adsr = amp*EnvGen.ar(Env.adsr(0.02, 0.005, 1.0, 0.01), gate, doneAction: 2);
+	var bridgeRefl = stringFilter.neg;
+	var nutRefl = neck.neg;
+	var stringVel = bridgeRefl + nutRefl;
+	var velDiff = adsr - stringVel;
+	var slope = 5.0 - (4.0*bowSlope);
+	var bowtable = (( ((velDiff+bowOffset)*slope) + 0.75 ).abs ).pow(-4).clip(0, 1);
+	var newVel = velDiff*bowtable;
+	var sig = Resonz.ar( bridge*0.5, 500, 0.85 ) *adsr;
+	sig = Pan2.ar(sig, pan, 1) * 8;
+	LocalOut.ar([bridgeRefl, nutRefl] + newVel);
+	Out.ar(out,sig );
+}, [\ir, 0,0, 0, 0, 0, 0, 0, 0]).store;
+)
+
+Synth(\bowed);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \bowed,
+		\degree, Pseq([0,7,1,3],inf),
+		\octave, Prand([4,5,6,3],inf),
+		//\adsr, Pseq([
+			//[ Env.adsr(0.1,0.1,0.8,2.1) ],
+		//],inf),
+		\bowOffset, ~pmodenv.(Pseq([0,0.051],1), 7).loop,
+		\bowSlope, ~pmodenv.(Pseq([0.1,1],1), 3).loop,
+		\bowPosition, ~pmodenv.(Pseq([0.1,1.7],1), 8).loop,
+		\dur, 1/8,
+		\amp, 0.1,
+	)
+).play;
+);
+
+
+///////////////////////
+
+
+
 /////// electric guitar
 (
 SynthDef(\iron, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
@@ -217,3 +282,352 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 );
+
+
+/////////////////////// ///////////////////////
+// jmc piano
+
+
+(
+SynthDef(\jmcpiano, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env;
+	var delayTime, detune, pitch;
+	var strike = \strike.tr(1);
+	strike = Trig.ar(strike, 1/Server.default.sampleRate)*0.1;
+	env = Decay2.ar(strike, \hamat.kr(0.008), \hamrel.kr(0.04));
+	detune = \detunetab.kr([-0.05, 0, 0.04].midiratio);
+	delayTime = 1 / ( freq * detune );
+	sig = LFNoise2.ar(\hamfreq.kr(3000)!detune.size, env);
+	sig = CombL.ar(sig, delayTime, delayTime, \decay.kr(6));
+	sig.debug("sig");
+	sig = sig.mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * 4*2*4*2;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Ppar(6.collect { arg idx;
+			Pmono(
+				\jmcpiano,
+				\pitch, (36 + 54.rand),
+				\freq, Pkey(\pitch).midicps,
+				\strike, 1,
+				\dur, 1/(0.1+0.4.rand),
+				\amp, 0.1,
+				\pan, (Pkey(\pitch) - 36)/27 - 1
+			)
+		})
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Ppar(6.collect { arg idx;
+			Pmono(
+				\jmcpiano,
+				\pitch, (36 + 54.rand),
+				\freq, Pkey(\pitch).midicps,
+				\strike, 1,
+				\hamat, ~pmodenv.(Pseq([0.008,0.0008,0.1],1), 7).loop,
+				\hamfreq, ~pmodenv.(Pseq([1,2,40,1,4,70]*100,1), 8).loop,
+				\dur, 1/(0.1+0.4.rand),
+				\amp, 0.1/2,
+				\pan, (Pkey(\pitch) - 36)/27 - 1
+			)
+		})
+	])
+)).play;
+);
+
+
+///// variants
+
+(
+SynthDef(\jmcpiano_drowned, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env;
+	var delayTime, detune, pitch;
+	var strike = \strike.tr(1);
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	strike = Trig.ar(strike, 1/Server.default.sampleRate)*0.1;
+	env = Decay2.ar(strike, \hamat.kr(0.008), \hamrel.kr(0.04));
+	detune = \detunetab.kr([-0.05, 0, 0.04].midiratio);
+	delayTime = 1 / ( freq * detune ).poll;
+	sig = LFNoise2.ar(\hamfreq.kr(3000)!detune.size, env);
+	sig = CombL.ar(sig, delayTime, delayTime, \decay.kr(6));
+	sig1 = AllpassL.ar(sig, delayTime, delayTime, \apdecay.kr(6));
+	sig = SelectX.ar(\apmix.kr(0.5), [sig, sig1]);
+	sig.debug("sig");
+	sig = sig.mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * 4*2*4*2;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Ppar(6.collect { arg idx;
+			Pmono(
+				\jmcpiano_drowned,
+				\pitch, (36 + 54.rand),
+				\freq, Pkey(\pitch).midicps,
+				\decay, ~pmodenv.(Pseq([1,6],1), 5).loop,
+				\apdecay, ~pmodenv.(Pseq([6,1],1), 7).loop,
+				\apmix, ~pmodenv.(Pseq([0,1,0.5],1), 3).loop,
+				\strike, 1,
+				\dur, 1/(0.1+0.4.rand),
+				\amp, 0.1,
+				\pan, (Pkey(\pitch) - 36)/27 - 1
+			)
+		})
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Plazy({ arg ev;
+			Pfindur(8,
+				Ppar(6.collect { arg idx;
+					Pmono(
+						\jmcpiano_drowned,
+						\pitch, [0,12,24].choose+36 + [0,3,7,9,11].choose + Pkey(\rootpitch),
+						\freq, Pkey(\pitch).midicps,
+						\decay, ~pmodenv.(Pseq([1,6],1), 5).loop,
+						\apdecay, ~pmodenv.(Pseq([6,1],1), 7).loop,
+						\apmix, ~pmodenv.(Pseq([0,1,0.5],1), 3).loop,
+						\strike, 1,
+						\dur, 1/(0.1+0.4.rand),
+						\lag, 0.3.rand,
+						\isRest, Pseq([
+							Prand([0,1],1),Pseq([1],inf),
+						],inf).coin.not,
+						\amp, 0.1,
+						\pan, (Pkey(\pitch) - 36)/27 - 1
+					)
+				})
+			)
+		}).loop
+	   	<>
+		Pbind(\rootpitch, Pstep(Pwhite(0,12,inf),8))
+	])
+)).play;
+);
+
+////////////:
+
+(
+SynthDef(\jmcpiano, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env;
+	var delayTime, detune, pitch;
+	var strike = \strike.tr(1);
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	strike = Trig.ar(strike, 1/Server.default.sampleRate)*0.1;
+	env1 = EnvGen.kr(Env([1,0.1,0],[0.1,0.8]), strike);
+	env2 = EnvGen.kr(Env([1,0.5,0].reverse,[0.1,0.8]), strike);
+	env = Decay2.ar(strike, \hamat.kr(0.008), \hamrel.kr(0.04));
+	detune = \detunetab.kr([-0.05, 0, 0.04].midiratio);
+	delayTime = 1 / ( freq * detune ).poll;
+	sig = LFNoise2.ar(\hamfreq.kr(3000)!detune.size, env);
+	sig = CombL.ar(sig, delayTime, delayTime * ( SinOsc.kr(17 * env2) * env1 * 0.31 + 1 ), \decay.kr(6));
+	sig.debug("sig");
+	sig = sig.mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * 4*2*4*2;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Ppar(6.collect { arg idx;
+			Pmono(
+				\jmcpiano,
+				\pitch, (36 + 54.rand),
+				\freq, Pkey(\pitch).midicps,
+				\strike, 1,
+				\dur, 1/(0.1+0.4.rand),
+				\amp, 0.1,
+				\pan, (Pkey(\pitch) - 36)/27 - 1
+			)
+		})
+	])
+)).play;
+);
+
+////////////:
+
+(
+SynthDef(\jmcpiano, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env;
+	var delayTime, detune, pitch;
+	var strike = \strike.tr(1);
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	strike = Trig.ar(strike, 1/Server.default.sampleRate)*0.1;
+	env1 = EnvGen.kr(Env([1,0.1,0],[0.1,0.8]), strike);
+	env2 = EnvGen.kr(Env([0,0.5,1]*0.5,[0.4,0.8]), strike);
+	env3 = EnvGen.kr(Env([1,0.98,1],[0.1,2.1]), strike);
+	env = Decay2.ar(strike, \hamat.kr(0.008), \hamrel.kr(0.04));
+	detune = \detunetab.kr([-0.05, 0, 0.04, -12].midiratio);
+	delayTime = 1 / ( freq * detune );
+	sig = LFNoise2.ar(\hamfreq.kr(3000)!detune.size, env);
+	sig = CombL.ar(sig, delayTime, delayTime, \decay.kr(6));
+	sig = sig * ( SinOsc.ar(freq/2 * detune + 0.1 * env3).unipolar * env2 + 1 );
+	sig.debug("sig");
+	sig = sig.mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * 4*2*4*2;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Ppar(6.collect { arg idx;
+			Pmono(
+				\jmcpiano,
+				\pitch, (36 + 54.rand),
+				\freq, Pkey(\pitch).midicps,
+				\strike, 1,
+				\dur, 1/(0.1+0.4.rand),
+				\amp, 0.1,
+				\pan, (Pkey(\pitch) - 36)/27 - 1
+			)
+		})
+	])
+)).play;
+);
+
+///////:::
+
+(
+SynthDef(\jmcpiano2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env;
+	var delayTime, detune, pitch;
+	var strike = \strike.tr(1);
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	//strike = K2A.ar(strike);
+	strike = Trig.ar(strike, 1/Server.default.sampleRate)*0.1;
+	//strike = Impulse.ar(0.1+0.4.rand, 2pi.rand, 0.1); // random period for each key
+	env1 = EnvGen.kr(Env([1,0.3,0],[0.1,0.8]), strike);
+	env = Decay2.ar(strike, 0.008, 0.04);
+	detune = [-0.05, 0, 0.04].midiratio;
+	delayTime = 1 / ( freq * detune );
+	sig = LFNoise2.ar(\hamfreq.kr(3000)!detune.size, env);
+	sig = CombL.ar(sig, delayTime, delayTime * ( SinOsc.ar(17 * env1) * 0.1 * env1 + 1 ), \decay.kr(6));
+	sig = AllpassL.ar(sig, delayTime,  delayTime, \decay.kr(6)) + sig;
+	sig = AllpassL.ar(sig, delayTime,  delayTime*3, \decay.kr(6));
+	sig.debug("sig");
+	sig = sig.mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * 4*2*4*2;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Ppar(6.collect { arg idx;
+			Pmono(
+				\jmcpiano2,
+				\pitch, (36 + 54.rand),
+				\freq, Pkey(\pitch).midicps,
+				\strike, 1,
+				\dur, 1/(0.1+0.4.rand),
+				//\hamfreq, ~pmodenv.(Pseq([9,1,2,1,4]*500,1), 8).loop,
+				\amp, 0.1,
+				\pan, (Pkey(\pitch) - 36)/27 - 1
+			)
+		})
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Ppar(1.collect { arg idx;
+			Pmono(
+				\jmcpiano2,
+				\pitch, (36 + 54.rand) + Pseq([0,3,2],inf) + [0,3,7],
+				\freq, Pkey(\pitch).midicps,
+				\strike, 1,
+				\dur, 4,
+				\out, BusDef(\sendbus1, \audio),
+				//\hamfreq, ~pmodenv.(Pseq([9,1,2,1,4]*500,1), 8).loop,
+				\amp, 0.1,
+				\pan, (Pkey(\pitch) - 36)/27 - 1
+			)
+		})
+	])
+)).play;
+);
+
+//////////
+
+
+(
+Ndef(\combchain, {
+	var in = InFeedback.ar(\inbus.kr(BusDef(\sendbus1, \audio)), 2); 
+	var oin = in;
+	in = in + CombC.ar(in, 2, SinOsc.ar(0.15* [0.13, 0.17]).range(0.5, 1) * [0.13, 0.17], 7);
+	in = in + CombC.ar(in, 2, SinOsc.ar(0.1* [0.1, 0.15]).range(0.5, 1) * [0.1, 0.15], 7);
+	in = in + CombC.ar(in, 2, [1.5, 1.0], 7);
+	//in = in + GVerb.ar(in, 1);
+	in = in + FreeVerb2.ar(in[0], in[1], 0.5, 1);
+	in = in / 3 / 3;
+	in = Compander.ar(in, in, \cpt.kr(0.2), \cpbelow.kr(1.001), \cpabove.kr(0.1), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	in = SelectX.ar(\mix.kr(0.5), [oin, in]);
+	in = in * \gain.kr(1);
+	in;
+}).play;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \jmcpiano,
+			\note, Pseq([
+				0,3,2,1,
+			],inf),
+			\octave, Pseq([3,4,5],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,1.1,1.2,3.1) ],
+			],inf),
+			\legato, 0.1,
+			\dur, 4,
+			\amp, 0.1,
+			\out, BusDef(\sendbus1, \audio),
+			//\isRest, true,
+		),
+		
+	])
+)).play;
+);
+

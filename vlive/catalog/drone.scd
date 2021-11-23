@@ -226,6 +226,27 @@ Ndef(\drone, { arg freq=200, pan=0, amp=0.1;
 }).play;
 );
 
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		
+	])
+)).play;
+);
+
 (
 	/// cool !!!!
 Ndef(\drone, { arg freq=200, pan=0, amp=0.1;
@@ -669,6 +690,7 @@ Ndef(\drone, { arg freq=180, pan=0, amp=0.1;
 	sig = Pan2.ar(sig, SinOsc.kr(1/7 * (1..3)).range(-1,1)*0.1, amp).flop;
 }).play
 );
+N
 
 (
 	// wind

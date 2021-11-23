@@ -987,3 +987,45 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+///////////////////
+
+
+(
+Ndef(\zed, { arg freq=400, pan=0, amp=0.1;
+	var sig;
+	var factors = (0..12).midiratio;
+	factors = [0,3,7,9,12, 15,19].midiratio;
+	freq = Duty.kr(4/~t, 0, Dseq([
+		1,3,Dwhite(0,12,2),
+	],inf)).midiratio * freq;
+	sig = SinOsc.ar(freq * factors, mul: Pulse.kr(factors.scramble).range(0.0,1.0)).mean;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var factors = (0..12).midiratio;
+	factors = [0,3,7,9,12, 15,19].midiratio;
+	freq = Duty.kr(4/~t, 0, Dseq([
+		1,3,Dwhite(0,12,2),
+	],inf)).midiratio * freq;
+	sig = LFSaw.ar(freq * factors * ( SinOsc.ar(freq) * LFNoise1.kr(factors.scramble/2).exprange(0.001,0.3) + 1 ), mul: LFPulse.kr(factors.scramble/2).range(0,1.0));
+	sig = RLPF.ar(sig, \lpfr.kr(2.1) * freq * ( SinOsc.ar(factors.scramble/8) * 0.6 + 1 ), \rq.kr(0.5));
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+}).play;
+);
+
+
+(
+Ndef(\zed)[1] = \filter	-> { arg in;
+	var sig;
+	sig = in;
+
+	sig.debug("sig");
+	AllpassL.ar(sig, 4/~t, LFNoise1.kr([ 0.1 !10]).range(1.0,1.1) * 0.1,1).flop.mean.postln + sig;
+	
+};
+)

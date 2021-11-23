@@ -143,7 +143,7 @@ SynthDef(\harpsichord_pluck, {
 SynthDef(\organ_tonewheel0, {
 	//additive tonewheel organ with few CPU usage
 
-	arg freq = 440, amp = 0.7, atk = 0.001, sus = 0.2, rel = 0.01, pan = 0,
+	arg out=0, freq = 440, amp = 0.7, atk = 0.001, sus = 0.2, rel = 0.01, pan = 0,
 	bass = 1, quint = 1, fundamental = 1, oct = 1, nazard = 1, blockFlute = 1, tierce = 1, larigot = 1, sifflute = 1, //organ voices (drawbars) amplitudes
     vrate = 3, vdepth = 0.008; //vibrato arguments
 	var sig, env, vibrato;
@@ -153,17 +153,14 @@ SynthDef(\organ_tonewheel0, {
 	sig = DynKlang.ar(`[[1/12,  1/7, 1, 12, 19, 24, 28, 31, 36].midiratio, ([DC.ar(bass) , DC.ar(quint), DC.ar(fundamental), DC.ar(oct), DC.ar(nazard), DC.ar(blockFlute), DC.ar(tierce), DC.ar(larigot), DC.ar(sifflute)].normalizeSum), nil], vibrato * freq);
 
 	sig = sig * env;
-	Out.ar(0, Pan2.ar(sig, pan, amp));
+	Out.ar(out, Pan2.ar(sig, pan, amp));
 //By Zé Craum
 }).add;
-12.midiratio
-( 1/12 ).midiratio
-( -12 ).midiratio*2
 
 SynthDef(\organ_tonewheel1, {
 	//additive tonewheel organ with more CPU usage
 
-	arg freq = 440, amp = 0.7, atk = 0.001, sus = 0.2, rel = 0.01, pan = 0,
+	arg out=0, freq = 440, amp = 0.7, atk = 0.001, sus = 0.2, rel = 0.01, pan = 0,
 	bass = 1, quint = 1, fundamental = 1, oct = 1, nazard = 1, blockFlute = 1, tierce = 1, larigot = 1, sifflute = 1, //organ voices (drawbars) amplitudes
     vrate = 3, vdepth = 0.008, vdelay = 0.1, vonset = 0, vrateVariation = 0.1, vdepthVariation = 0.1; //vibrato arguments
 	var sig, env, vibrato;
@@ -173,14 +170,14 @@ SynthDef(\organ_tonewheel1, {
 	sig = DynKlang.ar(`[[1/12,  1/7, 1, 12, 19, 24, 28, 31, 36].midiratio, ([DC.ar(bass) , DC.ar(quint), DC.ar(fundamental), DC.ar(oct), DC.ar(nazard), DC.ar(blockFlute), DC.ar(tierce), DC.ar(larigot), DC.ar(sifflute)].normalizeSum), nil], vibrato);
 
 	sig = sig * env;
-	Out.ar(0, Pan2.ar(sig, pan, amp));
+	Out.ar(out, Pan2.ar(sig, pan, amp));
 //By Zé Craum
 }).add;
 
 
 SynthDef(\organ_tonewheel2, {
 	//subtractive tonewheel organ with cheap CPU usage
-	arg freq = 440, amp = 0.9, atk = 0.001, sus = 0.4, rel = 0.1, tune = 0.29, tuneRate = 6.0, rq = 1;
+	arg out=0, freq = 440, amp = 0.9, atk = 0.001, sus = 0.4, rel = 0.1, tune = 0.29, tuneRate = 6.0, rq = 1;
 	var sig, env, vibrato;
 	env = EnvGen.ar(Env.linen(atk, sus, rel, 0.5), doneAction: Done.freeSelf);
 	vibrato = SinOsc.ar(tuneRate).range(freq, freq * (tune.midiratio));
@@ -190,7 +187,7 @@ SynthDef(\organ_tonewheel2, {
 	sig = sig * env;
 	sig = sig * amp;
 	sig = LeakDC.ar(sig);
-	Out.ar(0, sig!2);
+	Out.ar(out, sig!2);
 //By Zé Craum
 }).add;
 
@@ -198,7 +195,7 @@ SynthDef(\organ_tonewheel2, {
 
 SynthDef(\organ_tonewheel3, {
 	//subtractive tonewheel organ with more CPU usage
-	arg freq = 440, amp = 0.9, atk = 0.001, sus = 0.4, rel = 0.1, vrate = 6, vdepth = 0.02, vdelay = 0.1, vonset = 0, vrateVariation = 0.1, vdepthVariation = 0.1, rq =1;
+	arg out=0, freq = 440, amp = 0.9, atk = 0.001, sus = 0.4, rel = 0.1, vrate = 6, vdepth = 0.02, vdelay = 0.1, vonset = 0, vrateVariation = 0.1, vdepthVariation = 0.1, rq =1;
 	var sig, env, vibrato;
 	env = EnvGen.ar(Env.linen(atk, sus, rel, 0.5), doneAction: Done.freeSelf);
 	vibrato = Vibrato.kr(DC.kr(freq), DC.kr(vrate), DC.kr(vdepth), DC.kr(vdelay), DC.kr(vonset), DC.kr(vrateVariation), DC.kr(vdepthVariation));
@@ -208,7 +205,7 @@ SynthDef(\organ_tonewheel3, {
 	sig = sig * env;
 	sig = sig * amp;
 	sig = LeakDC.ar(sig);
-	Out.ar(0, sig!2);
+	Out.ar(out, sig!2);
 
 //By Zé Craum
 }).add;

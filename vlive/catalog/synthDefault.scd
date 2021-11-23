@@ -1,3 +1,6 @@
+// see libdef/mysynthdefault.scd to have version adapted for my needs
+
+
 //\\##//\\##//\\##//\\##//\\##//\\##//\\##//\\
 //\\##//\\##                  //\\##//\\##//\\
 //\\##//\\##  SynthDEFaults   //\\##//\\##//\\

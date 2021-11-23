@@ -855,3 +855,39 @@ Pdef(\demo, Pdef(\demomo,
 	])
 )).play;
 )
+
+////////////////// vocoder with grains
+
+
+
+
+(
+SynthDef(\gregrain, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, mbufnum, pitch_stretch=1, pos=0, gdur=0.1;
+	var sig, clk;
+	clk = Impulse.ar(freq);
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, pos % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain,
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\pos, ~pmodenv.(Pseq([0,1,10],1), 2).loop,
+			\gdur, 0.1,
+			\note, Pseq([
+				0,4,2,
+			],inf),
+			\dur, 1,
+			\gain, 1,
+		)
+		
+	])
+)).play;
+);

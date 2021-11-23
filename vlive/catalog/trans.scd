@@ -221,3 +221,37 @@ Ndef(\woof2, { arg freq=200, pan=0, amp=0.1;
 	sig;
 }).play;
 );
+
+
+///////////////:
+
+
+
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var num = 40;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	lfo1 = LFNoise1.ar(0.1);
+	freq = Rand(100.0,4000!num);
+	sig = SinOsc.ar(freq * ( LFSaw.ar(freq * lfo1) * lfo1 * 3 + 1 ));
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pmono(
+			 \zed,
+			\freq, 900,
+			\dur, 1,
+			\amp, 0.1,
+		),	
+	])
+)).play;
+);

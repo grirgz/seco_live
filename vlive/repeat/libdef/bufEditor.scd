@@ -300,7 +300,7 @@ WindowDef(\SoundObjectView, { arg def, model;
 WindowDef(\BufferEditor, { arg def, buf;
 
 	var params;
-	var bufferPathText, bufferTempPathText;
+	var bufferPathText, bufferTempPathText, bufIdText;
 	var saveButton;
 	var model = (
 		startValue: 0,
@@ -332,6 +332,10 @@ WindowDef(\BufferEditor, { arg def, buf;
 	model.lengthParam = { Param(Message(model), \lengthValue, ControlSpec(0,model.buffer.numFrames/model.buffer.sampleRate,\lin)) };
 	params = #[startParam, lengthParam].collect({ arg n; model[n].value; });// FIXME: removed endParam because not bound in SoundObjectView yet
 
+	bufIdText = StaticText.new;
+	bufIdText.followChange(model, \bufId, {
+		bufIdText.string = try {  model.buffer.key } { "" };
+	});
 	bufferPathText = StaticText.new;
 	bufferPathText.followChange(model, \bufferPath, {
 		bufferPathText.string = model.bufferPath;
@@ -419,6 +423,10 @@ WindowDef(\BufferEditor, { arg def, buf;
 		VLayout (*
 			[
 				HLayout(
+					StaticText.new.string_("BufDef identifier:").fixedWidth_(100), 
+					bufIdText
+				),
+				HLayout(
 					StaticText.new.string_("Buffer path:").fixedWidth_(100), 
 					bufferPathText
 				),
@@ -458,8 +466,12 @@ WindowDef(\BufferEditor).front(~newbuf);
 ~newbuf
 ~buf = Buffer(Server.default, 44100, 2)
 ~buf.loadCollection(0!44100, action:{ "done".debug })
+~buf.numFrames
+WindowDef(\BufferEditor).front(~buf);
 
-
+BufDef(\clap).key = \haha
+BufDef(\clap).key 
+BufDef(\haha)
 BufDef(\clap, "~/Musique/sc/reckit/rev/clap1.wav");
 BufDef(\clap, "reckit/rev/clap1.wav");
 BufDef.clear(\clap)

@@ -592,3 +592,106 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 )
+
+//////////// play with Comb and reverb
+
+
+(
+Ndef(\combchain, {
+	var in = InFeedback.ar(\inbus.kr(BusDef(\sendbus1, \audio)), 2); 
+	var oin = in;
+	in = in + CombC.ar(in, 2, SinOsc.ar(0.15* [0.13, 0.17]).range(0.5, 1) * [0.13, 0.17], 7);
+	in = in + CombC.ar(in, 2, SinOsc.ar(0.1* [0.1, 0.15]).range(0.5, 1) * [0.1, 0.15], 7);
+	in = in + CombC.ar(in, 2, [1.5, 1.0], 7);
+	//in = in + GVerb.ar(in, 1);
+	in = in + FreeVerb2.ar(in[0], in[1], 0.5, 1);
+	in = in / 3 / 3;
+	in = Compander.ar(in, in, \cpt.kr(0.2), \cpbelow.kr(1.001), \cpabove.kr(0.1), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	in = SelectX.ar(\mix.kr(0.5), [oin, in]);
+	in = in * \gain.kr(1);
+	in;
+}).play;
+)
+
+(
+SynthDef(\sinosc, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([0,0.1,1],[0.1,0.8]), 1);
+	sig = SinOsc.ar(freq * ((0..7)/7 - 0.5 * \fspread.kr(0.1) * env1 + 1));
+	sig = sig * ( SinOsc.ar(freq * 4/5) * env1 + 1 );
+	sig = sig.mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sinosc,
+			\note, Pseq([
+				0,3,2,1,
+			],inf) + Pstep(Pseq([
+				0,-1,-2,
+			],inf),2),
+			\octave, Pseq([6],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.4) ],
+			],inf),
+			\legato, 0.1,
+			\dur, 1/8,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,1,1,1,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\amp, 0.2,
+			\out, BusDef(\sendbus1, \audio),
+			//\isRest, true,
+		),
+		Pbind(
+			\instrument, \sinosc,
+			\note, Pseq([
+				0,3,2,1,
+			],inf),
+			\octave, Pseq([3,4,5],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,1.1,1.2,3.1) ],
+			],inf),
+			\legato, 0.1,
+			\dur, 4,
+			\amp, 0.2,
+			\out, BusDef(\sendbus1, \audio),
+			//\isRest, true,
+		),
+		
+	])
+)).play;
+);
+
+
+/////////////
+
+
+	SynthDef(\reverb, {
+		arg in=0, out=0, dec=4, lpf=1500;
+		var sig;
+		sig = In.ar(in, 2).sum;
+		sig = DelayN.ar(sig, 0.03, 0.03);
+		sig = CombN.ar(sig, 0.1, {Rand(0.01,0.099)}!32, dec);
+		sig = SplayAz.ar(2, sig);
+		sig = LPF.ar(sig, lpf);
+		5.do{sig = AllpassN.ar(sig, 0.1, {Rand(0.01,0.099)}!2, 3)};
+		sig = LPF.ar(sig, lpf);
+		sig = LeakDC.ar(sig);
+		Out.ar(out, sig);
+	}).add;

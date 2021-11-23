@@ -148,7 +148,7 @@ WindowDef(\FxManager, {
 					var name;
 					var xedit;
 					var edit = {
-						WindowDef(\NdefEditor).front(asso.value).windowName_(name);
+						WindowDef(( \NdefEditor++name ).asSymbol, WindowDef(\NdefEditor)).front(asso.value).windowName_(name);
 					};
 					name = "%: %".format(asso.key, asso.value.source);
 					if(asso.value.source.class == Symbol and: {

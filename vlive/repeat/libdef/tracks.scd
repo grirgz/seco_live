@@ -568,7 +568,7 @@ TrackTemplateDef(\lineplayer, (
 		self;
 	},
 	label: { arg self;
-		"% line %".format(self.parentTrack.label, self.index)
+		"% line %".format(self.parentTrack.label, self.index.asInteger)
 	},
 	isLinePlayer: true,
 	play: { arg self;

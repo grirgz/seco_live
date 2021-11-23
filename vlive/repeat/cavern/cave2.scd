@@ -25,7 +25,7 @@ Tdef(\initrandfm, {
 		0.05.wait;
 		4.collect { arg idx2;
 			0.05.wait;
-			Ndef(\player+++idx+++idx2).source_(Ndef(\zed).source);
+			Ndef(\player+++idx+++idx2).source_(Ndef(\randfm).source);
 		};
 	};
 	nil
@@ -36,7 +36,7 @@ Tdef(\initrandfm, {
 	~players.flat.do({ arg p;
 		p.quant = 2;
 		p[10] = \pset -> Pbind(
-			\instrument, \default,
+			//\instrument, \default,
 			\freqratio, Pseq([0,0,-1,-2],inf).midiratio,
 			\dur, 1,
 			\gain, Pseq([1,0.2,0.6,0.5, 1,1,1,1].scramble,inf),
@@ -264,6 +264,7 @@ Ndef(\zed).addSpec(\rel, ControlSpec(0.01,2,\lin), \ratio, ControlSpec(0.01,20,\
 
 Ndef(\zed).edit
 Ndef(\zed).send
+Ndef(\zed).edit
 
 Ndef(\zed2, Ndef(\zed))
 

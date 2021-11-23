@@ -39,6 +39,7 @@ TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
 		newtrack.libId = libId;
 		newtrack.label = label ? ProtoDef(\GlobalLibrary).libIdToStrings(libId).join(" ");
 		newtrack.instrument = ProtoDef(\GlobalLibrary).libIdToTrackInstrument(libId, trackkey);
+		newtrack.instrument.makeSource(self, newtrack.index);
 		newtrack.outBus = 0;
 		Log(\Param).debug("newtrack.instrument:%", newtrack.instrument);
 		self.changed(\tracklist);
@@ -119,8 +120,14 @@ TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
 		};
 	},
 
+	areasizex_: { arg self, val;
+		self[\areasizex] = val;
+		self.changed(\tracklist);
+	},
+
 	loadedFromPath: nil,
 ));
+
 
 TrackTemplateDef(\TrackListChannel, TrackTemplateDef(\playertrack)).putAll((
 	childClass: { arg self;
@@ -142,6 +149,13 @@ TrackTemplateDef(\TrackListChannel, TrackTemplateDef(\playertrack)).putAll((
 			child.score = nil;
 			child.source = nil;
 		}
+	},
+
+	outBus_: { arg self, outBus;
+		self[\outBus] = outBus;
+		self.children.collect({ arg child;
+			self.instrument.updateScoreOutBus(child.score, outBus);
+		})
 	},
 
 	presetCompileString: { arg self;
@@ -265,7 +279,7 @@ TrackTemplateDef(\TrackListChannelPart, TrackTemplateDef(\playerwrapper)).putAll
 	},
 
 	makeScore: { arg self;
-		self.score = self.parentTrack.instrument.makeScore(self.grid, self.parentTrack.index, self.index);
+		self.score = self.parentTrack.instrument.makeScore(self.grid, self.parentTrack.index, self.index, self.parentTrack.outBus ? self.outBus);
 	},
 
 	score_: { arg self, val;
@@ -329,10 +343,17 @@ ProtoTemplateDef(\TrackInstrument, (
 		self = self.deepCopy;
 
 		if(libId.first == \TrackInstrument) {
-			instr = switch(libId.last.key,
-				\ClipTimelineTrack, { ProtoTemplateDef(\TrackInstrument_ClipTimelineTrack).new(libId, name) },
-				\KitTimelineTrack, { ProtoTemplateDef(\TrackInstrument_KitTimelineTrack).new(libId, name) },
-			);
+			// FIXME: use globallib ?
+			var instrkey = ( \TrackInstrument_ ++ libId.last.key ).asSymbol;
+			instr = ProtoTemplateDef(instrkey);
+			if(instr.notNil) {
+				instr = instr.new(libId, name);
+			};
+			//instr = switch(libId.last.key,
+				//\ClipTimelineTrack, { ProtoTemplateDef(\TrackInstrument_ClipTimelineTrack).new(libId, name) },
+				//\KitTimelineTrack, { ProtoTemplateDef(\TrackInstrument_KitTimelineTrack).new(libId, name) },
+				//\SampleTimelineTrack, { ProtoTemplateDef(\TrackInstrument_SampleTimelineTrack).new(libId, name) },
+			//);
 		};
 		//if(libId.first == \SynthDef) {
 			//libId = self.synthDefToPdefLibId(libId);
@@ -371,6 +392,12 @@ ProtoTemplateDef(\TrackInstrument, (
 		self.lib.libIdToScore(self.libId, "%.%.%".format(model.key, childidx, model.selectedPart).asSymbol);
 	},
 
+	updateScoreOutBus: { arg self, score, outBus;
+		if(score.notNil) {
+			score.timeline.outBus = outBus;
+		}
+	},
+
 	updateScore: { arg self, score;
 		if(score.notNil) {
 			score.keys.do { arg key;
@@ -382,8 +409,10 @@ ProtoTemplateDef(\TrackInstrument, (
 		}
 	},
 
-	setTrackInstrumentOfScore: { arg self, score;
-		self.source.setTrackInstrument(score, self);
+	setTrackInstrumentOfScore: { arg self, scoreinst;
+		if(self.source.notNil) {
+			scoreinst.setTrackInstrument(self, self.source);
+		}
 	},
 
 	edit:{ arg self;
@@ -414,6 +443,136 @@ ProtoTemplateDef(\TrackInstrument_ClipTimelineTrack, (
 		[model.key, trackIdx, partIdx].debug("TrackInstrument_ClipTimelineTrack makeScore");
 		(
 			timeline: ClipTimeline("%.%.%".format(model.key, trackIdx, partIdx).asSymbol)
+		)
+	},
+
+));
+
+ProtoTemplateDef(\TrackInstrument_SampleTimelineTrack, (
+	parent: ProtoTemplateDef(\TrackInstrument),
+
+	new: { arg self;
+		self = self.copy;
+	
+		
+	
+		self;
+	},
+
+	edit: { arg self;
+		Log(\Param).info("No instrument to edit in SampleTimelineTrack");
+	},
+
+
+	makeScore: { arg self, model, trackIdx, partIdx, outBus;
+		var tl;
+		var ret;
+		Log(\Param).debug("TrackInstrument_SampleTimelineTrack makeScore: %, %, %".format(model.key, trackIdx, partIdx));
+		ret = (
+			timeline: tl = SampleTimeline("%.%.%".format(model.key, trackIdx, partIdx).asSymbol)
+		);
+		outBus !? { arg ob; ret.outBus = ob; };
+		ret;
+	},
+
+));
+
+ProtoTemplateDef(\TrackInstrument_NoteTimelineTrack, (
+	parent: ProtoTemplateDef(\TrackInstrument),
+
+	new: { arg self, model, trackIdx;
+		self = self.copy;
+	
+	
+	
+		self;
+	},
+
+	edit: { arg self;
+		WindowDef(\PdefInstrumentEditor).front(self);
+	},
+
+	makeSource: { arg self, model, trackIdx;
+		self.source = Pdef("%.%.instr".format(model.key, trackIdx).asSymbol, Pbind());
+	},
+
+	setTrackInstrumentOfScore: { arg self, scoreinst;
+		if(self.source.notNil) {
+			scoreinst.param = self.source;
+		}
+	},
+
+	playerSynthDef: \SampleTimeline_player,
+
+	playerSynthDef_: { arg self, synthdesc;
+		// TagSpecDef(\SynthDef) values are SynthDesc, not SynthDef key
+		var instr = synthdesc.def.name;
+		Log(\Param).debug("TrackInstrument_NoteTimelineTrack set playerSynthDef %", instr);
+		self[\playerSynthDef] = instr;
+		Pbindef(self.source.key, \instrument, instr);
+		self.source.addHalo(\instrument, instr);
+		self.changed(\playerSynthDef);
+	},
+
+
+
+	makeScore: { arg self, model, trackIdx, partIdx, outBus;
+		var tl;
+		var ret;
+		Log(\Param).debug("TrackInstrument_NoteTimelineTrack makeScore: %, %, %".format(model.key, trackIdx, partIdx));
+		ret = (
+			timeline: tl = NoteTimeline("%.%.%".format(model.key, trackIdx, partIdx).asSymbol)
+		);
+		outBus !? { arg ob; tl.outBus = ob };
+		ret;
+	},
+
+));
+
+ProtoTemplateDef(\TrackInstrument_ParamTimelineTrack, (
+	parent: ProtoTemplateDef(\TrackInstrument),
+
+	new: { arg self, model, trackIdx;
+		self = self.copy;
+	
+	
+	
+		self;
+	},
+
+	edit: { arg self;
+		//WindowDef(\PdefInstrumentEditor).front(self);
+	},
+
+	makeSource: { arg self, model, trackIdx;
+		//self.source = Pdef("%.%.instr".format(model.key, trackIdx).asSymbol, Pbind());
+		Param(nil)
+	},
+
+	setTrackInstrumentOfScore: { arg self, scoreinst;
+		if(self.source.notNil) {
+			scoreinst.param = self.source;
+		}
+	},
+
+	playerSynthDef: \SampleTimeline_player,
+
+	playerSynthDef_: { arg self, synthdesc;
+		// TagSpecDef(\SynthDef) values are SynthDesc, not SynthDef key
+		var instr = synthdesc.def.name;
+		Log(\Param).debug("TrackInstrument_NoteTimelineTrack set playerSynthDef %", instr);
+		self[\playerSynthDef] = instr;
+		Pbindef(self.source.key, \instrument, instr);
+		self.source.addHalo(\instrument, instr);
+		self.changed(\playerSynthDef);
+	},
+
+
+
+	makeScore: { arg self, model, trackIdx, partIdx;
+		Log(\Param).debug("TrackInstrument_NoteTimelineTrack makeScore: %, %, %".format(model.key, trackIdx, partIdx));
+		(
+			timeline: ParamTimeline("%.%.%".format(model.key, trackIdx, partIdx).asSymbol)
 		)
 	},
 
@@ -490,12 +649,12 @@ WindowDef(\tracklist, { arg def, model;
 
 									if(buttonNumber == 1) { // if right-click
 
-										WindowDef(\OverlayMenu).front({ arg def;
+										WindowDef(\OverlayMenu).front(but, x, y, { arg def;
 											BasicButton.new.string_("Remove track").action_({
 												model.removeTrack(childidx);
 												def.closeWindow;
 											})
-										}, but, x, y )
+										})
 
 									}
 								})
@@ -520,7 +679,11 @@ WindowDef(\tracklist, { arg def, model;
 									cell.makeScore;
 								}).fixedHeight_(rowHeight_inset)
 							} {
-								cell.score.timeline.asPreview.fixedHeight_(rowHeight_inset);
+								var preview = cell.score.timeline.asPreview.fixedHeight_(rowHeight_inset);
+								//timelinePreviewList.add(preview);
+								preview.timeline.areasize.x = model.areasizex ?? { preview.timeline.areasize.x };
+								preview.timeline.changed(\areasize);
+								preview;
 							}
 
 						}.value,
@@ -530,11 +693,14 @@ WindowDef(\tracklist, { arg def, model;
 						//view.background = ParamViewToolBox.color_dark;
 						//view.background = Color.grey;
 						viewSelector.select_item(childidx);
-						FileSystemProject.current.tracklist_selected_track = [\TrackListPart, linename -> model.linePlayerAt(idx)];
-						FileSystemProject.current.changed(\tracklist_selected_track);
-						FileSystemProject.current.tracklist_selected_track = [\TrackListChannelPart, name -> cell];
-						FileSystemProject.current.changed(\tracklist_selected_track);
-						FileSystemProject.current.tracklist_selected_track.debug("sel track");
+						if(FileSystemProject.current.notNil) {
+
+							FileSystemProject.current.tracklist_selected_track = [\TrackListPart, linename -> model.linePlayerAt(idx)];
+							FileSystemProject.current.changed(\tracklist_selected_track);
+							FileSystemProject.current.tracklist_selected_track = [\TrackListChannelPart, name -> cell];
+							FileSystemProject.current.changed(\tracklist_selected_track);
+							FileSystemProject.current.tracklist_selected_track.debug("sel track");
+						}
 						
 					});
 					chanview.fixedHeight_(rowHeight);
@@ -569,6 +735,10 @@ WindowDef(\tracklist, { arg def, model;
 			HLayout (
 				StaticText.new.string_("Part:"),
 				Param(Message(model), \selectedPart, ControlSpec(0,16,\lin,1)).asNumberBox,
+			),
+			HLayout (
+				StaticText.new.string_("Len:"),
+				Param(Message(model), \areasizex, ControlSpec(1,128,\lin)).asTextField,
 			),
 			BasicButton.new.string_("Main Timeline").action_({
 				ClipTimeline(\mainTimeline).edit;
@@ -627,6 +797,32 @@ WindowDef(\TrackList_NewInstrument,{ arg def, selectedHook, okHook;
 
 //WindowDef(\TrackList_NewInstrument).front
 
+WindowDef(\PdefInstrumentEditor, { arg def, instr;
+	var target = instr.source;
+	var pwrapper = PlayerWrapper(target);
+	var paramView = View.new;
+	paramView.followChange(instr, \source, {
+		pwrapper.target = target;
+	});
+	paramView.followChange(instr, \playerSynthDef, {
+		Log(\Param).debug("paramView: followChange playerSynthDef");
+		paramView.removeAll;
+		paramView.layout = ParamGroupLayout.two_panes(target.asParamGroup(nil, false, [\gate, \doneAction, \bufnum]));
+	});
+	VLayout(
+		HLayout (
+			pwrapper.asView,
+			Param(Message(instr), \playerSynthDef, TagSpecDef(\SynthDef)).asPopUpMenu,
+			if(target.getHalo(\edit).notNil) {
+				BasicButton.new.string_("Special edit").action_({
+					target.getHalo(\edit).value(target);
+				})
+			}
+		),
+		paramView,
+	);
+});
+
 );
 
 ////////////
@@ -653,7 +849,20 @@ Pdef(\hey,
 );
 
 // run
+TrackDef(\mygrid).clear
 TrackDef(\mygrid, TrackTemplateDef(\TrackList));
+TrackDef(\mygrid).edit
+SynthDesc(\fmgen_bla1).key
+SynthDesc(\basicbass).
+SynthDesc("fmgen_bla1")
+
+ParamProto.init(true)
+
+Pdef('mygrid.0.instr').getHalo(\instrument)
+Pdef('mygrid.0.instr').get(\instrument)
+Pdef('mygrid.0.instr').source.pairs[1].source
+
+TagSpecDef(\SynthDef).list
 
 WindowDef(\tracklist).front(TrackDef(\mygrid));
 TagSpecDef(\TrackList).addUnique(\mygrid, TrackDef(\mygrid));
@@ -661,3 +870,36 @@ WindowDef(\MainProject).front(FileSystemProject('ex6'));
 TrackDef(\mygrid).presetCompileStringSavePath = "/tmp/ss/";
 FileSystemProject('ex6').resources = [TrackDef(\mygrid)];
 FileSystemProject('ex6').projectPath = "/tmp/ss/";
+
+
+SampleTimeline('mygrid.0.0').computeWaveformImage
+SampleTimeline('mygrid.0.0').changed(\data)
+SampleTimeline('mygrid.0.0').askBufferData
+SampleTimeline('mygrid.0.0').bufferInfo.waveformImage.plot
+SampleTimeline('mygrid.0.0').refreshBufferData
+
+(
+~t = ~t ?? { ~t = 1; TempoClock.default.tempo = ~t; ~t };
+FileSystemProject.load("cavern/lib.scd");
+)
+
+ParamTimeline(\bla3, Param(Pdef(\hoho),\hihi)).edit
+ParamTimeline(\bla5).edit;
+ParamProto.init(true)
+
+		~p = Param(Message((empty:1)), \empty, \unipolar)
+		~p.label
+		~p.target
+PlayerWrapperView(PlayerWrapper(self.param.target))
+
+(
+ProtoDef(\bla, (
+	value: { arg self;
+		123
+	},
+))
+)
+ProtoDef(\bla).value = 1
+WindowDef(\tracklist).proto
+
+\freq.asSpec.map((0..10)/10)

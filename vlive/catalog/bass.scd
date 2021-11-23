@@ -1177,3 +1177,114 @@ Pdef(\zed,
 	)
 ).play;
 );
+
+
+///////// fm bass
+
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig1 = SinOsc.ar(SinOsc.ar(freq + [0,0.07]) * freq * LFNoise1.kr(0.21).range(1,30) + LFNoise1.kr(0.2).exprange(0.01,2) );
+	sig2 = SinOsc.ar(SinOsc.ar(freq*2 + [0,0.27]) * freq*2  * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.012).exprange(0.01,2) );
+	sig3 = SinOsc.ar(SinOsc.ar(freq*3 + [0,1.27]) * freq*3  * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.012).exprange(0.01,2) );
+	sig = sig1 + sig2 + sig3;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\zed, 
+	Pmono(
+		 \zed,
+		\degree, Pseq([0,2,-1,3],inf),
+		\octave, Prand([2,2,2,3],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+
+//////////////
+
+
+(
+Ndef(\zed, { arg freq=(65.4), pan=0, amp=0.1;
+	var sig;
+	freq = Duty.kr(1/~t, 0, Dseq([
+		0,0,0,0, -1,-1,-1,-5,
+	],inf)).midiratio.lag2ud(0.2,2) * freq;
+	sig = LFSaw.ar(freq * [1,1.01] * ( Saw.ar(freq+[0.01,0.02]) * LFNoise1.kr(0.1).range(0.0,0.8) + 1 ) );
+	sig = RLPF.ar(sig, LFNoise1.kr(1/2).exprange(200.0,4001.0) * ( SinOsc.ar(freq - 0.01 * [1,1.01]) * LFNoise1.kr(0.1).range(0,0.71) + 1 ), LFNoise1.kr(0.1!2).range(0.1,0.9));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\zed, { arg freq=(65.4), pan=0, amp=0.1;
+	var sig;
+	freq = Duty.kr(1/~t, 0, Dseq([
+		0,0,0,0, -1,-1,-1,-5,
+	],inf)).midiratio.lag2ud(0.2,2) * freq;
+	sig = Pulse.ar(freq * [1,1.01] * ( Saw.ar(freq+[0.01,0.02]) * LFNoise1.kr(0.1).range(0.0,0.8) + 1 ) );
+	sig = RLPF.ar(sig, LFNoise1.kr(1/2).exprange(200.0,4001.0) * ( SinOsc.ar(freq - 0.01 * [1,1.01]) * LFNoise1.kr(0.1).range(0,0.71) + 1 ), LFNoise1.kr(0.1!2).range(0.1,0.9));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+
+
+(
+Ndef(\zed, { arg freq=(65.4), pan=0, amp=0.1;
+	var sig;
+	freq = Duty.kr(1/~t, 0, Dseq([
+		0,0,0,0, -1,-1,-1,-5,
+	],inf)).midiratio.lag2ud(0.2,2) * freq;
+	sig = Blip.ar(freq * [1,1.01] * ( Saw.ar(freq+[0.01,0.02]) * LFNoise1.kr(0.1).range(0.0,0.8) + 1 ), LFNoise1.kr(0.1!2).range(9.0,90) );
+	sig = RLPF.ar(sig, LFNoise1.kr(1/2).exprange(200.0,4001.0) * ( SinOsc.ar(freq - 0.01 * [1,1.01]) * LFNoise1.kr(0.1).range(0,0.71) + 1 ), LFNoise1.kr(0.1!2).range(0.1,0.9));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+
+(
+Ndef(\zed, { arg freq=65.4, pan=0, amp=0.1;
+	var sig;
+	freq = Duty.kr(1/~t, 0, Dseq([
+		0,0,0,0, -1,-1,-1,-5,
+	],inf)).midiratio.lag2ud(0.2,2) * freq;
+	sig = Pulse.ar(freq/4 * [ [1,1.001] ] *[1,2,3,4], LFNoise1.kr(0.1).range(0.0,1.0)).mean;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\zed, { arg freq=65.4, pan=0, amp=0.1;
+	var sig;
+	freq = Duty.kr(1/~t, 0, Dseq([
+		0,0,0,0, -1,-1,-1,-5,
+	],inf)).midiratio.lag2ud(0.2,2) * freq;
+	sig = Pulse.ar(freq/2 * ( SinOsc.ar(freq+0.01) * 0.1 + 1 ), LFNoise1.kr(0.1).range(0.0,1.0));
+	sig = sig * SinOsc.ar(freq * ( SinOsc.ar(freq+0.01) * 0.51 + 1 ), LFNoise1.kr(0.1).range(0.0,1.0));
+	sig = SoftClipAmp.ar(sig, 13,0.5);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.1)) + sig / 2;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\zed, { arg freq=65.4, pan=0, amp=0.1;
+	var sig;
+	freq = Duty.kr(1/~t, 0, Dseq([
+		0,0,0,0, -1,-1,-1,-5,
+	],inf)).midiratio.lag2ud(0.2,2) * freq;
+	//sig = LFSaw.ar(freq) * LFPulse.ar(freq/2 * LFNoise1.kr(1/2).range(0.0,1.0)+0.01).range(0.5,1);
+	sig = LFSaw.ar(freq * [1,1.01]).sum; 
+	sig = CombL.ar(sig, 0.1, freq.reciprocal,1.1)*0.1;
+	sig = RLPF.ar(sig, \lpfr.kr(6.1) * freq * LFNoise1.ar(0.1 + [0,0.01]).range(1/4,4), \rq.kr(0.1) *LFNoise1.ar(0.1 + [0.01,0]).range(1,4) );
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);

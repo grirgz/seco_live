@@ -4,6 +4,7 @@ FileSystemProject.loadOnce("libdef/PlayerTracker.scd");
 FileSystemProject.loadOnce("libdef/FxManager.scd");
 FileSystemProject.loadOnce("libdef/simplemixer.scd");
 FileSystemProject.loadOnce("libdef/tracks.scd");
+FileSystemProject.loadOnce("libdef/tracklist.scd");
 
 ProtoTemplateDef('MainProject', (
 	//parent: FileSystemProject.defaultParent,

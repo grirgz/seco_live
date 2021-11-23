@@ -80,6 +80,7 @@ Pdef(\zed,
 
 Proto
 
+FileSystemProject.load("capsule/PatKitDef_rim.scd")
 (
 Pdef(\zed, 
 	Ppar([

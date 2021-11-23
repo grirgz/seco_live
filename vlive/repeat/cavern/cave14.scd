@@ -1,15 +1,40 @@
+(
+SynthDef(\xu, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq);
+	sig = RLPF.ar(sig, \lpfr.kr(4.1) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
 
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
-		Pbind(
-			\instrument, \default,
-			\note, Pseq([
-				3,0, 2, -1, \r,0,\r,\r,
-			],inf),
-			\dur, 1/4,
-			\amp, 0.1,
+		Ppar(
+			Pbind(
+				\instrument, \xu,
+				\note, Pseq([
+					Prand([
+						3,0, 2, -1, \r,0,\r,\r,
+					],1),
+				],inf),
+				\lpfr, Pwhite(1,5.0),
+				\octave, Pwhite(3,7),
+				\dur, Pwhite(1,1/8),
+				\amp, 0.1,
+			) ! 8,
 		),
+		
+	])
+)).play;
+);
+
+Pparpart
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
 		
 	])
 )).play;
@@ -559,12 +584,17 @@ MIDIOut(4).control(0)
 (
 {
     var a;
+	var freq = 50;
     a = [
-            SinOsc.ar,
-            Saw.ar,
-            Pulse.ar
+            SinOsc.ar(freq),
+            Saw.ar(freq),
+            Pulse.ar(freq),
         ];
-    TWChoose.ar(Dust.ar(MouseX.kr(1, 1000, 1)), a, [0.99, 0.05, 0.05].normalizeSum) * 0.2
+    TWChoose.ar(Dust.ar(MouseX.kr(1, 1000, 1)), a, [0.99, 0.15, 0.45].normalizeSum) * 0.2
 
 }.play;
 )
+
+
+
+

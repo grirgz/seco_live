@@ -4,23 +4,26 @@ ParamProto.init;
 ProtoTemplateDef(\simpleMixer, (
 
 	sendCount: 8,
+	inbusPrefix: \mixer,
+	sendbusPrefix: \sendbus,
+
 	trackCount_: { arg self, val;
 		var sendcount = self.sendCount;
 		self[\trackCount] = val.asInteger;
 
 		self.tracks = self.trackCount.collect { arg index;
 			// trackMixerDef is defined in Param/proto/TrackMixerDef
-			var mix = ProtoInst(\TrackMixerDef, \mixer+++index);
-			debug("create mixer: "++index);
+			var mix = ProtoInst(\TrackMixerDef, self.inbusPrefix+++index);
+			debug("create mixer: "++self.inbusPrefix++index);
 
-			mix.inbus = BusDef(\mixer+++index, \audio, 2);
+			mix.inbus = BusDef(self.inbusPrefix+++index, \audio, 2);
 			mix.define_mixer;
 			mix.stages[\postdelay] = mix.stages.postfx+1;
 			mix.proxy.put(mix.stages.postdelay, \filter -> { arg in, postdelay=0;
 				DelayC.ar(in, 0.1, postdelay);
 			});
 			sendcount.do { arg x;
-				mix.proxy.set(\sendbus+++x, BusDef(\sendbus+++x, \audio, 2));
+				mix.proxy.set(\sendbus+++x, BusDef(self.sendbusPrefix+++x, \audio, 2));
 			};
 
 			mix;
@@ -123,7 +126,17 @@ ProtoTemplateDef(\simpleMixer, (
 		}
 	},
 ));
+
+ProtoTemplateDef(\FxMixer, (
+	parent: ProtoTemplateDef(\simpleMixer),
+	inbusPrefix: \fxmixer,
+));
+
+
 ProtoDef(\simpleMixer, ProtoTemplateDef(\simpleMixer)).init;
+ProtoDef(\fxMixer, ProtoTemplateDef(\FxMixer)).init;
+//ProtoDef(\fxMixer2, ProtoTemplateDef(\FxMixer)).init;
+//ProtoDef(\fxMixer2).edit
 	//ProtoDef(\simpleMixer).stop;
 	//ProtoDef(\simpleMixer).changed(\isPlaying, false)
 	//ProtoDef(\simpleMixer).tracks[0].proxy.isPlaying
