@@ -60,3 +60,41 @@ Param(Pdef(\sd_array), \freqtab, ParamArraySpec(\freq)).at(1).type
 Param(Pdef(\sd_array), \freqtab -> 1, ParamArraySpec(\freq)).type
 ParamArraySpec(\freq).asSpec
 ParamArraySpec(\freq)
+
+
+/////////////////// test MessageParam
+
+(
+	~model = (scalar: 123, bool:true);
+WindowDef(\win, { arg def;
+	var states = [
+		["kjkj"],
+		["------"],
+	];
+	VLayout (
+		Param(Message(~model), \scalar, ControlSpec(0,200,\lin)).asView,
+		Param(Message(~model), \scalar, ControlSpec(0,200,\lin)).asView,
+		Param(Message(~model), \bool, ParamBoolSpec()).asButton,
+		Param(Message(~model), \bool, ParamBoolSpec()).asButton,
+		BoolButton.new.mapParam(Param(Message(~model), \bool, ParamBoolSpec())),
+		BoolButton.new.mapParam(Param(Message(~model), \bool, ParamBoolSpec())),
+		BoolButton.new.mapParam(Param(Message(~model), \bool, ParamBoolSpec())).string_("kk"),
+		BoolButton.new.mapParam(Param(Message(~model), \bool, ParamBoolSpec())).string_("kk"),
+		Button.new.mapParam(Param(Message(~model), \bool, ParamBoolSpec())).states_(states),
+		Button.new.mapParam(Param(Message(~model), \bool, ParamBoolSpec())).states_(states),
+
+	)
+
+}).front;
+)
+
+
+////////// inBusMode
+
+(
+WindowDef(\test, { arg def;
+	BoolButton.new.string_("kjkj").action_({ arg but; but.value.debug("action!") })
+	
+}).front;
+)
+	

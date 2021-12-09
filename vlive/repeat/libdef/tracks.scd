@@ -12,8 +12,35 @@ TrackTemplateDef(\playerwrapper, (
 		self = self.copy;
 
 		self.parentTrack = {parent};
-		self.index = index;
+		self.index = index.asInteger;
+		self[\storeOn] = { arg self, str; str << self.refCompileString };
 		self;
+	},
+
+	makeListener: { arg self, fun;
+		var controller;
+		var listenfun = { arg target ... args;
+			fun.(self, *args);
+		};
+		//this.target.debug("makeListener");
+		controller = SimpleController(self)
+			.put(\play, listenfun)
+			.put(\stop, listenfun)
+			.put(\userPlayed, listenfun)
+			.put(\userStopped, listenfun)
+			.put(\playing, listenfun)
+			.put(\stopped, listenfun)
+			.put(\PlayerWrapper, listenfun)
+		;
+		self.controller = controller;
+		controller
+	},
+
+	asPlayerEvent: { arg self;
+		PlayerEvent((
+			midinote: self.parentTrack.index,
+			receiver: "{ % }".format(self.refCompileString).interpret
+		))
 	},
 
 	isEmpty: { arg self;
@@ -29,6 +56,10 @@ TrackTemplateDef(\playerwrapper, (
 
 	source: { arg self;
 		self.proxy.target;
+	},
+
+	refCompileString: { arg self;
+		"%.childAt(%)".format(self.parentTrack.refCompileString, self.index);
 	},
 
 	proxy: { arg self;
@@ -219,8 +250,9 @@ TrackTemplateDef(\playertrack, (
 		self = self.copy;
 
 		self.selectChild(0);
-		self.index = index;
+		self.index = index.asInteger;
 		self.parentTrack = {parent};
+		self[\storeOn] = { arg self, str; str << self.refCompileString };
 		self;
 	},
 
@@ -230,6 +262,30 @@ TrackTemplateDef(\playertrack, (
 
 	activeChild: { arg self;
 		self.childAt(self.activeIndex);
+	},
+
+	makeListener: { arg self, fun;
+		if(self.controllerList.notNil) {
+			self.controllerList.remove;
+		};
+		self.controllerList = ProtoClass((
+			list: List.new, 
+			remove: { arg iself;
+				iself.list.do(_.remove)
+			})
+		);
+		self.children.do { arg child;
+			var controller = child.makeListener(fun);
+			self.controllerList.list.add(controller);
+		};
+		self.controllerList;
+	},
+	
+	asPlayerEvent: { arg self;
+		PlayerEvent((
+			midinote: self.index,
+			receiver: "{ % }".format(self.activeChild.asCompileString).interpret
+		))
 	},
 
 	isEmpty: { arg self;
@@ -246,8 +302,20 @@ TrackTemplateDef(\playertrack, (
 		self.children.collect({ arg x; x.source });
 	},
 
+	refCompileString: { arg self;
+		"%.childAt(%)".format(self.parentTrack.refCompileString, self.index);
+	},
+
 	play: { arg self;
 		self.activeChild.play;
+	},
+
+	playNow: { arg self;
+		self.activeChild.playNow;
+	},
+
+	stopNow: { arg self;
+		self.activeChild.stopNow;
 	},
 
 	childPlayed: { arg self;
@@ -320,8 +388,17 @@ TrackTemplateDef(\playertrack, (
 		}
 	},
 
-	enableMixer: { arg self;
-		self.parentTrack.enableMixer;
+	enableMixer: { arg self; // compat
+		self.isMixerEnabled;
+	},
+
+	isMixerEnabled: { arg self;
+		self.parentTrack.isMixerEnabled;
+	},
+
+	isMixerEnabled_: { arg self, val;
+		self[\isMixerEnabled] = val;
+		self.changed(\mixer);
 	},
 
 	enableAutoSetOutbus: { arg self;
@@ -329,13 +406,13 @@ TrackTemplateDef(\playertrack, (
 	},
 
 	mixer: { arg self;
-		if(self.enableMixer) {
+		if(self.isMixerEnabled) {
 			if(self.parentTrack.mixer.notNil) {
 				self.parentTrack.mixer.tracks[self.index]
 			} {
 				if(self.mixer_obj.isNil) {
 					ParamProto.init;
-					self.mixer_obj = ~trackMixerDef.new(self.parentTrack.key+++"."+++self.index);
+					self.mixer_obj = ProtoClassDef(\TrackMixerDef).new(self.parentTrack.key+++"."+++self.index);
 					self.mixer_obj.define_mixer;
 					self.init_mixer_busses;
 				};
@@ -369,6 +446,23 @@ TrackTemplateDef(\playergrid, (
 		//[pos, Point(pos.x.clip(0,inf), pos.y.clip(0,inf))].debug("expliquez moi comment c'est possible!");
 		self.obj_gridOffset = Point(pos.x.clip(0,inf), pos.y.clip(0,inf));
 		self.changed(\gridOffset);
+	},
+
+	makeListener: { arg self, fun;
+		if(self.controllerList.notNil) {
+			self.controllerList.remove;
+		};
+		self.controllerList = ProtoClass((
+			list: List.new, 
+			remove: { arg iself;
+				iself.list.do(_.remove)
+			})
+		);
+		self.children.do { arg child;
+			var controller = child.makeListener(fun);
+			self.controllerList.list.add(controller);
+		};
+		self.controllerList;
 	},
 
 	///////// archive saving system
@@ -552,7 +646,10 @@ TrackTemplateDef(\playergrid, (
 
 
 	enableAutoSetOutbus: true,
-	enableMixer: true,
+	enableMixer: { arg self; // compat
+		self.isMixerEnabled;
+	},
+	isMixerEnabled: true,
 	//mixer:nil, // TODO: make a container for child mixers here with handy methods
 
 ));
@@ -672,7 +769,7 @@ TrackTemplateDef(\lineplayer, (
 		};
 
 		//[startPosition, endPosition, relStartTime, totalDur].collect(_.value).debug("asPatternAbs: start, end, relstart, totdur");
-		self.xasPattern(relStartTime, totalDur, repeatCount);
+		self.asPattern(relStartTime, totalDur, repeatCount);
 	},
 
 	bypass_pattern: { arg self, pat;
@@ -856,7 +953,7 @@ WindowDef(\playergrid, { arg me, maintrack;
 			var child;
 			var mixer;
 			var mixerview;
-			if(maintrack.enableMixer == false) {
+			if(maintrack.isMixerEnabled == false) {
 				nil
 			} {
 				boxview = View.new;
@@ -864,24 +961,30 @@ WindowDef(\playergrid, { arg me, maintrack;
 				if(child.notNil) {
 					mixer = child.mixer;
 					delayview = TextField.new;
-					delayview.mapParam( Param(mixer.proxy, \postdelay, ControlSpec(0,0.1,\lin)) );
-					boxview.layout = VLayout (
-						PlayerWrapper(mixer.proxy).label_(mixer.key).asView,
-						mixerview = WindowDef(\mixerView).asView(child),
-						HLayout(StaticText.new.string_("postdelay:"), delayview),
-					);
-					boxview.background = Color.gray;
-					mixerview.slider.minWidth_(10);
-					boxview.maxWidth_(260);
-					boxview.addUniqueMethod(\model_, { arg me, val;
-						mixerview.model = val;
-					});
+					if(mixer.notNil) {
+						delayview.mapParam( Param(mixer.proxy, \postdelay, ControlSpec(0,0.1,\lin)) );
+						boxview.layout = VLayout (
+							PlayerWrapper(mixer.proxy).label_(mixer.key).asView.font_(Font.default.copy.size_(8)),
+							mixerview = WindowDef(\mixerView).asView(child),
+							HLayout(StaticText.new.string_("postdelay:"), delayview),
+						);
+						mixerview.slider.minWidth_(10);
+						boxview.background = Color.gray;
+						boxview.maxWidth_(260);
+						boxview.addUniqueMethod(\model_, { arg me, val;
+							mixerview.model = val;
+						});
+					};
 				} {
 					boxview.addUniqueMethod(\model_, { arg me, val;
 						// NOOP
 					});
 				};
-				boxview;
+				if(mixer.notNil) {
+					boxview;
+				} {
+					nil // NOTE: return nil of no mixer defined, change if we want to dynamically load mixer
+				}
 			}
 	});
 

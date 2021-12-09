@@ -23,6 +23,26 @@ ParamTimeline(\bla3).clear;
 ParamTimeline(\bla3, Param(Ndef(\bla), \freq)).edit
 ParamTimeline(\zozo).clear
 ParamTimeline(\zozo).edit
+ParamTimeline(\zozo).presetCompileString.editorInsert
+(
+ParamTimeline('zozo').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.75, \label: 'start', \playDur: 0.75, \relDur: 0.75, \sustain: 0, \type: 'start', ),
+	(\absTime: 0.75, \dur: 1.25, \legato: 1, \level: 0.44947735191638, \playDur: 1.25, \relDur: 1.25, ),
+	(\absTime: 2.0, \curve: -0.17421602787456, \dur: 0.875, \legato: 1, \level: 0.5993031358885, \playDur: 0.875, \relDur: 0.875, ),
+	(\absTime: 2.875, \curve: 0.13937282229965, \dur: 5.125, \legato: 1, \level: 0.47735191637631, \playDur: 5.125, \relDur: 5.125, ),
+	(\absTime: 8, \curve: 0.17421602787456, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ParamTimeline(\zozo).edit
+);
+
+
+
+ParamTimeline(\zozo).param = Param(Ndef(\bla), \fr)
+ParamTimeline(\zozo).eventList
+ParamTimeline(\zozo).recorder.eventLoop
+ParamTimeline(\zozo).recorder.isRecording
+ParamTimeline(\zozo).recorder.target.edit
+Ndef(\bla).edit
 
 ParamTimeline(\bla3, Param(Ndef(\bla), \freq)).presetCompileString.editorInsert
 (
@@ -37,10 +57,12 @@ ParamTimeline('bla3').eventList = TimelineEventList.newFrom([
 	(\absTime: 7.75, \dur: 0.25, \legato: 1, \level: 105.26508635251, \playDur: 0.25, \relDur: 0.25, ),
 	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
 ]);
+ParamTimeline(\bla3).edit;
 );
 
 
 ClipTimeline(\test2).edit
+NoteTimeline(\bla).edit
 ProtoDef(\GlobalLibrary).clipFactories.keys
 ProtoDef(\GlobalLibrary).init_default_clip_factories
 
@@ -101,12 +123,13 @@ Ndef(\bla, { arg freq=200, pan=0, amp=0.1;
 	sig = LFSaw.ar(freq * ( SinOsc.ar(freq/(1..8) * ( SinOsc.kr(0.31) * 0.41 + 1 )) * 0.1 + 1 ));
 	//sig = DC.ar(0);
 	sig = sig + LFPulse.ar(freq/4 * ( SinOsc.ar(freq*((1..8) * LFNoise1.kr(1/2).range(0.0,1.0)+1) * ( SinOsc.kr(0.31) * 0.41 + 1 )) * 0.1 + 1 ));
-	sig = RHPF.ar(sig, \lpfr.kr(0.3) * freq, \rq.kr(0.5));
-	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan) * 0.8;
+	sig = RHPF.ar(sig, \lpfr.kr(0.3).poll * freq, \rq.kr(0.5));
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan) * 0.2;
 }).play;
 )
 
 
+ParamTimeline(\bobo, Param(Ndef(\bla), \lpfr, ControlSpec(0.2,5,\lin))).edit
 
 //////////////////////////////////////
 //////////////////////////////////////
@@ -623,3 +646,120 @@ ParamTimeline(\zozo4, Param(Pdef(\zozo), \zert, ControlSpec(10,13,\lin))).edit
 	}
 )
 
+
+
+/////////////////////////////////////////////////////////
+/// various drafts
+
+MIDIFunc.trace(true)
+MIDIdef.noteOn(\nektar)
+(
+MIDIdef.noteOn(\track1, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	
+});
+)
+(
+MIDIdef.noteOn(\track1, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	
+});
+)
+(
+MIDIdef.noteOn(\nektarOn, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	if(noteNum == 23) {
+		Pdef(\bla).play;
+	}
+});
+MIDIdef.noteOff(\nektarOff, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	if(noteNum == 23) {
+		Pdef(\bla).stop;
+	}
+});
+)
+Pdef(\bla).quant = 0
+
+MKtl(\nektar)
+MKtl	
+ProtoDef(\piano).startControl(Pdef(\melo))
+
+(
+Pdef(\bla, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\freq, Pseq([230,200,112],inf),
+			\dur, 1/3,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+
+
+///////////////////:
+
+(
+	WindowDef(\farfalle, {
+		var canvas = UserView.new;
+		canvas.drawFunc = {
+			var point1, point2;
+			Pen.strokeColor = Color.red;
+			Pen.fillColor = Color.blue;
+			point1 = 200@100;
+			point2 = 300@200;
+			Pen.moveTo(point1);
+
+			Pen.quadCurveTo(point2, point1 + point2 / 2 + Point(0,-30));
+
+			//Pen.lineTo(250@200);
+			//Pen.lineTo(300@200);
+			//Pen.lineTo(200@250);
+			//Pen.lineTo(100@200);
+			//Pen.lineTo(150@200);
+			//Pen.lineTo(200@100);
+
+			//Pen.stroke;
+			//Pen.fill;
+			Pen.draw(3);
+		};
+		canvas.background_(Color.grey);
+	}).frontTop;
+)
+
+(
+	WindowDef(\farfalle, {
+		var canvas = UserView.new;
+		canvas.drawFunc = {
+			var point1, point2;
+			Pen.strokeColor = Color.red;
+			Pen.fillColor = Color.blue;
+			point1 = 200@100;
+			point2 = 300@200;
+			Pen.moveTo(point1);
+
+			10.do { arg idx;
+				var posx = idx/10 * (point2.x - point1.x) + point1.x;
+				var pos = Point(posx, Env.xyc([ [200,100,-10],[300,200,1] ]).at(posx));
+				Pen.lineTo(pos);
+			};
+			//Pen.quadCurveTo(point2, point1 + point2 / 2 + Point(0,-30));
+
+			//Pen.lineTo(250@200);
+			//Pen.lineTo(300@200);
+			//Pen.lineTo(200@250);
+			//Pen.lineTo(100@200);
+			//Pen.lineTo(150@200);
+			//Pen.lineTo(200@100);
+
+			//Pen.stroke;
+			//Pen.fill;
+			Pen.draw(3);
+		};
+		canvas.background_(Color.grey);
+	}).frontTop;
+)

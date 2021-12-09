@@ -5,6 +5,7 @@ FileSystemProject.loadOnce("libdef/FxManager.scd");
 FileSystemProject.loadOnce("libdef/simplemixer.scd");
 FileSystemProject.loadOnce("libdef/tracks.scd");
 FileSystemProject.loadOnce("libdef/tracklist.scd");
+FileSystemProject.loadOnce("libdef/ParamSelectDialog.scd");
 
 ProtoTemplateDef('MainProject', (
 	//parent: FileSystemProject.defaultParent,
@@ -538,6 +539,7 @@ WindowDef(\TempoMeter, { arg def, clock;
 					leds2[last2].background_(offColor);
 					last2 = clock.beatInBar.asInteger;
 					leds2[last2].background_(ParamViewToolBox.color_ligth);
+					view.toolTip = "%/% (%)".format(( clock.beats % ( clock.beatsPerBar * surdiv ) ).asInteger, ( clock.beatsPerBar * surdiv ).asInteger, clock.beats.round(0.01));
 				}.defer;
 				subdiv.do { arg subidx;
 					{
@@ -572,7 +574,7 @@ WindowDef(\TempoMeter, { arg def, clock;
 				Log(\Param).debug("starting TempoMeter task");
 				task.play;
 			};
-		}
+		};
 	});
 	//view.minSize_(Point(100,100));
 

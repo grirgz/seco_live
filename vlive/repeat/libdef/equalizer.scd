@@ -1,6 +1,6 @@
 
 
-SynthDef(\fx_equi, { arg out=0, gate=1, amp=0.1;
+SynthDef(\fx_equi, { arg out=0, gate=1;
 	var sig, in;
 	in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	in.poll;
@@ -11,8 +11,19 @@ SynthDef(\fx_equi, { arg out=0, gate=1, amp=0.1;
 	Out.ar(out, sig);
 }).add;
 
+SynthDef(\ifx_equi, { arg out=0, gate=1;
+	var sig, in;
+	in = In.ar(out, 2); 
+	in.poll;
+	sig = in.equi;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	XOut.ar(out, \wet.kr(0), [sig, in] * \gain.kr(1));
+}).add;
+
 TagSpecDef(\SynthDef_fx).addUnique(\fx_equi);
+TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_equi);
 SynthDesc(\fx_equi).addHalo(\edit, { arg model; "edit!!".debug; WindowDef(\Equi).front(model) });
+SynthDesc(\ifx_equi).addHalo(\edit, { arg model; "edit!!".debug; WindowDef(\Equi).front(model) });
 
 
 (
@@ -42,11 +53,19 @@ SynthDesc(\fx_equi).addHalo(\edit, { arg model; "edit!!".debug; WindowDef(\Equi)
 
 	));
 
-			WindowDef(\Equi, { arg def, model, inbus;
+			WindowDef(\Equi, { arg def, model, inbus, paramdict;
 				var equi, equiparams;
 				var scope = FreqScopeView(nil, Rect(0,0,100,100))
 								.freqMode_(1)
 								.active_(true);
+				if(paramdict.isNil) {
+					paramdict = Dictionary.newFrom([
+						inbus: Param(model, \inbus),
+						mix: Param(model, \mix),
+						gain: Param(model, \gain),
+						out: Param(model, \out),
+					]);
+				};
 				if(inbus.notNil) {
 					scope.inBus = inbus;
 				};
@@ -54,7 +73,7 @@ SynthDesc(\fx_equi).addHalo(\edit, { arg model; "edit!!".debug; WindowDef(\Equi)
 					scope.kill;
 				};
 				scope.followChange(model, \set, {
-					scope.inBus = Param(model, \inbus).get;
+					scope.inBus = paramdict[\inbus].get;
 				});
 				
 				//equiparams = EQuiParams.new(
@@ -95,10 +114,10 @@ SynthDesc(\fx_equi).addHalo(\edit, { arg model; "edit!!".debug; WindowDef(\Equi)
 							),
 							ParamGroupLayout.two_panes(
 								ParamGroup ([
-									Param(model, \mix),
-									Param(model, \gain),
-									Param(model, \inbus),
-									Param(model, \out),
+									paramdict[\mix],
+									paramdict[\gain],
+									paramdict[\inbus],
+									paramdict[\out],
 								])
 							)
 						)

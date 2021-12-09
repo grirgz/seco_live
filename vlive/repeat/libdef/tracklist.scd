@@ -7,9 +7,17 @@ FileSystemProject.load("libdef/synthplayrec.scd");
 FileSystemProject.load("libdef/MainProject.scd");
 
 TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
+
+	eventType: \tracklist,
 	childClass: { arg self;
-		TrackTemplateDef(\TrackListChannel);
+		TrackTemplateDef(\InstrumentTrack);
 	},
+	lineClass: { TrackTemplateDef(\TrackListPart) },
+
+	trackKey: { arg self;
+		self.key;
+	},
+
 	selectedPart: 0,
 	selectedPart_: { arg self, val;
 		if(val != self[\selectedPart]) {
@@ -41,6 +49,7 @@ TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
 		newtrack.instrument = ProtoDef(\GlobalLibrary).libIdToTrackInstrument(libId, trackkey);
 		newtrack.instrument.makeSource(self, newtrack.index);
 		newtrack.outBus = 0;
+		TagSpecDef(\TrackList).addUnique(self.key -> self);
 		Log(\Param).debug("newtrack.instrument:%", newtrack.instrument);
 		self.changed(\tracklist);
 	},
@@ -51,7 +60,7 @@ TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
 	},
 
 	edit: { arg self;
-		WindowDef(\tracklist).front(self);
+		WindowDef(( \TrackList_++self.key ).asSymbol, WindowDef(\tracklist)).front(self);
 	},
 
 	savePresetCompileString: { arg self, path, onDoneAction;
@@ -129,15 +138,21 @@ TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
 ));
 
 
-TrackTemplateDef(\TrackListChannel, TrackTemplateDef(\playertrack)).putAll((
+TrackTemplateDef(\InstrumentTrack, TrackTemplateDef(\playertrack)).putAll((
+	eventType: \instrumenttrack,
+
 	childClass: { arg self;
-		TrackTemplateDef(\TrackListChannelPart);
+		TrackTemplateDef(\InstrumentTrackPart);
 	},
 
 	isEmpty: { arg self;
 		self.instrument.isNil and: {
 			self.children.every({ arg x; x.isNil or: {x.isEmpty} });
 		}
+	},
+
+	trackKey: { arg self;
+		"%.%".format( self.parentTrack.key , self.index.asInteger).asSymbol;
 	},
 
 	clearChannel: { arg self;
@@ -154,8 +169,11 @@ TrackTemplateDef(\TrackListChannel, TrackTemplateDef(\playertrack)).putAll((
 	outBus_: { arg self, outBus;
 		self[\outBus] = outBus;
 		self.children.collect({ arg child;
-			self.instrument.updateScoreOutBus(child.score, outBus);
-		})
+			if(child.notNil) {
+				self.instrument.updateScoreOutBus(child.score, outBus);
+			}
+		});
+		self.changed(\outBus);
 	},
 
 	presetCompileString: { arg self;
@@ -171,7 +189,7 @@ TrackTemplateDef(\TrackListChannel, TrackTemplateDef(\playertrack)).putAll((
 	},
 
 	refCompileString: { arg self;
-		"TrackDef(%).childAt(%)".format(self.parentTrack.key.asCompileString, self.index.asCompileString);
+		"%.childAt(%)".format(self.parentTrack.refCompileString, self.index.asCompileString);
 	},
 
 
@@ -201,15 +219,50 @@ TrackTemplateDef(\TrackListChannel, TrackTemplateDef(\playertrack)).putAll((
 		});
 	},
 
-	mixer: { nil },
+	isMixerEnabled: false,
+
+	isMixerEnabled_: { arg self, val;
+		self[\isMixerEnabled] = val;
+		if(val == true) {
+			if(self.parentTrack.mixer.notNil) {
+				self.parentTrack.mixer.tracks[self.index]
+			} {
+				if(self.mixer_obj.isNil) {
+					ParamProto.init;
+					self.mixer_obj = ProtoClassDef(\TrackMixerDef).new(self.parentTrack.key+++"."+++self.index);
+					self.mixer_obj.define_mixer;
+					self.init_mixer_busses;
+				};
+				self.outBus = self.mixer_obj.inbus;
+			}
+		} {
+			self.outBus = 0;
+		};
+		self.changed(\mixer);
+	},
+
+
+	mixer: { arg self;
+		if(self.isMixerEnabled) {
+			self.mixer_obj;
+		} {
+			nil
+		}
+	},
 	
 ));
+TrackTemplateDef(\TrackListChannel, TrackTemplateDef(\InstrumentTrack)); // compat
 
-TrackTemplateDef(\TrackListChannelPart, TrackTemplateDef(\playerwrapper)).putAll((
+TrackTemplateDef(\InstrumentTrackPart, TrackTemplateDef(\playerwrapper)).putAll((
+	eventType: \instrumenttrackpart,
 	isEmpty: { arg self;
 		self.score.isNil and: {
 			self.proxy.isNil or: { self.proxy.target == nil };
 		}
+	},
+
+	trackKey: { arg self;
+		"%.%".format(self.parentTrack.trackKey, self.index.asInteger).asSymbol;
 	},
 
 	source_: { arg self, val;
@@ -252,7 +305,7 @@ TrackTemplateDef(\TrackListChannelPart, TrackTemplateDef(\playerwrapper)).putAll
 	},
 
 	refCompileString: { arg self;
-		"TrackDef(%).childAt(%, %)".format(self.parentTrack.parentTrack.key.asCompileString, self.parentTrack.index.asCompileString, self.index.asCompileString);
+		"%.childAt(%, %)".format(self.parentTrack.parentTrack.refCompileString, self.parentTrack.index.asCompileString, self.index.asCompileString);
 	},
 
 
@@ -336,8 +389,20 @@ TrackTemplateDef(\TrackListChannelPart, TrackTemplateDef(\playerwrapper)).putAll
 	},
 	
 ));
+TrackTemplateDef(\TrackListChannelPart, TrackTemplateDef(\InstrumentTrackPart)); // compat
+
+
+TrackTemplateDef(\TrackListPart, TrackTemplateDef(\lineplayer)).putAll((
+	eventType: \tracklistpart,
+	trackKey: { arg self;
+		"%.part%".format(self.parentTrack.key, self.index.asInteger).asSymbol;
+	},
+));
+
+////////////////// instruments
 
 ProtoTemplateDef(\TrackInstrument, (
+	eventType: \trackinstrument,
 	new: { arg self, libId, name="noname";
 		var instr;
 		self = self.deepCopy;
@@ -446,6 +511,11 @@ ProtoTemplateDef(\TrackInstrument_ClipTimelineTrack, (
 		)
 	},
 
+	makeIndependentScore: { arg self, key;
+		ClipTimeline(( key ?? { self.name } ).asSymbol);
+	},
+
+
 ));
 
 ProtoTemplateDef(\TrackInstrument_SampleTimelineTrack, (
@@ -473,6 +543,10 @@ ProtoTemplateDef(\TrackInstrument_SampleTimelineTrack, (
 		);
 		outBus !? { arg ob; ret.outBus = ob; };
 		ret;
+	},
+
+	makeIndependentScore: { arg self, key;
+		SampleTimeline(( key ?? { self.name } ).asSymbol);
 	},
 
 ));
@@ -527,6 +601,10 @@ ProtoTemplateDef(\TrackInstrument_NoteTimelineTrack, (
 		ret;
 	},
 
+	makeIndependentScore: { arg self, key;
+		NoteTimeline(( key ?? { self.name } ).asSymbol);
+	},
+
 ));
 
 ProtoTemplateDef(\TrackInstrument_ParamTimelineTrack, (
@@ -535,6 +613,7 @@ ProtoTemplateDef(\TrackInstrument_ParamTimelineTrack, (
 	new: { arg self, model, trackIdx;
 		self = self.copy;
 	
+		self.source = Param(Message(self), \level, \unipolar);
 	
 	
 		self;
@@ -542,6 +621,9 @@ ProtoTemplateDef(\TrackInstrument_ParamTimelineTrack, (
 
 	edit: { arg self;
 		//WindowDef(\PdefInstrumentEditor).front(self);
+		WindowDef(\ParamSelectDialog).front(nil, { arg param;
+			self.source = param;
+		}, self.source)
 	},
 
 	makeSource: { arg self, model, trackIdx;
@@ -572,8 +654,12 @@ ProtoTemplateDef(\TrackInstrument_ParamTimelineTrack, (
 	makeScore: { arg self, model, trackIdx, partIdx;
 		Log(\Param).debug("TrackInstrument_NoteTimelineTrack makeScore: %, %, %".format(model.key, trackIdx, partIdx));
 		(
-			timeline: ParamTimeline("%.%.%".format(model.key, trackIdx, partIdx).asSymbol)
+			timeline: ParamTimeline("%.%.%".format(model.key, trackIdx, partIdx).asSymbol, self.source)
 		)
+	},
+
+	makeIndependentScore: { arg self, key;
+		ParamTimeline(( key ?? { self.name } ).asSymbol);
 	},
 
 ));
@@ -602,7 +688,13 @@ ProtoTemplateDef(\TrackInstrument_KitTimelineTrack, (
 		)
 	},
 
+	makeIndependentScore: { arg self, key;
+		KitTimeline(( key ?? { self.name } ).asSymbol);
+	},
+
 ));
+
+///////////////////// GUI
 
 WindowDef(\tracklist, { arg def, model;
 	var playButton;
@@ -618,22 +710,35 @@ WindowDef(\tracklist, { arg def, model;
 		tracklist.layout = VLayout (
 			* model.children.collect({ arg child, childidx;
 				var rowHeight = 80;
-				var rowHeight_inset = rowHeight - 20;
+				var rowHeight_inset = rowHeight - 5;
 				if(child.isEmpty.not) {
 					var idx = model.selectedPart;
 					var cell = child.childAt(idx);
 					var linename = "%.%".format(model.key, idx).asSymbol;
 					var name = "%.%.%".format(model.key, childidx, idx).asSymbol;
-					var playbut = PlayerWrapper(cell).asView;
+					var playbut = PlayerWrapper(cell).label_("").asView;
 					var lay;
 					var chanview = View.new;
+					var variableView;
+				   
+					variableView = View.new.followChange(child, \mixer, { arg view;
+						view.removeAll;
+						Log(\Param).debug("mixer variableView: %, %, %", child.label, child.isMixerEnabled, child.mixer);
+						if(child.isMixerEnabled) {
+							view.layout = StackLayout(
+								child.mixer.asParam(\postfader).asSlider.orientation_(\horizontal).background_(Color.clear),
+								SimpleServerMeterView(nil, 0,2, child.mixer.outBus).meterHeight_(200),
+							).mode_(\stackAll);
+						}
+					});
+
 					playbut.debug("i");
 					playbut.button.maxWidth_(30);
-					playbut.parentView.states = [
-						[""],
-						["", Color.black,ParamViewToolBox.color_ligth],
-					];
-					playbut.parentView.update;
+					//playbut.parentView.states = [
+						//[""],
+						//["", Color.black,ParamViewToolBox.color_ligth],
+					//];
+					//playbut.parentView.update;
 					lay = HLayout (
 						playbut,
 						VLayout (
@@ -650,10 +755,13 @@ WindowDef(\tracklist, { arg def, model;
 									if(buttonNumber == 1) { // if right-click
 
 										WindowDef(\OverlayMenu).front(but, x, y, { arg def;
-											BasicButton.new.string_("Remove track").action_({
-												model.removeTrack(childidx);
-												def.closeWindow;
-											})
+											VLayout (
+												BasicButton.new.string_("Remove track").action_({
+													model.removeTrack(childidx);
+													def.closeWindow;
+												}),
+												Param(Message(child), \isMixerEnabled, ParamBoolSpec()).asButton("Enable mixer"),
+											)
 										})
 
 									}
@@ -663,17 +771,19 @@ WindowDef(\tracklist, { arg def, model;
 								Param(
 									Message(child),
 									\outBus, 
-									MenuSpec([\default -> nil, \0->0] ++ BusDef.all.keys.as(Array).sort.collect({ arg k; k -> BusDef(k).index }) )
+									TagSpec({[\default -> nil, \0->0] ++ TagSpecDef(\BusDef_object).list})
 								).asPopUpMenu.maxWidth_(100),
 								Param(
 									Message(cell),
 									\outBus, 
-									MenuSpec([\default -> nil, \0->0] ++ BusDef.all.keys.as(Array).sort.collect({ arg k; k -> BusDef(k).index }) )
+									TagSpec({[\default -> nil, \0->0] ++ TagSpecDef(\BusDef_object).list})
 								).asPopUpMenu.maxWidth_(100),
+								nil,
 							),
+							variableView,
 							nil
 						),
-						{
+						[{
 							if(cell.isEmpty) {
 								BasicButton.new.string_("make score").action_({
 									cell.makeScore;
@@ -686,7 +796,7 @@ WindowDef(\tracklist, { arg def, model;
 								preview;
 							}
 
-						}.value,
+						}.value, stretch:100],
 					);
 					chanview.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 						[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
@@ -697,12 +807,14 @@ WindowDef(\tracklist, { arg def, model;
 
 							FileSystemProject.current.tracklist_selected_track = [\TrackListPart, linename -> model.linePlayerAt(idx)];
 							FileSystemProject.current.changed(\tracklist_selected_track);
-							FileSystemProject.current.tracklist_selected_track = [\TrackListChannelPart, name -> cell];
+							FileSystemProject.current.tracklist_selected_track = [\InstrumentTrackPart, name -> cell];
 							FileSystemProject.current.changed(\tracklist_selected_track);
 							FileSystemProject.current.tracklist_selected_track.debug("sel track");
 						}
 						
 					});
+					lay.spacing_(3);
+					lay.margins_(0);
 					chanview.fixedHeight_(rowHeight);
 					chanview.layout_(lay);
 					viewSelector.add_view(chanview);
@@ -711,6 +823,7 @@ WindowDef(\tracklist, { arg def, model;
 			}).select(_.notNil).collect({ arg x; [x, stretch:0] }).asArray ++ [nil]
 		);
 		tracklist.layout.spacing_(0);
+		tracklist.layout.margins_(0);
 	});
 	"i2".debug;
 
@@ -728,7 +841,7 @@ WindowDef(\tracklist, { arg def, model;
 			playButton.view,
 			BasicButton.new.string_("Add").action_({
 				WindowDef(\TrackList_NewInstrument).front({}, { arg libId, label;
-					Log(\Param).debug("OK!");
+					Log(\Param).debug("OK! libid %, label %", libId, label);
 					model.addTrack(libId, label);
 				})
 			}),
@@ -740,8 +853,11 @@ WindowDef(\tracklist, { arg def, model;
 				StaticText.new.string_("Len:"),
 				Param(Message(model), \areasizex, ControlSpec(1,128,\lin)).asTextField,
 			),
-			BasicButton.new.string_("Main Timeline").action_({
-				ClipTimeline(\mainTimeline).edit;
+			BasicButton.new.string_("TrackTimeline").action_({
+				TrackTimeline(model.key, model).edit;
+			}),
+			BasicButton.new.string_("TrackGrid").action_({
+				WindowDef(( \TrackGrid_++model.key ).asSymbol, WindowDef(\playergrid)).front(model);
 			}),
 		),
 		tracklist,
@@ -787,7 +903,7 @@ WindowDef(\TrackList_NewInstrument,{ arg def, selectedHook, okHook;
 				"okHook".debug;
 				def.closeWindow;
 				if(namefield.string.trim != "") {
-					label = namefield.name;
+					label = namefield.string;
 				};
 				okHook.(selectedLibId, label);
 			})

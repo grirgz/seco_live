@@ -295,6 +295,16 @@ Ndef(\zed2, Ndef(\zed))
 
 })
 )
+(
+~players.flat.do({ arg p;
+	p.quant = 2;
+	p[10] = \pset -> Pbind(
+		\instrument, \default,
+		//\freqratio, Pseq([0,0,-1,-2],inf).midiratio,
+	)
+
+})
+)
 
 (
 )

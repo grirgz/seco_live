@@ -29,6 +29,7 @@ SampleTimeline(\bla2).bufferInfo.bufferData = nil
 SampleTimeline(\bla2).clear
 SampleTimeline(\bla2).presetCompileString.editorInsert
 SampleTimeline.proto.recordDirectory
+NoteTimeline(\bla).edit
 BufDef(\rocksteady, "vipere/rocksteady.flac")
 BufDef(\rocksteady).clear
 (
@@ -50,7 +51,40 @@ ClipTimeline('clip').eventList = XEventList.newFrom([
 
 );
 
+SampleTimeline(\mysample, BufDef(Platform.resourceDir +/+ "sounds/a11wlk01.wav")); // create a SampleTimeline with a loaded buffer
+SampleTimeline(\mysample).edit; // edit a SampleTimeline named \mysample
 
+// you can load a buffer from the GUI, or from the code with:
+SampleTimeline(\mysample).buffer = BufDef('/path/to/my/sample2.wac');
+
+
+(
+Pdef(\test, 
+	Pseq([
+		SampleTimeline(\mysample).asPattern(nil,nil,1), // play from start to end cursors and repeat 1 time
+		SampleTimeline(\mysample).asPattern(0,1,2), // play from beat 0 to beat 1 and repeat 2 times
+		SampleTimeline(\mysample).asPatternAbs(0,1,2), // same but 0 is start of buffer instead of start cursor
+	],1),
+).play;
+)
+Buffer
+(
+Pdef(\zed, 
+	Pseq([
+		SampleTimeline(\bla2).asPattern(nil,nil,1), // play from start to end cursors and repeat 1 time
+		SampleTimeline(\bla2).asPattern(0,1,2), // play from beat 0 to beat 1 and repeat 2 times
+		SampleTimeline(\bla2).asPatternAbs(0,1,2), // same but 0 is start of buffer instead of start cursor
+	],1),
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pseq(
+		( 8*4 ).collect { arg x; SampleTimeline(\bla2).asPatternAbs(0+( x/4 ),(x+1)/4 ,x+1) }, inf
+	)
+).play;
+);
 (
 Pdef(\zed, 
 	Prand(
@@ -66,3 +100,8 @@ Pdef(\zed,
 	)
 ).play;
 );
+
+
+
+SampleTimeline('bla2').buffer = BufDef(\rocksteady, "vipere/rocksteady.flac");
+SampleTimeline('bla2').edit

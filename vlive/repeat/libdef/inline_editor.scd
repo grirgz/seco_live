@@ -380,14 +380,24 @@
 
 	edit_instrument: { arg self, start, end, line, col, code;
 		var instr;
+		var linestr;
+		var indentCount = 0;
 
-		instr = self.get_line(line, code).debug("line").split($,).reject({ arg x; x.asCompileString.debug("x"); x.stripWhiteSpace == "\\instrument" }).first.interpret;
+		linestr = self.get_line(line, code).debug("line");
+		instr = linestr.split($,).reject({ arg x; x.asCompileString.debug("x"); x.stripWhiteSpace == "\\instrument" }).first.interpret;
+		block {  arg break; linestr.do { arg char, idx;
+			if(char == $  or: { char == $\t }) {
+				indentCount = indentCount + 1;
+			} {
+				break.value;
+			}
+		}};
 		instr.debug("instr");
-		self.insert_after( self.gen_pbind_arguments(instr) );
+		self.insert_after( self.gen_pbind_arguments(instr, indentCount) );
 		
 	},
 
-	gen_pbind_arguments: { arg self, synthDef=\default;
+	gen_pbind_arguments: { arg self, synthDef=\default, indentlevel=0;
 		var controls = SynthDescLib.global.synthDescs.at(synthDef).asParamGroup(()).rejectSystemParams;
 		var str = "";
 		controls.debug("con");
@@ -400,7 +410,7 @@
 
 			// Check that synth doesn't have a duration of 0 by default (making sc explode)
 			val = if(name == \dur && val == 0.0, { 1.0 }, { val });
-			str = str ++ "\t\t%%, %,\n".format("\\", name, val)
+			str = str ++ "%%%, %,\n".format("\t".dup(indentlevel).join, "\\", name, val)
 		};
 		str;
 	},

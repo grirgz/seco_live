@@ -80,3 +80,6 @@ SampleTimeline('sss').eventList = TimelineEventList.newFrom([
 );
 
 
+/////////////////
+
+ClipTimeline(\bla2).edit

@@ -28,3 +28,7 @@ FileSystemProject.load("libdef/piano.scd");
 FileSystemProject.load("libdef/multifbdel.scd");
 FileSystemProject.load("libdef/rdngui.scd");
 FileSystemProject.load("libdef/rdnstring.scd");
+
+// editor
+
+FileSystemProject.load("libdef/inline_editor.scd");

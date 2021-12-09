@@ -32,6 +32,9 @@ Pdef(\melo).stop
 
 
 NoteTimeline(\bla).edit
+FileSystemProject.load("capsule/PatKitDef_ksh.scd")
+KitTimeline(\bla, PatKitDef(\ksh2)).edit
+NoteTimeline(\bla).wrapper.elAt(0)
 NoteTimeline(\bla).param
 NoteTimeline(\bla).stopRecording
 NoteTimeline(\bla).startRecording
@@ -94,3 +97,24 @@ Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 );
 
 ParamProto.init(true)
+
+(
+Pdef(\mono, 
+	PmonoArtic(
+		 \monobo,
+		 \legato, 1,
+	)
+);
+);
+
+(
+SynthDef(\monobo, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq * ( SinOsc.ar(XLine.ar(0.1,1000,2)) * 0.51 + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+NoteTimeline(\mono, Pdef(\mono)).edit

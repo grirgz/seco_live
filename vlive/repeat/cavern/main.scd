@@ -14,9 +14,11 @@ ParamProto.init(true)
 SCVim.generateTagsFile
 Help.gui
 SCDoc.findHelpFile("Pdef")
+SCDoc.findHelpFile("Param")
 HelpBrowser.openHelpFor("Pdef")
 SCDoc.indexAllDocuments(clearCache: false) // regenerate
 SCDoc.indexAllDocuments(clearCache: true) // regenerate
+Param
 SCDoc.renderAll(true)
 ParamViewToolBox
 
