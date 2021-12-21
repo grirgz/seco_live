@@ -126,6 +126,7 @@ ProtoDef(\apro, (
 	},
 ));
 ProtoDef(\generic_piano, (
+	// FIXME: should just be generic midi receiver
 	parent: ProtoDef(\piano),
 	startControl: { arg self, notetimeline;
 		var playergroup = notetimeline.wrapper;

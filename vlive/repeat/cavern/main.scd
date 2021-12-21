@@ -4,7 +4,13 @@
 FileSystemProject.load("cavern/lib.scd");
 )
 
+
+/////////////////////////////////////////////////////////////////////////
 // END
+
+
+
+TagSpecDef
 FileSystemProject.load("capsule/fxheavy.scd");
 
 FileSystemProject(\simpleProject).mainTimeline

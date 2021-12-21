@@ -1,0 +1,1 @@
+TrackDef('test2_mainTrackList').childAt(0, 0).score = ( 'timeline': NoteTimeline('test2_mainTrackList.0.0'), 'selected': 'timeline' );

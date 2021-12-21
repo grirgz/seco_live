@@ -64,21 +64,31 @@ TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
 	},
 
 	savePresetCompileString: { arg self, path, onDoneAction;
-		if(File.exists(self.presetCompileStringSavePath).not or: {self.loadedFromPath == self.presetCompileStringSavePath}) {
-			File.mkdir(self.presetCompileStringSavePath);
-			self.loadedFromPath = self.presetCompileStringSavePath;
-			path = path ? (self.presetCompileStringSavePath +/+ "TrackDef_%.scd".format(self.key));
-			PlayerWrapper_Base.savePresetCompileStringHelper(path, onDoneAction, self.refCompileString, self.presetCompileString, false);
-			self.dataPath.mkdir;
-			self.children.do({ arg column;
-				column.savePresetCompileString;
-			});
-			self.resources.do { arg res;
-				PlayerWrapper(res).savePresetCompileString;
-			}; 
-			Log(\Param).info("TrackList % saved.", self.key);
+		// path should be an absolute folder path
+		// FIXME: giving path as argument is broken: self.dataPath is not defined
+		var savefile;
+		if(path.isNil and: {self.presetCompileStringSavePath.isNil}) {
+			"savePresetCompileString: presetCompileStringSavePath is nil, can't save".error;
 		} {
-			"savePresetCompileString: can't save on existing project".error;
+			//path = path ?? { (self.presetCompileStringSavePath +/+ "TrackDef_%.scd".format(self.key)) };
+			path = path ? self.presetCompileStringSavePath;
+			path.debug("TrackList.savePresetCompileString");
+			savefile = path +/+ "TrackDef_%.scd".format(self.key);
+			if(File.exists(path).not or: {self.loadedFromPath == path}) {
+				File.mkdir(path);
+				self.loadedFromPath = path;
+				PlayerWrapper_Base.savePresetCompileStringHelper(savefile, onDoneAction, self.refCompileString, self.presetCompileString, false);
+				File.mkdir(self.dataPath);
+				self.children.do({ arg column;
+					column.savePresetCompileString;
+				});
+				self.resources.do { arg res;
+					PlayerWrapper(res).savePresetCompileString;
+				}; 
+				Log(\Param).info("TrackList % saved.", self.key);
+			} {
+				"savePresetCompileString: can't save on existing project".error;
+			}
 		}
 	},
 
@@ -184,6 +194,8 @@ TrackTemplateDef(\InstrumentTrack, TrackTemplateDef(\playertrack)).putAll((
 
 			str.add("%.instrument = ProtoTemplateDef('TrackInstrument').new(%);".format(self.refCompileString, self.instrument.libId.asCompileString));
 			str.add("%.label = %;".format(self.refCompileString, self.label.asCompileString));
+
+			str.add("\n%\n".format(self.instrument.presetCompileString(self.refCompileString ++ ".instrument"));
 			str.join($\n)
 		}
 	},
@@ -194,10 +206,10 @@ TrackTemplateDef(\InstrumentTrack, TrackTemplateDef(\playertrack)).putAll((
 
 
 	savePresetCompileString: { arg self, path, onDoneAction;
+		// path should be a file
 		if(self.isEmpty.not) {
-			//[path, this.presetCompileStringSavePath, args].debug("PlayerWrapper_ProtoClass.savePresetCompileString");
-
 			var file;
+			[path, self.presetCompileStringSavePath].debug("InstrumentTrack.savePresetCompileString");
 			path = path ? self.presetCompileStringSavePath;
 			path.debug("save path");
 			PlayerWrapper_Base.savePresetCompileStringHelper(path, onDoneAction, self.refCompileString, self.presetCompileString, false);
@@ -228,9 +240,17 @@ TrackTemplateDef(\InstrumentTrack, TrackTemplateDef(\playertrack)).putAll((
 				self.parentTrack.mixer.tracks[self.index]
 			} {
 				if(self.mixer_obj.isNil) {
+					var mix;
 					ParamProto.init;
 					self.mixer_obj = ProtoClassDef(\TrackMixerDef).new(self.parentTrack.key+++"."+++self.index);
 					self.mixer_obj.define_mixer;
+
+					mix = self.mixer_obj;
+					mix.stages[\postdelay] = mix.stages.postfx+1;
+					mix.proxy.put(mix.stages.postdelay, \filter -> { arg in, postdelay=0;
+						DelayC.ar(in, 0.1, postdelay);
+					});
+
 					self.init_mixer_busses;
 				};
 				self.outBus = self.mixer_obj.inbus;
@@ -251,7 +271,7 @@ TrackTemplateDef(\InstrumentTrack, TrackTemplateDef(\playertrack)).putAll((
 	},
 	
 ));
-TrackTemplateDef(\TrackListChannel, TrackTemplateDef(\InstrumentTrack)); // compat
+	TrackTemplateDef(\TrackListChannel, TrackTemplateDef(\InstrumentTrack)); // compat
 
 TrackTemplateDef(\InstrumentTrackPart, TrackTemplateDef(\playerwrapper)).putAll((
 	eventType: \instrumenttrackpart,
@@ -389,7 +409,7 @@ TrackTemplateDef(\InstrumentTrackPart, TrackTemplateDef(\playerwrapper)).putAll(
 	},
 	
 ));
-TrackTemplateDef(\TrackListChannelPart, TrackTemplateDef(\InstrumentTrackPart)); // compat
+	TrackTemplateDef(\TrackListChannelPart, TrackTemplateDef(\InstrumentTrackPart)); // compat
 
 
 TrackTemplateDef(\TrackListPart, TrackTemplateDef(\lineplayer)).putAll((
@@ -484,9 +504,17 @@ ProtoTemplateDef(\TrackInstrument, (
 		Log(\Param).debug("trackInstrument: edit % ", self.libId);
 		WindowDef(\PdefEditor).front(self.lib.libIdToTarget(self.libId))
 	}
+
+	presetCompileString: { arg self, refCompileString;
+		
+		var str = List[];
+
+		str.add("%.source = %;".format(refCompileString, self.source.asCompileString));
+		str.join($\n)
+	},
 	
 ));
-ProtoDef(\trackInstrument, ProtoTemplateDef(\TrackInstrument)); // compat
+	ProtoDef(\trackInstrument, ProtoTemplateDef(\TrackInstrument)); // compat
 
 ProtoTemplateDef(\TrackInstrument_ClipTimelineTrack, (
 	parent: ProtoTemplateDef(\TrackInstrument),
@@ -605,6 +633,14 @@ ProtoTemplateDef(\TrackInstrument_NoteTimelineTrack, (
 		NoteTimeline(( key ?? { self.name } ).asSymbol);
 	},
 
+	presetCompileString: { arg self, refCompileString;
+		
+		var str = List[];
+
+		str.add("%.source = %;".format(refCompileString, self.source.asCompileString));
+		str.join($\n)
+	},
+
 ));
 
 ProtoTemplateDef(\TrackInstrument_ParamTimelineTrack, (
@@ -660,6 +696,14 @@ ProtoTemplateDef(\TrackInstrument_ParamTimelineTrack, (
 
 	makeIndependentScore: { arg self, key;
 		ParamTimeline(( key ?? { self.name } ).asSymbol);
+	},
+
+	presetCompileString: { arg self, refCompileString;
+		
+		var str = List[];
+
+		str.add("%.source = %;".format(refCompileString, self.source.asCompileString));
+		str.join($\n)
 	},
 
 ));
@@ -853,10 +897,13 @@ WindowDef(\tracklist, { arg def, model;
 				StaticText.new.string_("Len:"),
 				Param(Message(model), \areasizex, ControlSpec(1,128,\lin)).asTextField,
 			),
-			BasicButton.new.string_("TrackTimeline").action_({
+			BasicButton.new.string_("Mixer").action_({
+				WindowDef(( \TrackListMixer_++model.key ).asSymbol, WindowDef(\TrackListMixer)).front(model);
+			}),
+			BasicButton.new.string_("Timeline").action_({
 				TrackTimeline(model.key, model).edit;
 			}),
-			BasicButton.new.string_("TrackGrid").action_({
+			BasicButton.new.string_("Grid").action_({
 				WindowDef(( \TrackGrid_++model.key ).asSymbol, WindowDef(\playergrid)).front(model);
 			}),
 		),
@@ -941,6 +988,128 @@ WindowDef(\PdefInstrumentEditor, { arg def, instr;
 
 );
 
+(
+WindowDef(\TrackListMixer, { arg def, tracklist;
+	var mixers;
+	var mixerTemplate = ProtoClass((
+		sendCount: 8,
+		nullbuss: BusDef(\null, \audio, 2),
+	));
+	8.do { arg idx;
+		var key = ( \sendbus ++ idx ).asSymbol;
+		mixerTemplate[key] = { arg self; BusDef(key, \audio, 2) }
+	};
+	mixers = tracklist.children.collect { arg track, idx;
+		if(track.isEmpty.not and: { track.isMixerEnabled == true }) {
+			var mixer = track.mixer;
+			var boxview = View.new;
+			var delayview;
+			var mixerview;
+			boxview.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+				[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+				if(buttonNumber == 1) {
+					//WindowDef(\SimpleMixerOverlayMenu).front(simpleMixer, boxview, x, y);
+				};
+			});
+			delayview = TextField.new;
+			delayview.mapParam( Param(mixer.proxy, \postdelay, ControlSpec(0,0.1,\lin)) );
+			boxview.layout = VLayout (
+				PlayerWrapper(mixer.proxy)
+				.label_("%: %".format(track.index, mixer.name ?? mixer.key))
+				.asView,
+				mixerview = WindowDef(\TrackListMixerStrip).asView(mixer, mixerTemplate),
+				HLayout(StaticText.new.string_("postdelay:"), delayview),
+				Param(Message(mixer), \outbus,TagSpecDef(\BusDef)).asPopUpMenu.minWidth_(60).addAction({ 
+					mixer.play;
+					"kjkj".postln
+				}),
+			);
+			boxview.background = Color.gray;
+			mixerview.slider.minWidth_(10);
+			boxview.maxWidth_(260);
+			boxview.addUniqueMethod(\model_, { arg me, val;
+				mixerview.model = val;
+			});
+			boxview;
+		}
+	}.select(_.notNil).as(Array);
+	//def.windowName = simpleMixer.key ? "simpleMixer";
+
+	HLayout(* mixers);
+});
+
+
+WindowDef(\TrackListMixerStrip, { arg def, mixer, mixerTemplate;
+		var sendKnobCount = 8;
+		var param;
+		var sends = [], allsends = [];
+		var layout;
+		var slider, knobs = List.new, textfield;
+		var stack;
+		var meterin = SimpleServerMeterView(nil, 0,2, mixer.inbus.debug("out"));
+		var meterout = SimpleServerMeterView(nil, 0,2, mixer.outbus.debug("out"));
+		slider = Slider.new.orientation_(\vertical).background_(Color.clear);
+
+
+		stack = StackLayout(
+			slider, 
+			meterin.view,
+			// FIXME: no way to make ticks less wide, so with both in and out displayed, meter is too small
+			//View.new.layout_(HLayout (
+				//meterin.view,
+				//meterout.view,
+			//).spacing_(0).margins_(0))
+		).mode_(\stackAll);
+		layout = VLayout(
+			HLayout(
+				VLayout (
+					//slider,
+					stack,
+					textfield = TextField.new,
+				),
+				VLayout(*
+					knobs = sendKnobCount.collect({ 
+						Knob.new;
+					})
+				)
+			)
+		);
+		layout.addUniqueMethod(\model_, { arg me, mixer;
+			if(mixer.isKindOf(Volume)) {
+				"volume".debug;
+				param = Param(mixer, \volume);
+				sends = mixerTemplate.sendCount.collect({ arg x; x -> nil });
+			} {
+				"mixer".debug;
+				param = mixer.asParam(\postfader);
+				allsends = mixerTemplate.sendCount.collect({ arg x; x -> mixer.asParam(\send+++x) });
+				sends = allsends.select{ arg assoidx;
+					var idx = assoidx.key;
+					var bus = mixerTemplate[\sendbus +++ idx].value(mixerTemplate);
+					bus != mixerTemplate.nullbus
+				};
+			};
+			//[slider, param].debug("slider, param: what ?");
+			slider.mapParam(param);
+			textfield.mapParam(param);
+			knobs.do({ arg k, idx; 
+				var send = sends[idx] ?? { allsends[idx] }; 
+				k.mapParam(send.value); 
+				k.toolTip = "%: %".format(send.key, mixerTemplate[\sendbus +++ send.key].value(mixerTemplate));
+			})
+		});
+		if(mixer.notNil) {
+			layout.model = mixer;
+		};
+		layout.addUniqueMethod(\slider, { slider });
+		layout.addUniqueMethod(\textfield, { textfield });
+		layout.addUniqueMethod(\knobs, { knobs });
+		layout;
+
+	
+});
+);
+
 ////////////
 // END
 
@@ -968,6 +1137,10 @@ Pdef(\hey,
 TrackDef(\mygrid).clear
 TrackDef(\mygrid, TrackTemplateDef(\TrackList));
 TrackDef(\mygrid).edit
+TrackDef(\mygrid).savePresetCompileString
+TrackDef(\mygrid).dataPath
+TrackDef(\mygrid).presetCompileStringSavePath="/tmp/testxxx1"
+TrackDef(\mygrid).elAt(0).mixer.proxy.edit
 SynthDesc(\fmgen_bla1).key
 SynthDesc(\basicbass).
 SynthDesc("fmgen_bla1")

@@ -1,0 +1,2 @@
+TrackDef('test2_mainTrackList').childAt(0).instrument = ProtoTemplateDef('TrackInstrument').new([ 'TrackInstrument', ('NoteTimelineTrack' -> 'NoteTimelineTrack') ]);
+TrackDef('test2_mainTrackList').childAt(0).label = "NoteTimelineTrack TrackInstrument";

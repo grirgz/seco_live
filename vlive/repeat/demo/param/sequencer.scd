@@ -142,6 +142,8 @@ WindowDef(\StepSeq, { arg def, param, showDur=false;
 });
 //.front( Param(Pdef(\bete), \degree, ControlSpec(0,7,\lin,1,0)) );
 
+// FIXME: dur is not working because does not set Pbindef but envir
+//			but can override it with overlay menu
 WindowDef(\myseq, { arg def;
 	VLayout (
 		PlayerWrapper(Pdef(\bete)),
@@ -150,7 +152,7 @@ WindowDef(\myseq, { arg def;
 		),
 		WindowDef(\StepSeq).asView (
 			Param(Pdef(\bete), \isRest, ParamBoolSpec(reverse:true)),
-			true
+			true 
 		),
 	)
 }).front;
@@ -549,7 +551,7 @@ Pdef(\bete).source.at(\dur).source = 1/2
 Pdef(\bete).source.at(\dur)
 Pdef(\bete).source
 
-//////////////////////// with buttons
+//////////////////////// with buttons TODO
 
 (
 WindowDef(\StepSeqButton, { arg def, param, showDur=false;

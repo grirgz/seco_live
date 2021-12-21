@@ -6,6 +6,7 @@ FileSystemProject.loadOnce("libdef/simplemixer.scd");
 FileSystemProject.loadOnce("libdef/tracks.scd");
 FileSystemProject.loadOnce("libdef/tracklist.scd");
 FileSystemProject.loadOnce("libdef/ParamSelectDialog.scd");
+FileSystemProject.loadOnce("libdef/JackControl.scd");
 
 ProtoTemplateDef('MainProject', (
 	//parent: FileSystemProject.defaultParent,
@@ -213,6 +214,7 @@ WindowDef(\MainProject, { arg def, proj;
 		proj.mainMixer,
 		proj.fxManager,
 		proj.mainTimeline,
+		proj.mainTrackList,
 		proj.mainTrackGrid,
 		Pdef(\main),
 		Pdef(\part),
@@ -372,6 +374,9 @@ WindowDef(\MainProjectOverlayMenu, { arg def, model, view, x=600, y=600;
 
 			StaticText.new,
 			// misc tools
+			BasicButton.new.string_("InputManager").action_({
+				WindowDef(\InputManager).front;
+			}),
 			BasicButton.new.string_("Workspace").action_({
 				WindowDef(\WorkspaceView).front;
 			}),
@@ -587,9 +592,13 @@ WindowDef(\TempoMeter, { arg def, clock;
 	);
 });
 
+
 // END
 
 1+1
 
 ~view.isClosed
 ~allLeds[0].isClosed
+
+ClipTimeline(\bla).edit
+SampleTimeline(\bla).edit
