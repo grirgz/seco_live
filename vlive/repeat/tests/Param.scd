@@ -65,7 +65,7 @@ ParamArraySpec(\freq)
 /////////////////// test MessageParam
 
 (
-	~model = (scalar: 123, bool:true);
+	~model = (scalar: 123, bool:true, list: [12,23,4,7]);
 WindowDef(\win, { arg def;
 	var states = [
 		["kjkj"],
@@ -83,11 +83,24 @@ WindowDef(\win, { arg def;
 		Button.new.mapParam(Param(Message(~model), \bool, ParamBoolSpec())).states_(states),
 		Button.new.mapParam(Param(Message(~model), \bool, ParamBoolSpec())).states_(states),
 
+		Param(Message(~model), \list).asMultiSlider,
+		Param(Message(~model), \list -> 0).asView,
+		Param(Message(~model), \list).at(1).asView,
 	)
 
 }).front;
 )
 
+/// test MessageParam slots
+
+~model.changed(\set)
+	~model = (scalar: 123, bool:true, list: [12,23,4,7]);
+Param(Message(~model), \list).get
+Param(Message(~model), \list -> 0).get
+Param(Message(~model), \list -> 0).set(10)
+WindowDef(\win).front;
+ParamArraySpec
+Param.trace = true
 
 ////////// inBusMode
 

@@ -82,10 +82,22 @@ Pdef(\part, Pdef(\zedpart,
 (
 8.do { arg idx;
 	MKtl('icon', "icon-icontrols");
-	MKtl('icon')[\kn][idx].mapParam(Param( Pdef(\bete).source.at(\lpfr).source.list, idx, ControlSpec(0,4,\lin)))
+	MKtl('icon')[\kn][idx].mapParam(Param( Message(Pdef(\bete).source.at(\lpfr).source), \list -> idx, ControlSpec(0,4,\lin)))
 	
 };
 )
+Param( Message(Pdef(\bete).source.at(\rq).source), \list).spec
+Param( Message(Pdef(\bete).source.at(\rq).source), \list, ParamArraySpec(PdefParam.toSpec(nil, Pdef(\bete), \lpfr))).size
+Param( Message(Pdef(\bete).source.at(\rq).source), \list, PdefParam.toSpec(nil, Pdef(\bete), \lpfr)).size
+(
+Param( Message(Pdef(\bete).source.at(\rq).source), \list, ControlSpec(0,4,\lin) ).collect { arg item, idx;
+	item.debug("item");
+	
+};
+)
+PdefParam.toSpec(nil, Pdef(\bete), \lpfr)
+ControllerDef(\icon).startControl((knobs:Param( Message(Pdef(\bete).source.at(\rq).source), \list )));
+ControllerDef(\icon).startControl((sliders:Param( Message(Pdef(\bete).source.at(\rq).source), \list, ControlSpec(0,4,\lin) )));
 
 MKtl('icon')[\kn][0].action
 Pdef(\bete).source.at(\lpfr).source.list

@@ -5,7 +5,10 @@ ControllerDef(\icon, { arg def, model;
 	model.knobs.collect({ arg param, idx;
 		ktl[\kn][idx].mapParam(param)
 	});
-}, [\knobs]);
+	model.sliders.collect({ arg param, idx;
+		ktl[\sl][idx].mapParam(param)
+	});
+}, [\knobs, \sliders]);
 )
 
 // END
