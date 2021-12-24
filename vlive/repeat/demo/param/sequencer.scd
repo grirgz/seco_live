@@ -522,7 +522,7 @@ WindowDef(\StepSeqParam, { arg def, param, showDur=false;
 	if(pdef.source.at(prop).source.isKindOf(PstepSeq).not) {
 		Pbindef(pdef.key, prop, PstepSeq(param.spec.default!4,inf));
 	};
-	mslider = Param( Message ( pdef.source.at(prop).source) , \list, param.spec).asMultiSlider.attachOverlayMenu;
+	mslider = Param( Message ( pdef.source.at(prop).source) , \list, param.spec).asMultiSlider.attachContextMenu;
 
 	mslider
 	
@@ -562,7 +562,7 @@ WindowDef(\StepSeqButton, { arg def, param, showDur=false;
 	if(pdef.source.at(prop).source.isKindOf(PstepSeq).not) {
 		Pbindef(pdef.key, prop, PstepSeq(param.spec.default!4,inf));
 	};
-	mslider = Param( Message ( pdef.source.at(prop).source) , \list, param.spec).asMultiSlider.attachOverlayMenu;
+	mslider = Param( Message ( pdef.source.at(prop).source) , \list, param.spec).asMultiSlider.attachContextMenu;
 
 	mslider
 	

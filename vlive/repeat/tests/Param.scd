@@ -111,3 +111,182 @@ WindowDef(\test, { arg def;
 }).front;
 )
 	
+
+/////////////// stepseq
+
+(
+Pdef(\bete, 
+	Pbind(
+		\instrument, \saw,
+		\degree, Pseq([0],inf),
+		\lpfr, PstepSeq([1,10,3,4,4.2]),
+		\dur, 1/8,
+		\amp, 0.1,
+	)
+);
+Pdef(\bete).convertToPbindef;
+);
+
+Pdef(\bete).addSpec(\lpfr, ControlSpec(0,4,\lin))
+
+Param( Pdef(\bete), \lpfr -> \stepseq ).get
+Param( Pdef(\bete), \lpfr -> \stepseq ).spec
+Param( Pdef(\bete), \lpfr -> \stepseq, ControlSpec(0,3,\lin) ).spec
+Param( Pdef(\bete), \lpfr -> \stepseq ).size
+Param( Pdef(\bete), \lpfr -> \stepseq ).edit
+Param( Pdef(\bete), \lpfr -> \stepseq -> 0).get
+Param( Pdef(\bete), \lpfr -> \stepseq -> 0).edit
+Param( Pdef(\bete), \lpfr -> \stepseq -> 0).spec
+~p1 = Param( Pdef(\bete), \lpfr -> \stepseq )
+~p1.get
+Param( Pdef(\bete), \lpfr).at(\stepseq).get
+Param( Pdef(\bete), \lpfr -> 0 ).get
+~p2 = Param( Pdef(\bete), \lpfr -> 0 )
+~p2.get
+Param( Pdef(\bete), \lpfr).at(0)
+Pdef(\bete).source.at(\lpfr).source.list
+
+
+/// when not a Pbindef, how should it fail ?
+(
+Pdef(\bete, 
+	Pbind(
+		\instrument, \saw,
+		\degree, Pseq([0],inf),
+		\lpfr, PstepSeq([1,10,3,4,4.2]),
+		\dur, 1/8,
+		\amp, 0.1,
+	)
+);
+);
+Param( Pdef(\bete), \lpfr -> \stepseq ).get; // at not understood: a Pbind
+(
+Pbindef(\bete,
+	\instrument, \saw,
+	\degree, Pseq([0,3,4],inf),
+	\lpfr, PstepSeq([1,10,3,4,4.2]),
+	\dur, 1/8,
+	\amp, 0.1,
+)
+);
+Param( Pdef(\bete), \lpfr -> \stepseq -> 0 ).get; // ok
+Param( Pdef(\bete), \degree -> \stepseq -> 1 ).get; // ok
+
+(
+Pbindef(\bete,
+	\instrument, \saw,
+	\degree, Pseq([0,3,4],inf),
+	\lpfr, PstepSeq([1,10,3,4,4.2],inf),
+	\dur, 1/8,
+	\amp, 0.1,
+).play
+);
+Param( Pdef(\bete), \degree -> \stepseq ).edit; // work with Pseq !!!
+MKtl(\icon)[\sl].mapParam( Param( Pdef(\bete), \degree -> \stepseq ) )
+
+
+(
+Pbindef(\bete,
+	\instrument, \saw,
+	\degree, Prand([0,3,4],inf),
+	\lpfr, PstepSeq([1,10,3,4,4.2],inf),
+	\dur, 1/8,
+	\amp, 0.1,
+).play
+);
+Param( Pdef(\bete), \degree -> \stepseq ).edit; // work with Prand !!!
+MKtl(\icon)[\sl].mapParam( Param( Pdef(\bete), \degree -> \stepseq ) )
+
+
+////////////////////////////////// Pdefn
+
+Pdefn(\bla, 2)
+Pdefn(\bla, 4)
+Param(Pdefn(\bla)).edit
+Param(Pdefn(\bla)).get
+Param(Pdefn(\bla)).set(3)
+
+~a = TestDependant()
+Pdefn(\bla).changed(\bla)
+Pdefn(\bla).addDependant(~a)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\degree, Pdefn(\bla),
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+
+///////// Pdefn list
+
+Pdefn(\roh, Pseq([1,4,2,5],inf))
+Param(Pdefn(\roh), \bla -> \stepseq, ParamArraySpec()).edit
+Param(Pdefn(\roh), \bla, ParamArraySpec()).get
+Param(Pdefn(\bla)).get
+Param(Pdefn(\roh)).get
+Param(Pdefn(\roh), \stepseq).get
+Param(Pdefn(\roh), \stepseq).edit
+Param(Pdefn(\roh), \stepseq -> 1).get
+Param(Pdefn(\roh), \stepseq).at.get
+Param(Pdefn(\bla)).set(3)
+
+(
+Pdefn(\roh, Pseq([1,4,2,5],inf));
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pdefn(\roh),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+Param(Pdefn(\roh), \stepseq, ControlSpec(0,21,\lin,1)).edit
+
+(
+Pdefn(\roh, PstepSeq([1,4,2,5],inf));
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pdefn(\roh),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+Param(Pdefn(\roh), \stepseq, ControlSpec(0,21,\lin,1)).edit
+Param(Pdefn(\roh), \stepseq -> 2, ControlSpec(0,21,\lin,1)).edit
+Param(Pdefn(\roh), \stepseq -> 2, ControlSpec(0,21,\lin,1)).spec
+Param(Pdefn(\roh), \stepseq, ControlSpec(0,21,\lin,1)).at(0).edit
+Param(Pdefn(\roh), \stepseq, ControlSpec(0,21,\lin,1)).at(0).spec
+Param(Pdefn(\roh), \stepseq, ControlSpec(0,21,\lin,1)).spec
+
+~p = Param(Pdefn(\roh), \stepseq, ControlSpec(0,21,\lin,1))
+~p.label
+~p.fullLabel
+~p.propertyLabel
+
+(
+WindowDef(\win, { arg def;
+	VLayout (
+		~p.asStaticTextLabel,
+		~p.asView,
+	)
+	
+}).frontTop;
+);
+
+
+////////////////// PstepSeq
+
+~p = PstepSeq([3,2,5,1],inf)
+
+
