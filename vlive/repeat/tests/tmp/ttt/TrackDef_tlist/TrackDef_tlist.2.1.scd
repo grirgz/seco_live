@@ -1,0 +1,1 @@
+TrackDef('tlist').childAt(2, 1).score = ( 'timeline': ParamTimeline('tlist.2.1'), 'selected': 'timeline' );

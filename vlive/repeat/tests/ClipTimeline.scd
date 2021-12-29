@@ -1,4 +1,11 @@
 
+ClipTimeline(\bla).edit
+NoteTimeline(\bla).edit
+ParamTimeline(\bla).edit
+KitTimeline(\bla).edit
+TrackTimeline(\bla).edit
+ParamTimeline(\bla).isRecording
+
 /////////// test preview
 
 SampleTimeline(\sss).buffer = BufDef(\amen, "vipere/amenbreak.wav");

@@ -48,10 +48,10 @@ Pdef(\myequi).presetCompileString
 		VLayout (
 			EQui(nil,nil,model),
 			HLayout (
-				Param(Ndef(\equi), \inbus)
+				Param(Pdef(\equi), \inbus)
 			)
 		)
-	}).front(Ndef(\equi));
+	}).front(Pdef(\equi));
 )
 
 ////////////////////////////////////////

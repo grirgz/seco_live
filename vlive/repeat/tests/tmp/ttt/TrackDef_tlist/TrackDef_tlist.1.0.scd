@@ -1,0 +1,1 @@
+TrackDef('tlist').childAt(1, 0).score = ( 'timeline': KitTimeline('tlist.1.0'), 'selected': 'timeline' );

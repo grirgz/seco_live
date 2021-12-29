@@ -88,6 +88,7 @@ WindowDef(\sampler_new, { arg def, target, show_buttons=true;
 });
 
 WindowDef(\sampler, { arg def, target, show_buttons=true, player;
+	// FIXME: no support for \mbufnum
 	var pkey = \sampler;
 	var anchor;
 	var sndfileview = View.new;
@@ -139,13 +140,13 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 				BasicButton.new.string_("load").action_({ arg view;
 					//Dialog.openPanel({ arg file;})
 					WindowDef(\filedialog).front("./", { arg file;
-						BufDef(file.asSymbol); // autoload it
+						BufDef.stereo(file.asSymbol); // autoload it
 						buffer.spec = MenuSpec(
 							BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
 						);
 						//buffer.spec.labelList.debug("labellist");
 						//buffer_popup.items.debug("poplabellist");
-						buffer.set(BufDef(file.asSymbol));
+						buffer.set(BufDef.stereo(file.asSymbol));
 						//buffer_popup.refreshChange;
 					});
 				})

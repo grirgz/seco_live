@@ -9,6 +9,50 @@ ControllerDef(\icon, { arg def, model;
 		ktl[\sl][idx].mapParam(param)
 	});
 }, [\knobs, \sliders]);
+
+ControllerDef(\icon_knobs, { arg def, params;
+	var ktl = MKtl('icon', "icon-icontrols");
+	params.collect({ arg param, idx;
+		ktl[\kn][idx].mapParam(param)
+	});
+}, [\knobline]);
+
+ControllerDef(\icon_sliders, { arg def, params;
+	var ktl = MKtl('icon', "icon-icontrols");
+	params.collect({ arg param, idx;
+		ktl[\sl][idx].mapParam(param)
+	});
+}, [\knobline]);
+
+ControllerDef(\piano_generic, { arg def, target; 
+        var playergroup;
+        playergroup = ProtoTemplateDef(\SeqPlayerGroup).new(target);
+        MIDIdef.noteOn(\piano, { arg ... args;
+            var midinote = args[1];
+            args.debug("generic on");
+            playergroup.elAt(midinote).play;
+        });
+        MIDIdef.noteOff(\piano_off, { arg ... args;
+            var midinote = args[1];
+            args.debug("generic off");
+            playergroup.elAt(midinote).stop;
+        });
+}, [ \piano ]);
+
+ControllerDef(\nektar_piano, { arg def, target; 
+        var playergroup;
+        playergroup = ProtoTemplateDef(\SeqPlayerGroup).new(target);
+        MIDIdef.noteOn(\piano, { arg ... args;
+            var midinote = args[1];
+            args.debug("generic on");
+            playergroup.elAt(midinote).play;
+        }, srcID:~nektar_device_id);
+        MIDIdef.noteOff(\piano_off, { arg ... args;
+            var midinote = args[1];
+            args.debug("generic off");
+            playergroup.elAt(midinote).stop;
+        }, srcID:~nektar_device_id);
+}, [ \piano ]);
 )
 
 // END

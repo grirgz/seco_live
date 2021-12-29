@@ -341,6 +341,95 @@ MIDIFunc.cc({ arg val ...args;
 ////////
 
 (
+Pdef(\help, 
+	Pbind(
+		// no instrument key to change it from GUI
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+WindowDef(\help, { arg def, proxy;
+	var paramView = View.new;
+	// SynthDef_keys is the Spec for all the SynthDefs keys from Param GlobalLibrary
+	var instrparam = Param(proxy, \instrument, TagSpecDef(\SynthDef_keys));
+
+	// any view have a followChange method, when view is closed, the hook is automatically removed to avoid errors
+	paramView.followChange(proxy, \set, { arg view, model, msg, pairs;
+		[view, model, msg, pairs].postln;
+		if(pairs.notNil and: {pairs.includes(\instrument)}) {
+			paramView.removeAll;
+			paramView.layout = proxy.asParamGroup.asView;
+		};
+	});
+
+	paramView.layout = proxy.asParamGroup.asView; // init
+
+	VLayout (
+		instrparam.asPopUpMenu,
+		paramView;
+	)
+}).front(Pdef(\help));
+);
+
+PdefParam.instrument(Pdef(\help))
+Pdef(\help).get(\instrument)
+TagSpecDef(\SynthDef).list
+
+/////////
+
+
+
+(
+WindowDef(\filedialog_save).front(nil,{ arg path;
+	"save to this file %".format(path).debug;
+})
+)
+
+(
+WindowDef(\filedialog).front(nil,{ arg path;
+	"load from this file %".format(path).debug;
+})
+)
+
+(
+WindowDef(\filedialog_sample).front(nil,{ arg path;
+	"load this sample %".format(path).debug;
+})
+)
+
+(
+WindowDef(\GlobalLibrary).front(nil, { arg val; val.debug("selected") }, [
+	\Clip, \AllTracks, \Timeline,
+]);
+)
+
+(
+WindowDef(\GlobalLibrary_open, { arg def, defaultValue, okHook, categories;
+	var selected;
+	VLayout (
+		WindowDef(\GlobalLibrary).asView(nil, { arg val; 
+			selected = val;
+	   	}, categories),
+		HLayout (
+			BasicButton.new.string_("Cancel").action_({
+				def.closeWindow;
+			}),
+			BasicButton.new.string_("Ok").action_({
+				okHook.(selected);
+				def.closeWindow;
+			}),
+		)
+	)
+}).front(nil, { arg val; val.debug("selected") })
+)
+
+////////
+
+(
 Pbindef(\myseq,
 	\instrument, \saw,
 	\degree, Pseq([4,1,0,2],inf),

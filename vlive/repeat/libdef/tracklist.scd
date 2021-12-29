@@ -27,22 +27,27 @@ TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
 		}
 	},
 	addTrack: { arg self, libId, label;
-		var newtrack;
 		var lastidx = -1;
-		var trackkey;
+		var trackidx;
 		block  { arg break;
 			self.children.do { arg child, childidx;
 				lastidx = childidx;
 				if(self.childAt(childidx).isEmpty) {
 					Log(\Param).debug("found empty track: %", childidx);
-					newtrack = child;
+					trackidx = childidx;
 					break.value;
 				}
 			};
 			Log(\Param).debug("grid.addTrack: no empty track found, use %", lastidx+1);
-			newtrack = self.childAt(lastidx+1);
+			trackidx = lastidx+1;
 		};
 
+		self.defineTrack(trackidx, libId, label)
+	},
+
+	defineTrack: { arg self, trackidx, libId, label;
+		var trackkey;
+		var newtrack = self.childAt(trackidx);
 		trackkey = "%.%".format(self.key, newtrack.index).asSymbol;
 		newtrack.libId = libId;
 		newtrack.label = label ? ProtoDef(\GlobalLibrary).libIdToStrings(libId).join(" ");
@@ -52,6 +57,7 @@ TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
 		TagSpecDef(\TrackList).addUnique(self.key -> self);
 		Log(\Param).debug("newtrack.instrument:%", newtrack.instrument);
 		self.changed(\tracklist);
+		
 	},
 
 	removeTrack: { arg self, index;
@@ -195,8 +201,8 @@ TrackTemplateDef(\InstrumentTrack, TrackTemplateDef(\playertrack)).putAll((
 			str.add("%.instrument = ProtoTemplateDef('TrackInstrument').new(%);".format(self.refCompileString, self.instrument.libId.asCompileString));
 			str.add("%.label = %;".format(self.refCompileString, self.label.asCompileString));
 
-			str.add("\n%\n".format(self.instrument.presetCompileString(self.refCompileString ++ ".instrument"));
-			str.join($\n)
+			str.add("\n%\n".format(self.instrument.presetCompileString(self.refCompileString ++ ".instrument")));
+			str.join($\n);
 		}
 	},
 
@@ -407,6 +413,10 @@ TrackTemplateDef(\InstrumentTrackPart, TrackTemplateDef(\playerwrapper)).putAll(
 	presetCompileStringSavePath_: { arg track, val;
 		track[\presetCompileStringSavePath] = val;
 	},
+
+	asPreview: { arg self;
+		self.parentTrack.instrument.asPreview(self.parentTrack.parentTrack, self.score);
+	},
 	
 ));
 	TrackTemplateDef(\TrackListChannelPart, TrackTemplateDef(\InstrumentTrackPart)); // compat
@@ -503,7 +513,14 @@ ProtoTemplateDef(\TrackInstrument, (
 	edit:{ arg self;
 		Log(\Param).debug("trackInstrument: edit % ", self.libId);
 		WindowDef(\PdefEditor).front(self.lib.libIdToTarget(self.libId))
-	}
+	},
+
+	asPreview: { arg self, model, score;
+		var tlpreview = score.timeline.asPreview;
+		tlpreview.timeline.areasize.x = model.areasizex ?? { tlpreview.timeline.areasize.x };
+		tlpreview.timeline.changed(\areasize);
+		tlpreview;
+	},
 
 	presetCompileString: { arg self, refCompileString;
 		
@@ -606,9 +623,8 @@ ProtoTemplateDef(\TrackInstrument_NoteTimelineTrack, (
 
 	playerSynthDef: \SampleTimeline_player,
 
-	playerSynthDef_: { arg self, synthdesc;
+	playerSynthDef_: { arg self, instr;
 		// TagSpecDef(\SynthDef) values are SynthDesc, not SynthDef key
-		var instr = synthdesc.def.name;
 		Log(\Param).debug("TrackInstrument_NoteTimelineTrack set playerSynthDef %", instr);
 		self[\playerSynthDef] = instr;
 		Pbindef(self.source.key, \instrument, instr);
@@ -735,7 +751,6 @@ ProtoTemplateDef(\TrackInstrument_KitTimelineTrack, (
 	makeIndependentScore: { arg self, key;
 		KitTimeline(( key ?? { self.name } ).asSymbol);
 	},
-
 ));
 
 ///////////////////// GUI
@@ -771,7 +786,7 @@ WindowDef(\tracklist, { arg def, model;
 						if(child.isMixerEnabled) {
 							view.layout = StackLayout(
 								child.mixer.asParam(\postfader).asSlider.orientation_(\horizontal).background_(Color.clear),
-								SimpleServerMeterView(nil, 0,2, child.mixer.outBus).meterHeight_(200),
+								CompactServerMeterView(nil, 0,2, child.mixer.recbus).orientation_(\horizontal),
 							).mode_(\stackAll);
 						}
 					});
@@ -833,10 +848,13 @@ WindowDef(\tracklist, { arg def, model;
 									cell.makeScore;
 								}).fixedHeight_(rowHeight_inset)
 							} {
-								var preview = cell.score.timeline.asPreview.fixedHeight_(rowHeight_inset);
+								var preview;
+								//var preview = cell.score.timeline.asPreview.fixedHeight_(rowHeight_inset);
+								Log(\Param).debug("InstrumentTrackPart: cell %", cell);
+								preview = ( cell.asPreview ?? { View.new } ).fixedHeight_(rowHeight_inset);
 								//timelinePreviewList.add(preview);
-								preview.timeline.areasize.x = model.areasizex ?? { preview.timeline.areasize.x };
-								preview.timeline.changed(\areasize);
+								//preview.timeline.areasize.x = model.areasizex ?? { preview.timeline.areasize.x };
+								//preview.timeline.changed(\areasize);
 								preview;
 							}
 
@@ -909,8 +927,6 @@ WindowDef(\tracklist, { arg def, model;
 		),
 		tracklist,
 	);
-
-
 });
 
 WindowDef(\TrackList_NewInstrument,{ arg def, selectedHook, okHook;
@@ -970,12 +986,12 @@ WindowDef(\PdefInstrumentEditor, { arg def, instr;
 	paramView.followChange(instr, \playerSynthDef, {
 		Log(\Param).debug("paramView: followChange playerSynthDef");
 		paramView.removeAll;
-		paramView.layout = ParamGroupLayout.two_panes(target.asParamGroup(nil, false, [\gate, \doneAction, \bufnum]));
+		paramView.layout = ParamGroupLayout.two_panes(target.asParamGroup(nil, false, [\gate, \doneAction]));
 	});
 	VLayout(
 		HLayout (
 			pwrapper.asView,
-			Param(Message(instr), \playerSynthDef, TagSpecDef(\SynthDef)).asPopUpMenu,
+			Param(Message(instr), \playerSynthDef, TagSpecDef(\SynthDef_keys)).asPopUpMenu,
 			if(target.getHalo(\edit).notNil) {
 				BasicButton.new.string_("Special edit").action_({
 					target.getHalo(\edit).value(target);
@@ -995,7 +1011,7 @@ WindowDef(\TrackListMixer, { arg def, tracklist;
 		sendCount: 8,
 		nullbuss: BusDef(\null, \audio, 2),
 	));
-	8.do { arg idx;
+	mixerTemplate.sendKnobCount.do { arg idx;
 		var key = ( \sendbus ++ idx ).asSymbol;
 		mixerTemplate[key] = { arg self; BusDef(key, \audio, 2) }
 	};
@@ -1009,6 +1025,7 @@ WindowDef(\TrackListMixer, { arg def, tracklist;
 				[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
 				if(buttonNumber == 1) {
 					//WindowDef(\SimpleMixerOverlayMenu).front(simpleMixer, boxview, x, y);
+					WindowDef(\TrackListMixerStrip_OverlayMenu).front(mixer, mixerTemplate, view, x, y)
 				};
 			});
 			delayview = TextField.new;
@@ -1047,13 +1064,14 @@ WindowDef(\TrackListMixerStrip, { arg def, mixer, mixerTemplate;
 		var slider, knobs = List.new, textfield;
 		var stack;
 		var meterin = SimpleServerMeterView(nil, 0,2, mixer.inbus.debug("out"));
-		var meterout = SimpleServerMeterView(nil, 0,2, mixer.outbus.debug("out"));
+		var meterout = CompactServerMeterView(nil, 0,2, mixer.recbus.debug("out"));
+		meterout.ticksView.minWidth_(6);
 		slider = Slider.new.orientation_(\vertical).background_(Color.clear);
 
 
 		stack = StackLayout(
 			slider, 
-			meterin.view,
+			meterout.view,
 			// FIXME: no way to make ticks less wide, so with both in and out displayed, meter is too small
 			//View.new.layout_(HLayout (
 				//meterin.view,
@@ -1105,9 +1123,44 @@ WindowDef(\TrackListMixerStrip, { arg def, mixer, mixerTemplate;
 		layout.addUniqueMethod(\textfield, { textfield });
 		layout.addUniqueMethod(\knobs, { knobs });
 		layout;
-
-	
 });
+
+WindowDef(\TrackListMixerStrip_OverlayMenu, { arg def, mixer, mixerTemplate, view, x=600, y=600;
+	var inview, layout;
+	var sends;
+	[x, y].debug("xy");
+	def.windowDo { arg win;
+		var ab = view !? {view.absoluteBounds} ? Rect(0,0,600,600);
+		win.bounds = Rect(x+ab.origin.x, Window.screenBounds.height - ab.top - y, 300,100);
+		win.endFrontAction = { win.close };
+	};
+	inview = View.new;
+
+	sends = mixerTemplate.sendCount.collect({ arg idx;
+		HLayout(
+			StaticText.new.string_("send %".format(idx)),
+			Param(mixer.proxy, "%%".format(\sendbus, idx).asSymbol, TagSpecDef(\BusDef_object)).asPopUpMenu,
+		)
+	});
+
+	layout = VLayout (
+		//PlayerWrapper(mixerTemplate).asView,
+		//HLayout(
+			//StaticText.new.string_("Track count:"),
+			//Param(Message(mixerTemplate), \trackCount, ControlSpec(1,16,\lin,1)).asNumberBox,
+		//),
+		WindowDef(\TrackMixerDef_fxlist).asView(mixer),
+		VLayout(
+			*sends
+		),
+		nil
+	);
+	//def.windowDo { arg win;
+		//win.setInnerExtent(view.bounds.extent.min(20));
+	//};
+	inview.layout_(layout);
+	
+}).border_(false);
 );
 
 ////////////

@@ -11,15 +11,32 @@ ProtoInst(\TrackMixerDef, \bla).inbus
 ProtoInst(\TrackMixerDef, \bla).play
 ProtoInst(\TrackMixerDef, \bla).stop
 ProtoInst(\TrackMixerDef, \bla).isPlaying
-ProtoInst(\TrackMixerDef, \bla).proxy.edit
+ProtoInst(\TrackMixerDef, \bla3).proxy.edit
 ProtoInst(\TrackMixerDef, \bla9).proxy.source.asCompileString
 ProtoInst(\TrackMixerDef, \bla10).proxy.objects[2000].source.asCompileString
 PlayerWrapper(ProtoInst(\TrackMixerDef, \bla).proxy).isPlaying
 
+
+TrackDef(\tlist, TrackTemplateDef(\TrackList));
+TrackDef(\tlist).edit
+TrackDef(\tlist).clear
+NoteTimeline(\bla).edit
+SimpleServerMeterView
+
+NoteTimeline('tlist.0.0').edit
+NoteTimeline('tlist.0.0').clear
+
+Spec.add(\lpfr, ControlSpec(0.1,40,\exp))
+MIDIdef.trace
+k = MKtl('netktar');
+k.postElements;
+ProtoDef(\piano).startControl
+ProtoDef(\piano).stopControl
+
 (
 Pdef(\zed, 
 	Pbind(
-		\out, BusDef(\trackMixerDef_bla17, \audio),
+		\out, BusDef(\trackMixerDef_bla2, \audio),
 		\instrument, \default,
 		\degree, Pseq([0],inf),
 		\dur, 1,
@@ -27,15 +44,45 @@ Pdef(\zed,
 	)
 ).play;
 );
+Pdef(\zed).stop
+Ndef
+AbstractPlayControl
 
 ProtoInst(\TrackMixerDef, \bla).clear
 WindowDef(\TrackMixerDef_fx).front(ProtoClassDef(\TrackMixerDef).new(\bla))
-WindowDef(\TrackMixerDef_fx).front(ProtoClassDef(\TrackMixerDef).new(\bla17))
+WindowDef(\TrackMixerDef_fx).front(ProtoClassDef(\TrackMixerDef).new(\bla1))
+WindowDef(\TrackMixerDef_MeterMixer).front(ProtoClassDef(\TrackMixerDef).new(\bla2))
+WindowDef(\TrackListMixerStrip).front(ProtoClassDef(\TrackMixerDef).new(\bla1), (sendCount:8))
+WindowDef(\TrackMixerDef_fxlist).front(ProtoClassDef(\TrackMixerDef).new(\bla1), 4)
+~equi.value.asArgsArray("kjkj")
+
+ProtoClassDef(\TrackMixerDef).new(\bla).proto = ProtoTemplateDef(\TrackMixer_InsertFx_SynthDef)
+
+[[[3]]].flatten
 \wet.asSpec
-Spec.add(\wet, \unipolar)
+(
+)
 Ndef(\bla9).source
 
-Param
+ParamProto.init
+
+(
+
+WindowDef(\TrackMixerDef_MeterMixer, { arg def, mixer;
+	var blockView = View.new;
+	blockView.layout = VLayout (
+		PlayerWrapper(mixer),
+		WindowDef(\TrackListMixerStrip).asView(mixer, (sendCount:8));
+	);
+	blockView.mouseUpAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+		[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+		if(buttonNumber == 1) {
+			WindowDef(\TrackMixerDef_fxlist).front(mixer, 4)
+		}
+	});
+	blockView;
+});
+)
 
 (
 WindowDef(\TrackMixerDef_fx, { arg me, mixer;
@@ -44,17 +91,19 @@ WindowDef(\TrackMixerDef_fx, { arg me, mixer;
 	var layout;
 	var slider, knobs = List.new, textfield;
 	var num = 4;
-	layout = VLayout(
-		PlayerWrapper(mixer).asView,
-		HLayout(
-			VLayout (
-				slider = Slider.new.orientation_(\vertical),
-				textfield = TextField.new,
-			),
-			VLayout(*
-				knobs = 4.collect({ 
-					Knob.new;
-				})
+	layout = HLayout(
+		VLayout (
+			PlayerWrapper(mixer).asView,
+			HLayout(
+				VLayout (
+					slider = Slider.new.orientation_(\vertical),
+					textfield = TextField.new,
+				),
+				VLayout(*
+					knobs = num.collect({ 
+						Knob.new;
+					})
+				),
 			),
 		),
 		VLayout(* num.collect { arg idx;
@@ -63,18 +112,19 @@ WindowDef(\TrackMixerDef_fx, { arg me, mixer;
 				//Param({ mixer.isInsertFxEnabled(idx) }, { mixer.enableInsertFx(idx) }, ParamBoolSpec()).asButton("Fx"++idx),
 				Param(Message(mixer.insertFxAt(idx)), \synthName, TagSpecDef(\SynthDef_InsertFx)).asPopUpMenu,
 				BasicButton.new.string_("Edit").action_({
-					if()
-					WindowDef(\InsertFxEditor, { arg def, insertFx;
-						VLayout (
-							HLayout (
-								PlayerWrapper(mixer.insertFxAt(idx)).asView,
-								//Param({ mixer.isInsertFxEnabled(idx) }, { mixer.enableInsertFx(idx) }, ParamBoolSpec()).asButton("Fx"++idx),
-								Param(Message(mixer.insertFxAt(idx)), \synthName, TagSpecDef(\SynthDef_InsertFx)).asPopUpMenu,
-							),
+					//if()
+					mixer.insertFxAt(idx).edit;
+					//WindowDef(\InsertFxEditor, { arg def, insertFx;
+						//VLayout (
+							//HLayout (
+								//PlayerWrapper(mixer.insertFxAt(idx)).asView,
+								////Param({ mixer.isInsertFxEnabled(idx) }, { mixer.enableInsertFx(idx) }, ParamBoolSpec()).asButton("Fx"++idx),
+								//Param(Message(mixer.insertFxAt(idx)), \synthName, TagSpecDef(\SynthDef_InsertFx)).asPopUpMenu,
+							//),
 
-							insertFx.asParamGroup.asView
-						)
-					}).front(mixer.insertFxAt(idx))
+							//insertFx.asParamGroup.asView
+						//)
+					//}).front(mixer.insertFxAt(idx))
 				}),
 				mixer.insertFxAt(idx).getParam(\wet).asSlider.orientation_(\horizontal),
 				mixer.insertFxAt(idx).getParam(\gain).asSlider.orientation_(\horizontal),
@@ -82,21 +132,21 @@ WindowDef(\TrackMixerDef_fx, { arg me, mixer;
 				//Param(mixer.insertFxAt(idx).proxy, \gain+++mixer.insertFxAt(idx).index, \unipolar).asSlider.orientation_(\horizontal),
 			)
 
-		});
+		} ++ [nil]);
 	);
 	layout.addUniqueMethod(\model_, { arg me, mixer;
 		if(mixer.isKindOf(Volume)) {
 			//"volume".debug;
 			param = Param(mixer, \volume);
-			sends = 4.collect({ arg x; nil });
+			sends = num.collect({ arg x; nil });
 		} {
 			//"track".debug;
 			param = mixer.asParam(\postfader);
-			sends = 4.collect({ arg x; mixer.asParam(\send+++x) });
+			sends = num.collect({ arg x; mixer.asParam(\send+++x) });
 		};
 		//[slider, param].debug("slider, param: what ?");
 		slider.mapParam(param);
-		textfield.mapParam(param);
+		textfield.mapParam(param, 6);
 		knobs.do({ arg x, idx; x.mapParam(sends[idx]) })
 	});
 	if(mixer.notNil) {
@@ -159,6 +209,27 @@ Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 	sig = SinOsc.ar(freq) * 0.1/4 * ( SinOsc.kr(4).unipolar * 1 );
 }).play;
 );
+
+(
+	Ndef(\equi, {
+		var sig, in;
+		var sig2;
+		in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+		sig = in.equi(nil,  "i3000");
+		sig2 = sig.equi(nil,  "i3001");
+	});
+	WindowDef(\equi, { arg def, model;
+		var equi = EQui(nil,nil,model, nil, prefix:"i3000");
+		equi.value.asArgsArray("i3000").clump(2).flop[0].asCompileString.debug("args");
+
+		equi;
+	}).front(Ndef(\equi));
+)
+WindowDef(\equi).front(Ndef(\equi))
+Ndef(\equi).edit
+Ndef(\equi).asParamGroup.edit
+Ndef(\equi).clear
+
 
 Ndef(\zed)[10].source = \in -> { arg in; in * SinOsc.ar(123)  }
 Ndef(\zed)[10].source
@@ -308,19 +379,52 @@ SynthDef(\ifx_greyhole, { arg out=0, gate=1;
 	sig = Greyhole.ar(sig, \delay.kr(2), \damp.kr(0), \size.kr(1), \diff.kr(0.707), \fb.kr(0.9), \modDepth.kr(0.1), \modFreq.kr(2));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	//sig = sig * \gain.kr(1);
-	XOut.ar(out, \wet.kr(0), [in,sig]* \gain.kr(1));
+	XOut.ar(out, \wet.kr(0), sig* \gain.kr(1));
 	//XOut.ar(out, \wet.kr(0), [in,sig]);
 }).add;
+SynthDef(\ifx_freeverb2, { arg out=0, gate=1;
+	var sig;
+	var in = In.ar(out, 2); 
+	sig = in;
+	sig = FreeVerb2.ar(sig[0], sig[1], \mix.kr(0.5), \room.kr(1), \damp.kr(0.4));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = sig * \gain.kr(1);
+	XOut.ar(out, \wet.kr(0), sig* \gain.kr(1));
+	//XOut.ar(out, \wet.kr(0), [in,sig]);
+}).add;
+Spec.add(\wet, \unipolar);
+Spec.add(\mix, \unipolar);
+Spec.add(\gain, \unipolar);
+TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_freeverb2);
+TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_greyhole);
+TagSpecDef(\SynthDef_InsertFx).addUnique(\equi);
 )
 
 SynthDesc(\ifx_freeverb2).def.func.asCompileString
 
 TagSpecDef(\SynthDef_InsertFx).addUnique(\myfx_ndef)
-TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_freeverb2)
 TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_freeverb2_x)
 TagSpecDef(\SynthDef_InsertFx).addUnique(\fx_freeverb2)
-TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_greyhole)
 
+
+Ndef(\testme)[0] = { SinOsc.ar(200 * ( SinOsc.kr([1,1.01]) * 1 + 1 )) * 0.1/2  }
+Ndef(\testme).play
+Ndef(\testme)[100] = \ifx_freeverb2_test
+Ndef(\testme).edit
+
+(
+SynthDef(\ifx_freeverb2_test, { arg out=0, gate=1;
+	var sig;
+	var in = In.ar(out, 2); 
+	sig = in;
+	sig = FreeVerb2.ar(sig[0], sig[1], \mix.kr(0.5), \room.kr(1), \damp.kr(0.4));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = sig * \gain.kr(1);
+	XOut.ar(out, \wet.kr(0), [in,sig]* \gain.kr(1));
+	XOut.ar(out, \wet.kr(0), [in,sig]* \gain.kr(1));
+	//XOut.ar(out, \wet.kr(0), [in,sig]);
+}).add;
+)
 
 ///////////////
 
@@ -414,3 +518,147 @@ SynthDef(\fx1, { arg gain=1;
 };
 ~synthDef_to_indexedArgFunction.(\fx1, 10).asCompileString
 )
+
+
+
+
+//////////////// test ifx
+
+(
+SynthDef(\ifx_greyhole, { arg out=0, gate=1;
+	var sig;
+	var in = In.ar(out, 2); 
+	out.debug("----- out");
+	out.poll;
+	sig = in;
+	sig = Greyhole.ar(sig, \delay.kr(2), \damp.kr(0), \size.kr(1), \diff.kr(0.707), \fb.kr(0.9), \modDepth.kr(0.1), \modFreq.kr(2));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = sig * \gain.kr(1);
+	XOut.ar(out, \wet.kr(0), sig* \gain.kr(1));
+	//XOut.ar(out, \wet.kr(0), [in,sig]);
+}).add;
+)
+
+Ndef(\bla)[0] = { SinOsc.ar(200 * ( SinOsc.kr(0.4) * 1 + 1 )) ! 2 * 0.07  }
+Ndef(\bla)[0] = { Silent.ar ! 2 * 0.07  }
+Ndef(\bla).play
+Ndef(\bla).stop
+
+Ndef(\bla)[10] = \ifx_greyhole
+Ndef(\bla).set(\wet10, 1)
+Ndef(\bla).edit
+
+Ndef(\bla2)[0] = { SinOsc.ar(300 * ( SinOsc.kr(1.4) * 1 + 1 )) ! 2 * 0.07  }
+Ndef(\bla2).play
+
+
+////////////// LevelIndicator
+
+(
+WindowDef(\win, { arg def, orientation=\vertical;
+	var ticks = LevelIndicator.new.value_(0.7).numTicks_(16);
+	var layout;
+	if(orientation == \vertical) {
+		ticks.fixedWidth_(3);
+		layout = HLayout;
+	} {
+		ticks.fixedHeight_(3);
+		layout = VLayout;
+	};
+	layout.new (
+		LevelIndicator.new.value_(0.7),
+		LevelIndicator.new.value_(0.4),
+		ticks,
+	).spacing_(0)
+	
+}).front;
+);
+WindowDef(\win).front(\horizontal)
+
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\out, BusDef(\mybus, \audio),
+		\pan, 0.2,
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+WindowDef(\win, { arg def;
+	VLayout (
+		CompactServerMeterView(nil, 0,2, BusDef(\mybus)).hideTicks_(true).orientation_(\horizontal).view,
+		CompactServerMeterView(nil, 0,2, BusDef(\mybus)).hideTicks_(false).orientation_(\horizontal).view,
+		//SimpleServerMeterView(nil, 0,2, BusDef(\mybus)).view
+	).spacing_(0).margins_(0)
+	
+}).front;
+);
+
+TrackDef(\tlist).elAt(0).mixer.proxy.set(\sendbus3003, BusDef(\sendbus0))
+
+
+		Param.toSynthDefSpec(nil, \sendbus, \ifx_send)
+		Param.toSynthDefSpec(nil, \adsr, \ifx_send)
+		SynthDesc(\ifx_send).metadata.specs[\adsr]
+		Param.toSpec( SynthDesc(\ifx_send).metadata.specs[\sendbus].asSpec )
+
+TrackDef(\tlist).childAt(0).presetCompileString.editorInsert
+TrackDef(\tlist).childAt(0,0).score.timeline.presetCompileString.editorInsert
+
+TrackDef(\tlist).edit
+TrackDef(\tlist).clear
+
+(
+TrackDef(\tlist, TrackTemplateDef(\TrackList));
+NoteTimeline('tlist.0.0').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.25, \label: 'start', \playDur: 0.25, \relDur: 0.25, \sustain: 0, \type: 'start', ),
+	(\absTime: 0.25, \dur: 0.5, \midinote: 52.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.1, ),
+	(\absTime: 0.75, \dur: 0.25, \midinote: 70.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.1, ),
+	(\absTime: 1.0, \dur: 0.5, \midinote: 55.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.1, ),
+	(\absTime: 1.5, \dur: 0.625, \midinote: 64.0, \playDur: 0.625, \relDur: 0.625, \sustain: 0.1, ),
+	(\absTime: 2.125, \dur: 0.75, \midinote: 76.0, \playDur: 0.75, \relDur: 0.75, \sustain: 0.1, ),
+	(\absTime: 2.875, \dur: 0.125, \midinote: 60.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 3.0, \dur: 0.375, \midinote: 78.0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.1, ),
+	(\absTime: 3.375, \dur: 0.125, \midinote: 74.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 3.5, \dur: 0.375, \midinote: 51.0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.1, ),
+	(\absTime: 3.875, \dur: 0.125, \midinote: 45.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 4.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+
+TrackDef('tlist').childAt(0).instrument = ProtoTemplateDef('TrackInstrument').new([ 'TrackInstrument', ('NoteTimelineTrack' -> 'NoteTimelineTrack') ]);
+TrackDef('tlist').childAt(0).label = "NoteTimelineTrack TrackInstrument";
+
+TrackDef('tlist').childAt(0).instrument.source = Pdef('tlist.0.instr');
+
+);
+FileSystemProject.resolve("repeat/tests/tmp")
+TrackDef(\tlist).presetCompileStringSavePath = FileSystemProject.resolve("repeat/tests/tmp").fullPath +/+ "ttt"
+TrackDef(\tlist).presetCompileStringSavePath 
+TrackDef(\tlist).savePresetCompileString
+TrackDef(\tlist).loadPresetCompileString
+
+
+
+/////////////////////////////////////////////:
+
+
+ParamProto.init
+ProtoInst(\TrackMixerDef, \tr1).edit
+ProtoInst(\TrackMixerDef, \tr1).inBus
+WindowDef(\TrackMixerDef_advanced).front(ProtoInst(\TrackMixerDef, \tr1))
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\out, BusDef(\trackMixerDef_tr1, \audio),
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
