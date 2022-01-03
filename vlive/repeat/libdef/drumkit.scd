@@ -587,6 +587,8 @@ WindowDef(\samplekit, (
 ));
 
 // add popup menu to choose patkitdef
+// used in KitTimeline
+// FIXME: should move it
 WindowDef(\KitTimeline_PatKitDefEditor, (
 	parent: WindowDef(\samplekit).proto,
 	makeFollower: { arg self;

@@ -48,15 +48,18 @@ TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
 	defineTrack: { arg self, trackidx, libId, label;
 		var trackkey;
 		var newtrack = self.childAt(trackidx);
-		trackkey = "%.%".format(self.key, newtrack.index).asSymbol;
-		newtrack.libId = libId;
-		newtrack.label = label ? ProtoDef(\GlobalLibrary).libIdToStrings(libId).join(" ");
-		newtrack.instrument = ProtoDef(\GlobalLibrary).libIdToTrackInstrument(libId, trackkey);
-		newtrack.instrument.makeSource(self, newtrack.index);
-		newtrack.outBus = 0;
 		TagSpecDef(\TrackList).addUnique(self.key -> self);
-		Log(\Param).debug("newtrack.instrument:%", newtrack.instrument);
-		self.changed(\tracklist);
+		newtrack.instrumentId = libId;
+		newtrack.label = label ?? { newtrack.label };
+		//trackkey = "%.%".format(self.key, newtrack.index).asSymbol;
+		//newtrack.libId = libId;
+		//newtrack.label = label ? ProtoDef(\GlobalLibrary).libIdToStrings(libId).join(" ");
+		//newtrack.instrument = ProtoDef(\GlobalLibrary).libIdToTrackInstrument(libId, trackkey);
+		//newtrack.instrument.makeSource(self, newtrack.index);
+		//newtrack.outBus = 0;
+		//TagSpecDef(\TrackList).addUnique(self.key -> self);
+		//Log(\Param).debug("newtrack.instrument:%", newtrack.instrument);
+		//self.changed(\tracklist);
 		
 	},
 
@@ -156,6 +159,27 @@ TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
 
 TrackTemplateDef(\InstrumentTrack, TrackTemplateDef(\playertrack)).putAll((
 	eventType: \instrumenttrack,
+
+
+	instrumentId_: { arg self, libId;
+		var trackkey;
+		trackkey = "%.%".format(self.parentTrack.key, self.index).asSymbol;
+		self.instrument = ProtoDef(\GlobalLibrary).libIdToTrackInstrument(libId, trackkey);
+		if(self.instrument.isNil) {
+			self[\instrumentId] = libId;
+			self.label = ProtoDef(\GlobalLibrary).libIdToStrings(libId).join(" ");
+			self.libId = libId;
+
+			self.instrument.makeSource(self, self.index);
+			self.outBus = 0;
+			Log(\Param).debug("newtrack.instrument:%", self.instrument);
+			self.parentTrack.changed(\tracklist);
+			self.changed(\instrumentId);
+		} {
+			Log(\Param).debug("Can't set instrumentId: no Instrument with this id:%", libId);
+		}
+		
+	},
 
 	childClass: { arg self;
 		TrackTemplateDef(\InstrumentTrackPart);
@@ -316,7 +340,8 @@ TrackTemplateDef(\InstrumentTrackPart, TrackTemplateDef(\playerwrapper)).putAll(
 	},
 
 	clearPart: { arg self;
-		self.score = ();
+		self.score = nil;
+		self.proxy = nil;
 	},
 
 	presetCompileString: { arg self;
@@ -417,6 +442,11 @@ TrackTemplateDef(\InstrumentTrackPart, TrackTemplateDef(\playerwrapper)).putAll(
 	asPreview: { arg self;
 		self.parentTrack.instrument.asPreview(self.parentTrack.parentTrack, self.score);
 	},
+
+	asView: { arg self;
+		self.parentTrack.instrument.makePartView(self.score);
+	},
+
 	
 ));
 	TrackTemplateDef(\TrackListChannelPart, TrackTemplateDef(\InstrumentTrackPart)); // compat
