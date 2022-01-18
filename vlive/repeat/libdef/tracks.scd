@@ -75,18 +75,23 @@ TrackTemplateDef(\playerwrapper, (
 
 	edit: { arg self;
 		var target = self.source;
-		if(target.getHalo(\edit).notNil) {
-			target.getHalo(\edit).value(target);
-		} {
-			if(target.isKindOf(Pdef)) {
-				WindowDef(\PdefEditor).front(target)
+		if(target.notNil) {
+
+			if(target.getHalo(\edit).notNil) {
+				target.getHalo(\edit).value(target);
 			} {
-				if(target.isKindOf(Ndef)) {
-					WindowDef(\NdefEditor).front(target)
+				if(target.isKindOf(Pdef)) {
+					WindowDef(\PdefEditor).front(target)
 				} {
-					target.edit
-				}
+					if(target.isKindOf(Ndef)) {
+						WindowDef(\NdefEditor).front(target)
+					} {
+						target.edit
+					}
+				};
 			};
+		} {
+			self.selectSourceDialog;
 		};
 		//WindowDef(\playerwrapper, {
 			//var track = self;
@@ -95,6 +100,28 @@ TrackTemplateDef(\playerwrapper, (
 				//ParamGroupLayout.two_panes(track.asParamGroup)
 			//)
 		//}).front;
+	},
+
+	selectSourceDialog: { arg self;
+		var source;
+		var default;
+		if(self.source.isKindOf(PlayerWrapper)) {
+			source = self.source.target;
+		} {
+			source = self.source;
+		};
+	   	default = ProtoDef(\GlobalLibrary).targetToLibId(source);
+		WindowDef(\GlobalLibrary_select).front(default, { arg player;
+			//~child = child;
+			self.source = player.last.value;
+		}, [\Clip])
+	},
+
+	stopInternal: { arg self;
+		// this is called when another child start playing
+		// can be overridden when parentTrack.proxy should not be stopped, like in FileCodeTrack
+		self.stop;
+		
 	},
 
 	play: { arg self;
@@ -106,7 +133,7 @@ TrackTemplateDef(\playerwrapper, (
 				stopchild = self.parentTrack.activeChild;
 			};
 			self.parentTrack.activeIndex = self.index;
-			if(stopchild.notNil) { stopchild.stop }; // changed message but arrive after deselect
+			if(stopchild.notNil) { stopchild.stopInternal }; // changed message but arrive after deselect
 			self.proxy.play;
 			self.parentTrack.childPlayed;
 			self.changed(\play, self.quant);
@@ -249,19 +276,42 @@ TrackTemplateDef(\playertrack, (
 	new: { arg self, parent, index;
 		self = self.copy;
 
-		self.selectChild(0);
 		self.index = index.asInteger;
 		self.parentTrack = {parent};
 		self[\storeOn] = { arg self, str; str << self.refCompileString };
+		self.selectChild(0);
 		self;
 	},
+
+	trackTemplate: { arg self;
+		self.parent;
+	},
+	trackTemplate_: { arg self, val;
+		self[\parent] = val;
+		self.updateChildren;
+	},
+
+	updateChildren: { arg self;
+		"updateChildren x".debug;
+		self.initTrack;
+		"updateChildren2".debug;
+		self.children.do { arg child, idx;
+			if(child.notNil) {
+				if(child.isEmpty) {
+					self.children[idx] = nil
+				}
+			}
+		};	
+		self.changed(\children);
+	},
+
 
 	activateChild: { arg self, idx;
 		self.childAt(idx).play;
 	},
 
 	activeChild: { arg self;
-		self.childAt(self.activeIndex);
+		self.childAt(self.activeIndex ? 0);
 	},
 
 	makeListener: { arg self, fun;
@@ -303,7 +353,11 @@ TrackTemplateDef(\playertrack, (
 	},
 
 	refCompileString: { arg self;
-		"%.childAt(%)".format(self.parentTrack.refCompileString, self.index);
+		if(self.parentTrack.notNil) {
+			"%.childAt(%)".format(self.parentTrack.refCompileString, self.index);
+		} {
+			"%(%)".format(self.class.asString, self.key);
+		}
 	},
 
 	play: { arg self;
@@ -362,6 +416,12 @@ TrackTemplateDef(\playertrack, (
 		ret;
 	},
 
+	existingChildren: { arg self;
+		self.children.select { arg child, idx;
+			child.notNil and: { child.isEmpty.not }
+		}
+	},
+
 	// mimic modality
 	elAt: { arg self ...args;
 		self.childAt(*args)
@@ -406,7 +466,7 @@ TrackTemplateDef(\playertrack, (
 	},
 
 	mixer: { arg self;
-		if(self.isMixerEnabled) {
+		if(self.isMixerEnabled == true) {
 			if(self.parentTrack.mixer.notNil) {
 				self.parentTrack.mixer.tracks[self.index]
 			} {
@@ -434,6 +494,8 @@ TrackTemplateDef(\playergrid, (
 			self.childAt(idx).source = val;
 		})
 	},
+
+	isActive: true, // compat when grid used as a cell in another grid
 
 	gridOffset: { arg self;
 		if(self.obj_gridOffset.isNil) {
@@ -538,6 +600,12 @@ TrackTemplateDef(\playergrid, (
 			self[\obj_children] = SparseArray.new;
 			self[\obj_children];
 		};
+	},
+
+	existingChildren: { arg self;
+		self.children.select { arg child, idx;
+			child.notNil and: { child.isEmpty.not }
+		}
 	},
 
 	linePlayers: { arg self;
@@ -668,11 +736,21 @@ TrackTemplateDef(\lineplayer, (
 		"% line %".format(self.parentTrack.label, self.index.asInteger)
 	},
 	isLinePlayer: true,
+
+	quant: { arg self;
+		Pdef.defaultQuant;
+	},
+
 	play: { arg self;
 		["play"].postln;
 		self.children.do({ arg x, ii; 
 			["play", ii, x].postln;
 			x.play;
+		});
+		self.changed(\play, self.quant);
+		self.changed(\PlayerWrapper, \userPlayed); // the view put directly the ProtoDef so need to simulate PlayerWrapper
+		PlayerWrapper.doWithQuant(self.quant, {
+			self.changed(\PlayerWrapper, \playing); // the view put directly the ProtoDef so need to simulate PlayerWrapper
 		});
 		//self.play;
 	},
@@ -683,6 +761,7 @@ TrackTemplateDef(\lineplayer, (
 			["play now", ii, x].postln;
 			x.playNow;
 		});
+		self.changed(\PlayerWrapper, \playing); // the view put directly the ProtoDef so need to simulate PlayerWrapper
 	},
 
 	stop: { arg self;
@@ -690,6 +769,11 @@ TrackTemplateDef(\lineplayer, (
 		self.children.do({ arg x, ii; 
 			["stop", ii, x].postln;
 			x.stop;
+		});
+		self.changed(\stop);
+		self.changed(\PlayerWrapper, \userStopped); // the view put directly the ProtoDef so need to simulate PlayerWrapper
+		PlayerWrapper.doWithQuant(self.quant, {
+			self.changed(\PlayerWrapper, \stopped); // the view put directly the ProtoDef so need to simulate PlayerWrapper
 		});
 		//parent.stop;
 	},
@@ -700,24 +784,56 @@ TrackTemplateDef(\lineplayer, (
 			["stop now", ii, x].postln;
 			x.stopNow;
 		});
+		self.changed(\stop);
+		self.changed(\PlayerWrapper, \stopped); // the view put directly the ProtoDef so need to simulate PlayerWrapper
+	},
+
+	trackingMethod: \any,
+
+	existingChildren: { arg self;
+		self.children.select { arg child, idx;
+			child.notNil and: { child.isEmpty.not }
+		}
+	},
+
+	isEmpty: { arg self;
+		self.existingChildren.size == 0
 	},
 
 	isPlaying: { arg self;
+		// should be:
+		// - at least one cell is playing
+		//		- allow to stop the cells playing
+		// or
+		// - every cell that is not empty is playing
+		//		- allow to play the cells not playing
+		if(self.trackingMethod == \any) {
+			// any
+			self.children.any({ arg child, idx;
+				child.isPlaying;
+			})
+		} {
+			// every
+			self.children.every({ arg child, idx;
+				child.isNil or: {child.isEmpty or: child.isPlaying};
+			})
+		}
+
 		//["lineplayer: isPlaying",parent.isPlaying, self.children.every({ arg x; x.activeIndex == idx })].postln;
-		self.parentTrack.isPlaying and: {
-			var atLeastOneIsPlaying = false;
-			self.children.every({ arg x, ii; 
-				//["child:", x,ii, x.activeIndex, idx].postln;
-				x.notNil and: {x.parentTrack.isEmpty or: {
-					if(x.parentTrack.activeIndex == self.index) {
-						atLeastOneIsPlaying = true;
-						true;
-					} {
-						false;
-					}
-				}}
-			}) and: { atLeastOneIsPlaying };
-		};
+		//self.parentTrack.isPlaying and: {
+			//var atLeastOneIsPlaying = false;
+			//self.children.every({ arg x, ii; 
+				////["child:", x,ii, x.activeIndex, idx].postln;
+				//x.notNil and: {x.parentTrack.isEmpty or: {
+					//if(x.parentTrack.activeIndex == self.index) {
+						//atLeastOneIsPlaying = true;
+						//true;
+					//} {
+						//false;
+					//}
+				//}}
+			//}) and: { atLeastOneIsPlaying };
+		//};
 	},
 
 	asPatternAbs: { arg self, startPosition, endPosition, repeatCount;

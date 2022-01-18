@@ -290,3 +290,17 @@ WindowDef(\win, { arg def;
 ~p = PstepSeq([3,2,5,1],inf)
 
 
+////////////////// Pbindef -> \source
+
+
+(
+Pbindef(\bete,
+	\instrument, \saw,
+	\degree, Prand([0,3,4],inf),
+	\lpfr, PstepSeq([1,10,3,4,4.2],inf),
+	\dur, 1/8,
+	\amp, 0.1,
+).play
+);
+
+Param( Pdef(\bete), \dur -> \source ).edit; // work with Prand !!!

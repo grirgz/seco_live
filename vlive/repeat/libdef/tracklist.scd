@@ -6,7 +6,8 @@ FileSystemProject.load("libdef/drumkit.scd");
 FileSystemProject.load("libdef/synthplayrec.scd");
 FileSystemProject.load("libdef/MainProject.scd");
 
-TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
+TrackTemplateDef(\TrackList, (
+	parent: TrackTemplateDef(\playergrid),
 
 	eventType: \tracklist,
 	childClass: { arg self;
@@ -157,7 +158,8 @@ TrackTemplateDef(\TrackList, TrackTemplateDef(\playergrid)).putAll((
 ));
 
 
-TrackTemplateDef(\InstrumentTrack, TrackTemplateDef(\playertrack)).putAll((
+TrackTemplateDef(\InstrumentTrack, (
+	parent: TrackTemplateDef(\playertrack),
 	eventType: \instrumenttrack,
 
 
@@ -192,7 +194,11 @@ TrackTemplateDef(\InstrumentTrack, TrackTemplateDef(\playertrack)).putAll((
 	},
 
 	trackKey: { arg self;
-		"%.%".format( self.parentTrack.key , self.index.asInteger).asSymbol;
+		if(self.parentTrack.notNil) {
+			"%.%".format( self.parentTrack.key , self.index.asInteger).asSymbol;
+		} {
+			"%".format(self.key).asSymbol;
+		}
 	},
 
 	clearChannel: { arg self;
@@ -231,7 +237,11 @@ TrackTemplateDef(\InstrumentTrack, TrackTemplateDef(\playertrack)).putAll((
 	},
 
 	refCompileString: { arg self;
-		"%.childAt(%)".format(self.parentTrack.refCompileString, self.index.asCompileString);
+		if(self.parentTrack.notNil) {
+			"%.childAt(%)".format(self.parentTrack.refCompileString, self.index.asCompileString);
+		} {
+			"%(%)".format(self.class.asString, self.key.asCompileString);
+		};
 	},
 
 
@@ -303,7 +313,8 @@ TrackTemplateDef(\InstrumentTrack, TrackTemplateDef(\playertrack)).putAll((
 ));
 	TrackTemplateDef(\TrackListChannel, TrackTemplateDef(\InstrumentTrack)); // compat
 
-TrackTemplateDef(\InstrumentTrackPart, TrackTemplateDef(\playerwrapper)).putAll((
+TrackTemplateDef(\InstrumentTrackPart, (
+	parent: TrackTemplateDef(\playerwrapper),
 	eventType: \instrumenttrackpart,
 	isEmpty: { arg self;
 		self.score.isNil and: {
@@ -356,7 +367,15 @@ TrackTemplateDef(\InstrumentTrackPart, TrackTemplateDef(\playerwrapper)).putAll(
 	},
 
 	refCompileString: { arg self;
-		"%.childAt(%, %)".format(self.parentTrack.parentTrack.refCompileString, self.parentTrack.index.asCompileString, self.index.asCompileString);
+		if(self.parentTrack.notNil) {
+			if( self.parentTrack.parentTrack.notNil ) {
+				"%.childAt(%, %)".format(self.parentTrack.parentTrack.refCompileString, self.parentTrack.index.asCompileString, self.index.asCompileString);
+			} {
+				"%.childAt(%)".format(self.parentTrack.refCompileString, self.index.asCompileString);
+			}
+		} {
+			"%(%)".format(self.class.asString, self.key.asCompileString);
+		}
 	},
 
 
@@ -383,7 +402,13 @@ TrackTemplateDef(\InstrumentTrackPart, TrackTemplateDef(\playerwrapper)).putAll(
 	},
 
 	makeScore: { arg self;
-		self.score = self.parentTrack.instrument.makeScore(self.grid, self.parentTrack.index, self.index, self.parentTrack.outBus ? self.outBus);
+		if(self.parentTrack.instrument.notNil) {
+			self.score = self.parentTrack.instrument.makeScore(
+				self.grid, self.parentTrack.index, self.index, self.parentTrack.outBus ? self.outBus
+			);
+		} {
+			Log(\Param).debug("no instrument, can't make score %", self);
+		}
 	},
 
 	score_: { arg self, val;
@@ -452,7 +477,8 @@ TrackTemplateDef(\InstrumentTrackPart, TrackTemplateDef(\playerwrapper)).putAll(
 	TrackTemplateDef(\TrackListChannelPart, TrackTemplateDef(\InstrumentTrackPart)); // compat
 
 
-TrackTemplateDef(\TrackListPart, TrackTemplateDef(\lineplayer)).putAll((
+TrackTemplateDef(\TrackListPart, (
+	parent: TrackTemplateDef(\lineplayer),
 	eventType: \tracklistpart,
 	trackKey: { arg self;
 		"%.part%".format(self.parentTrack.key, self.index.asInteger).asSymbol;

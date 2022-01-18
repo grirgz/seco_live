@@ -242,6 +242,7 @@ WindowDef(\simpleMixer, { arg def, simpleMixer;
 			boxview.addUniqueMethod(\model_, { arg me, val;
 				mixerview.model = val;
 			});
+			def.waitIfNeeded;
 			boxview;
 	});
 

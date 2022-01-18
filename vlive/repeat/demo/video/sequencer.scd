@@ -1,4 +1,9 @@
 
+(
+	FileSystemProject.load("libdef/ControllerSelectorView.scd");
+	FileSystemProject.load("libdef/controllers.scd");
+)
+
 //// steps
 // - init
 // - write a pattern base and play it
@@ -63,3 +68,7 @@ WindowDef(\win, { arg def;
 	
 }).front;
 );
+
+ParamTimeline(\roh).edit
+Log(\Param).level = \info
+ParamTimeline(\roh).clear

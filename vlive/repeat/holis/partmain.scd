@@ -168,6 +168,9 @@
 
 
 	];
+	~holis_synthdefs.do { arg item, idx;
+		SynthDesc(item).addTag(\holis)
+	};
 );
 
 

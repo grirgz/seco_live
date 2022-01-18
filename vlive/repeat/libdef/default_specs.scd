@@ -2,6 +2,7 @@
 // param specs
 
 Spec.add(\mix, \unipolar.asSpec);
+Spec.add(\wet, \unipolar.asSpec);
 Spec.add(\inbus, XBusSpec.new);
 Spec.add(\gate, XGateSpec.new);
 Spec.add(\adsr, XEnvSpec.adsr);
