@@ -250,6 +250,7 @@ Pdef(\zed,
 ).play;
 );
 Param(Pdefn(\roh), \stepseq, ControlSpec(0,21,\lin,1)).edit
+Param(Pdefn(\roh), \stepseq, ControlSpec(0,21,\lin,1)).type
 
 (
 Pdefn(\roh, PstepSeq([1,4,2,5],inf));
@@ -300,7 +301,62 @@ Pbindef(\bete,
 	\lpfr, PstepSeq([1,10,3,4,4.2],inf),
 	\dur, 1/8,
 	\amp, 0.1,
-).play
+)
 );
+Pbindef(\bete).play
 
 Param( Pdef(\bete), \dur -> \source ).edit; // work with Prand !!!
+Param( Pdef(\bete), \dur -> \source ).get
+Param( Pdef(\bete), \dur -> \source ).normGet
+Param( Pdef(\bete), \dur -> \source ).spec
+Param( Pdef(\bete), \dur  ).spec
+Param( Pdef(\bete), \dur  ).get
+Param( Pdef(\bete), \dur  ).at(\source).get
+Param( Pdef(\bete), \dur  ).at(\source).edit
+Spec.add(\dur, ControlSpec(0.01,4,\exp))
+
+Param( Pdef(\hoho), \hihi -> \source ).parent
+Param.fromWrapper(Param( Pdef(\hoho), \hihi -> \source ).parent)
+
+// when key is not defined
+Param( Pdef(\bete), \hihi  ).get
+Param( Pdef(\bete), \hihi  ).default
+Param( Pdef(\bete), \hihi -> \source ).get
+Param( Pdef(\bete), \hihi -> \source ).set(123)
+Pbindef(\bete).source.at(\hihi)
+Pbindef(\bete).source.at(\hihi).source
+Pbindef(\bete).source.set(\hihi, 34)
+nil.source
+
+// when Pbindef is not defined
+Param( Pdef(\hoho), \hihi -> \source ).get
+Param( Pdef(\hoho), \hihi -> \source ).set(123)
+
+// default value
+
+(
+Pbindef(\pok, 
+	\instrument, \saw,
+	\degree, Pseq([0],inf),
+	\dur, 1,
+	\amp, 0.1,
+).play;
+);
+
+Param( Pdef(\pok), \lpfr -> \source  ).get
+Param( Pdef(\pok), \lpfr -> \source  ).instrument
+Param( Pdef(\pok), \lpfr -> \source  ).default
+Param( Pdef(\pok), \lpfr ).default
+Param( Pdef(\pok), \lpfr ).instrument
+
+Param( Pdef(\pok), \lpfr -> \source  ).spec
+(
+SynthDef(\saw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = LFSaw.ar(freq * [1.01,1,0.99]);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+);

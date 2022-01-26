@@ -303,39 +303,48 @@ WindowDef(\soundfileview, (
 		var sfview = self.sfview;
 		var clock = self.tempoClock;
 		"0".debug("xxx");
-		[startParam.get, conv.start.get, sfview.selections[sfview.currentSelection]].debug("update_selection: start really before");
-		speed = if(speedParam.notNil) {
-			speedParam.get;
-		} {
-			1
-		};
-		sustain = if(sustainParam.notNil) {
-			[conv.sustain.get, clock.tempo, sampleRate].debug("xxx");
-			conv.sustain.get * sampleRate * speed.abs;
-		} {
-			"1".debug("xxx");
-			endParam.get - conv.start.get * sampleRate;
-		};
-		"1.2".debug("xxx");
-		[startParam.get, conv.start.get].debug("update_selection: start before");
-		start = conv.start.get * sampleRate;
-		"2".debug("xxx");
-		(
-			[conv.start.get, conv.sustain.get, conv.start.get + conv.sustain.get] 
-			++ ( [conv.start.get, conv.sustain.get, conv.start.get + conv.sustain.get] * sampleRate)
-			++ ( [
-				( conv.start.get + conv.sustain.get * sampleRate ) - ( conv.start.get * sampleRate ), 
-				( conv.start.get + conv.sustain.get * sampleRate ) - ( conv.start.get * sampleRate ) / sampleRate, 
-			])
-		).debug("start, sus, end, srstart, srsus, srend");
-		"3".debug("xxx");
-		sfview.setSelection(sfview.currentSelection, 
-			if(speed < 0) {
-				[start - sustain, sustain]
+		[startParam.get].debug("update_selection: start really before");
+		//[startParam.get, conv.start.get, sfview.selections[sfview.currentSelection]].debug("update_selection: start really before");
+		"0.2".debug("xxx");
+		if(startParam.notNil) {
+
+			speed = if(speedParam.notNil) {
+				speedParam.get;
 			} {
-				[start, sustain]
-			}
-		);
+				1
+			};
+			sustain = if(sustainParam.notNil) {
+				[conv.sustain.get, clock.tempo, sampleRate].debug("xxx");
+				conv.sustain.get * sampleRate * speed.abs;
+			} {
+				"1".debug("xxx");
+				if(endParam.notNil) {
+					endParam.get - conv.start.get * sampleRate;
+				} {
+					1
+				}
+			};
+			"1.2".debug("xxx");
+			[startParam.get, conv.start.get].debug("update_selection: start before");
+			start = conv.start.get * sampleRate;
+			"2".debug("xxx");
+			//(
+				//[conv.start.get, conv.sustain.get, conv.start.get + conv.sustain.get] 
+				//++ ( [conv.start.get, conv.sustain.get, conv.start.get + conv.sustain.get] * sampleRate)
+				//++ ( [
+					//( conv.start.get + conv.sustain.get * sampleRate ) - ( conv.start.get * sampleRate ), 
+					//( conv.start.get + conv.sustain.get * sampleRate ) - ( conv.start.get * sampleRate ) / sampleRate, 
+				//])
+			//).debug("start, sus, end, srstart, srsus, srend");
+			"3".debug("xxx");
+			sfview.setSelection(sfview.currentSelection, 
+				if(speed < 0) {
+					[start - sustain, sustain]
+				} {
+					[start, sustain]
+				}
+			);
+		}
 	},
 
 	asPresetCompileString: { arg self;
@@ -438,8 +447,20 @@ WindowDef(\soundfileview, (
 	openFile: { arg self, file;
 		var path;
 		if(file.isKindOf(Param)) {
+			var val, key;
 			self.bufferParam = file;
-			file = BufDef(self.bufferParam.spec.tagSpec.unmapKey(self.bufferParam.get));
+			val = self.bufferParam.get;
+			if(val.isKindOf(Number)) {
+				key = self.bufferParam.spec.tagSpec.unmapKey(val);
+				if(key.notNil) {
+					file = BufDef(key)
+				} {
+					Log(\Param).error("Error: can't retrieve file name for buffer %", self.bufferParam.get);
+					file = nil;
+				}
+			} {
+				file = val;
+			};
 		};
 		if(file.isKindOf(Buffer)) {
 			path = file.path ?? { 
@@ -471,6 +492,8 @@ WindowDef(\soundfileview, (
 
 		// SoundFileView selection is in seconds
 		// can't always use param spec because spec range is not same as buffer duration
+		[startParam, sustainParam, endParam, sf, sf.duration, clock, clock.tempo].debug("makeAccessor");
+		[self.startType, self.sustainType, self.endType].debug("makeAccessor: types");
 		self.sustainType.debug("sustainType");
 		conv = [self.startType, self.sustainType, self.endType].collect({ arg ptype;
 			{ arg pa;
@@ -498,6 +521,8 @@ WindowDef(\soundfileview, (
 			sustain: conv[1].(sustainParam),
 			end: conv[2].(endParam),
 		);
+		[conv[0].(startParam), conv[0].(startParam).get].debug("makeAccessor xxxi");
+		[startParam.get].debug("makeAccessor xxx");
 		self.accessor = conv;
 	},
 

@@ -22,7 +22,7 @@ Spec.add(\lpfr, ControlSpec(0.1,4,\lin));
 	//Ndef(\default).set(\ranges, [0,0,0]);
 	//Ndef(\default).clear;
 
-	Ndef(\lfo1, { SinOsc.kr(2.5).unipolar  });
+	Ndef(\lfo1, { arg freq=2.5; SinOsc.kr(freq).unipolar  });
 	Ndef(\lfo2, { LFPulse.kr(4.5).unipolar  });
 	Ndef(\lfo3, { LFSaw.kr(1.5).unipolar  });
 TagSpecDef(\ParamCombinatorInput).addUnique(\lfo1 -> Ndef(\lfo1));
@@ -54,7 +54,7 @@ Pdef(\param).addHalo(\instrument, \saw)
 	~ev[\lpfr].dump
 	~ev.play
 Pdef(\param).edit
-WindowDef(\ParamCombinator).front(~pc)
+WindowDef(\ParamCombinatorEditor).front(~pc)
 
 (
 	WindowDef(\combi, { arg def, combi;
@@ -456,3 +456,154 @@ Param.trace=true
 Param.trace=false
 (
 )
+
+
+////////////// test with \source
+
+
+	(
+	Pdef(\plop,
+		( 
+			Pdef(\param, DebugPbind()) 
+			<> Pbind(
+				\instrument, \saw,
+				\freq, Pseq([500],inf),
+				\dur, 1,
+				\amp, 0.1
+			) 
+		).trace
+	).play;
+	)
+
+
+(
+Pdef(\part, Pbindef(\plop, 
+	\instrument, \default,
+	\freq, Pseq([400,300],inf),
+	\dur, 1,
+	\amp, 0.1,
+).trace).play;
+);
+
+Pdef(\part).stop
+(
+Pdef(\tes, Pbind( 
+	\instrument, \default,
+	\freq, Pseq([400,300],inf),
+	\dur, 1,
+	\amp, 0.1,
+).trace).play;
+);
+
+(
+Pdef(\tes, Pbind( 
+	\instrument, \default,
+	\freq, ~pc,
+	\dur, 1,
+	\amp, 0.1,
+).trace).play;
+);
+
+Pdef(\tes).stop
+(
+Pdef(\part, Pbindef(\plop, 
+	\instrument, \default,
+	\freq, ~pc,
+	\dur, 1,
+	\amp, 0.1,
+).trace).play;
+);
+
+~p = Param(Pbindef(\plop), \freq -> \source)
+~p.get
+~p.parent.get
+~p.property
+~p.set(~pc)
+~p.set(1)
+~p.inBusMode
+~p.get
+Pdef(\part).play
+Pbindef(\plop).clear
+
+~pc = ParamCombinator(Param(Pbindef(\plop), \freq));
+Pbindef(\plop, \freq, ~pc)
+~pc.edit
+~pc.setBusMode(true)
+Pbindef(\plop).source.at(\freq).source
+
+~s = \bla.asStream;
+~s.next
+~s = ~pc.asStream
+~s = ~pc.streamArg
+
+~pc
+~pc.inputParam.as(Array)
+~pc.inputParam.as(Array).detectIndex{ arg x; x.get == 0 }
+Pdef(\part).play
+~pc.inputParam.getRaw
+~pc.inputParam.at(0).get
+~pc.inputParam.at(0).getRaw
+~pc.inputParam.at(0).getVal
+TagSpecDef(\ParamCombinatorInput_asMap).unmapKey ( ~pc.inputParam.at(0).get )
+~pc.inputParam.setRaw(Ndef(\lfo1).asMap)
+~pc.inputParam.setRaw(nil)
+
+~pc = ParamCombinator(Param(Pdef(\tes), \freq));
+
+
+/////////////
+
+
+(
+Ndef(\lfo1, { arg freq=2.5; SinOsc.kr(freq).unipolar  });
+Ndef(\lfo2, { LFPulse.kr(4.5).unipolar  });
+Ndef(\lfo3, { LFSaw.kr(1.5).unipolar  });
+TagSpecDef(\ParamCombinatorInput).addUnique(\lfo1 -> Ndef(\lfo1));
+TagSpecDef(\ParamCombinatorInput).addUnique(\lfo2 -> Ndef(\lfo2));
+TagSpecDef(\ParamCombinatorInput).addUnique(\lfo3 -> Ndef(\lfo3));
+Pdef(\part, Pbindef(\plop, 
+	\instrument, \default,
+	\freq, Pseq([400,300],inf),
+	\dur, 1,
+	\amp, 0.1,
+).trace).play;
+)
+
+~p = Param(Pbindef(\plop), \freq -> \source)
+~p.get
+~p.parent.get
+~p.property
+~p.set(~pc)
+~p.setRaw(~pc)
+~p.getRaw
+~p.set(1)
+~p.inBusMode
+~p.get
+Pdef(\part).play
+Pbindef(\plop).clear
+
+~pc = ParamCombinator(Param(Pbindef(\plop), \freq));
+Pbindef(\plop, \freq, ~pc)
+~pc.edit
+~pc.setBusMode(true)
+Pbindef(\plop).source.at(\freq).source
+
+~s = \bla.asStream;
+~s.next
+~s = ~pc.asStream
+~s = ~pc.streamArg
+
+~pc
+~pc.inputParam.as(Array)
+~pc.inputParam.as(Array).detectIndex{ arg x; x.get == 0 }
+Pdef(\part).play
+~pc.inputParam.getRaw
+~pc.inputParam.at(0).get
+~pc.inputParam.at(0).getRaw
+~pc.inputParam.at(0).getVal
+TagSpecDef(\ParamCombinatorInput_asMap).unmapKey ( ~pc.inputParam.at(0).get )
+~pc.inputParam.setRaw(Ndef(\lfo1).asMap)
+~pc.inputParam.setRaw(nil)
+
+~pc = ParamCombinator(Param(Pdef(\tes), \freq));
+

@@ -9,7 +9,7 @@ Spec.add(\adsr, XEnvSpec.adsr);
 Spec.add(\env, XEnvSpec.new);
 Spec.add(\lag, ControlSpec(0, 1, 'linear', 0, 0, ""));
 Spec.add(\gain, ControlSpec(0,1,\lin, 0,1));
-Spec.add(\out, TagSpecDef(\BusDef));
+Spec.add(\out, ParamBusSpec(TagSpecDef(\BusDef)));
 Spec.add(\trigger, \unipolar);
 Spec.add(\speed, ControlSpec(-2,2,\lin, 0, 1));
 

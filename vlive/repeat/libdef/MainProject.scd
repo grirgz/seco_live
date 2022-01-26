@@ -296,7 +296,7 @@ WindowDef(\MainProject, { arg def, proj;
 					
 					// FIXME: can't put it near button because MainProject is always on top and overlay menu can't be over it for unknown reason
 					//WindowDef(\MainProjectOverlayMenu).front(proj, view, x, y);
-					WindowDef(\MainProjectOverlayMenu).front(proj);
+					WindowDef(\MainProjectOverlayMenu).frontTop(proj, view, x-200, y);
 				}).maxWidth_(30)
 			),
 			HLayout (
