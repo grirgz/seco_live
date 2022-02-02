@@ -109,8 +109,8 @@ SynthDef(\snitch2, { arg out=0, amp=0.1, gate=1, pan=0, freq2=200;
 Pdef(\snitch, 
 	Pbind(
 		\instrument, \snitch,
-		\note, 0, // default = C3 = 261.626Hz = Do = 60.midicps
-		\octave, 5, // default
+		\note, 0, // default = C4 = 261.626Hz = Do = 60.midicps
+		\octave, 5, // default, octave 0 is 0.midicps = 8.176Hz
 		\dur, 1,
 		\amp, 0.1,
 	),

@@ -62,6 +62,79 @@ ParamArraySpec(\freq).asSpec
 ParamArraySpec(\freq)
 
 
+////////// synth param
+
+~synth = Synth(\default);
+Param(~synth,\freq).edit
+Param(~synth,\freq).get
+~synth.isPlaying
+NodeWatcher.register(~synth)
+PlayerWrapper(~synth).stop
+
+NodeWatcher
+
+(
+WindowDef(\win, { arg def;
+	
+	PlayerWrapper(~synth).asView;
+	//Param(~synth,\freq).asView
+}).front;
+);
+
+
+
+////////// midi mapping
+
+
+(
+Pbindef(\zed2, 
+	\instrument, \default,
+	\degree, Pseq([0,3,1],inf),
+	\dur, 1/8,
+	\amp, 0.1,
+).play;
+);
+
+Pbindef(\zed2).source.at(\degree).quant = 0
+Pdef.defaultQuant = 4
+
+(
+MIDIdef.cc(\cc1, { arg val, channel, deviceId;
+	[ val, channel, deviceId ].debug;
+	//Pbindef(\zed2).source.at(\degree).source = val/4
+	Pbindef(\zed2, \degree, val/4);
+
+
+},51);
+)
+
+(
+MIDIdef.cc(\cc1, { arg val, channel, deviceId;
+	var prox, oldq;
+	[ val, channel, deviceId ].debug;
+	prox = Pbindef(\zed2).source.at(\degree);
+	oldq = prox.quant;
+	prox.quant = 0;
+	prox.source = val/4;
+	prox.quant = oldq;
+	//Pbindef(\zed2, \degree, val/4);
+
+
+},51);
+)
+
+
+Param(Pbindef(\zed2), \degree -> \source, ControlSpec(0,12,\lin,1,0)).midiLearn
+Param(Pbindef(\zed2), \dur -> \source, ControlSpec(0.051,1,\lin,0,1)).midiLearn
+Param(Pbindef(\zed2), \degree -> \source, ControlSpec(0,12,\lin,1,0)).midiUnmap
+Param(Pbindef(\zed2), \degree -> \source, ControlSpec(0,12,\lin,1,0)).midiMapList
+Param(Pbindef(\zed2), \dur -> \source, ControlSpec(0,12,\lin,1,0)).midiMapList
+Param.getMidiMappedParams(49)
+
+Param(Pbindef(\zed2), \degree -> \source, ControlSpec(0,12,\lin,1,0)).midiMap(50)
+
+MIDIdef.trace
+
 /////////////////// test MessageParam
 
 (
@@ -359,4 +432,17 @@ SynthDef(\saw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneA
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
+);
+
+
+////////// button state mapping
+
+ProtoDef(\bla, (hoho:true))
+(
+WindowDef(\win, { arg def;
+	VLayout (
+		Param(Message(ProtoDef(\bla)), \hoho, ParamBoolSpec()).asButton,
+	)
+	
+}).front;
 );

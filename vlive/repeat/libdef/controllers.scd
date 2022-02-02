@@ -1,4 +1,5 @@
 
+"hell".postln;
 (
 ControllerDef(\icon, { arg def, model;
 	var ktl = MKtl('icon', "icon-icontrols");
@@ -31,12 +32,12 @@ ControllerDef(\piano_generic, { arg def, target;
             var midinote = args[1];
             args.debug("generic on");
             playergroup.elAt(midinote).play;
-        });
+        }).fix;
         MIDIdef.noteOff(\piano_off, { arg ... args;
             var midinote = args[1];
             args.debug("generic off");
             playergroup.elAt(midinote).stop;
-        });
+        }).fix;
 }, [ \piano ]);
 
 ControllerDef(\nektar_piano, { arg def, target; 
@@ -46,13 +47,18 @@ ControllerDef(\nektar_piano, { arg def, target;
             var midinote = args[1];
             args.debug("nektar on");
             playergroup.elAt(midinote).play;
-        }, srcID:~nektar_device_id);
+        }, srcID:~nektar_device_id).fix;
         MIDIdef.noteOff(\piano_off, { arg ... args;
             var midinote = args[1];
             args.debug("nektar off");
             playergroup.elAt(midinote).stop;
-        }, srcID:~nektar_device_id);
+        }, srcID:~nektar_device_id).fix;
 }, [ \piano ]);
+
+ControllerDef(\apc40, { arg def, target; 
+	FileSystemProject.loadOnce("libdef/apc.scd");
+	ProtoDef(\apc40).startControl(target);
+}, [ \launchpad ]);
 )
 
 // END

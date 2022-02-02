@@ -47,6 +47,11 @@ TrackTemplateDef(\playerwrapper, (
 		self.proxy.isNil or: { self.proxy.target == nil };
 	},
 
+	clearTrack: { arg self;
+		self.proxy = nil;
+	},
+
+
 	source_: { arg self, val;
 		self.proxy = PlayerWrapper(val);
 		if(self.mixer.notNil and: { self.parentTrack.enableAutoSetOutbus == true }) {
@@ -135,11 +140,15 @@ TrackTemplateDef(\playerwrapper, (
 			self.parentTrack.activeIndex = self.index;
 			if(stopchild.notNil) { stopchild.stopInternal }; // changed message but arrive after deselect
 			self.proxy.play;
+			self.playHook;
 			self.parentTrack.childPlayed;
 			self.changed(\play, self.quant);
 			self.changed(\PlayerWrapper, \userPlayed); // the view put directly the ProtoDef so need to simulate PlayerWrapper
 			self.proxy.doWithQuant {
 				self.changed(\PlayerWrapper, \playing); // the view put directly the ProtoDef so need to simulate PlayerWrapper
+				self.parentTrack.childPlayed({ arg me;
+					me.changed(\PlayerWrapper, \playing); 
+				});
 
 			};
 			// it's not a good design this mean i should do it on every ProtoDef!
@@ -164,6 +173,7 @@ TrackTemplateDef(\playerwrapper, (
 			} {
 				self.proxy.play;
 			};
+			self.resetPlayHook;
 			self.parentTrack.childPlayed;
 			self.changed(\play, self.quant);
 			self.changed(\PlayerWrapper, \playing); 
@@ -178,6 +188,7 @@ TrackTemplateDef(\playerwrapper, (
 		} {
 			self.parentTrack.activeIndex = self.index;
 			self.proxy.playNow;
+			self.playNowHook;
 			self.parentTrack.childPlayed;
 			self.changed(\play, self.quant);
 			self.changed(\PlayerWrapper, \playing); 
@@ -187,17 +198,20 @@ TrackTemplateDef(\playerwrapper, (
 	stop: { arg self;
 		if(self.isEmpty.not) {
 			self.proxy.stop;
+			self.stopHook;
 			self.parentTrack.childStopped;
 			self.changed(\stop, self.quant);
 			self.changed(\PlayerWrapper, \userStopped); 
 			self.proxy.doWithQuant {
 				self.changed(\PlayerWrapper, \stopped); 
+				self.parentTrack.childStopped({ arg me; me.changed(\PlayerWrapper, \stopped) });
 			}
 		};
 	},
 
 	stopNow: { arg self;
 		self.proxy.stopNow;
+		self.stopNowHook;
 		self.parentTrack.childStopped;
 		self.changed(\stop, self.quant);
 		self.changed(\PlayerWrapper, \stopped); 
@@ -270,11 +284,11 @@ TrackTemplateDef(\playerwrapper, (
 TrackTemplateDef(\playertrack, (
 	childClass: { TrackTemplateDef(\playerwrapper) },
 	label: { arg self; 
-		"%: %".format(self.key, if(self.proxy.notNil, { self.proxy.notNil }, { "-" }))
+		"%: playertrack".format(self.index)
 	},
 
 	new: { arg self, parent, index;
-		self = self.copy;
+		self = ProtoClass((parent: self));
 
 		self.index = index.asInteger;
 		self.parentTrack = {parent};
@@ -342,6 +356,16 @@ TrackTemplateDef(\playertrack, (
 		self.children.every({ arg x; x.isNil or: {x.isEmpty} });
 	},
 
+	clearTrack: { arg self;
+		self.children.do({ arg child, idx; 
+			if(child.notNil) {
+				child.clearTrack;
+				self.children[idx] = nil;
+			}
+		});
+	},
+
+
 	source_: { arg self, array;
 		array.collect({ arg val, idx;
 			self.childAt(idx).source = val;
@@ -362,21 +386,29 @@ TrackTemplateDef(\playertrack, (
 
 	play: { arg self;
 		self.activeChild.play;
+		self.playHook;
 	},
 
 	playNow: { arg self;
 		self.activeChild.playNow;
+		self.playNowHook;
 	},
 
 	stopNow: { arg self;
 		self.activeChild.stopNow;
+		self.stopNowHook;
 	},
 
-	childPlayed: { arg self;
+	childPlayed: { arg self, fun;
 		if(self.mixer.notNil) {
 			self.mixer.play;
 		};
-		self.changed(\play, self.quant);
+		self.childPlayedHook(fun);
+		if(fun.notNil) {
+			fun.value(self);
+		} {
+			self.changed(\play, self.quant);
+		}
 	},
 
 	quant: { arg self;
@@ -395,14 +427,20 @@ TrackTemplateDef(\playertrack, (
 
 	stop: { arg self;
 		self.activeChild.stop;
+		self.stopHook;
 		if(self.mixer.notNil) {
 			//self.mixer.stop; // never stop mixers!
 		};
 		self.changed(\stop, self.quant);
 	},
 
-	childStopped: { arg self;
-		self.changed(\stop, self.quant);
+	childStopped: { arg self, fun;
+		self.childStoppedHook(fun);
+		if(fun.notNil) {
+			fun.value(self);
+		} {
+			self.changed(\stop, self.quant);
+		}
 	},
 
 
@@ -465,14 +503,27 @@ TrackTemplateDef(\playertrack, (
 		self.parentTrack.enableAutoSetOutbus;
 	},
 
+	isActive: { arg self;
+		self.parentTrack.activeIndex == self.index;
+	},
+
 	mixer: { arg self;
 		if(self.isMixerEnabled == true) {
 			if(self.parentTrack.mixer.notNil) {
 				self.parentTrack.mixer.tracks[self.index]
 			} {
-				if(self.mixer_obj.isNil) {
+				if(self.mixer_obj.isNil and: {self.isEmpty.not}) {
 					ParamProto.init;
 					self.mixer_obj = ProtoClassDef(\TrackMixerDef).new(self.parentTrack.key+++"."+++self.index);
+					self.mixer_obj[\soloModeHook] = { arg mself, val;
+						// track is soloed, should mute all other tracks
+						// val is true or false
+						self.parentTrack.existingChildren.collect { arg child, idx;
+							if(child !== self and: { child.mixer.notNil}) {
+								child.mixer.muteBySolo(val);
+							}
+						};
+					};
 					self.mixer_obj.define_mixer;
 					self.init_mixer_busses;
 				};
@@ -678,13 +729,19 @@ TrackTemplateDef(\playergrid, (
 
 	edit: { arg self;
 		var wkey = \Grid_ +++ self.key;
+		var editor;
+		if(WindowDef(\customgrid).notNil) {
+			editor = \customgrid;
+		} {
+			editor = \playergrid;
+		};
 		if(WindowDef(wkey).isNil) {
-			WindowDef(wkey, WindowDef(\playergrid)).front(self);
+			WindowDef(wkey, WindowDef(editor)).front(self);
 			{
-				WindowDef(\Grid_ +++ self.key).window.bounds =  Rect(144, 217, 1090, 438);
+				WindowDef(wkey).window.bounds =  Rect(144, 217, 1090, 438);
 			}.defer(1)
 		} {
-			WindowDef(wkey, WindowDef(\playergrid)).front(self);
+			WindowDef(wkey, WindowDef(editor)).front(self);
 		}
 	},
 
@@ -703,6 +760,10 @@ TrackTemplateDef(\playergrid, (
 		self.linePlayers[idx];
 	},
 
+	linePlayerAtOffset: { arg self, idx;
+		self.linePlayerAt(idx + self.gridOffset.y);
+	},
+
 	initFromPresetDir: { arg self, path, force=false;
 		if(self.presetCompileStringSavePath.isNil or: { force == true }) {
 			self.presetCompileStringSavePath = path;
@@ -719,6 +780,27 @@ TrackTemplateDef(\playergrid, (
 	},
 	isMixerEnabled: true,
 	//mixer:nil, // TODO: make a container for child mixers here with handy methods
+
+	selectChild: { arg self, idx;
+		self.activeIndex = idx; // this one is the good one
+	},
+
+	activeIndex_: { arg self, val;
+		self[\activeIndex] = val;
+		self.changed(\activeIndex);
+	},
+
+	isEmpty: { arg self;
+		self.existingChildren.any({ arg x; x.isEmpty.not })
+	},
+
+
+	//// controller
+
+	controller_: { arg self, con;
+		self[\controller] = con;
+		con.startControl(self);
+	},
 
 ));
 

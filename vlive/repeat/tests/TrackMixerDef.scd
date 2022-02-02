@@ -662,3 +662,209 @@ Pdef(\zed,
 		\dur, 1,
 		\amp, 0.1,
 	)
+)
+)
+
+/////////////////////////// solo mute tests
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\out, TrackMixerDef(\bla),
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+)
+
+
+TrackMixerDef(\bla).edit
+
+
+NoteTimeline(\bla).edit
+XNoteTimeline(\xbla).edit
+XNoteTimeline(\xbla).class
+XNoteTimeline(\xbla).keys
+XNoteTimeline(\xbla).parent
+~a = ProtoClass()
+~a.play = { arg self; self.debug("self") }
+~a.play
+
+/// in trackgrid
+
+FileSystemProject.load("libdef/tracks.scd");
+(
+Pdef(\zed1, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([3,5,7],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+);
+Pdef(\zed2, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,2,4],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+);
+Pdef(\zed3, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,0,3,4],inf),
+		\dur, 1/2,
+		\amp, 0.1,
+	)
+);
+Pdef(\zed4, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,2,4]+4,inf),
+		\dur, 1/3,
+		\amp, 0.1,
+	)
+);
+FileSystemProject.loadOnce("libdef/CustomTrackList.scd");
+FileSystemProject.loadOnce("libdef/controllers.scd");
+FileSystemProject.loadOnce("libdef/apc.scd");
+FileSystemProject.loadOnce("libdef/rdngui.scd");
+FileSystemProject.loadOnce("libdef/multifbdel.scd");
+FileSystemProject.loadOnce("libdef/default_specs.scd");
+TrackDef(\mygrid, TrackTemplateDef(\playergrid));
+TrackDef(\mygrid).source = [[Pdef(\zed1)],[Pdef(\zed2)], [Pdef(\zed3)], nil, nil, nil,[Pdef(\zed4)]];
+TrackDef(\mygrid).edit;
+TrackDef(\mygrid).controller = ProtoDef(\apc40); 
+)
+s.volume
+s.makeView
+s.makeGui
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+s.volume.gui
+s.showVolume
+WindowDef(\ServerVolumeEditor).frontTop
+WindowDef(\customgrid).front(TrackDef(\mygrid));
+ProtoDef(\apc40)
+TrackDef(\mygrid).edit
+TrackDef(\mygrid).clear;
+TrackDef(\mygrid).controller
+TrackDef(\mygrid)[\controller_].asCompileString
+TrackDef(\mygrid).elAt(0).mixer.soloMode
+TrackDef(\mygrid).elAt(0).mixer.soloMode = true
+TrackDef(\mygrid).elAt(0).mixer.muteMode
+TrackDef(\mygrid).elAt(0).mixer.muteMode = true
+TrackDef(\mygrid).elAt(1).mixer.soloMode
+TrackDef(\mygrid).elAt(1).mixer.soloMode = true
+TrackDef(\mygrid).elAt(1).mixer.muteMode
+TrackDef(\mygrid).elAt(1).mixer.muteMode = true
+TrackDef(\mygrid).elAt(0).existingChildren
+TrackDef(\mygrid).elAt(0,0).isEmpty
+TrackDef(\mygrid).elAt(1,0).isEmpty
+TrackDef(\mygrid).elAt(0).mixer.edit
+TrackDef(\mygrid).elAt(1).mixer.edit
+(
+WindowDef(\win, { arg def;
+	var options = (showPlay: true);
+	HLayout (
+		TrackDef(\mygrid).elAt(0).mixer.asView(options),
+		TrackDef(\mygrid).elAt(1).mixer.asView(options),
+	)
+	
+}).front;
+);
+
+
+Pdef(\zed1).get(\out)
+Pdef(\zed1).isPlaying
+(
+Pdef(\zed1, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([3,5,7],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+);
+Pdef(\zed2, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,2,4],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+);
+Pdef(\zed3, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,0,3,4],inf),
+		\dur, 1/2,
+		\amp, 0.1,
+	)
+);
+Pdef(\zed4, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,2,4]+4,inf),
+		\dur, 1/3,
+		\amp, 0.1,
+	)
+);
+)
+
+////////////////////////// volume
+
+ParamProto.init;
+WindowDef(\TrackMixerDef_advanced).front(ProtoClassDef(\TrackMixerDef_volume))
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+
+
+///////////
+(
+{
+ (0..10000).inject([List(10000),List(10000)], { arg a, b; (if(b.odd) { a.first } { a.last }).add(b); a })    
+}.bench
+)
+
+(
+{
+ (0..10000).inject([List(),List()], { arg a, b; (if(b.odd) { a.first } { a.last }).add(b); a })    
+}.bench
+)
+
+(
+{
+~even = (0..10000).select(_.even);
+~odd = (0..10000).select(_.odd);    
+}.bench
+)
+
+s.queryAllNodes; // note the Group within the default group (ID 1)
+~g = Group.new;
+Synth(\default, target:~g)
+~g.queryTree({ arg x; x.debug("xxx"); "kjkj".debug })
+
+(
+~g.queryTree({|msg|
+   var i = 1, tabs = 0, dumpFunc;
+   ("XXXNODE TREE Group" + msg[1]).postln;
+   if(msg[2] > 0, {
+       dumpFunc = {|numChildren|
+           tabs = tabs + 1;
+           numChildren.do({
+               i = i + 3;
+               tabs.do({ "   ".post });
+               msg[i].post;
+               (" " ++ msg[i + 2]).postln;
+               if(msg[i + 1] > 0, { dumpFunc.value(msg[i + 1]) });
+           });
+           tabs = tabs - 1;
+       };
+       dumpFunc.value(msg[2]);
+   });
+});
+)
+
+[].select({ arg x; x.odd })
