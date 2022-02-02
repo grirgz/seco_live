@@ -307,3 +307,18 @@ WindowDef(\trackcolumn, (
 	parent: WindowDef(\customgrid).proto,
 
 ))
+
+s.volume.gui
+
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+s.volume.volume = -1
+
+(
+TempoClock.sched(0, {
+	{
+
+	s.volume.volume = -3
+	}.defer
+	
+})
+)

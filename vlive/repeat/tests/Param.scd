@@ -81,6 +81,44 @@ WindowDef(\win, { arg def;
 }).front;
 );
 
+(
+b = s.makeBundle(false, {
+    a = Group.new(s); //create a node object
+    a.register // register before creating on the server
+})
+)
+s.listSendBundle(nil, b)
+
+a.isPlaying
+(
+WindowDef(\win, { arg def;
+	
+	PlayerWrapper(a).asView;
+	//Param(~synth,\freq).asView
+}).front;
+);
+
+(
+b = s.makeBundle(false, {
+    a = Group.new(s); //create a node object
+    a.register // register before creating on the server
+})
+)
+
+Synth(\default, [\freq, 200],target: a)
+
+a.release
+a.stop
+a.ends
+a.isPlaying;
+s.listSendBundle(nil, b); //start the node on the server
+a.isPlaying;
+a.isRunning;
+a.run(false);
+a.isRunning;
+s.freeAll; //free all nodes
+a.isPlaying;
+a.isRunning;
 
 
 ////////// midi mapping
