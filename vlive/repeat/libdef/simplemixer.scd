@@ -19,6 +19,11 @@ ProtoTemplateDef(\simpleMixer, (
 			mix.inbus = BusDef(self.inbusPrefix+++index, \audio, 2);
 			mix.define_mixer;
 			mix.stages[\postdelay] = mix.stages.postfx+1;
+			mix[\soloModeHook] = { arg mixer, val;
+				self.tracks.do { arg track, idx;
+					track.muteBySolo(val);
+				};
+			};
 			mix.proxy.put(mix.stages.postdelay, \filter -> { arg in, postdelay=0;
 				DelayC.ar(in, 0.1, postdelay);
 			});
@@ -58,11 +63,15 @@ ProtoTemplateDef(\simpleMixer, (
 		//}
 	},
 
+	label: { arg self;
+		self.key;
+	},
+
 	edit: { arg self;
 		if(self.key != \simpleMixer) {
-			WindowDef(self.key, WindowDef(\simpleMixer)).front(self);
+			WindowDef(self.key, WindowDef(\simpleMixer_advanced)).front(self);
 		} {
-			WindowDef(\simpleMixer).front(self);
+			WindowDef(\simpleMixer_advanced).front(self);
 		};
 	},
 
@@ -289,6 +298,16 @@ WindowDef(\SimpleMixerOverlayMenu, { arg def, model, view, x=600, y=600;
 }).border_(false);
 //WindowDef(\simpleMixer).front(ProtoDef(\simpleMixer));
 
+WindowDef(\simpleMixer_advanced, { arg def, simpleMixer, options;
+	//var mixers = 9.collect { TrackMixerDef(( \mixer++idx ).asSymbol) };
+	var mixers = simpleMixer.tracks;
+	def.windowName = simpleMixer.label;
+	HLayout (*
+		mixers.collect { arg mixer, idx;
+			mixer.asView((meterMode:\recbus, showDelay:true).putAll(options ?? { () }))
+		} ++ [nil];
+	).margins_(0).spacing_(1)
+});
 
 BusDef(\sendbus0, \audio, 2);
 BusDef(\sendbus1, \audio, 2);

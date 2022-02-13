@@ -1,7 +1,7 @@
 (
 
 ProtoDef(\ButtonSelector, (
-	hiligthColor: ParamViewToolBox.color_dark,
+	hiligthColor: ParamViewToolBox.color_light,
 	offColor: Color.white,
 
 	new: { arg self, action;

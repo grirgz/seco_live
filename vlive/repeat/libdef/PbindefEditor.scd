@@ -423,9 +423,9 @@ WindowDef(\PbindefEditor, (
 
 	hiddenParamList: { arg self;
 		if(self.isNoteTimelineModeEnabled) {
-			self.noteKeys ++ self.sustainKeys
+			self.noteKeys ++ self.sustainKeys ++ (self.customHiddenParamList ?? { [] })
 		} {
-			[]
+			self.customHiddenParamList ?? { [] }
 		}
 	},
 
@@ -528,29 +528,34 @@ WindowDef(\PbindefEditor, (
 					},
 					{ param.spec.isKindOf(ParamBusSpec) }, {
 						val.debug("makeParamView: bus");
-						editorView.layout = HLayout(
-							if(self.isMixerEnabled) {
-								var slider;
-								var stack;
-								var meterout = CompactServerMeterView(nil, 0,2, self.mixer.recbus);
-								meterout.ticksView.minWidth_(6);
-								meterout.orientation_(\horizontal);
-								slider = Slider.new.orientation_(\horizontal).background_(Color.clear);
-								slider.mapParam(self.mixer.getParam(\postfader));
-								stack = StackLayout(
-									slider, 
-									meterout.view,
-								).mode_(\stackAll);
-								[stack, stretch:10];
-							} {
-								[param.asPopUpMenu, stretch:10];
-							},
-							BasicButton.new.string_("...").maxWidth_(60).mouseUpAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
-								[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
-								self.showMixerOverlayMenu(view, x, y);
+						if(param.propertyRoot == \out) {
+							editorView.layout = HLayout(
+								if(self.isMixerEnabled) {
+									var slider;
+									var stack;
+									var meterout = CompactServerMeterView(nil, 0,2, self.mixer.recbus);
+									meterout.ticksView.minWidth_(6);
+									meterout.orientation_(\horizontal);
+									slider = Slider.new.orientation_(\horizontal).background_(Color.clear);
+									slider.mapParam(self.mixer.getParam(\postfader));
+									stack = StackLayout(
+										slider, 
+										meterout.view,
+									).mode_(\stackAll);
+									[stack, stretch:10];
+								} {
+									[param.asPopUpMenu, stretch:10];
+								},
+								BasicButton.new.string_("...").maxWidth_(60).mouseUpAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+									[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+									self.showMixerOverlayMenu(view, x, y);
 
-							})
-						).margins_(0);
+								})
+							).margins_(0);
+						} {
+							innerView = param.asPopUpMenu;
+							editorView.layout = HLayout([ innerView, stretch:10 ]).margins_(0).spacing_(0);
+						};
 						textView.visible = false;
 					},
 					{ val.value.isKindOf(ProtoClass) and: { val.value.eventType == \inlineEnv } }, {
@@ -693,19 +698,21 @@ WindowDef(\PbindefEditor, (
 	},
 
 	updateModulatorView: { arg self;
-		self.modulatorView.removeAll;
-		self.modulatorView.layout = VLayout(
-			* self.modulators.collect { arg mod, idx;
-				HLayout (
-					PlayerWrapperView(mod),
-					BasicButton.new.string_("Edit").action_({
-						WindowDef(\NdefEditor).front(mod);
-					}),
-					//mod.asParamGroup.first.asSlider.orientation_(\horizontal),
-					mod.asParamGroup.first.asView,
-				)
-			}
-		).margins_(0)
+		if(self.modulatorView.notNil) {
+			self.modulatorView.removeAll;
+			self.modulatorView.layout = VLayout(
+				* self.modulators.collect { arg mod, idx;
+					HLayout (
+						PlayerWrapperView(mod),
+						BasicButton.new.string_("Edit").action_({
+							WindowDef(\NdefEditor).front(mod);
+						}),
+						//mod.asParamGroup.first.asSlider.orientation_(\horizontal),
+						mod.asParamGroup.first.asView,
+					)
+				}
+			).margins_(0)
+		}
 	},
 
 	makeParamGroupView: { arg self, pgroup;
@@ -1154,6 +1161,7 @@ WindowDef(\PbindefEditor, (
 		self.customParamList = [
 			Param(self.proxy, \dur),
 		];
+		self.customHiddenParamList = [ ];
 		VLayout (
 			[self.makeInstrView(proxy), stretch:10],
 			self.modulatorView,
@@ -1162,4 +1170,44 @@ WindowDef(\PbindefEditor, (
 
 	},
 ));
+
+WindowDef(\PbindefEditorParams, (
+	parent: WindowDef(\PbindefEditor).proto,
+
+	makeInstrView: { arg self, proxy;
+		var instrparam;
+		var paramlistView = View.new;
+		instrparam = Param( proxy, \instrument -> \source, TagSpecDef(\SynthDef_keys));
+		instrparam.onChange({ arg view, param;
+			self.updateParamGroupView(view, proxy);
+		}, paramlistView);
+		self.instrumentParam = instrparam;
+		self.paramlistView = paramlistView;
+		self.updateParamGroupView(paramlistView, proxy);
+		//paramlistView.layout = self.makeParamGroupView(proxy.asParamGroup);
+		paramlistView;
+	},
+	asView: { arg self, def, proxy;
+		var view;
+		self.proxy = proxy;
+		self.customParamList = [
+			Param(self.proxy, \dur),
+		];
+		view = ScrollView.new.canvas_(
+			View.new.layout_(VLayout (
+				[self.makeInstrView(proxy), stretch:1],
+				[self.makeModulatorView, stretch:0],
+				[self.makeFxView, stretch:10],
+				nil,
+			).margins_(0))
+		).hasBorder_(false);
+
+		view.addUniqueMethod(\showGeneralOverlayMenu, { arg mainview, button, x, y;
+			self.showGeneralOverlayMenu(button, x, y);
+		})
+	},
+
+	
+));
+
 )

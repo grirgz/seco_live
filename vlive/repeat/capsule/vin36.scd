@@ -1,5 +1,8 @@
 // drink milk
+(
 ~t = 185/4/60; TempoClock.default.tempo = ~t;
+~milkratio = ~t * 1/8/(1/12.57);
+);
 
 (
 ~master = {
@@ -12,7 +15,7 @@
 	ProtoDef(\fx2).play;
 };
 ~master.();
-)
+);
 
 
 (
@@ -490,6 +493,123 @@ Pdef(\part3, Pdef(\zed,
 			\lag, 0.0006,
 			\mix, 1,
 			\hpf, 2000,
+			\gain, 4,
+			\out, BusDef(\mixer2, \audio),
+		),
+		
+	])
+)).play;
+);
+
+Pbind(
+	\instrument, \playersec,
+	\bufnum, BufDef('loop/pigs.flac'),
+	\legato, 1,
+	\st, 92.10/4/60,
+	\speed, 1/2 * ~t / Pkey(\st),
+	\pos, Pseg(Pseq([
+		0, 1,
+	],1),2).loop / Pkey(\st),
+	\dur, 1/8,
+	\gain, 1,
+)
+(
+Pdef(\part3, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/drinkmilk.flac'),
+			\speed, ~t * 1/8/(1/12.57),
+			\pos, 0.1 + ( Pseg(Pseq([0,4],1),4/( 16/4 )).loop *(1/12.57*4) ),
+			\pos, 0.1 + ( Pseg(Pseq([8,12],1),4/( 16/4 )).loop *(1/12.57*4) ),
+			\legato, 1,
+			\dur, 1/8,
+			\gain, 1,
+			//\out, BusDef(\mixer2, \audio),
+			\out, BusDef(\fil, \audio),
+		),
+		Pmono(\fx_hpf,
+			\inbus, BusDef(\fil, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0006,
+			\mix, 1,
+			\hpf, 2000,
+			\gain, 4,
+			\out, BusDef(\mixer2, \audio),
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part3, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/drinkmilk.flac'),
+			\speed, ~t * 1/8/(1/12.57),
+			\pos, 0.1,
+			\legato, 1,
+			\dur, 4,
+			\gain, 1,
+			//\out, BusDef(\mixer2, \audio),
+			\out, BusDef(\fil, \audio),
+		),
+		Pmono(\fx_hpf,
+			\inbus, BusDef(\fil, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0006,
+			\mix, 1,
+			\hpf, Pseq([
+				~pmodenv.(Pseq([3100,3200,100,4000],1), 1/4),
+				~pmodenv.(Pseq([3100,1200,1000,1000],1), 1/4),
+				~pmodenv.(Pseq([310,120,100,1000],1), 1/4),
+				~pmodenv.(Pseq([300,3200,100,4000],1), 1/4),
+			],inf).loop,
+			\gain, 4,
+			\dur, 1/2,
+			\out, BusDef(\mixer2, \audio),
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part3, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\gain, Pseq([
+				1,1,1,1, 0,1,1,1,
+				0,0,1,0, 0,1,0,1,
+				1,1,1,1, 0,1,1,1,
+				0,0,1,0, 0,1,0,1,
+				1,0,1,0, 0,1,1,1,
+				0,0,1,1, 1,1,0,1,
+				1,1,1,1, 0,1,1,1,
+				1,0,0,1, 0,1,0,1,
+			],inf),
+		) <> 
+		Pmono( \playersec,
+			\bufnum, BufDef('loop/drinkmilk.flac'),
+			\speed, ~t * 1/8/(1/12.57),
+			\pos, 0.1,
+			\legato, 1,
+			\dur, Pn(1/8,16*2),
+			\out, BusDef(\fil, \audio),
+		).loop,
+		Pmono(\fx_hpf,
+			\inbus, BusDef(\fil, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0006,
+			\mix, 1,
+			\hpf, Pseq([
+				~pmodenv.(Pseq([3100,3200,100,4000],1), 1/4),
+				~pmodenv.(Pseq([3100,1200,1000,1000],1), 1/4),
+				~pmodenv.(Pseq([310,120,100,1000],1), 1/4),
+				~pmodenv.(Pseq([300,3200,100,4000],1), 1/4),
+			],inf).loop,
 			\gain, 4,
 			\out, BusDef(\mixer2, \audio),
 		),
@@ -1104,4 +1224,98 @@ Pdef(\part3, Pdef(\zed,
 		
 	])
 )).play;
+);
+
+
+/////////////////
+
+(
+SynthDef(\bourd, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	lfo1 = SinOsc.ar(freq* [3,1] * 3/5) * EnvGen.kr(\adsr1.kr(Env.adsr(3.1,0.1,0.8,4.1)), gate, doneAction:0);
+	lfo2 = SinOsc.ar( lfo1 * [1,3]  + 1) * EnvGen.kr(\adsr2.kr(Env.adsr(7.1,0.1,0.8,4.1)), gate, doneAction:0);
+	lfo3 = SinOsc.ar( EnvGen.kr(Env([1,8,1]*3,[7.1,0.8]), 1)) * EnvGen.kr(\adsr3.kr(Env.adsr(3.1,0.1,0.8,4.1)), gate, doneAction:0);
+	lfo4 = SinOsc.ar( EnvGen.kr(Env([0,4,12,-12,2].midiratio*freq,[1.1,0.8,1,1.2] * Rand(1/5,3)), 1)) * EnvGen.kr(\adsr4.kr(Env.adsr(3.1,0.1,0.8,4.1)), gate, doneAction:0);
+	sig1 = SinOsc.ar(freq * ( lfo1 * 0.1 + 1 )) * lfo4;
+
+	sig2 = LFSaw.ar(( freq/2 ) * ( lfo2 * 0.1  + 1 )) * lfo3;
+	sig2 = RLPF.ar(sig2, \lpfr.kr(4.1) * freq, \rq.kr(0.5) * ( lfo3 + 1 )) * 0.5;
+
+	sig3 = LFSaw.ar(( freq ) * ( lfo3 * 0.1  + 1 )) * lfo2;
+	sig3 = RLPF.ar(sig3, \lpfr3.kr(4.1) * freq, \rq3.kr(0.5) * ( lfo3 + 1 )) * 0.5;
+
+	sig = [sig1,sig2,sig3].mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part4, Pdef(\bourd, 
+	Ppar([
+		Pbind(
+			\instrument, \bourd,
+			\note, Pseq([
+				7,9,
+			],inf),
+			\octave, 3,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,4.1) ],
+			],inf),
+			\dur, 4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+FileSystemProject.load("libdef/piano.scd")
+(
+Pdef(\melo, 
+	Pbind(
+		\instrument, \default,
+		\freq, Pkey(\midinote).midicps * ~milkratio,
+		//\freq, Pkey(\midinote).midicps,
+	)
+);
+);
+
+Pdef(\melo).stop;
+ProtoDef(\piano).startControl(Pdef(\melo), \post)
+
+
+/////////
+TrackMixerDef(\mixer0).outbus
+
+TagSpecDef(\BusDef).list
+
+(
+WindowDef(\win, { arg def;
+	VLayout (
+		* 18.collect { arg item, idx;
+			PopUpMenu.new.items_(TagSpecDef(\BusDef_object).keyList);
+		
+		};
+	)
+	
+}).front;
+);
+
+(
+WindowDef(\win, { arg def;
+	var model = ();
+	VLayout (
+		* 18.collect { arg item, idx;
+			Param(Message(model), \send+++idx, TagSpecDef(\BusDef_object)).asPopUpMenu;
+			//PopUpMenu.new.items_(TagSpecDef(\BusDef_object).keyList);
+		
+		};
+	)
+	
+}).front;
 );

@@ -322,3 +322,34 @@ TempoClock.sched(0, {
 	
 })
 )
+
+
+//////////
+
+~array = [1,2,3,4,5];
+~array = [6,7,8,9,10];
+
+(
+	Tdef(\getArray, {
+		var data = Prout({loop{ ~array.do(_.yield)}}).asStream;
+		loop{
+			data.next.postln;
+			1.wait;
+		}
+	})
+)
+
+Tdef(\getArray).play;
+~array[0] = 100
+
+(
+	Tdef(\getArray, {
+		var data = Prout({loop{ ~array.size.do { arg idx;
+			~array[idx].yield;
+		}}}).asStream;
+		loop{
+			data.next.postln;
+			1.wait;
+		}
+	})
+)

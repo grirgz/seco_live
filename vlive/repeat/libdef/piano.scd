@@ -3,17 +3,17 @@
 ParamProto.init;
 FileSystemProject.load("lib/piano.scd");
 ProtoDef(\piano, (
-	startControl: { arg self, target;
+	startControl: { arg self, target, chainingMode=\pre;
 		if(target.isNil) {
 			target = Pdef(\piano_player, Pbind(\instrument, \default));
 			MIDIMap(\apk9,Param(Pdef(\piano_player), \amp).setBusMode);
 		};
 		self.pianoTarget = target;
 		if(~apro_device_id.notNil) {
-			self.apro(~seqPlayerGroup.new(target));
+			self.apro(ProtoTemplateDef(\SeqPlayerGroup).new(target, chainingMode));
 		};
 		if(~nektar_device_id.notNil) {
-			self.nektar(~seqPlayerGroup.new(target));
+			self.nektar(ProtoTemplateDef(\SeqPlayerGroup).new(target, chainingMode));
 		};
 		if(~nektar_device_id.isNil and: {~apro_device_id.isNil}) {
 			"unable to find nektar or apro, try init midi".debug;
@@ -90,7 +90,7 @@ ProtoDef(\piano, (
 WindowDef(\pianokeyboard, { arg def, target;
 	var kb = MIDIKeyboardView.new;
 	if(target.notNil) {
-		var player = ~seqPlayerGroup.new(target);
+		var player = ProtoTemplateDef(\SeqPlayerGroup).new(target);
 		kb.keyDownAction = { arg midinote, old;
 			if(old.notNil) {
 				player.elAt(old).stop;

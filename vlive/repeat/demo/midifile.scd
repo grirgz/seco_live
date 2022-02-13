@@ -14,6 +14,10 @@ m = SimpleMIDIFile.read( "~/Téléchargements/Super Mario 64 - Medley.mid" );
 
 ~t = 1; TempoClock.default.tempo = ~t;
 m = SimpleMIDIFile.read( "~/Téléchargements/Super Mario Bros 2 - Mario Dreams.mid" ); 
+
+m = SimpleMIDIFile.read( "~/Téléchargements/mikagrace_kelly.mid" ); 
+
+
 m.tempo
 (
 	TempoClock.default.tempo = m.tempo/60;
@@ -38,7 +42,7 @@ m.tempo
 				prevev[1] = prevev[2];
 				ev = prevev.yield;
 			}).trace,
-			\midinote, Pkey(\midinote) - 12, // one octave lower
+			\midinote, Pkey(\midinote) + 12, // one octave lower
 			\amp, 0.1,
 		)
 	).play
