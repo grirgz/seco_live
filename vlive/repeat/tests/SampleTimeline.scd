@@ -304,9 +304,21 @@ SampleTimelineView.mydraw = { arg xthis;
 
 ParamTimeline(\bli).edit
 
+(
+WindowDef(\win, { arg def;
+	VLayout (
+		View.new.background_(Color.red),
+		View.new.background_(Color.white.lighten(Color.red, 0.2)),
+	)
+}).front;
+);
+
 ~t
 ~t = 185/4/60; TempoClock.default.tempo = ~t;
 ClipTimeline(\test).edit
+ClipTimeline(\grand).edit
+Log(\Param).level =  \debug
+ClipTimeline(\geant).edit
 ClipTimeline(\test).presetCompileString.editorInsert
 (
 ClipTimeline('test').tracks = [ ( 'index': 0, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
