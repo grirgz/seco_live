@@ -184,11 +184,14 @@ Pdef(\fmop).asParamGroup.getPbindCompileString.editorInsert
 FileSystemProject.load("libdef/buttonselector.scd");
 FileSystemProject.load("libdef/pmodenv.scd");
 WavetableDef.addPath("/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/");
+BufDef.addPath("/home/ggz/Musique/sc/wavetable/archwavetable/Architecture Waveforms 2010 Wav24/");
 WavetableDef(\sin, "Classic - Sine/Sine.wav");
+BufDef(\sin, "Classic - Sine/Sine.wav");
 WavetableDef(\square, "Classic - Square/Square1.wav");
 WavetableDef(\triangle, "Classic - Triangle/Triangle Up.wav");
 WavetableDef(\triangle_down, "Classic - Triangle/Triangle Down.wav");
 WavetableDef(\saw, "Classic - Saw/Saw Up.wav");
+BufDef(\saw, "Classic - Saw/Saw Up.wav");
 WavetableDef(\saw_down, "Classic - Saw/Saw Down.wav");
 );
 
@@ -204,12 +207,21 @@ SynthDef(\fmop, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
 	var modfactor = 1/30;
 	var cutoff;
-	var makeEnv = { arg name;
+	var voices = 8;
+	var makeEnv;
+	var ope;
+	var voicetab;
+	voicetab = \voicetab.kr(1!voices);
+	freq = freq * ((0..voices-1)/( voices-1 ) - 0.5 * \fspread.kr(0.1) + 1);
+	freq.debug("freq");
+	makeEnv = { arg name;
 		EnvGen.kr(name.kr( Env.adsr(0.1,0.1,0.8,0.1) ), gate, timeScale:1);
 	};
-	var ope = { arg prefix, ifreq, intab;
+	ope = { arg prefix, ifreq, intab;
 		var isig;
-		isig = Osc.ar(( prefix+++\wavetable ).kr(0), freq * (prefix+++\ratio).kr(1) + (prefix+++\offset).kr(0) * ( ( intab * (prefix+++\modamptab).kr(0!modcount) * modfactor ).sum + 1 ) );
+		isig = Osc.ar(( prefix+++\wavetable ).kr(0), freq * (prefix+++\ratio).kr(1) + (prefix+++\offset).kr(0) * ( ( intab * (prefix+++\modamptab).kr(0!modcount).linexp(0,1,0.01,1000) * modfactor ).sum + 1 ) ) * voicetab;
+		isig = isig.mean;
+		isig.debug("isig");
 		isig = isig * EnvGen.kr((prefix+++\env).kr( Env.adsr(0.1,0.1,0.8,0.1) ), gate, timeScale:1);
 		isig;
 	};
@@ -276,7 +288,8 @@ WindowDef(\opmatrix, { arg def, proxy;
 	var modcount = opcount+2;
 	var opprefix = \op;
 	var nbwidth = 40;
-	var modampspec = ParamArraySpec( ControlSpec(0,1,\lin,0,0)!modcount );
+	var modampspec;
+	modampspec = ParamArraySpec( ControlSpec(0,1,\lin,0,0)!modcount );
 	VLayout(
 		* opcount.collect { arg xidx;
 			var key = "%%_modamptab".format(opprefix, xidx).asSymbol;
@@ -330,162 +343,188 @@ WindowDef(\opmatrix, { arg def, proxy;
 
 
 (
-	WindowDef(\fmop_adv, (
-		makeOpLayout: { arg self, idx;
-			var proxy = self.proxy;
-			var pre = self.opprefix +++ idx +++ "_";
-			var modampspec = self.modampspec;
-			ParamGroup([
+WindowDef(\fmop_adv, (
+	makeOpLayout: { arg self, idx;
+		var proxy = self.proxy;
+		var pre = self.opprefix +++ idx +++ "_";
+		var modampspec = self.modampspec;
+		ParamGroup([
 
-				Param(proxy, \amptab, ParamArraySpec( ControlSpec(0,1,\lin,0,0)!self.modcount )).at(idx),
-				Param(proxy, pre+++\wavetable, TagSpecDef(\WavetableDef_object)),
-				Param(proxy, pre+++\ratio, ControlSpec(1/4,4,\lin)),
-				Param(proxy, pre+++\offset, \widefreq),
+			Param(proxy, \amptab, ParamArraySpec( ControlSpec(0,1,\lin,0,0)!self.modcount )).at(idx),
+			Param(proxy, pre+++\wavetable, TagSpecDef(\WavetableDef_object)),
+			Param(proxy, pre+++\ratio, ControlSpec(1/4,4,\lin)),
+			Param(proxy, pre+++\offset, \widefreq),
 
-				Param(proxy, pre+++\modamptab, modampspec),
-				Param(proxy, pre+++\env, ParamEnvSpec.adsr),
-			]).asView;
-		},
-		makeNoiseLayout: { arg self;
-			var proxy = self.proxy;
-			var modampspec = ParamArraySpec( ControlSpec(0,1,\lin,0,0)!self.modcount );
-			var pgroup = ParamGroup([
+			Param(proxy, pre+++\modamptab, modampspec),
+			Param(proxy, pre+++\env, ParamEnvSpec.adsr),
+		]).asView;
+	},
+	makeNoiseLayout: { arg self;
+		var proxy = self.proxy;
+		var modampspec = self.modampspec;
+		var pgroup = ParamGroup([
 
-				Param(proxy, \amptab, ParamArraySpec( ControlSpec(0,1,\lin,0,0)!self.modcount )).at(self.opcount),
-				Param(proxy, \noise_cutoff, \freq),
-				Param(proxy, \noise_amp, \amp),
-				Param(proxy, \noise_res, \amp),
+			Param(proxy, \amptab, ParamArraySpec( ControlSpec(0,1,\lin,0,0)!self.modcount )).at(self.opcount),
+			Param(proxy, \noise_cutoff, \freq),
+			Param(proxy, \noise_amp, \amp),
+			Param(proxy, \noise_res, \amp),
 
-				Param(proxy, \dist_gain, ControlSpec(0,4,\lin,0,1)),
-				Param(proxy, \dist_level, \unipolar),
-				Param(proxy, \dist_asym, \unipolar),
+			Param(proxy, \dist_gain, ControlSpec(0,4,\lin,0,1)),
+			Param(proxy, \dist_level, \unipolar),
+			Param(proxy, \dist_asym, \unipolar),
 
-				Param(proxy, \noise_modamptab, modampspec),
-				Param(proxy, \noise_env, ParamEnvSpec.adsr),
-			]);
-			VLayout (
-				*pgroup.collect { arg item, idx;
-					ParamGroupLayout.formEntry(item)
-				};
-			);
-		},
-		makeFilterLayout: { arg self;
-			var proxy = self.proxy;
-			var modampspec = self.modampspec;
-			var pgroup = ParamGroup([
+			Param(proxy, \noise_modamptab, modampspec),
+			Param(proxy, \noise_env, ParamEnvSpec.adsr),
+		]);
+		VLayout (
+			*pgroup.collect { arg item, idx;
+				ParamGroupLayout.formEntry(item)
+			};
+		);
+	},
+	makeFilterLayout: { arg self;
+		var proxy = self.proxy;
+		var modampspec = self.modampspec;
+		var pgroup = ParamGroup([
 
-				Param(proxy, \amptab, ParamArraySpec( ControlSpec(0,1,\lin,0,0)!self.modcount )).at(self.opcount+1),
-				Param(proxy, \filter_cutoff, ControlSpec(0,4,\lin)),
-				Param(proxy, \filter_spread, \unipolar),
-				Param(proxy, \filter_res1, \amp),
-				Param(proxy, \filter_type1, \unipolar),
-				Param(proxy, \filter_res2, \amp),
-				Param(proxy, \filter_type2, \unipolar),
-				Param(proxy, \filter_mix, \unipolar),
-				Param(proxy, \filter_seq, \unipolar),
+			Param(proxy, \amptab, ParamArraySpec( ControlSpec(0,1,\lin,0,0)!self.modcount )).at(self.opcount+1),
+			Param(proxy, \filter_cutoff, ControlSpec(0,4,\lin)),
+			Param(proxy, \filter_spread, \unipolar),
+			Param(proxy, \filter_res1, \amp),
+			Param(proxy, \filter_type1, \unipolar),
+			Param(proxy, \filter_res2, \amp),
+			Param(proxy, \filter_type2, \unipolar),
+			Param(proxy, \filter_mix, \unipolar),
+			Param(proxy, \filter_seq, \unipolar),
 
-				Param(proxy, \filter_modamptab, modampspec),
-				Param(proxy, \filter_env, ParamEnvSpec.adsr),
-				Param(proxy, \filter_envamt, \bipolar),
-			]);
-			VLayout (
-				*pgroup.collect { arg item, idx;
-					ParamGroupLayout.formEntry(item)
-				};
-			);
-		},
-		makeMasterLayout: { arg self;
-			var proxy = self.proxy;
-			var modampspec = self.modampspec;
-			var pgroup = ParamGroup([
+			Param(proxy, \filter_modamptab, modampspec),
+			Param(proxy, \filter_env, ParamEnvSpec.adsr),
+			Param(proxy, \filter_envamt, \bipolar),
+		]);
+		VLayout (
+			*pgroup.collect { arg item, idx;
+				ParamGroupLayout.formEntry(item)
+			};
+		);
+	},
+	makeMasterLayout: { arg self;
+		var proxy = self.proxy;
+		var modampspec = self.modampspec;
+		var pgroup = ParamGroup([
 
-				Param(proxy, \amp),
+			Param(proxy, \out),
+			Param(proxy, \amp),
 
-				Param(proxy, \adsr),
-				//Param(proxy, pre+++\env, ParamEnvSpec.adsr),
-			]);
-			VLayout (
-				*pgroup.collect { arg item, idx;
-					ParamGroupLayout.formEntry(item)
-				};
-			);
-		},
-		asView: { arg self, def, proxy;
-			var opcount = 6;
-			var opprefix = \op;
-			var butsel;
-			var ratio_knob, offset_knob, amp_knob;
-			var fb_mslider, fb_text;
-			var opadsr_env, opadsr_text;
-			var lay;
-			var makeKnob;
-			var wavepopup = PopUpMenu.new;
-			var layout_selector;
-			var editor_view = View.new;
-			var matrix_view = WindowDef(\opmatrix).asView(proxy);
+			Param(proxy, \adsr),
+			Param(proxy, \fspread, \unipolar),
+			Param(proxy, \voicetab, ParamArraySpec(\unipolar)),
+			//Param(proxy, pre+++\env, ParamEnvSpec.adsr),
+		]);
+		VLayout (
+			*pgroup.collect { arg item, idx;
+				ParamGroupLayout.formEntry(item)
+			};
+		);
+	},
 
-			self.proxy = proxy;
-			self.opprefix = opprefix;
-			self.opcount = opcount;
-			self.modcount = opcount + 2;
-			self.modampspec = ParamArraySpec( ControlSpec(0,1,\lin,0,0)!self.modcount );
-
-			butsel = ProtoDef(\ButtonSelector).new({ arg selector, idx;
-				var pre = opprefix +++ idx +++ "_";
-
-				editor_view.removeAll;
-				case(
-					{ idx < opcount }, {
-						editor_view.layout = self.makeOpLayout(idx);
-					},
-					{ idx == opcount }, {
-						editor_view.layout = self.makeNoiseLayout;
-					},
-					{ idx == ( opcount+1 ) }, {
-						editor_view.layout = self.makeFilterLayout;
-					},
-					{ idx == ( opcount+2 ) }, {
-						editor_view.layout = self.makeMasterLayout;
-					}, {
-						
-					}
-				);
-
-			});
-
-			layout_selector = VLayout (
-				* ( opcount.collect({ arg idx; 
-					butsel.makeButton.string_("op %".format(idx)).minWidth_(30) 
-				}) ++ [
-					butsel.makeButton.string_("noise").minWidth_(40),
-					butsel.makeButton.string_("filter").minWidth_(40),
-				] ).clump(2).collect({ arg pair;
-					HLayout (
-						*pair
-					)
-				}) ++ [
-					butsel.makeButton.string_("master"),
-					nil
-				]
-			);
-			lay = VLayout(
-				
-				HLayout(
-					PlayerWrapper(proxy),
-				),
+	makeOpOverviewLayout: { arg self;
+		var proxy = self.proxy;
+		var modampspec = self.modampspec;
+		VLayout (
+			* self.opcount.collect { arg idx;
+				var pre = self.opprefix +++ idx +++ "_";
 				HLayout (
-
-					layout_selector,
-					[ editor_view, stretch:10 ],
-					[matrix_view, stretch:0],
-				),
-			);
-			butsel.selectButton(0);
-			lay;
-
-		},
+					
+					StaticText.new.string_(idx.asString),
+					Param(proxy, pre+++\ratio).asTextField,
+					Param(proxy, pre+++\offset).asTextField,
+					Param(proxy, pre+++\wavetable, ParamWavetableSpec().tagSpec_(TagSpecDef(\WavetableDef_object))).asPopUpMenu,
+				)
+			} ++ [nil];
+		)
 		
-	)).front(Pdef(\fmop));
+	},
+
+	asView: { arg self, def, proxy;
+		var opcount = 6;
+		var opprefix = \op;
+		var butsel;
+		var ratio_knob, offset_knob, amp_knob;
+		var fb_mslider, fb_text;
+		var opadsr_env, opadsr_text;
+		var lay;
+		var makeKnob;
+		var wavepopup = PopUpMenu.new;
+		var layout_selector;
+		var editor_view = View.new;
+		var matrix_view = WindowDef(\opmatrix).asView(proxy);
+
+		self.proxy = proxy;
+		self.opprefix = opprefix;
+		self.opcount = opcount;
+		self.modcount = opcount + 2;
+		self.modampspec = ParamArraySpec( ControlSpec(0,1,\lin,0,0)!self.modcount );
+
+		butsel = ProtoDef(\ButtonSelector).new({ arg selector, idx;
+			var pre = opprefix +++ idx +++ "_";
+
+			editor_view.removeAll;
+			case(
+				{ idx < opcount }, {
+					editor_view.layout = self.makeOpLayout(idx);
+				},
+				{ idx == opcount }, {
+					editor_view.layout = self.makeNoiseLayout;
+				},
+				{ idx == ( opcount+1 ) }, {
+					editor_view.layout = self.makeFilterLayout;
+				},
+				{ idx == ( opcount+2 ) }, {
+					editor_view.layout = self.makeOpOverviewLayout;
+				},
+				{ idx == ( opcount+3 ) }, {
+					editor_view.layout = self.makeMasterLayout;
+				}, {
+					
+				}
+			);
+
+		});
+
+		layout_selector = VLayout (
+			* ( opcount.collect({ arg idx; 
+				butsel.makeButton.string_("op %".format(idx)).minWidth_(30) 
+			}) ++ [
+				butsel.makeButton.string_("noise").minWidth_(40),
+				butsel.makeButton.string_("filter").minWidth_(40),
+			] ).clump(2).collect({ arg pair;
+				HLayout (
+					*pair
+				)
+			}) ++ [
+				butsel.makeButton.string_("ops"),
+				butsel.makeButton.string_("master"),
+				nil
+			]
+		);
+		lay = VLayout(
+			
+			HLayout(
+				PlayerWrapper(proxy),
+			),
+			HLayout (
+
+				layout_selector,
+				[ editor_view, stretch:10 ],
+				[matrix_view, stretch:0],
+			),
+		);
+		butsel.selectButton(0);
+		lay;
+
+	},
+	
+)).front(Pdef(\fmop));
 );
 
 ///////// controller
@@ -503,6 +542,49 @@ Pdef(\fmop).clear
 Pdef(\fmop).envir.clear
 
 
+BufDef(\amen, "vipere/amenbreak.wav");
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/pigs.flac'),
+			\legato, 1,
+			\st, 92.10/4/60,
+			\speed, 1/2 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 1,
+			],1),2).loop / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\out, BusDef(\mixer2, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('voices/feynman.flac'),
+			\dur, 1,
+			\gain, 1,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\out, BusDef(\mixer2, \audio),
+		)
+		
+	])
+)).play;
+);
+BufDef(\moeten, "voices/02_moeten.flac")
+BufDef(\crepe, "field/crepe.flac");
+BufDef(\oeuf, "field/oeuf.flac");
+BufDef(\ukraine, "bruit1/07_ukraine.flac");
+BufDef(\table, "field/table.flac");
+BufDef(\scream, "vipere/scream.flac");
+BufDef(\rocksteady, "vipere/rocksteady.flac");
+BufDef(\metal, "vipere/metal.flac");
+BufDef(\bomb, "vipere/bomb.flac");
 
 
 (
@@ -790,6 +872,71 @@ ParamGroup([
 
 Pdef(\fmop).asParamGroup.getParamCompileString.editorInsert
 (
+	// fm8 wooden plates
+Param(Pdef('fmop'), 'dur').set(1.0);
+Param(Pdef('fmop'), 'legato').set(0.8);
+Param(Pdef('fmop'), 'out').set(0);
+Param(Pdef('fmop'), 'amp').set(0.17063355794154);
+Param(Pdef('fmop'), 'pan').set(0.0);
+Param(Pdef('fmop'), 'freq').set(261.6255653006);
+Param(Pdef('fmop'), 'voicetab').set([ 1.0, 0.31818181276321, 0.0, 0.35795453190804, 0.0, 0.96590906381607, 0.95454543828964, 1.0 ]);
+Param(Pdef('fmop'), 'fspread').set(0.0047846889952153);
+Param(Pdef('fmop'), 'op0_wavetable').set(WavetableDef('sin'));
+Param(Pdef('fmop'), 'op0_ratio').set(10.0016);
+Param(Pdef('fmop'), 'op0_offset').set(1.3);
+Param(Pdef('fmop'), 'op0_modamptab').set([ 0.8, 0.61, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]);
+Param(Pdef('fmop'), 'op0_env').set(Env([ 0.0, 1.0, 0.0, 0.0 ], [ 0.0, 0.045169397917491, 0.20451709655215 ], [ -4, -3.9, -5.6 ]));
+Param(Pdef('fmop'), 'op1_wavetable').set(WavetableDef('sin'));
+Param(Pdef('fmop'), 'op1_ratio').set(1.0);
+Param(Pdef('fmop'), 'op1_offset').set(0);
+Param(Pdef('fmop'), 'op1_modamptab').set([ 100, 0, 0.51, 0, 0, 0, 0, 0 ]);
+Param(Pdef('fmop'), 'op1_env').set(Env([ 0, 1, 0, 0 ], [ 0, 2, 0.146801 ], [ -4, -17, -28.7 ]));
+Param(Pdef('fmop'), 'op2_wavetable').set(WavetableDef('sin'));
+Param(Pdef('fmop'), 'op2_ratio').set(5);
+Param(Pdef('fmop'), 'op2_offset').set(0);
+Param(Pdef('fmop'), 'op2_modamptab').set([ 0.0, 0.61, 0.0, 0.91, 0.0, 0.0, 0.0, 0.0 ]);
+Param(Pdef('fmop'), 'op2_env').set(Env([ 0.0, 1.0, 0.0, 0.0 ], [ 0.0, 0.070263490080833, 0.17942315340042 ], [ -4, -3.9, -5.6 ]));
+Param(Pdef('fmop'), 'op3_wavetable').set(WavetableDef('sin'));
+Param(Pdef('fmop'), 'op3_ratio').set(2.0003);
+Param(Pdef('fmop'), 'op3_offset').set(0.26);
+Param(Pdef('fmop'), 'op3_modamptab').set([ 2.71, 2.61, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]);
+Param(Pdef('fmop'), 'op3_env').set(Env([ 0, 1, 0, 0 ], [ 0, 1.253199, 0.146801 ], [ -4, -14.3, -18.7 ]));
+Param(Pdef('fmop'), 'op4_wavetable').set(WavetableDef('sin'));
+Param(Pdef('fmop'), 'op4_ratio').set(0);
+Param(Pdef('fmop'), 'op4_offset').set(3020);
+Param(Pdef('fmop'), 'op4_modamptab').set([ 0.0, 0.0, 0.0, 0.61, 4.91, 0.0, 0.0, 0.0 ]);
+Param(Pdef('fmop'), 'op4_env').set(Env([ 0.0, 1.0, 0.0, 0.0 ], [ 0.0, 0.20451694797056, 0.045169546499082 ], [ -4, -3.9, -5.6 ]));
+Param(Pdef('fmop'), 'op5_wavetable').set(WavetableDef('sin'));
+Param(Pdef('fmop'), 'op5_ratio').set(4);
+Param(Pdef('fmop'), 'op5_offset').set(0.0);
+Param(Pdef('fmop'), 'op5_modamptab').set([ 0.0, 0.0, 0.0, 0.0, 4.31, 0.01, 0.0, 0.0 ]);
+Param(Pdef('fmop'), 'op5_env').set(Env([ 0, 1, 0.0469799, 0 ], [ 0, 0.706465, 0.440336 ], [ -4, -8.3, -1.7 ]));
+Param(Pdef('fmop'), 'noise_amp').set(0.0);
+Param(Pdef('fmop'), 'noise_cutoff').set(650.31948984895);
+Param(Pdef('fmop'), 'noise_res').set(0.13169875130073);
+Param(Pdef('fmop'), 'noise_modamptab').set([ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]);
+Param(Pdef('fmop'), 'dist_gain').set(4.0);
+Param(Pdef('fmop'), 'dist_level').set(0.57661290322581);
+Param(Pdef('fmop'), 'dist_asym').set(0.72983870967742);
+Param(Pdef('fmop'), 'noise_env').set([ 0.0, 3.0, 2.0, -99.0, 1.0, 0.10000000149012, 5.0, -4.0, 0.80000001192093, 0.10000000149012, 5.0, -4.0, 0.0, 0.10000000149012, 5.0, -4.0 ]);
+Param(Pdef('fmop'), 'filter_modamptab').set([ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]);
+Param(Pdef('fmop'), 'filter_cutoff').set(1.0322580645161);
+Param(Pdef('fmop'), 'filter_env').set(Env([ 0, 0.4, 0.23, 0 ], [ 1.6, 2.28, 2.29 ], [ 0.5, -6.1, -4 ], 2));
+Param(Pdef('fmop'), 'filter_envamt').set(0.45967741935484);
+Param(Pdef('fmop'), 'filter_res1').set(0.89028355879292);
+Param(Pdef('fmop'), 'filter_type1').set(0.0);
+Param(Pdef('fmop'), 'filter_seq').set(1.0);
+Param(Pdef('fmop'), 'filter_spread').set(0.125);
+Param(Pdef('fmop'), 'filter_res2').set(0.12591050988554);
+Param(Pdef('fmop'), 'filter_type2').set(0.0);
+Param(Pdef('fmop'), 'filter_mix').set(0.0);
+Param(Pdef('fmop'), 'amptab').set([ 0.0, 0.6, 0.0, 0.3, 0.0, 1.0, 0.0, 0.0 ]);
+Param(Pdef('fmop'), 'pantab').set([ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]);
+Param(Pdef('fmop'), 'adsr').set(Env([ 0.0, 1.0, 1.0, 0.0 ], [ 0.0, 0.0, 0.40150566524364 ], [ -4, -4, 7.0 ]));
+
+);
+
+(
 	// this is FM8 "08-15" patch
 Param(Pdef('fmop'), 'dur').set(1.0);
 Param(Pdef('fmop'), 'legato').set(0.8);
@@ -850,5 +997,264 @@ Param(Pdef('fmop'), 'pantab').set([ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ]);
 Param(Pdef('fmop'), 'adsr').set(Env([ 0, 1, 1, 0 ], [ 0, 0.28134, 0.866 ], [ -4, -4, 0.1 ], 2));
 
 );
+
+
+//////////
+
+BLBufRd
+OSFold8
+
+
+(
+SynthDef(\bufrd, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, bufnum;
+	var sig;
+	var phase;
+	// for freq = 1, we should read the 2048 samples of buffer in one second
+	// 1 second is 44100 samples
+	// rate = 2048/44100
+	phase = Phasor.ar(1, BufFrames.kr(bufnum)/SampleRate.ir * freq,0,BufFrames.kr(bufnum));
+	sig = BufRd.ar(1, bufnum, phase);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
+SynthDef(\blbufrd, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, bufnum;
+	var sig;
+	var phase;
+	// for freq = 1, we should read the 2048 samples of buffer in one second
+	// 1 second is 44100 samples
+	// rate = 2048/44100
+	phase = Phasor.ar(1, BufFrames.kr(bufnum)/SampleRate.ir * freq,0,BufFrames.kr(bufnum));
+	//sig = BLBufRd.ar(bufnum, phase, 1);
+	//sig = BLBufRd.ar(bufnum, phase, freq.poll);
+	//sig = BLBufRd.ar(bufnum, phase, MouseY.kr(0.6,10000, \exponential).poll);
+	sig = BLBufRd.ar(bufnum, phase, 2500)*5;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
+SynthDef(\sin, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
+
+SynthDef(\lfsaw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = LFSaw.ar(freq);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
+SynthDef(\saw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = Saw.ar(freq);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
+SynthDef(\osc, { arg out=0, bufnum, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = Osc.ar(bufnum, freq);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
+
+);
+440.cpsmidi.midiratio
+440.cpsmidi
+( 12*8 ).midiratio
+12*8
+
+BufDef(\sin, )
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \blbufrd,
+		\bufnum, BufDef(\sin),
+		\degree, Pseq([0, 4,2,1,],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \sin,
+		\degree, Pseq([0, 4,2,1,],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+//////// test aliasing saw
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \osc,
+		\bufnum, WavetableDef(\saw),
+		//\degree, Pseq([0, 4,2,1,],inf),
+		\freq, Ndef(\mousex, { MouseX.kr(80,20000, \exponential).poll }).asMap,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \bufrd,
+		\bufnum, BufDef(\saw),
+		//\degree, Pseq([0, 4,2,1,],inf),
+		\freq, Ndef(\mousex, { MouseX.kr(80,20000, \exponential).poll }).asMap,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \blbufrd,
+		\bufnum, BufDef(\saw),
+		//\degree, Pseq([0, 4,2,1,],inf),
+		\freq, Ndef(\mousex, { MouseX.kr(80,20000, \exponential).poll }).asMap,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \saw,
+		//\degree, Pseq([0, 4,2,1,],inf),
+		\freq, Ndef(\mousex, { MouseX.kr(80,20000, \exponential).poll }).asMap,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \lfsaw,
+		//\degree, Pseq([0, 4,2,1,],inf),
+		\freq, Ndef(\mousex, { MouseX.kr(80,20000, \exponential).poll }).asMap,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+/////////////// test aliasing saw fixed freq
+~mf = 70;
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \bufrd,
+		\bufnum, BufDef(\saw),
+		//\degree, Pseq([0, 4,2,1,],inf),
+		//\freq, Ndef(\mousex, { MouseX.kr(80,20000, \exponential).poll }).asMap,
+		\freq, ~mf,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \blbufrd,
+		\bufnum, BufDef(\saw),
+		//\degree, Pseq([0, 4,2,1,],inf),
+		//\freq, Ndef(\mousex, { MouseX.kr(80,20000, \exponential).poll }).asMap,
+		\freq, ~mf,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \saw,
+		//\degree, Pseq([0, 4,2,1,],inf),
+		//\freq, Ndef(\mousex, { MouseX.kr(80,20000, \exponential).poll }).asMap,
+		\freq, ~mf,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+//////// test aliasing sin
+
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \bufrd,
+		\bufnum, BufDef(\sin),
+		//\degree, Pseq([0, 4,2,1,],inf),
+		\freq, Ndef(\mousex, { MouseX.kr(80,20000, \exponential).poll }).asMap,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \blbufrd,
+		\bufnum, BufDef(\sin),
+		//\degree, Pseq([0, 4,2,1,],inf),
+		\freq, Ndef(\mousex, { MouseX.kr(80,20000, \exponential).poll }).asMap,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \sin,
+		//\degree, Pseq([0, 4,2,1,],inf),
+		\freq, Ndef(\mousex, { MouseX.kr(80,20000, \exponential).poll }).asMap,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+
+/////////////////
+
+
+~parent = (bla:30)
+currentEnvironment.parent = (bla:50)
+~bla
+
 
 

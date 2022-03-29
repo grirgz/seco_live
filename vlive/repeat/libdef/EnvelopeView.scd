@@ -1,4 +1,5 @@
 
+// now integrated in FixedEnvelopeView class with setMouseHooks
 (
 WindowDef(\win, { arg def;
 	var env = Env.adsr(0.1,0.1,0.8,0.1);

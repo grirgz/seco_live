@@ -389,9 +389,12 @@ WindowDef(\MainProjectOverlayMenu, { arg def, model, view, x=600, y=600;
 			BasicButton.new.string_("mainTimeline").action_({
 				ClipTimeline(\mainTimeline).edit
 			}),
-			BasicButton.new.string_("simpleMixer").action_({
-				ProtoDef(\simpleMixer).edit
-			}),
+			HLayout (
+				BasicButton.new.string_("simpleMixer").action_({
+					ProtoDef(\simpleMixer).edit
+				}),
+				PlayerWrapperView(ProtoDef(\fxMixer)).rightClickEditorEnabled_(true)
+			),
 			BasicButton.new.string_("Fx").action_({
 				WindowDef(\FxManager).front
 			}),

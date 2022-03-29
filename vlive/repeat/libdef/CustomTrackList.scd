@@ -900,6 +900,51 @@ TrackTemplateDef(\NoteTimelineTrackPart, (
 TagSpecDef(\CustomTrackTemplate).addUnique(\NoteTimelineTrack -> TrackTemplateDef(\NoteTimelineTrack));
 );
 
+(
+TrackTemplateDef(\SampleTimelineTrack, (
+	parent: TrackTemplateDef(\CustomInstrumentTrack),
+	childClass: { TrackTemplateDef(\SampleTimelineTrackPart) },
+
+	asParamGroup: { arg self;
+		self.source.asParamGroup;
+	},
+	trackEditor: { arg self;
+		//WindowDef(\PdefInstrumentEditor);
+		WindowDef(\SampleTimelineTrackEditor, { arg def;
+			VLayout (
+				Param(Message(self),\recBus,ParamAudioBusSpec()).asView,
+				nil
+			);
+		}).front;
+	},
+
+
+	makeScore: { arg self;
+		//self[\source] = Pdef("%.%.instr".format(self.key, self.index).asSymbol, Pbind());
+		self.isEmpty = false;
+	},
+));
+TrackTemplateDef(\SampleTimelineTrackPart, (
+	parent: TrackTemplateDef(\CustomInstrumentTrackPart),
+	edit: { arg self;
+		self.score.edit;
+	},
+
+	outBus: { arg self, val;
+		self.score.outBus = val;
+		
+	},
+	makeScore: { arg self;
+		self.proxy.debug("makeScore proxy start");
+		self[\score] = SampleTimeline(self.name+++\score);
+		self[\score].recorder.recBus = self.parentTrack.recBus ?? { self[\score].recorder.recBus  };
+		self.proxy = PlayerWrapper(self.score);
+		self.proxy.debug("makeScore proxy end");
+	}
+));
+
+TagSpecDef(\CustomTrackTemplate).addUnique(\SampleTimelineTrack -> TrackTemplateDef(\SampleTimelineTrack));
+);
 
 
 (

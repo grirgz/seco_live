@@ -103,6 +103,7 @@ ProtoDef(\RecordFactory, (
 			self.monitorProxy.source = Pmono(
 				 \RecordFactoryPlayer,
 				\inbus, self.recBus,
+				\dur, 1/4,
 				\gain, Pfunc({ self.playGain }),
 			);
 			self.monitorProxy.play;
@@ -164,7 +165,7 @@ ProtoDef(\RecordFactory, (
 	},
 
 ));
-)
+);
 
 (
 WindowDef(\RecordFactory, { arg def, model;

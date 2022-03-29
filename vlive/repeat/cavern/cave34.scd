@@ -104,7 +104,7 @@ Pdef(\himelo,
 );
 
 NoteTimeline(\himelo, Pdef(\himelo));
-NoteTimeline(\himelo).edit
+//NoteTimeline(\himelo).edit
 
 NoteTimeline('himelo').eventList = TimelineEventList.newFrom([
 	(\absTime: 0.0, \dur: 0.125, \label: 'start', \playDur: 0.125, \relDur: 0.125, \sustain: 0, \type: 'start', ),

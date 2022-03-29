@@ -133,3 +133,238 @@ MIDIdef.noteOff(\piano_off, { arg velocity, noteNum, channel, deviceId;
 )
 
 Bus.control
+
+[1,1,1,1].plot
+
+({ 1.0.rand }!4).plot
+
+[0,3,1,2].plot
+
+
+
+
+///////////
+
+(
+SynthDef(\tone, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, atone=1, utone=1;
+	var sig;
+	sig = SinOsc.ar(freq * atone / utone);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+	~mintime = 0.05;
+	~time = TempoClock.default.beats;
+Tdef(\utone, {
+	var pat = Prand((1..9),inf).asStream;
+	loop {
+		0.3.wait;
+		if(TempoClock.default.beats - ~time < ~mintime) {
+			~mintime.wait;
+		};
+		~synth.release;
+		~utone = pat.next.debug("utone");
+		~synth = Synth(\tone, [ \utone, ~utone, \atone, ~atone ]);
+		~time = TempoClock.default.beats;
+	}
+	
+}).play;
+Tdef(\atone, {
+	var pat = Prand((1..9),inf).asStream;
+	loop {
+		0.46.wait;
+		if(TempoClock.default.beats - ~time < ~mintime) {
+			~mintime.wait;
+		};
+		~synth.release;
+		~atone = pat.next.debug("atone");
+		~synth = Synth(\tone, [ \utone, ~utone, \atone, ~atone ]);
+		~time = TempoClock.default.beats;
+	}
+	
+}).play;
+)
+
+(
+	~mintime = 0.05;
+	~time = TempoClock.default.beats;
+Tdef(\bla, {
+	
+	10.do {
+		
+		if(TempoClock.default.beats - ~time < ~mintime) {
+			~mintime.wait;
+		};
+		~synth.release;
+		~synth = Synth(\tone);
+		~time = TempoClock.default.beats;
+	}
+}).play;
+)
+
+
+
+
+(
+	~synthqueue = List.new;
+Tdef(\utone, {
+	var pat = Prand((1..9),inf).asStream;
+	var oldsynth;
+	loop {
+		0.3.wait;
+		if(~synthqueue.size > 0) {
+			oldsynth = ~synthqueue.removeAt(0);
+			{
+				0.05.wait;
+				oldsynth.debug("releasing synth");
+				oldsynth.release;
+			}.fork;
+		};
+		~utone = pat.next.debug("utone");
+		~synthqueue.add(Synth(\tone, [ \utone, ~utone, \atone, ~atone ]));
+	}
+}).play;
+Tdef(\atone, {
+	var pat = Prand((1..9),inf).asStream;
+	var oldsynth;
+	loop {
+		0.46.wait;
+		if(~synthqueue.size > 0) {
+			oldsynth = ~synthqueue.removeAt(0);
+			{
+				0.05.wait;
+				oldsynth.release;
+			}.fork;
+		};
+		~atone = pat.next.debug("atone");
+		~synthqueue.add( Synth(\tone, [ \utone, ~utone, \atone, ~atone ]) );
+	}
+	
+}).play;
+)
+~synthqueue.removeAt(0)
+~synthqueue
+{ 1.wait; "bla".postln; }.fork
+
+(
+Tdef(\utone, {
+	var pat = Prand((1..9),inf).asStream;
+	var oldsynth;
+	loop {
+		0.3.wait;
+		oldsynth = ~synth;
+		{
+			0.05.wait;
+			oldsynth.debug("releasing utone synth");
+			oldsynth.release;
+		}.fork;
+		~utone = pat.next.debug("utone");
+		~synth = Synth(\tone, [ \utone, ~utone, \atone, ~atone ]);
+	}
+}).play;
+Tdef(\atone, {
+	var pat = Prand((1..9),inf).asStream;
+	var oldsynth;
+	loop {
+		0.46.wait;
+		oldsynth = ~synth;
+		{
+			0.05.wait;
+			oldsynth.debug("releasing atone synth");
+			oldsynth.release;
+		}.fork;
+		~atone = pat.next.debug("atone");
+		~synth = Synth(\tone, [ \utone, ~utone, \atone, ~atone ]);
+	}
+	
+}).play;
+)
+
+
+(
+Tdef(\utone, {
+	var pat = Prand((1..9),inf).asStream;
+	var oldsynth;
+	loop {
+		0.3.wait;
+		oldsynth = ~synth;
+		{
+			0.05.wait;
+			oldsynth.debug("releasing utone synth");
+			oldsynth.release;
+		}.fork;
+		~utone = pat.next.debug("utone");
+		~synth = (instrument: \tone, \utone: ~utone, \atone: ~atone, \sustain: inf).play;
+	}
+}).play;
+Tdef(\atone, {
+	var pat = Prand((1..9),inf).asStream;
+	var oldsynth;
+	loop {
+		0.46.wait;
+		oldsynth = ~synth;
+		{
+			0.05.wait;
+			oldsynth.debug("releasing atone synth");
+			oldsynth.release;
+		}.fork;
+		~atone = pat.next.debug("atone");
+		~synth = (instrument: \tone, \utone: ~utone, \atone: ~atone, \sustain: inf).play;
+	}
+	
+}).play;
+)
+
+~bla = (instrument: \tone, \sustain: inf).play
+~bla.release
+
+
+/////
+
+(
+	var base = 2.6;
+	thisThread.randSeed = 1000000.rand.postln;
+	f = { |out = 0|
+		var sig = Pan2.ar(
+			Pluck.ar(
+				Mix.ar(
+					SinOsc.ar(Array.geom(10,rand(140,200),10.1),[0.0,0.4])
+				)*8,
+				Impulse.kr(SinOsc.kr(LFNoise1.kr(0.5,500*Dust.kr(0.1,200,100),600*Impulse.kr),0,1.0,1.0)),
+				Dust.kr(0.1,0.1,0.1)
+			)
+			*
+			SinOsc.kr(
+				Demand.kr(Impulse.kr(base / 0.116), 100, Dxrand(Array.geom(12, base / 4, 2), 8)),
+				mul:0.1 * A2K.kr(GbmanL.ar(Array.geom(10,1/8,12).choose, 183.0.rand2, 3.0.rand2)), add:0.1
+			),
+			LFTri.kr(base / (0.5,10..24).choose, mul: 0.7.rrand(0.6), add: 0.3.rand)
+		);
+		Out.ar(out, sig );
+	};
+	g = { ReplaceOut.ar(0, Limiter.ar(CombC.ar(In.ar(0,2), 1.0.rrand(0.02,16.001),Pulse.kr(LFNoise1.kr(10.1),1,1),LFNoise0.kr(10.01)
+))) }.play( addAction:\addToTail );
+~synths = { f.play(args:[out:0]) } ! 4.rrand(118);
+)
+~synths.do(_.free);
+(
+Tdef(\go, {
+	loop  {
+		~synths = { f.play(args:[out:0]) } ! 4.rrand(118);
+		60.wait;
+		~synths.do(_.free);
+	}
+}).play
+)
+~bla = { f.play(args:[out:0]) } ! 1;
+	g = { ReplaceOut.ar(0, Limiter.ar(CombC.ar(In.ar(0,2), 1.0.rrand(0.02,16.001),Pulse.kr(LFNoise1.kr(10.1),1,1),LFNoise0.kr(10.01)
+~bla.do(_.release)
+~bla[1].release
+~bla[0].release
+~bla[0].stop
+~bla[0].free
+~bla[0].ends

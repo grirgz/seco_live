@@ -40,4 +40,19 @@ FileSystemProject.load("libdef/CustomTrackList.scd");
 TrackDef(\mygrid, TrackTemplateDef(\CustomTrackList))
 TrackDef(\mygrid).edit
 
-/////////
+///////// custom track : SampleTimeline
+
+
+FileSystemProject.load("libdef/CustomTrackList.scd");
+TrackDef(\mygrid, TrackTemplateDef(\CustomTrackList))
+TrackDef(\mygrid).childAt(0).trackTemplate = TrackTemplateDef(\SampleTimelineTrack)
+TrackDef(\mygrid).edit
+TrackDef(\myseq).
+jo
+
+
+/////////////// record factory
+
+
+FileSystemProject.load("libdef/wip/RecordFactory.scd");
+ProtoDef(\RecordFactory).edit
