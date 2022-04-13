@@ -97,7 +97,7 @@ TrackTemplateDef(\TrackList, (
 				}; 
 				Log(\Param).info("TrackList % saved.", self.key);
 			} {
-				"savePresetCompileString: can't save on existing project".error;
+				"savePresetCompileString: can't save on existing project. (loadedFromPath is different)".error;
 			}
 		}
 	},
@@ -138,7 +138,9 @@ TrackTemplateDef(\TrackList, (
 	},
 
 	dataPath: { arg self;
-		self.presetCompileStringSavePath +/+ "TrackDef_%/".format(self.key);
+		if(self.presetCompileStringSavePath.notNil) {
+			self.presetCompileStringSavePath +/+ "TrackDef_%/".format(self.key);
+		}
 	},
 
 	presetCompileStringSavePath_: { arg self, val;
@@ -261,7 +263,9 @@ TrackTemplateDef(\InstrumentTrack, (
 	},
 
 	presetCompileStringSavePath: { arg self;
-		self.parentTrack.dataPath +/+ "TrackDef_%.%.scd".format(self.parentTrack.key, self.index);
+		if(self.parentTrack.dataPath.notNil) {
+			self.parentTrack.dataPath +/+ "TrackDef_%.%.scd".format(self.parentTrack.key, self.index);
+		}
 	},
 
 	loadPresetCompileString: { arg self;
@@ -414,7 +418,9 @@ TrackTemplateDef(\InstrumentTrackPart, (
 	score_: { arg self, val;
 		self[\score] = val;
 		Log(\Param).debug("setting score to: %", self.score.asCompileString);
-		self.parentTrack.instrument.updateScore(self.score);
+		if(self.parentTrack.instrument.notNil) {
+			self.parentTrack.instrument.updateScore(self.score);
+		};
 		self.updateSource;
 		self.grid.changed(\tracklist);
 	},
@@ -452,7 +458,9 @@ TrackTemplateDef(\InstrumentTrackPart, (
 
 	scorePresetCompileStringSavePath: { arg self, scoretype="NoteTimeline";
 		var grid = self.grid;
-		grid.dataPath +/+ "%_%.%.%.scd".format(scoretype, grid.key, self.parentTrack.index, self.index);
+		if(grid.dataPath.notNil) {
+			grid.dataPath +/+ "%_%.%.%.scd".format(scoretype, grid.key, self.parentTrack.index, self.index);
+		}
 	},
 
 	presetCompileStringSavePath: { arg self;

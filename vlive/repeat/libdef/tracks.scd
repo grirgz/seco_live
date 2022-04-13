@@ -132,7 +132,11 @@ TrackTemplateDef(\playerwrapper, (
 	play: { arg self;
 		var stopchild;
 		if(self.isEmpty == true) {
-			self.parentTrack.stop;
+			if(self.parentTrack.recordArmed == true) {
+				self.startRecordingNewScore;
+			} {
+				self.parentTrack.stop;
+			}
 		} {
 			if(self.parentTrack.activeIndex != self.index) {
 				stopchild = self.parentTrack.activeChild;
@@ -199,6 +203,9 @@ TrackTemplateDef(\playerwrapper, (
 		if(self.isEmpty.not) {
 			self.proxy.stop;
 			self.stopHook;
+			if(self.parentTrack.recordArmed == true) {
+				self.stopRecording;
+			};
 			self.parentTrack.childStopped;
 			self.changed(\stop, self.quant);
 			self.changed(\PlayerWrapper, \userStopped); 
@@ -206,7 +213,7 @@ TrackTemplateDef(\playerwrapper, (
 				self.changed(\PlayerWrapper, \stopped); 
 				self.parentTrack.childStopped({ arg me; me.changed(\PlayerWrapper, \stopped) });
 			}
-		};
+		} 
 	},
 
 	stopNow: { arg self;

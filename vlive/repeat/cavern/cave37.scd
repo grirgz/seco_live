@@ -139,7 +139,8 @@ Pdef(\part, Pdef(\zedpart,
 			\bufnum, ~buflib.hat[1064].value,
 			\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
 			\isRest, Pseq([
-				1,0,1,0, 1,0,1,0,
+				0,0,1,0, 0,1,0,1,
+				1,0,1,0, 1,1,0,1,
 			],inf).coin.not,
 			\dur, 1/8,
 			\gain, 0.11,
@@ -250,8 +251,23 @@ TrackDef(\cave37rec).childAt(0).recBus = BusDef(\trackMixerDef_record_fxmixer1)
 TrackDef(\cave37rec).edit
 TrackDef(\cave37rec).childAt(0).childAt(0).source.recorder.recBus
 TrackDef(\cave37rec).childAt(0).source
-TrackDef(\cave37rec).presetCompileStringSavePath = "cavern/cave37/"
+TrackDef(\cave37rec).presetCompileStringSavePath = "~/code/sc/seco/vlive/repeat/cavern/cave37/".standardizePath;
 TrackDef(\cave37rec).savePresetCompileString
+TrackDef(\cave37rec).loadPresetCompileString
+TrackDef(\cave37rec).clear
+TrackDef(\cave37rec).presetCompileStringSaveFile
+TrackDef(\cave37rec).childAt(0,0).source
+TrackDef(\cave37rec).childAt(0,0).score
+TrackDef(\cave37rec).childAt(0).loadPresetCompileString
+TrackDef(\cave37rec).childAt(1).loadPresetCompileString
+TrackDef(\cave37rec).childAt(0,0).loadPresetCompileString
+TrackDef(\cave37rec).childAt(0,0).source
+TrackDef(\cave37rec).childAt(0,0)[\play].asCompileString
+TrackDef(\cave37rec).childAt(0,0).proxy
+TrackDef(\cave37rec).childAt(0,0).source.buffer.numFrames
+TrackDef(\cave37rec).dataPath
+FileSystemProject.load("libdef/PbindefEditor.scd");
+FileSystemProject.load("libdef/controllers.scd")
 SampleTimeline('rec_cave37_rec1_t0_220311_014225').buffer
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -647,3 +663,17 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+////////////
+
+(
+Pdef(\rub, 
+	Pbind(
+		\instrument, \default,
+	)
+).play;
+);
+
+NoteTimeline(\test5, Pdef(\rub))
+NoteTimeline(\test5).presetCompileString
+NoteTimeline(\test4).param.asCompileString

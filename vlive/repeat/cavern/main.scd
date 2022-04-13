@@ -368,3 +368,31 @@ Tdef(\go, {
 ~bla[0].stop
 ~bla[0].free
 ~bla[0].ends
+
+NoteTimeline(\bla).edit
+NoteTimeline(\bla).hash
+NoteTimeline(\bla).identityHash
+NoteTimeline.allChildren
+NoteTimeline(\bla).play
+NoteTimeline(\bla).stop
+ProtoClassDef(\NoteTimeline).all[\bla].identityHash
+ProtoClassDef(\NoteTimeline).new(\bla).identityHash
+FileSystemProject.current.addResource(NoteTimeline(\bla))
+FileSystemProject.current.removeResource(NoteTimeline(\bla))
+FileSystemProject.current.resources.remove(NoteTimeline(\bla))
+FileSystemProject.current.resources.collect(_.hash)
+FileSystemProject.current.resources = nil
+FileSystemProject.current.resources
+FileSystemProject.defaultProject.resources
+FileSystemProject("repeat/simpleProject").resources
+IdentitySet
+FileSystemProject.changed(\project)
+~is = IdentitySet[1,4,2]
+~is.add(4)
+~is.add(NoteTimeline(\bla))
+(
+~is.collect { arg item, idx;
+	item.postln;
+};
+)
+~is.collect(_.hash)

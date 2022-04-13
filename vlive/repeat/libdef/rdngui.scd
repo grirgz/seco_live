@@ -15,6 +15,7 @@ ProtoTemplateDef(\rdn, (
 		self.fxcode = self.fxcode ? "4--";
 		//self.fxkey = self.fxkey ? \fx1;
 		self.inbus = self.inbus ? BusDef(\zero, \audio);
+		TagSpecDef(\ProtoPlayer).addUnique(self.key -> self);
 	},
 
 	fxkey: { arg self;

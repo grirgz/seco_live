@@ -93,10 +93,31 @@ ProtoTemplateDef('MainProject', (
 		// the path is only set at save time, don't know why
 		// maybe in case we added the wrong resource and want to remove it
 		if(resource.notNil) { // prevent error when ProtoTemplateDef proto are not loaded and return nil
+			var oldsize;
 			if(self.resources.isNil) {
 				self.resources = IdentitySet.new;
 			};
+			oldsize = self.resources.size;
 			self.resources.add(resource);
+			if(oldsize != self.resources.size) { 
+				// this test is to avoid infinite loop, 
+				// when refreshing project, GUI ask for mainTimeline which add itself to resources
+				FileSystemProject.changed(\project);
+			}
+		}
+	},
+
+	removeResource: { arg self, resource;
+		var oldsize;
+		if(self.resources.isNil) {
+			self.resources = IdentitySet.new;
+		};
+		oldsize = self.resources.size;
+		self.resources = self.resources.remove(resource);
+		if(oldsize != self.resources.size) { 
+			// this test is to avoid infinite loop, 
+			// when refreshing project, GUI ask for mainTimeline which add itself to resources
+			FileSystemProject.changed(\project);
 		}
 	},
 
@@ -204,6 +225,8 @@ WindowDef(\MainProject, { arg def, proj;
 	var projlabel = StaticText.new;
 	var rdnbuttons;
 	var playerViewList;
+	var otherResources, otherResourcesView;
+	var isRefreshing = false;
 	proj = proj ?? { FileSystemProject.current ?? { FileSystemProject('repeat/simpleProject') } };
 	projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
 	//var meter = ServerMeterView.new;
@@ -237,19 +260,35 @@ WindowDef(\MainProject, { arg def, proj;
 	});
 
 	playerViewList = PlayerWrapperView()!6;
+	otherResourcesView = View.new;
 	rdnbuttons[0].button.followChange(FileSystemProject, \project, { arg ...args;
+		var defaultPlayers;
 		Log(\Param).debug("received changed project %", args);
-		proj = FileSystemProject.current ?? { FileSystemProject('repeat/simpleProject') };
-		[
-			proj,
-			proj.mainMixer,
-			proj.fxManager,
-			proj.mainTimeline,
-			proj.mainTrackList,
-			proj.mainTrackGrid,
-		].collect({ arg player, idx;
-			playerViewList[idx].model = player;
-		});
+		if(isRefreshing == false) {
+			isRefreshing = true;
+			proj = FileSystemProject.current ?? { FileSystemProject('repeat/simpleProject') };
+			defaultPlayers = [
+				proj,
+				proj.mainMixer,
+				proj.fxManager,
+				proj.mainTimeline,
+				proj.mainTrackList,
+				proj.mainTrackGrid,
+			];
+			defaultPlayers.collect({ arg player, idx;
+				playerViewList[idx].model = player;
+			});
+			otherResources = proj.resources - IdentitySet.newFrom(defaultPlayers);
+			otherResourcesView.removeAll;
+			otherResourcesView.layout = HLayout (
+				* otherResources.asArray.collect { arg player, idx;
+					PlayerWrapper(player).asView.rightClickEditorEnabled_(true);
+				}
+			).margins_(0).spacing_(0);
+			isRefreshing = false;
+		} {
+			Log(\Param).debug("MainProject: already refreshing project, skipped");
+		}
 	});
 
 
@@ -352,9 +391,9 @@ WindowDef(\MainProject, { arg def, proj;
 					CmdPeriod.run;
 				})],
 			),
+			otherResourcesView,
 		), stretch:2],
 	).margins_(3).spacing_(3);
-
 });
 //WindowDef(\MainProject).front(FileSystemProject('ex6'));
 

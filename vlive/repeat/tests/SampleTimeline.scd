@@ -366,3 +366,71 @@ NoteTimeline(\testnote).presetCompileString.editorInsert
 (
 );
 
+
+///////////////////////////////////
+// test SampleTimelineTrack recorderView
+
+
+FileSystemProject.load("libdef/CustomTrackList.scd");
+TrackDef(\tlist, TrackTemplateDef(\CustomTrackList));
+TrackDef(\tlist).edit
+TrackDef(\tlist).showRecorderView
+TrackDef(\tlist).childAt(0,1).togglePlay
+TrackDef(\tlist).childAt(0).recorderView
+
+(
+Pdef(\part, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pwhite(0,12,inf),
+		\dur, 1,
+		\amp, 0.1,
+		\out, BusDef(\trackMixerDef_record_fxmixer1, \audio),
+	)
+).play;
+);
+
+TrackDef(\fx, TrackTemplateDef(\playergrid))
+TrackDef(\fx).edit
+TrackDef(\fx).clear
+TrackDef(\fx).childAt(0,0).source
+		TagSpecDef(\ProtoPlayer).addUnique(\rdn -> ProtoDef(\rdn));
+		TagSpecDef(\ProtoPlayer).addUnique(\rdn2 -> ProtoDef(\rdn2));
+		TagSpecDef(\ProtoPlayer).addUnique(\rdn3 -> ProtoDef(\rdn3));
+		TagSpecDef(\ProtoPlayer).addUnique(\rdn4 -> ProtoDef(\rdn4));
+
+
+TrackTimeline(\tlist_rec, TrackDef(\tlist)).edit
+ClipTimeline(\testrec).edit
+ParamTimeline(\rdn_delay).edit
+
+
+
+SampleTimeline(\ttt).edit
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,3,2,1],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+////////////////////////////////
+// test tempo change
+
+
+SampleTimeline(\bla).edit
+SampleTimeline(\bla).buffer = BufDef('cliprec/rec_cave38rec.0.3score_220412_200517.wav');
+SampleTimeline(\bla).presetCompileString.editorInsert
+~t = 1; TempoClock.default.tempo = ~t;
+(
+SampleTimeline('bla').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 8, \label: 'start', \playDur: 8, \relDur: 8, \sustain: 0, \type: 'start', ),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+SampleTimeline('bla').buffer = BufDef('cliprec/rec_cave38rec.0.3score_220412_200517.wav');
+);
+

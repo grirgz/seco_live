@@ -13,8 +13,24 @@ TrackTemplateDef(\CustomTrackList, (
 	parent: TrackTemplateDef(\TrackList),
 	childClass: { TrackTemplateDef(\CustomInstrumentTrack) },
 	showTrackHeaders: true,
+	showRecorderView: true,
 	edit: { arg self;
 		WindowDef(\customgrid).front(self);
+	},
+
+	presetCompileString: { arg self;
+		"%\n".format([
+			"TrackDef(%, %);".format(self.key.asCompileString, "TrackTemplateDef(\\CustomTrackList)"),
+			"TrackDef(%).presetCompileStringSavePath = PathName(thisProcess.nowExecutingPath).pathOnly;".format(self.key.asCompileString),
+			"TrackDef(%).loadPresetCompileString;".format(self.key.asCompileString),
+		].join("\n"))
+	},
+
+	keepSamplesInUse: { arg self;
+		self.existingChildren.do { arg track, idx;
+			track.keepSamplesInUse;
+		};
+
 	},
 
 ));
@@ -33,6 +49,20 @@ TrackTemplateDef(\CustomInstrumentTrack, (
 
 		self.clear;
 		
+	},
+
+	presetCompileString: { arg self;
+		if(self.isEmpty) {
+			nil
+		} {
+			var str = List[];
+
+			str.add("%.trackTemplate = %;".format(self.refCompileString, self.trackTemplate.asCompileString));
+			str.add("%.label = %;".format(self.refCompileString, self.label.asCompileString));
+			str.add("\n\n" ++ ( self.scorePresetCompileString ?? { "" } ));
+
+			str.join($\n);
+		}
 	},
 
 	label: { arg self;
@@ -93,6 +123,62 @@ TrackTemplateDef(\CustomInstrumentTrackPart, (
 		self.index = index.asInteger;
 		self[\storeOn] = { arg iself, str; str << iself.refCompileString };
 		self;
+	},
+
+	clearTrack: { arg self;
+		self[\score] = nil;
+		self.proxy = nil;
+	},
+
+	savePresetCompileString: { arg self, path, onDoneAction;
+		if(self.isEmpty.not) {
+			var file;
+			path = path ? self.presetCompileStringSavePath;
+			PlayerWrapper_Base.savePresetCompileStringHelper(path, onDoneAction, self.refCompileString, self.presetCompileString, false);
+		}
+	},
+	
+	loadPresetCompileString: { arg self;
+		if(self.presetCompileStringSavePath.notNil) {
+			FileSystemProject.load(self.presetCompileStringSavePath, true);
+		}
+	},
+
+	presetCompileString: { arg self;
+		// FIXME: need to clarify the difference between source and score
+		// in tracklist, source is the current score and score is the list of all potential sources
+		// when setting score, updateSource is called which select the right score and put it in source
+		// logically, we should save score and not source
+		// the selected score is inside the score data structure
+		if(self.isEmpty) {
+			nil
+		} {
+			var str = List[];
+
+			str.add("%.score = %;".format(self.refCompileString, self.score.asCompileString));
+			str.add("\n\n%".format(self.scorePresetCompileString ?? { "" }));
+			str.join($\n)
+		}
+	},
+
+	score: { arg self; self.source }, // if no score defined, use source
+
+	updateSource: { arg self;
+		if(self.score.notNil) {
+			self[\source] = self.score;
+			self.proxy = PlayerWrapper(self.score);
+		} {
+			self.source = nil
+		};
+	},
+
+	scorePresetCompileString: { arg self;
+		if(self.score.notNil) {
+
+			self.score.presetCompileString
+		} {
+			""
+		}
 	},
 
 	selectSourceDialog: { arg self;
@@ -197,6 +283,7 @@ WindowDef(\customgrid, (
 	trackCount: 9,
 	rowCount: 8,
 	masterTrackIndex: 8,
+	maxColumnWidth: 200,
 	showToolBar: true,
 	color_header: Color.gray.lighten(ParamViewToolBox.color_dark, 0.7),
 
@@ -211,6 +298,7 @@ WindowDef(\customgrid, (
 		var playerviews;
 		var map_players;
 		var mixerviews;
+		var specialviews;
 		maintrack = maintrack ?? { TrackDef(\main) };
 
 		if(me.key == \customgrid) {
@@ -218,12 +306,14 @@ WindowDef(\customgrid, (
 		};
 
 		self.maintrack = maintrack;
+		self.windef = me;
 		// commented because at caller level
 		//if(me.window.notNil) {
 		//	me.window.bounds = Rect(144, 217, 1090, 438);
 		//};
 
 		mainview = View.new;
+		self.mainview = mainview;
 		mainview.onChange(maintrack, \gridOffset, { {map_players.()}.defer });
 
 		playerviews = { { PlayerWrapperGridCellView.new } ! self.rowCount } ! self.trackCount;
@@ -231,6 +321,22 @@ WindowDef(\customgrid, (
 			item.color_empty = self.color_header;
 		};
 		//mixerviews = { WindowDef(\mixerView).asView } ! 9;
+
+		specialviews = self.trackCount.collect({ arg x;
+			View.new.addUniqueMethod(\model_, { arg view, track;
+				var recorderView;
+				view.removeAll;
+				Log(\Param).debug("specialviews model_: %", track);
+				if(track.notNil) {
+					recorderView = track.recorderView;
+					if(recorderView.notNil) {
+						Log(\Param).debug("specialviews recorderView: %", recorderView);
+						view.layout = recorderView;
+					}
+				}
+			}).maxWidth_(self.maxColumnWidth);
+		});
+
 		mixerviews = self.trackCount.collect({ arg x;
 			var boxview;
 			var delayview;
@@ -279,11 +385,12 @@ WindowDef(\customgrid, (
 
 			boxview.layout = VLayout(
 				self.makeTrackHeader(x),
+				specialviews[x],
 				[self.makeTrackFader(x), stretch:10],
 				nil,
 			).spacing_(0).margins_(0);
 
-			boxview.maxWidth = 200;
+			boxview.maxWidth = self.maxColumnWidth;
 			boxview;
 
 		});
@@ -304,6 +411,14 @@ WindowDef(\customgrid, (
 					}
 				};
 			});
+			specialviews.do({ arg child, x;
+				[child, x].debug("set specialviews model: track idx");
+				if(x == 8) {
+					child.model = nil
+				} {
+					child.model = maintrack.childAtOffset(x);
+				}
+			});
 			mixerviews.do({ arg child, x;
 				[child, x].debug("set mixerview model: child");
 				if(child.notNil) {
@@ -313,7 +428,19 @@ WindowDef(\customgrid, (
 						child.model = maintrack.childAtOffset(x);
 					}
 				}
-			})
+			});
+
+			if(maintrack.showTrackHeaders == true) {
+				self.trackHeaders.do({ arg th; th.visible = true })
+			} {
+				self.trackHeaders.do({ arg th; th.visible = false })
+			};
+
+			if(maintrack.showRecorderView == true) {
+				specialviews.do({ arg th; th.visible = true })
+			} {
+				specialviews.do({ arg th; th.visible = false })
+			};
 
 		};
 
@@ -361,7 +488,10 @@ WindowDef(\customgrid, (
 							});
 							view;
 						})
-						++ [ [ mixerviews[idx] ] ]
+						++ [ 
+							[ mixerviews[idx] ],
+							//[ specialviews[idx] ],
+						]
 					})
 				).vSpacing_(1).hSpacing_(1),
 				nil
@@ -376,9 +506,39 @@ WindowDef(\customgrid, (
 			}
 		};
 		map_players.();
+		self.addKeybordBindings;
 		make_view.();
 	},
 
+	addKeybordBindings: { arg self;
+		var anchor = self.windef.windowDo { arg win; win.view } ?? { self.mainview };
+		anchor.keyDownAction_({ arg me, key, modifiers, unicode, keycode;
+			var matrix;
+			var idx, posx, posy;
+			var maintrack = self.maintrack;
+			[me, key.asCompileString, modifiers, unicode, keycode].debug("grid keyDownAction");
+			matrix = [
+				"&" ++ -23.asAscii ++ "\"'(-" ++ -24.asAscii ++ "_" ++ -25.asAscii,
+				"azertyuio",
+				"qsdfghjkl",
+				"wxcvbn,;:",
+			].join;
+			//~matrix
+			//~matrix.indexOf($a);
+			idx = matrix.indexOf(key);
+			if(idx.notNil) {
+				posx = idx%9;
+				posy = ( idx/9 ).floor;
+				Log(\Param).debug("grid keydown: idx %, x %, y %", idx, posx, posy);
+				if(posx == 8) {
+					PlayerWrapper(maintrack.linePlayerAt(posy+maintrack.gridOffset.y)).togglePlay;
+				} {
+					PlayerWrapper(maintrack.childAtOffset(Point(posx,posy))).togglePlay;
+				}
+			}
+		});
+		
+	},
 
 	showGeneralOverlayMenu: { arg self, view, x, y;
 		WindowDef(\OverlayMenu).front(view, x, y, { arg def;
@@ -439,7 +599,7 @@ WindowDef(\customgrid, (
 
 	makeTrackHeader: { arg self, trackidx;
 		var playerview;
-		if(trackidx != ( self.trackCount - 1 )) {
+		if(trackidx != ( self.trackCount - 1 )) { // if not last column
 			var child;
 			var maintrack = self.maintrack;
 			child = maintrack.childAtOffset(trackidx);
@@ -460,6 +620,7 @@ WindowDef(\customgrid, (
 			self.trackHeaders[trackidx] = playerview;
 			playerview;
 		} {
+			// last column for line players
 			playerview = PlayerWrapperGridCellView(nil).asView;
 			playerview.parentView.color_empty = self.color_header;
 			playerview.layout.margins_(1);
@@ -529,6 +690,7 @@ WindowDef(\customgrid, (
 						def.closeWindow;
 					}),
 					Param(Message(model.parentTrack.parentTrack), \showTrackHeaders, ParamBoolSpec()).asButton("Show track headers"),
+					Param(Message(model.parentTrack.parentTrack), \showRecorderView, ParamBoolSpec()).asButton("Show track recorder views"),
 					Param(Message(model.parentTrack), \isMixerEnabled, ParamBoolSpec()).asButton("Enable mixer"),
 				].flatten.select(_.notNil) ++ [nil]
 			)
@@ -864,6 +1026,21 @@ TrackTemplateDef(\NoteTimelineTrack, (
 	},
 
 
+	recorderView: { arg self;
+		HLayout (
+			Param(Message(self), \recordArmed, XBoolSpec()).asButton("●").maxWidth_(20),
+			Param(Message(self), \inputController, ControllerDef.getTagSpec(\piano)).asPopUpMenu.minWidth_(5),
+		).margins_(0).spacing_(0)
+	},
+
+	scorePresetCompileString: { arg self;
+		var str;
+		str = List.new;
+		str.add( "%.source = %;".format(self.refCompileString, self.source.asCompileString));
+		str.add( PlayerWrapper(self.source).presetCompileString );
+		str.join($\n);
+	},
+
 	playerSynthDef: \SampleTimeline_player,
 
 	playerSynthDef_: { arg self, instr;
@@ -885,6 +1062,18 @@ TrackTemplateDef(\NoteTimelineTrackPart, (
 		self.score.edit;
 	},
 
+	startRecordingNewScore: { arg self;
+		self.makeScore;
+		self.score.startRecording;
+	},
+
+	stopRecording: { arg self;
+		if(self.score.notNil) {
+			self.score.stopRecording;
+		}
+	},
+
+
 	outBus: { arg self, val;
 		self.score.outBus = val;
 		
@@ -892,6 +1081,7 @@ TrackTemplateDef(\NoteTimelineTrackPart, (
 	makeScore: { arg self;
 		self.proxy.debug("makeScore proxy start");
 		self[\score] = NoteTimeline(self.name+++\score, self.parentTrack.source);
+		self.score.controller = self.parentTrack.inputController;
 		self.proxy = PlayerWrapper(self.score);
 		self.proxy.debug("makeScore proxy end");
 	}
@@ -908,6 +1098,15 @@ TrackTemplateDef(\SampleTimelineTrack, (
 	asParamGroup: { arg self;
 		self.source.asParamGroup;
 	},
+
+	keepSamplesInUse: { arg self;
+		self.existingChildren.do { arg clip, idx;
+			if(clip.isEmpty.not and: { clip.source.notNil }) {
+				clip.source.keepRecordedFile;
+			}
+		};
+	},
+
 	trackEditor: { arg self;
 		//WindowDef(\PdefInstrumentEditor);
 		WindowDef(\SampleTimelineTrackEditor, { arg def;
@@ -918,6 +1117,12 @@ TrackTemplateDef(\SampleTimelineTrack, (
 		}).front;
 	},
 
+	recorderView: { arg self;
+		HLayout (
+			Param(Message(self), \recordArmed, XBoolSpec()).asButton("●").maxWidth_(20),
+			Param(Message(self), \recBus, ParamAudioBusSpec()).asPopUpMenu.minWidth_(5),
+		).margins_(0).spacing_(0)
+	},
 
 	makeScore: { arg self;
 		//self[\source] = Pdef("%.%.instr".format(self.key, self.index).asSymbol, Pbind());
@@ -928,6 +1133,17 @@ TrackTemplateDef(\SampleTimelineTrackPart, (
 	parent: TrackTemplateDef(\CustomInstrumentTrackPart),
 	edit: { arg self;
 		self.score.edit;
+	},
+
+	startRecordingNewScore: { arg self;
+		self.makeScore;
+		self.score.startRecording;
+	},
+
+	stopRecording: { arg self;
+		if(self.score.notNil) {
+			self.score.stopRecording;
+		}
 	},
 
 	outBus: { arg self, val;
