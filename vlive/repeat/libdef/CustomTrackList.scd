@@ -22,7 +22,11 @@ TrackTemplateDef(\CustomTrackList, (
 		"%\n".format([
 			"TrackDef(%, %);".format(self.key.asCompileString, "TrackTemplateDef(\\CustomTrackList)"),
 			"TrackDef(%).presetCompileStringSavePath = PathName(thisProcess.nowExecutingPath).pathOnly;".format(self.key.asCompileString),
-			"TrackDef(%).loadPresetCompileString;".format(self.key.asCompileString),
+			"",
+			self.linePlayers.collect { arg lplayer, idx;
+				lplayer.presetCompileString
+			}.select(_.notNil).join("\n"),
+			"\nTrackDef(%).loadPresetCompileString;".format(self.key.asCompileString),
 		].join("\n"))
 	},
 
@@ -59,6 +63,11 @@ TrackTemplateDef(\CustomInstrumentTrack, (
 
 			str.add("%.trackTemplate = %;".format(self.refCompileString, self.trackTemplate.asCompileString));
 			str.add("%.label = %;".format(self.refCompileString, self.label.asCompileString));
+			if(self.mixer.notNil) {
+				str.add("\n\n");
+				str.add("%.isMixerEnabled = %;".format(self.refCompileString, self.isMixerEnabled.asCompileString));
+				str.add(( self.mixer.presetCompileString ?? { "" } ));
+			};
 			str.add("\n\n" ++ ( self.scorePresetCompileString ?? { "" } ));
 
 			str.join($\n);
@@ -104,6 +113,7 @@ TrackTemplateDef(\CustomInstrumentTrack, (
 		};
 		ret;
 	},
+
 	name: { arg self;
 		self.trackKey;
 	},
@@ -125,9 +135,26 @@ TrackTemplateDef(\CustomInstrumentTrackPart, (
 		self;
 	},
 
+	clone: { arg self, parent, index;
+		self = self.copy;
+
+		self.parentTrack = {parent};
+		self.index = index.asInteger;
+		self.score = self.cloneScore;
+		self;
+	},
+
+	cloneScore: { arg self;
+		var newscore = self.score.copy;
+		newscore;
+	},
+
 	clearTrack: { arg self;
 		self[\score] = nil;
 		self.proxy = nil;
+		self.parentTrack.children[self.index] = nil; // erase from parent, force recreate with good template
+		self.parentTrack.changed(\children);
+		Log(\Param).debug("clearTrack: erased %", self.index);
 	},
 
 	savePresetCompileString: { arg self, path, onDoneAction;
@@ -640,58 +667,83 @@ WindowDef(\customgrid, (
 			var model = amodel;
 			VLayout (
 				* [
-					if(model.parentTrack.isEmpty.not) {
+					if(model.isLinePlayer == true) {
+						HLayout (
+							StaticText.new.string_("label:"),
+							Param( Message(model), \label, ).asTextField,
+						) 
+					} {
 						[
-							HLayout (
-								StaticText.new.string_("label:"),
-								Param( Message(model), \label, ).asTextField,
-							) 
-						] ++
-						if(model.isEmpty) {
-							[
-								BasicButton.new.string_("Create cell").action_({
-									[model, model[\makeScore].asCompileString].debug("model");
-									model.makeScore;
-									def.closeWindow;
-								}),
-								BasicButton.new.string_("Create and edit cell").action_({
-									[model].debug("model");
-									model.makeScore;
-									model.edit;
-									def.closeWindow;
-								}),
-							]
-						} {
-							[
-								BasicButton.new.string_("Edit cell").action_({
-									model.edit;
-									def.closeWindow;
-								}),
+							if(model.parentTrack.isEmpty.not) {
+								[
+									HLayout (
+										StaticText.new.string_("label:"),
+										Param( Message(model), \label, ).asTextField,
+									) 
+								] ++
+								if(model.isEmpty) {
+									[
+										BasicButton.new.string_("Create cell").action_({
+											[model, model[\makeScore].asCompileString].debug("model");
+											model.makeScore;
+											def.closeWindow;
+										}),
+										BasicButton.new.string_("Create and edit cell").action_({
+											[model].debug("model");
+											model.makeScore;
+											model.edit;
+											def.closeWindow;
+										}),
 
-								BasicButton.new.string_("Erase cell").action_({
-									model.clearTrack;
-									def.closeWindow;
-								}),
-							]
-						} ++ [
-							BasicButton.new.string_("Edit track instrument").action_({
-									model.parentTrack.editInstrument;
-									def.closeWindow;
+										BasicButton.new.string_("Paste cell").action_({
+											if(~trackDef_clipboard.notNil) {
+												model.parentTrack.children[model.index] = ~trackDef_clipboard.clone(model.parentTrack, model.index);
+												model.parentTrack.changed(\children);
+												def.closeWindow;
+											};
+										}),
+									]
+								} {
+									[
+										BasicButton.new.string_("Edit cell").action_({
+											model.edit;
+											def.closeWindow;
+										}),
+
+										BasicButton.new.string_("Copy cell").action_({
+											~trackDef_clipboard = model;
+											def.closeWindow;
+										}),
+
+										StaticText.new,
+
+										BasicButton.new.string_("Erase cell").action_({
+											model.clearTrack;
+											def.closeWindow;
+										}),
+									]
+								} ++ [
+									StaticText.new,
+									BasicButton.new.string_("Edit track instrument").action_({
+										model.parentTrack.editInstrument;
+										def.closeWindow;
+									}),
+									BasicButton.new.string_("Erase track").action_({
+										model.parentTrack.clearTrack;
+										def.closeWindow;
+									}),
+								]
+							},
+							BasicButton.new.string_("Choose track template").action_({
+								[model].debug("model");
+								model.parentTrack.editTrackTemplate;
+								def.closeWindow;
 							}),
-							BasicButton.new.string_("Erase track").action_({
-									model.parentTrack.clearTrack;
-									def.closeWindow;
-							}),
-						]
-					},
-					BasicButton.new.string_("Choose track template").action_({
-						[model].debug("model");
-						model.parentTrack.editTrackTemplate;
-						def.closeWindow;
-					}),
-					Param(Message(model.parentTrack.parentTrack), \showTrackHeaders, ParamBoolSpec()).asButton("Show track headers"),
-					Param(Message(model.parentTrack.parentTrack), \showRecorderView, ParamBoolSpec()).asButton("Show track recorder views"),
-					Param(Message(model.parentTrack), \isMixerEnabled, ParamBoolSpec()).asButton("Enable mixer"),
+							Param(Message(model.parentTrack.parentTrack), \showTrackHeaders, ParamBoolSpec()).asButton("Show track headers"),
+							Param(Message(model.parentTrack.parentTrack), \showRecorderView, ParamBoolSpec()).asButton("Show track recorder views"),
+							Param(Message(model.parentTrack), \isMixerEnabled, ParamBoolSpec()).asButton("Enable mixer"),
+						].flatten
+					}
 				].flatten.select(_.notNil) ++ [nil]
 			)
 		})
@@ -1073,6 +1125,14 @@ TrackTemplateDef(\NoteTimelineTrackPart, (
 		}
 	},
 
+	cloneScore: { arg self;
+		var newscore;
+		newscore = NoteTimeline(self.name+++\score, self.parentTrack.source);
+		newscore.eventList = self.score.eventList.clone;
+		newscore.controller = self.parentTrack.inputController;
+		newscore.outBus = self.parentTrack.outBus;
+		newscore;
+	},
 
 	outBus: { arg self, val;
 		self.score.outBus = val;
@@ -1082,6 +1142,7 @@ TrackTemplateDef(\NoteTimelineTrackPart, (
 		self.proxy.debug("makeScore proxy start");
 		self[\score] = NoteTimeline(self.name+++\score, self.parentTrack.source);
 		self.score.controller = self.parentTrack.inputController;
+		self.score.outBus = self.parentTrack.outBus;
 		self.proxy = PlayerWrapper(self.score);
 		self.proxy.debug("makeScore proxy end");
 	}
@@ -1105,6 +1166,14 @@ TrackTemplateDef(\SampleTimelineTrack, (
 				clip.source.keepRecordedFile;
 			}
 		};
+	},
+
+	scorePresetCompileString: { arg self;
+		if(self.recBus.notNil) {
+			"%.recBus = %;".format(self.refCompileString, self.recBus.asCompileString);
+		} {
+			""
+		}
 	},
 
 	trackEditor: { arg self;
@@ -1150,9 +1219,22 @@ TrackTemplateDef(\SampleTimelineTrackPart, (
 		self.score.outBus = val;
 		
 	},
+
+	cloneScore: { arg self;
+		var newscore;
+		newscore = SampleTimeline(self.name+++\score);
+		newscore.eventList = self.score.eventList.clone;
+		newscore.controller = self.parentTrack.inputController;
+		newscore.buffer = self.score.buffer;
+		newscore.outBus = self.parentTrack.outBus;
+		self[\score].recorder.recBus = self.parentTrack.recBus ?? { self[\score].recorder.recBus  };
+		newscore;
+	},
+
 	makeScore: { arg self;
 		self.proxy.debug("makeScore proxy start");
 		self[\score] = SampleTimeline(self.name+++\score);
+		self[\score].outBus = self.parentTrack.outBus;
 		self[\score].recorder.recBus = self.parentTrack.recBus ?? { self[\score].recorder.recBus  };
 		self.proxy = PlayerWrapper(self.score);
 		self.proxy.debug("makeScore proxy end");

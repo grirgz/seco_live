@@ -309,24 +309,12 @@
 		self.vim_exec(":r %".format(filename));
 	},
 
+
 	edit_pbind_asso: { arg self, line, col, code;
 		var key, val;
 		#key, val = self.get_pbind_asso(line, code);
 		code = self.replace_in_line(code, val, "150");
 		
-	},
-
-	edit_number: { arg self, start, end, line, col, code;
-		var dyn_code;
-		~inline_editor_on_exit = { arg new_val;
-			var res_code = self.replace_number(line, col, code, new_val);
-			//self.replace_vim_block(start, end, self.escape_code(res_code));
-			self.replace_vim_block(start, end, line, col, res_code);
-		};
-		[start, end, line, col, code].debug("HHHHHHHHHHHHHHH");
-		dyn_code = self.replace_number(line, col, code, {arg x; "~class_number_editor_gui.new_pattern(~inline_editor_on_exit, "++ x ++")"});
-		debug("CURRES("++dyn_code++")");
-		dyn_code.interpret;
 	},
 
 	analyse_seq: { arg self, code;
@@ -343,6 +331,21 @@
 			16, { [4,4] }
 		);
 		[groupsize, supergroupsize, indentlevel].debug("analyse_seq");
+	},
+
+	///////// editors
+
+	edit_number: { arg self, start, end, line, col, code;
+		var dyn_code;
+		~inline_editor_on_exit = { arg new_val;
+			var res_code = self.replace_number(line, col, code, new_val);
+			//self.replace_vim_block(start, end, self.escape_code(res_code));
+			self.replace_vim_block(start, end, line, col, res_code);
+		};
+		[start, end, line, col, code].debug("HHHHHHHHHHHHHHH");
+		dyn_code = self.replace_number(line, col, code, {arg x; "~class_number_editor_gui.new_pattern(~inline_editor_on_exit, "++ x ++")"});
+		debug("CURRES("++dyn_code++")");
+		dyn_code.interpret;
 	},
 
 	edit_seq: { arg self, start, end, line, col, code, vistart, viend, visual;
@@ -396,6 +399,17 @@
 		self.insert_after( self.gen_pbind_arguments(instr, indentCount) );
 		
 	},
+
+	edit_pbindef: { arg self, start, end, line, col, code;
+		var pbindef;
+		pbindef = code.interpret;
+		FileSystemProject.loadOnce("libdef/PbindefEditor.scd");
+		
+		WindowDef(\PbindefEditor).front(pbindef);
+		
+	},
+
+	////////////////////////
 
 	gen_pbind_arguments: { arg self, synthDef=\default, indentlevel=0;
 		var controls = SynthDescLib.global.synthDescs.at(synthDef).asParamGroup(()).rejectSystemParams;

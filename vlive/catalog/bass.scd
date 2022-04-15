@@ -1288,3 +1288,69 @@ Ndef(\zed, { arg freq=65.4, pan=0, amp=0.1;
 	sig = Pan2.ar(sig, pan, amp);
 }).play;
 );
+
+
+////////////////////////
+
+
+
+(
+SynthDef(\fmbass2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var freqenv = EnvGen.kr(Env([10,freq,freq],[0.001,0.1]), 1);
+	var fmfreq;
+	var fmampenv;
+	var freqtab, fmfreqtab;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freqtab = [1/2,1,2];
+	fmfreqtab = [1/2,1,2];
+	fmfreq = EnvGen.kr(Env([freq,freq,freq],[0.051,4.1]), 1);
+	fmampenv = EnvGen.kr(Env([0,2.1,1,0],[0.01,3.01,0.1]), 1) * \fmampenvamt.kr(4) + 1;
+	sig1 = SinOsc.ar(freqenv * freqtab * ( SinOsc.ar(fmfreq * [ fmfreqtab ] * [1,1+\epsilon.kr(0.01)]) * fmampenv * \fmamp.kr(1) + 1 ));
+	sig2 = LFPulse.ar(freqenv * freqtab * ( LFPulse.ar(fmfreq * [ fmfreqtab ] * [1,1+\epsilon.kr(0.01)]) * fmampenv * \fmamp.kr(1) + 1 ));
+	sig2 = RLPF.ar(sig2, \lpfr.kr(1.1) * freq, \rq.kr(0.5)) * 1.4;
+	sig3 = LFSaw.ar(freqenv * freqtab * ( LFSaw.ar(fmfreq * [ fmfreqtab ] * [1,1+\epsilon.kr(0.01)]) * fmampenv * \fmamp.kr(1) + 1 ));
+	sig3 = RLPF.ar(sig3, \lpfr.kr(1.1) * freq, \rq.kr(0.5)) * 1.4;
+	sig = SelectXFocus.ar(\wavemix.kr(0.0)*2, [sig1, sig2, sig3], \wavefocus.kr(1), true);
+	sig = SelectXFocus.ar(\freqmix.kr(0.5)*2, sig, \freqfocus.kr(1), true);
+	sig = SelectXFocus.ar(\fmfreqmix.kr(0.5)*2, sig, \fmfreqfocus.kr(1), true);
+	sig.debug("sig");
+	sig = sig * 2;
+	//sig = sig + ( SinOsc.ar(freqenv * 1/2 * ( LFPulse.ar(fmfreq * 1/2 * [1,1+\epsilon.kr(0.01)]) * fmampenv * \fmamp.kr(1) + 1 )) * 0.5 );
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}, metadata:(specs:(
+	wavemix: \unipolar,
+	freqmix: \unipolar,
+	fmfreqmix: \unipolar,
+))).add;
+);
+
+
+(
+Pdef(\zed, 
+		Pbind(
+			\instrument, \fmbass2,
+			\note, Pstep(Pseq([
+				0,0,0,1,
+				4,3,2,1,
+			],inf),1/2),
+			\octave,3,
+			\epsilon, ~pmodenv.(Pseq([0.0001,0.007],1), 8).loop,
+			\legato, Pseq([
+				14,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,1,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\fmampenvamt, 1,
+			\wavemix, ~pmodenv.(Pwhite(0,0.0,inf), Pwhite(1.0,4)).loop,
+			\wavemix, 0,
+			\lpfr, ~pmodenv.(Pseq([1,2.4],1), 8).loop,
+			\freqmix, ~pmodenv.(Pwhite(0,1.0,inf), Pwhite(1.0,4)).loop,
+			\fmfreqmix, ~pmodenv.(Pwhite(0,1.0,inf), Pwhite(1.0,4)).loop,
+			\amp, 0.1/2,
+		),
+).play;
+);

@@ -1010,6 +1010,14 @@ TrackTemplateDef(\lineplayer, (
 		"TrackDef(%).linePlayerAt(%)".format(self.parentTrack.key.asCompileString, self.index.asCompileString);
 	},
 
+	presetCompileString: { arg self;
+		if(self[\label].isKindOf(Function).not) {
+			"%.label = %;".format(self.refCompileString, self.label.asCompileString)
+		} {
+			nil
+		}
+	},
+
 	asPattern: { arg self, relStartTime, totalDur=1000, repeatCount;
 		var pat;
 		pat = Plazy({

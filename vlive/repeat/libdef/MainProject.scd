@@ -5,6 +5,7 @@ FileSystemProject.loadOnce("libdef/FxManager.scd");
 FileSystemProject.loadOnce("libdef/simplemixer.scd");
 FileSystemProject.loadOnce("libdef/tracks.scd");
 FileSystemProject.loadOnce("libdef/tracklist.scd");
+FileSystemProject.loadOnce("libdef/CustomTrackList.scd");
 FileSystemProject.loadOnce("libdef/ParamSelectDialog.scd");
 FileSystemProject.loadOnce("libdef/JackControl.scd");
 

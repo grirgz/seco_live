@@ -1,0 +1,2 @@
+
+Pbindef(\bla, \instrument, \default)

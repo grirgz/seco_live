@@ -2165,3 +2165,71 @@ Pdef(\part, Pdef(\fiddle,
 	])
 )).play;
 );
+
+
+//////////:
+
+
+(
+Ndef(\ambi, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * ( SinOsc.ar(freq+1) * LFNoise1.kr(1/17!10).range(0.0,1.0) + 1 ) * [0,3,4,8,9,14,15,19,21,22].midiratio);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig.debug("sig");
+}).play;
+);
+Ndef(\ambi).clear
+
+TrackDef(\tlist, TrackTemplateDef(\CustomTrackList));
+TrackDef(\tlist).edit
+
+(
+MIDIdef.noteOn(\piano_ndef, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	Ndef(\ambi).set(\freq, noteNum.midicps)
+	
+});
+)
+
+(
+	// drums
+Pdef(\part, Pdef(\zedpart, 
+	Pbind(\out, BusDef(\sendbus3, \audio)) <>
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,1,0,
+				0,0,0,0, 1,0,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1064].value,
+			\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[894].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		
+	])
+)).play;
+);

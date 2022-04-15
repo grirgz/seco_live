@@ -15,7 +15,7 @@ Pdef(\part, Pdef(\zed,
 );
 s.boot;
 ParamProto.init(true)
-SampleTimeline(\bla3).edit
+SampleTimeline(\bla2).edit
 SampleTimeline(\bla2).recorder.filename
 SampleTimeline(\bla2).recorder.temporaryRecordFolder
 SampleTimeline(\bla2).editor.exportSelectionToBufferEditor
@@ -433,4 +433,22 @@ SampleTimeline('bla').eventList = TimelineEventList.newFrom([
 ]);
 SampleTimeline('bla').buffer = BufDef('cliprec/rec_cave38rec.0.3score_220412_200517.wav');
 );
+// fixed: the bug was the automatic setting of timeline duration when setting buffer
 
+///////////////////
+// test start locator
+
+
+SampleTimeline(\bla).edit
+SampleTimeline(\bla2).eventList.isEmpty
+SampleTimeline(\bla).buffer = BufDef('cliprec/rec_cave38rec.0.3score_220412_200517.wav');
+SampleTimeline(\bla).setDurationToBufferDuration
+SampleTimeline(\bla).play;
+SampleTimeline(\bla).cursor.startPosition = nil
+SampleTimeline(\bla).buffer.duration
+SampleTimeline(\bla).eventList.setStartPosition(0)
+TimelineEventList
+SampleTimeline(\bla)[ \setDurationToBufferDuration ].asCompileString
+
+TrackDef(\bla, TrackTemplateDef(\CustomTrackList))
+TrackDef(\bla).edit

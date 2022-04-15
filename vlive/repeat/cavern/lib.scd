@@ -19,6 +19,7 @@ FileSystemProject.load("libdef/equalizer.scd");
 
 FileSystemProject.load("capsule/sample_manager.scd"); // TODO move to libdef
 FileSystemProject.load("libdef/bufEditor.scd"); 
+FileSystemProject.load("libdef/PbindefEditor.scd"); 
 
 // controller
 

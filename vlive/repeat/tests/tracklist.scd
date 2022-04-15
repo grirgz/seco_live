@@ -122,3 +122,116 @@ WindowDef(\win, { arg def;
 	
 }).front;
 )
+
+
+
+
+/////////////////////
+// test mixer save/load
+
+FileSystemProject.load("libdef/CustomTrackList.scd");
+TrackDef(\bla, TrackTemplateDef(\CustomTrackList));
+TrackDef(\bla).edit
+TrackDef(\bla).clear
+TrackDef(\bla).presetCompileString
+TrackDef(\bla).linePlayers = nil
+TrackDef(\bla).linePlayers 
+TrackDef(\bla).childAt(0).presetCompileString
+TrackDef(\bla).childAt(0).outBus
+TrackDef(\bla).childAt(0,1).source.eventList
+TrackDef(\bla).childAt(0,1).source.edit
+TrackDef(\bla).mixer
+TrackDef(\bla3, TrackTemplateDef(\CustomTrackList));
+TrackDef(\bla2).childAt(0).mixer.presetCompileString
+TrackDef(\bla2).childAt(0).presetCompileString
+TrackDef(\bla2).children[0] = nil
+TrackDef(\bla).childAt(0).children[0] = nil
+TrackDef(\bla).linePlayerAt(0).parentTrack
+TrackDef(\bla).linePlayerAt(0).isLinePlayer
+TrackDef(\bla).linePlayerAt(5).isEmpty
+
+TrackDef(\bla3).edit
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([Pwhite(0,12)],inf),
+		\dur, 1/3,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pbindef(\hoho, 
+		\instrument, \default,
+		\degree, Pseq([Pwhite(0,12)],inf),
+		\dur, 1/3,
+		\amp, 0.1,
+		\out, BusDef(\sendbus1, \audio),
+).play;
+);
+
+
+(
+	Pdef(\part, Pdef(\zedpart, 
+		Pbind(\out, BusDef(\sendbus1, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.kick[1010].value,
+				\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+				\isRest, Pseq([
+					1,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\dur, 1/8,
+				\gain, 0.1,
+			),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.snare[1719].value,
+				\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+				\isRest, Pseq([
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,0,0,0, 1,0,0,0,
+					0,1,0,0, 1,0,1,0,
+				],inf).coin.not,
+				\dur, 1/8,
+				\gain, 0.11,
+			),
+			Pbindef(\hoho, 
+				\instrument, \default,
+				\degree, Pseq([Pwhite(0,12)],inf),
+				\dur, 1/3,
+				\amp, 0.1,
+			)	
+		])
+	)).play;
+);
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * ( SinOsc.kr(12 * ( SinOsc.kr(0.2 * ( SinOsc.kr(0.21) * 1 + 1 )) * 1 + 1 )) * 1 + 1 ));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+Ndef(\zed).quant = 4;
+
+(
+WindowDef(\win, { arg def;
+	PlayerWrapper(Ndef(\zed)).asView
+}).front;
+)
+
+SampleTimeline(\bla4).edit
+Buffer
+
+s.sendMsg("/b_query", 0);         
+OSCdef(\bla, { arg ...args; args.debug("osc:") })
+
+
+
+
