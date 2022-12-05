@@ -1,5 +1,6 @@
 
 
+BufDef(\amen)
 
 (
 Pdef(\part, Pdef(\zed, 
@@ -111,6 +112,7 @@ SampleTimeline('bla2').edit
 
 ~t = 1.3; TempoClock.default.tempo = ~t;
 
+~t = 0.6; TempoClock.default.tempo = ~t;
 
 // record with tempo=1 with one kick per beat, waveform is expected length of 8 beats
 ~t = 1; TempoClock.default.tempo = ~t;
@@ -452,3 +454,195 @@ SampleTimeline(\bla)[ \setDurationToBufferDuration ].asCompileString
 
 TrackDef(\bla, TrackTemplateDef(\CustomTrackList))
 TrackDef(\bla).edit
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+///// test recording timing
+/////////////////////////////////
+
+// delaybug: at the end of the record, the first miliseconds of the next note is recorded, and probably the record is missing the first miliseconds of first note
+// conclusion: the bug is due to imprecise timing, solution is to use s.bind { record }
+
+
+~rec = Recorder(Server.default);
+~recfile = "/tmp/bla.wav";
+~rec.prepareForRecord(~recfile, 2);
+~rec.record(~recfile, bus:0, numChannels:2);
+~rec.stopRecording
+(
+	// start
+	// delaybug present
+~rec.prepareForRecord(~recfile, 2);
+	Pdef(\zed).play;
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant, s.latency * TempoClock.default.tempo), {
+	~rec.record(~recfile, bus:0, numChannels:2);
+})
+)
+(
+	// stop
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant, s.latency * TempoClock.default.tempo), {
+	~rec.stopRecording;
+	Pdef(\zed).stop;
+})
+)
+BufDef(~recfile).play
+BufDef(~recfile).edit
+FileSystemProject.load("libdef/bufEditor.scd")
+WindowDef(\BufferEditor).front(BufDef(~recfile))
+BufDef.reload(~recfile)
+
+///// no latency
+// observation: the shift is 0.15 seconds independently of tempo
+~c.tempo
+~c.tempo = 1;
+Pdef.defaultQuant = 1
+(
+	// start
+	// no last ghost note but a silence at the begining of the record
+~rec.prepareForRecord(~recfile, 2);
+	Pdef(\zed).play;
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant), {
+	~rec.record(~recfile, bus:0, numChannels:2);
+})
+)
+(
+	// stop
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant), {
+	~rec.stopRecording;
+	Pdef(\zed).stop;
+})
+)
+
+
+///// only latency
+(
+	// start
+~rec.prepareForRecord(~recfile, 2);
+	Pdef(\zed).play;
+TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant, s.latency).debug("next");
+[~c.beats, SystemClock.seconds].debug("beats, seconds");
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant, s.latency), {
+[~c.beats, SystemClock.seconds].debug("beats, seconds");
+	~rec.record(~recfile, bus:0, numChannels:2);
+})
+)
+(
+	// stop
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant, s.latency), {
+	~rec.stopRecording;
+	Pdef(\zed).stop;
+})
+)
+
+///// find right latency
+/// = 0.15
+~c = TempoClock.default;
+~rec = Recorder(Server.default);
+~recfile = "/tmp/bla.wav";
+~c.tempo = 3;
+(
+	// start
+~rec.prepareForRecord(~recfile, 2);
+	Pdef(\zed).play;
+	~del = 0.05;
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant, s.latency * TempoClock.default.tempo - ~del), {
+	~rec.record(~recfile, bus:0, numChannels:2);
+})
+)
+(
+	// stop
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant, s.latency * TempoClock.default.tempo - ~del), {
+	~rec.stopRecording;
+	Pdef(\zed).stop;
+})
+)
+
+//// ~del as latency
+
+(
+	// start
+~rec.prepareForRecord(~recfile, 2);
+	Pdef(\zed).play;
+	~del = 0.085;
+	~del = 0.143;
+	// low del and there is a silence at begining
+	// high del and there is a chunk of note at the end
+	// observation: when i change ~del, the silence duration is varying not linearly even with tempo=1 all the time
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant, ~del * TempoClock.default.tempo), {
+	~rec.record(~recfile, bus:0, numChannels:2);
+})
+)
+(
+	// stop
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant, ~del * TempoClock.default.tempo), {
+	~rec.stopRecording;
+	Pdef(\zed).stop;
+})
+)
+
+//// ~del as latency outside of phase
+// observation: there is a jitter in the recording timing, even with same tempo, same ~del, same latency, same recording length, sometime the ghost note appear, sometime not
+
+(
+	// start
+~rec.prepareForRecord(~recfile, 2);
+	Pdef(\zed).play;
+	~del = 0.143;
+	// low del and there is a silence at begining
+	// high del and there is a chunk of note at the end
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant) + ( ~del * TempoClock.default.tempo ), {
+	~rec.record(~recfile, bus:0, numChannels:2);
+})
+)
+(
+	// stop
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant) + ( ~del * TempoClock.default.tempo ), {
+	~rec.stopRecording;
+	Pdef(\zed).stop;
+})
+)
+~c.tempo = 0.5;
+Pdef.defaultQuant = 1
+BufDef.reload(~recfile);
+WindowDef(\BufferEditor).front(BufDef(~recfile));
+
+
+////// use bundles as hinted in doc
+// seems very nice!!!!
+(
+	// start
+	~rec.prepareForRecord(~recfile, 2);
+	Pdef(\zed).play;
+	~del = 0.143;
+	// low del and there is a silence at begining
+	// high del and there is a chunk of note at the end
+	TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant), {
+		s.bind {
+			~rec.record(~recfile, bus:0, numChannels:2);
+		}
+	})
+)
+(
+	// stop
+TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant), {
+	s.bind {
+		
+	~rec.stopRecording;
+	};
+	Pdef(\zed).stop;
+})
+)
+
+/////////////////////////////////
+// youtube input recording
+
+SampleTimeline(\bla).edit
+
+FileSystemProject.load("libdef/JackControl.scd");
+WindowDef(\InputManager).front;
+// works!
+
+
+

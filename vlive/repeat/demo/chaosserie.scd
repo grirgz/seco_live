@@ -88,13 +88,216 @@ Pdef(\part).reset;
 (
 Pdef(\part, 
 	Pmono( \chaosanimal,
-		\degree, Pseq([0],inf),
+		\degree, Pseq([0,10,-19],inf),
 		\dur, 1/16,
 		\amp, 0.1,
 	)
 ).play;
 );
 
+/// chaoscustom
+
+(
+SynthDef(\chaoscustom, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var freqfac;
+	freqfac = LocalIn.kr(1) * \fb.kr(1.01);
+	freqfac = freqfac + Impulse.kr(0);
+	freqfac = (freqfac+\chaosbias.kr(5.2))*(\chaosfac.kr(-0.8))*(freqfac/\chaosdiv.kr(2.5));
+	freqfac = LeakDC.kr(freqfac);
+	freqfac = freqfac * ( CheckBadValues.kr(freqfac) <= 0 ).poll(label:"check");
+	//freqfac = freqfac.clip2(100.1);
+	//freqfac = freqfac.fold2(100.1);
+	freqfac = freqfac.wrap2(100.1);
+	LocalOut.kr(freqfac);
+	sig = SinOsc.ar(freq * freqfac.poll);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, 
+	Pdef(\chaoscustom,
+		Pmono( \chaoscustom,
+			\degree, Pseq([0],inf),
+			\dur, 1/16,
+			\amp, 0.1,
+		)
+	)
+).play;
+);
+
+Pdef(\chaoscustom).clear
+Pdef(\chaoscustom).envir = ()
+(
+Pdef(\part, 
+	Pdef(\chaoscustom,
+		Pmono( \chaoscustom,
+			\degree, Pseq([0],inf),
+			\dur, 1/16,
+			\chaosbias, Pseq([5,5.2],inf),
+			\chaosfac, Pseq([-0.8],inf),
+			\chaosdiv, Pseq([2.5],inf),
+			\amp, 0.1,
+		)
+	)
+).play;
+);
+
+Pdef(\chaoscustom).edit
+
+
+//////// chaoscustomfm
+(
+
+SynthDef(\chaoscustomfm, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var freqfac;
+	freqfac = LocalIn.kr(1) * \fb.kr(1.01);
+	freqfac = freqfac + Impulse.kr(0);
+	freqfac = (freqfac+\chaosbias.kr(5.2))*(\chaosfac.kr(-0.8))*(freqfac/\chaosdiv.kr(2.5));
+	freqfac = LeakDC.kr(freqfac);
+	freqfac = freqfac * ( CheckBadValues.kr(freqfac) <= 0 ).poll(label:"check");
+	//freqfac = freqfac.clip2(100.1);
+	//freqfac = freqfac.fold2(100.1);
+	freqfac = freqfac.wrap2(100.1);
+	LocalOut.kr(freqfac);
+	sig = SinOsc.ar(freq * ( freqfac.poll * \fmamp.kr(0.1) + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+(
+
+	// test with lpf over chaos
+SynthDef(\chaoscustomfm, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var freqfac;
+	freqfac = LocalIn.kr(1) * \fb.kr(1.01);
+	freqfac = freqfac + Impulse.kr(0);
+	freqfac = (freqfac+\chaosbias.kr(5.2))*(\chaosfac.kr(-0.8))*(freqfac/\chaosdiv.kr(2.5));
+	freqfac = LeakDC.kr(freqfac);
+	freqfac = freqfac * ( CheckBadValues.kr(freqfac) <= 0 ).poll(label:"check");
+	//freqfac = freqfac.clip2(100.1);
+	//freqfac = freqfac.fold2(100.1);
+	freqfac = freqfac.wrap2(100.1);
+	LocalOut.kr(freqfac);
+	sig = SinOsc.ar(freq * ( LPF.kr(freqfac.poll,180) * \fmamp.kr(0.1) + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+(
+
+	// test with latch over chaos
+SynthDef(\chaoscustomfm, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var freqfac;
+	freqfac = LocalIn.kr(1) * \fb.kr(1.01);
+	freqfac = freqfac + Impulse.kr(0);
+	freqfac = (freqfac+\chaosbias.kr(5.2))*(\chaosfac.kr(-0.8))*(freqfac/\chaosdiv.kr(2.5));
+	freqfac = LeakDC.kr(freqfac);
+	freqfac = freqfac * ( CheckBadValues.kr(freqfac) <= 0 ).poll(label:"check");
+	//freqfac = freqfac.clip2(100.1);
+	//freqfac = freqfac.fold2(100.1);
+	freqfac = freqfac.wrap2(100.1);
+	LocalOut.kr(freqfac);
+	sig = SinOsc.ar(freq * ( Latch.ar(freqfac.poll,Impulse.ar(freq)) * \fmamp.kr(0.1) + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+/// test with delay
+SynthDef(\chaoscustomfm, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var freqfac;
+	freqfac = LocalIn.kr(1) * \fb.kr(1.01);
+	freqfac = freqfac + Impulse.kr(0);
+	freqfac = (freqfac+\chaosbias.kr(5.2))*(\chaosfac.kr(-0.8))*(freqfac/\chaosdiv.kr(2.5));
+	freqfac = LeakDC.kr(freqfac);
+	freqfac = freqfac * ( CheckBadValues.kr(freqfac) <= 0 ).poll(label:"check");
+	//freqfac = freqfac.clip2(100.1);
+	//freqfac = freqfac.fold2(100.1);
+	freqfac = freqfac.wrap2(100.1);
+	LocalOut.kr(freqfac);
+	sig = SinOsc.ar(freq * ( freqfac.poll * \fmamp.kr(0.1) + 1 ));
+	sig = DelayL.ar(sig , 0.1 , LPF.kr(freqfac,10) * \delayfac.kr(0.00001)) + sig;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+/// test with delay and lpf
+SynthDef(\chaoscustomfm, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var freqfac;
+	freqfac = LocalIn.kr(1) * \fb.kr(1.01);
+	freqfac = freqfac + Impulse.kr(0);
+	freqfac = (freqfac+\chaosbias.kr(5.2))*(\chaosfac.kr(-0.8))*(freqfac/\chaosdiv.kr(2.5));
+	freqfac = LeakDC.kr(freqfac);
+	freqfac = freqfac * ( CheckBadValues.kr(freqfac) <= 0 ).poll(label:"check");
+	//freqfac = freqfac.clip2(100.1);
+	//freqfac = freqfac.fold2(100.1);
+	freqfac = freqfac.wrap2(100.1);
+	LocalOut.kr(freqfac);
+	sig = SinOsc.ar(freq * ( LPF.kr(freqfac.poll,100) * \fmamp.kr(0.1) + 1 ));
+	sig = DelayL.ar(sig , 0.1 , LPF.kr(freqfac,10) * \delayfac.kr(0.00001)) + sig;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, 
+	Pdef(\chaoscustomfm,
+		Pmono( \chaoscustomfm,
+			\degree, Pseq([0,3],inf),
+			\dur, 1/2,
+			\fb, 0.7,
+			\chaosbias, Pseq([5,5.2,10.1],inf),
+			\chaosfac, Pseq([-0.8,-12],inf),
+			\chaosdiv, Pseq([2.5,7],inf),
+			\fmamp, 0.003,
+			\amp, 0.1,
+		)
+	)
+).play;
+);
+
+(
+Pdef(\part, 
+	Pdef(\chaoscustomfm,
+		Pmono( \chaoscustomfm,
+			\degree, Pseq([0,3],inf),
+			\dur, 1/2,
+			\fb, 0.7,
+			\chaosbias, Pseq([5,5.2,10.1],inf),
+			\chaosfac, Pseq([-0.8,-12],inf),
+			\chaosdiv, Pseq([2.5,7],inf),
+			\fmamp, 0.3,
+			\amp, 0.1,
+		)
+	)
+).play;
+);
+
+//////// chaosfm
 (
 SynthDef(\chaosfm, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -146,6 +349,7 @@ Pdef(\part,
 );
 
 WindowDef(\PdefEditor).front(Pdef(\chaosfm))
+FileSystemProject.load("repeat/cavern/lib.scd")
 
 Pdef(\chaosfm).addHalo(\instrument, \chaosfm)
 Pdef(\chaosfm).addSpec(\fb, ControlSpec(0.4,1.4,\lin))
@@ -183,6 +387,7 @@ SynthDef(\chaosfm2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 Pdef(\part).reset;
 );
 
+FileSystemProject.load("repeat/capsule/fxheavy.scd")
 (
 Pdef(\part, 
 	Ppar([
@@ -295,7 +500,7 @@ Pdef(\part,
 			'gain', 0.7344889782792,
 			'fb', 0.0002099467303085,
 			'delay', 0.100600001231 * Pseq([
-				1,
+				1,1/1000
 			],inf).stutter(1),
 			'delay2', 0.000000543560101,
 			'distamp', 6.361836201538,

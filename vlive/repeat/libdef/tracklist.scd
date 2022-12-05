@@ -74,6 +74,10 @@ TrackTemplateDef(\TrackList, (
 	},
 
 	savePresetCompileString: { arg self, path, onDoneAction;
+		// currently, this require to give an absolute path to a directory that does not 
+		//		exist and that will contains all the save files
+
+
 		// path should be an absolute folder path
 		// FIXME: giving path as argument is broken: self.dataPath is not defined
 		var savefile;
@@ -89,7 +93,7 @@ TrackTemplateDef(\TrackList, (
 				self.loadedFromPath = path;
 				PlayerWrapper_Base.savePresetCompileStringHelper(savefile, onDoneAction, self.refCompileString, self.presetCompileString, false);
 				File.mkdir(self.dataPath);
-				self.children.do({ arg column;
+				self.existingChildren.do({ arg column;
 					column.savePresetCompileString;
 				});
 				self.resources.do { arg res;
@@ -144,8 +148,10 @@ TrackTemplateDef(\TrackList, (
 	},
 
 	presetCompileStringSavePath_: { arg self, val;
+		// FIXME: path should either be asbsolute or relative
+		// savePresetCompileString does not resolve the path
 		self[\presetCompileStringSavePath] = val;
-		"===== saving resources".debug;
+		val.debug("===== setting resources save path. path:");
 		self.resources.do { arg track;
 			PlayerWrapper(track).presetCompileStringSavePath = "%%_%.scd".format(val, PlayerWrapper(track).targetClass, track.key);
 		};
@@ -256,7 +262,7 @@ TrackTemplateDef(\InstrumentTrack, (
 			path.debug("save path");
 			PlayerWrapper_Base.savePresetCompileStringHelper(path, onDoneAction, self.refCompileString, self.presetCompileString, false);
 
-			self.children.do({ arg track;
+			self.existingChildren.do({ arg track;
 				track.savePresetCompileString;
 			})
 		}

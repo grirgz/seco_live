@@ -259,12 +259,12 @@ Ppar([
 		\decay, Pseq([1],inf),
 	),
 			Ppar([
-		Pbind(\instrument, \kick, \dur, 1/4, \decay, Pstep([2,0.3],1/4,inf) * 0.7, \octave, 4, \amp, Pstep([1,0,0,1, 0,0,1,0, 0,0.2,1,0, 0,0,0,0],1/4,inf)),
+		Pbind(\instrument, \kick, \dur, 1/4, \decay, Pstep([2,0.3],1/4,inf) * 0.7, \octave, 4, \amp, Pstep([1,0,0,1, 0,0,1,0, 0,0.2,1,0, 0,0,0,0],1/4,inf)/5),
 		Pbind(\instrument, \ch,
 			\decay, 0.3,
 		\dur, 1/Pstep([8,4,4,4,1,1,6,1],1,inf),
 		\decay, Pn(Pseg([0.3,0.1],1)) / 2,
-		\amp, Pstep([0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0],1/4,inf) + (0.1*Pn(Pseg([0,0.4],1)))
+		\amp, Pstep([0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0],1/4,inf) + (0.1*Pn(Pseg([0,0.4],1)))  / 5
 	)
 		])
 ]).play;

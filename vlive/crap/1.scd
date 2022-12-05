@@ -2889,3 +2889,36 @@ Pbind(
       }.defer; // defer is needed to interact with GUI in a tempoclock thread
   })
 ).play
+
+
+a = { Out.ar(4, SinOsc.ar(100) * 0.1 ) }.play
+SynthDescLib.global.at(a.defName)
+a.defName.dump
+
+
+NodeProxy.methods.select { |x| x.selectors.asArray.includes(\changed) }.collect { |x| x.name }
+NodeProxy.methods.collect { |x| x.selectors.asArray }
+NodeProxy.methods.collect(_.name)
+Method
+
+Pseq.methods.collect { |x| x.name -> x.selectors.asArray }
+
+
+Pseq.methods[0].selectors
+
+
+(
+w = Window.new;
+w.front
+.alwaysOnTop = true;
+w.view.background_(Color.white);
+a = Image.new("/home/ggz/Images/pikachu2.png"); // or another image..
+w.view.backgroundImage_(a, 15, 1, Rect(80, 80 , 40, 40)); // also here, alpha (3rd arg) has no effect
+m = Slider2D(w, Rect(60, 60, 80, 80));
+m.background =  Color.gray(alpha: 0);
+// also tested these colors for Slider2D, but they have no alpha value so unable to control transparency:
+//m.background =  Color.clear;
+//m.background =  Color.white;
+)
+
+Main.version

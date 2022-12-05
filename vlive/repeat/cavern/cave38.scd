@@ -1,6 +1,23 @@
 
 ~t = 185/4/60; TempoClock.default.tempo = ~t;
 (
+SynthDef(\fmmm, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq * XLine.kr(20,1,0.01) * ( SinOsc.ar(100 * XLine.kr(20,1,0.01) * ( SinOsc.ar(2) * 1 + 1 )) * 4 + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.001,0.01,0.4,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fmmm2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq * XLine.kr(\lhi.kr(20),1,\ldur.kr(0.01)) * ( SinOsc.ar(100 * XLine.kr(\lhi.kr,1,\ldur.kr(0.01)) * ( SinOsc.ar(2) * 1 + 1 )) * 4 + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.001,0.01,0.4,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	sig = sig.clip2(0.2);
+	Out.ar(out, sig);
+}).add;
+);
+(
 	// simple
 Pdef(\part, Pdef(\zedpart, 
 	Pbind(\out, BusDef(\sendbus1, \audio)) <>
@@ -362,23 +379,6 @@ Pdef(\part, Pdef(\zedpart,
 
 
 
-(
-SynthDef(\fmmm, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = LFSaw.ar(freq * XLine.kr(20,1,0.01) * ( SinOsc.ar(100 * XLine.kr(20,1,0.01) * ( SinOsc.ar(2) * 1 + 1 )) * 4 + 1 ));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.001,0.01,0.4,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-SynthDef(\fmmm2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = LFSaw.ar(freq * XLine.kr(\lhi.kr(20),1,\ldur.kr(0.01)) * ( SinOsc.ar(100 * XLine.kr(\lhi.kr,1,\ldur.kr(0.01)) * ( SinOsc.ar(2) * 1 + 1 )) * 4 + 1 ));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.001,0.01,0.4,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	sig = sig.clip2(0.2);
-	Out.ar(out, sig);
-}).add;
-);
 
 (
 Pdef(\part, Pdef(\zedpart, 

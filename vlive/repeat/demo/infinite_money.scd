@@ -37,6 +37,7 @@
 )
 ~solve_debt.()
 
+~bank
 	~bank = (money:5000);
 (
 	~bank.starting_money = ~bank.money;
@@ -91,3 +92,7 @@
 
 )
 ~play_game.();
+~bank
+	~bank = (money:5000, credit:0, bankroute:0);
+
+		~solve_debt.();

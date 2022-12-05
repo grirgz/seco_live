@@ -156,6 +156,69 @@ Pdef(\part, Pdef(\introvar2,
 );
 
 (
+	// intro variations 3
+Pdef(\part, Pdef(\introvar3, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1308].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1613].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/lovin.flac'),
+			\pos, Pseq([
+				0,\r,\r,\r,
+				0,\r,\r,\r,
+				0,\r,\r,\r,
+				0,0,0,0,
+			],inf),
+			\legato, Pseq([
+				2,2,2,2,
+				2,2,2,2,
+				2,2,2,2,
+				1,1,1,1,
+				
+			],inf),
+			\dur, 1/2,
+			\gain, 1/8,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/lovin.flac'),
+			\pos, Pseq([
+				0.1,0.3,0.4,0.5,
+			],inf),
+			\legato, 1,
+			\legato, Pseq([
+				0,0,0, 0,0,0,  0,0,0, 0,0,0,
+				0,0,1, 1,0,0,  0,0,0, 1,0,0,
+				0,0,0, 0,0,0,  0,0,0, 0,0,0,
+				0,0,0, 0,0,0,  0,0,0, 1,0,1,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/12,
+			\gain, 1/8,
+		)
+		
+	])
+)).play;
+);
+
+(
 	// main intro
 Pdef(\part, Pdef(\mainintro, 
 	Pseq([

@@ -328,7 +328,7 @@ Pdef(\part, Pdef(\zed,
 			}),
 			\dur, Pseg(Pseq([0.1,0.05,1,0.31,0.07],inf),7),
 			\sustain, 2,
-			\amp, 0.1,
+			\amp, 0.02,
 		),
 		Pbind(
 			\instrument, \ploux2,
@@ -344,7 +344,7 @@ Pdef(\part, Pdef(\zed,
 			}),
 			\dur, Pseg(Pseq([0.1,0.05,1,1],inf),8),
 			\sustain, 1,
-			\amp, 0.1,
+			\amp, 0.02,
 		),
 		
 	])
@@ -550,4 +550,184 @@ Pdef(\part, Pdef(\zedpart,
 		
 	])
 )).play;
+);
+
+
+////////////////////// loop sound and add elements each time
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pspawner({ arg sp;
+	   
+			loop {
+				sp.par(Pbind(
+					\instrument, \default,
+					\adsr, Pseq([
+						[ Env.adsr(0.01,0.1,0.8,0.1) ],
+					],inf),
+					\note, Pseq([
+						Pseq([0,2,4,5,7,9,11,12].collect({ arg x; x + ( ( (1..5).choose-3 ) * 12 ) }).scramble-2),
+					],inf),
+					\dur, 1/4,
+					\lag, ( 1/4 ).rand,
+					\amp, 0.1/2,
+				));
+				2.wait;
+			}
+		})
+		
+	])
+)).play;
+);
+
+
+//////////////////////////////////////////////////////
+///////////////// mtranspose ctranspose root
+
+(
+// ctranspose is in semitones: \note indexes
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\ctranspose, Pseq([
+			0,5,7,5,
+		],inf).stutter(4),
+		\degree, Pseq([0,2,4,0],inf),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+	// same with mtranspose, 
+	// mtranspose use degree indexes
+	// mtranspose work only with \degree, not \note
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\mtranspose, Pseq([
+			0,3,4,3,
+		],inf).stutter(4),
+		\degree, Pseq([0,2,4,0],inf),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+	// root is same as ctranspose
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\root, Pseq([
+			0,5,7,5,
+		],inf).stutter(4),
+		\degree, Pseq([0,2,4,0],inf),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+///////
+
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\ctranspose, Pseq([
+			0,5,7,5,
+		],inf).stutter(4),
+		\degree, Pseq([0,2b,4,0],inf),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+	// using scale is equivalent to using bemol
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\ctranspose, Pseq([
+			0,5,7,5,
+		],inf).stutter(4),
+		\scale, Scale.minor,
+		\degree, Pseq([0,2,4,0],inf),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+//////
+(
+	// ctranspose does not follow scale
+	// should be minor chord
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\ctranspose, Pseq([
+			9,14,16,14,
+		],inf).stutter(4),
+		\degree, Pseq([0,2,4,0],inf),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+(
+	// mtranspose follow scale
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\mtranspose, Pseq([
+			5,8,9,8,
+		],inf).stutter(4),
+		\degree, Pseq([0,2,4,0],inf),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+	// equivalent to changing scale
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\mtranspose, Pseq([
+			5,8,9,8,
+		],inf).stutter(4),
+		// minor scale built on 5eme degree
+		// 5eme degree = 9 demi tons 
+		// (en debutant a 0, donc en solfege le 6eme degree )
+		\root, -9, 
+		\degree, Pseq([0,2,4,0],inf),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+	// same
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\ctranspose, Pseq([
+			0,5,7,5,
+		],inf).stutter(4),
+		\scale, Scale.minor,
+		\degree, Pseq([0,2,4,0],inf),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
 );

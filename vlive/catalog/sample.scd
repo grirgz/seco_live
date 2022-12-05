@@ -741,12 +741,11 @@ SynthDef(\doublegran, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_str
 }).add;
 Pdef(\part).reset;
 )
-
+BufDef.mono('voices/feynman.flac').play
 (
 Pdef(\part, Pdef(\plop, 
 	Ppar([
 		Pmono(\simplegran,
-			\freq, 200,
 			\mbufnum, BufDef.mono('loop/loop3b_185bpm.flac'),
 			\mbufnum, BufDef.mono('voices/kaspi.flac'),
 			\mbufnum, BufDef.mono('voices/feynman.flac'),
@@ -757,6 +756,50 @@ Pdef(\part, Pdef(\plop,
 			\dephase, ~pmodenv.(Pseq([0,0.02,0.1,1],inf), 8),
 			\gdur, ~pmodenv.(Pseq([0.1,0.02],inf), 4),
 			\pitch_stretch, 2,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pmono(\simplegran,
+			\mbufnum, BufDef.mono('loop/loop3b_185bpm.flac'),
+			\mbufnum, BufDef.mono('voices/kaspi.flac'),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\pos, Pseq([
+				~pmodenv.(Pseq([1,2,1,4],1), 8*8),
+				~pmodenv.(Pseq([1,1.4]+0.4,1), 1/2),
+				~pmodenv.(Pseq([1.4,1]+0.4,1), 1/2),
+			],inf),
+			\dephase, ~pmodenv.(Pseq([0,0.02,0.1,1],inf), 8),
+			\gdur, ~pmodenv.(Pseq([0.1,0.02],inf), 4),
+			\pitch_stretch, ~pmodenv.(Pseq([2,0.4],inf), Pexprand(0.1,20)),
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
+(
+Pdef(\part, Pdef(\plop, 
+	Ppar([
+		Pmono(\simplegran,
+			\mbufnum, BufDef.mono('loop/pigs.flac'),
+			\dephase, ~pmodenv.(Pseq([0,0.02,0.1,1],inf), 8),
+			\gdur, Ptuple([ Pseries(0.2,-0.01,8*8),Pseries(0.01,0.01,8*8) ],inf),
+			\gfreq, Ptuple([ Pseries(100,1,8*8),Pseries(100,1.1,8*8) ],inf),
+			\gfreq, Pseq([
+				[0,3],
+				[0,4],
+			].midiratio * 100,inf),
+			\pos, Ptuple([ Pseries(0,0.01,8*8),Pseries(1,0.01,8*8) ],inf)+1,
+			\pan, Ptuple([-1 * Pwhite(0.5,1),1* Pwhite(0.5,1)],inf),
+			\pitch_stretch, ~pmodenv.(Pseq([2,0.4],inf), Pexprand(0.1,20)),
 			\dur, 1/4,
 			\amp, 0.1,
 		),
@@ -775,7 +818,7 @@ Pdef(\demo, Pdef(\demomo,
 			\bufnum, BufDef('loop/loop2_185bpm.flac'),
 			\bufnum, BufDef('voices/feynman.flac'),
 			\bufnum, BufDef('fix4/snare1.flac'),
-			\bufnum, BufDef(\ukraine, "bruit1/07_ukraine.flac"),
+			\bufnum, BufDef.stereo(\ukraine, "bruit1/07_ukraine.flac"),
 			\speed, 1.031 * Pseq([
 				1,
 			],inf),
@@ -802,7 +845,7 @@ Pdef(\demo, Pdef(\demomo,
 		Pbind(
 			\instrument, \playersec,
 			\bufnum, BufDef('loop/loop2_185bpm.flac'),
-			\bufnum, BufDef('voices/feynman.flac'),
+			\bufnum, BufDef.stereo('voices/feynman.flac'),
 			\speed, 2.031 * Pseq([
 				1,0.7,1.2,0.5,
 			],inf),
@@ -862,12 +905,13 @@ Pdef(\demo, Pdef(\demomo,
 
 
 (
+	// from cave45
 SynthDef(\gregrain, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, mbufnum, pitch_stretch=1, pos=0, gdur=0.1;
 	var sig, clk;
 	clk = Impulse.ar(freq);
 	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, pos % BufDur.kr(mbufnum), gdur, pan, 1);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
 	Out.ar(out, sig);
 }).add;
 );
@@ -891,3 +935,519 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain,
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\pos, ~pmodenv.(Pseq([0,5,10]/80,1) + Pwhite(0,0.02,inf).stutter(8), 8).loop,
+			\gdur, 0.1/4,
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1),
+			\octave, 4,
+			\legato, 1,
+			\dur, 1/2,
+			\gain, 1.3,
+		)
+		
+	])
+)).play;
+);
+
+(
+SynthDef(\gregrain_pan, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, mbufnum, pitch_stretch=1, pos=0, gdur=0.1;
+	var sig, clk;
+	clk = Impulse.ar(freq);
+	pan = Dseq([1,0.4,-1,0.1,-0.9],inf);
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, pos % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+)
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain_pan,
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\pos, ~pmodenv.(Pseq([0,5,10]/80,1) + Pwhite(0.01,0.02,inf).stutter(8), 8).loop,
+			\gdur, 0.1/4,
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1),
+			\octave, 4,
+			\legato, 1,
+			\dur, 1/2,
+			\gain, 1.3,
+		)
+		
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain_pan,
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\pos, ~pmodenv.(Pseq([0,5,10]/180,1) + Pwhite(0,0.02,inf).stutter(8), 8).loop,
+			\gdur, 0.1/4,
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1),
+			\octave, 5,
+			\legato, 1,
+			\dur, 1/2,
+			\gain, 1.3,
+		)
+		
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain_pan,
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\pos, ~pmodenv.(Pseq([0,5,10]/180,1) + Pwhite(0,0.02,inf).stutter(8), 8).loop,
+			\gdur, 0.1/2,
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1),
+			\octave, 6,
+			\legato, 1,
+			\dur, 1/2,
+			\gain, 1.3,
+		)
+		
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain_pan,
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\pos, ~pmodenv.(Pseq([0,5,10]/180,1) + Pwhite(0,0.02,inf).stutter(8), 8).loop,
+			\gdur, 0.1/1,
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1),
+			\octave, 3,
+			\legato, 1,
+			\dur, 1/2,
+			\gain, 1,
+		)
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain_pan,
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\pos, ~pmodenv.(Pseq([0,5,10]/180,1) + Pwhite(0,0.02,inf).stutter(8), 8).loop,
+			\gdur, 0.1/4,
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1),
+			\octave, 3,
+			\legato, 1,
+			\dur, 1/2,
+			\gain, 1,
+		)
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain_pan,
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\pos, ~pmodenv.(Pseq([0,5,10]/80,1) + Pwhite(10,0.02,inf).stutter(8), 8).loop,
+			\gdur, 0.1/4,
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1),
+			\octave, 4,
+			\legato, 1,
+			\dur, 1/2,
+			\gain, 1,
+		),
+		Pbind(
+			\instrument, \default,
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1),
+			\legato, 0.3,
+			\dur, 1/6,
+			\amp, 0.1/2 * Pseq([1,0.2],inf),
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain_pan,
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\pos, ~pmodenv.(Pseq([0,5,10]/440,1) + Pwhite(10,0.02,inf).stutter(8), 8).loop,
+			\gdur, 0.1/8,
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1),
+			\octave, 6,
+			\legato, 0.71,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,3.1) ],
+			],inf),
+			\dur, 1/2,
+			\gain, 4,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain,
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\pos, ~pmodenv.(Pseq([0,5,10]/180,1) + Pwhite(0,0.02,inf).stutter(8), 8).loop,
+			\gdur, 0.1/4,
+			\note, Pstep(Pseq([
+				3,0,5,
+			],inf),1),
+			\octave, 3,
+			\legato, 0.9,
+			\dur, 1/8,
+			\amp, 0.1 * Pseq([1,0.2,0.4,0.2],inf),
+		),
+		Pbind(
+			\instrument, \gregrain_pan,
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\pos, ~pmodenv.(Pseq([0,5,10]/440,1) + Pwhite(10,0.02,inf).stutter(8), 8).loop,
+			\gdur, 0.1/8,
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1),
+			\octave, 6,
+			\legato, 0.71,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,3.1) ],
+			],inf),
+			\dur, 1/2,
+			\gain, 4,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \gregrain,
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\pos, Ptuple  (
+				[
+				~pmodenv.(Pseq([0,5,10]/440,1) + Pwhite(10.02,10,inf).stutter(2), 8).loop,
+				~pmodenv.(Pseq([0,5,10]/440,1) + Pwhite(10.02,10,inf).stutter(2), 8).loop,
+				]
+			),
+			\gdur, Ptuple  (
+				[
+				~pmodenv.(Pseq([10,1,0,2,10]/180,1) , 3).loop,
+				~pmodenv.(Pseq([0,5,10]/180,1) , 8).loop,
+				]
+			),
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1),
+			\octave, Ptuple(Prand([4,5,6],inf).stutter(Prand([1,2,3,4],inf))!2),
+			\pan, [-1,1],
+			\legato, 0.71,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,3.1) ],
+			],inf),
+			\dur, 1/2,
+			\gain, 4,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain_pan,
+			\mbufnum, BufDef.mono("com/Kick/Kick House 4.wav"),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\pos, ~pmodenv.(Pseq([0,5,10]/440,1) + Pwhite(10.02,10,inf).stutter(2), 8).loop,
+			\gdur, 0.1/8,
+			\note, Pstep(Pseq([
+				0,4,2,
+			],inf),1)-
+				Pseq([
+					[0,12,5],
+					[0,12,6],
+					[0,12,7],
+				],inf),
+			\octave, 6,
+			\legato,  Ptuple(
+				Pwhite(0.3,1)!2
+			),
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,3.1) ],
+			],inf),
+			\dur, 1/2,
+			\gain, 4,
+		),
+	])
+)).play;
+);
+
+
+///////////////////////// auto breakbeat loop
+~t = 165/4/60; TempoClock.default.tempo = ~t;
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/pigs.flac'),
+			\legato, 1,
+			\st, 92.10/4/60,
+			\speed, 1/Pseq([1,1,2,4],inf) * ~t / Pkey(\st),
+			\pos, Pseq([
+				Pseg(Pseq([
+					2, 3,
+				],1),4),
+				Pseg(Pseq([
+					1, 2,
+				],1),4),
+			],inf) / Pkey(\st),
+			\dur, PdurStutter(Pseq([1,1,1,4,2,1,8],inf), 1/2),
+			\gain, 0.5,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('vipere/amenbreak.wav'),
+			\legato, 1,
+			\st, 136/4/60,
+			\speed, 1/Pseq([8,1,2,2,1,4],inf) * ~t / Pkey(\st),
+			\pos, Pseq([
+				Pseg(Pseq([
+					1, 2,
+				],1),2),
+				Pseg(Pseq([
+					0, 2,
+				],1),2),
+			],inf) / Pkey(\st),
+			\isRest, Pseq([
+				Plazy({ arg ev;
+					var seq;
+					Pseq([
+						seq = Pseq([
+							1,1,1,1, 0,0,0,0,
+						].scramble,1),
+						Pseq([
+							1,1,1,1, 1,1,0,0,
+						].scramble,1),
+						seq,
+
+						Pseq([
+							1,1,1,1, 0,0,0,0,
+						].scramble,1),
+
+
+						1,1,1,1, 1,1,1,1,
+						1,1,1,1, 1,1,1,1,
+						0,0,0,0, 0,0,0,0,
+						1,1,1,1, 1,1,1,1,
+					],1);
+				}).loop,
+			],inf).coin.not,
+			\dur, PdurStutter(Pseq([1,2,8,2,4],inf), 1/4),
+			\gain, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1119].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/pigs.flac'),
+			\legato, 1,
+			\st, 92.10/4/60,
+			\speed, 1/Pseq([2,1,1/2,1],inf) * ~t / Pkey(\st),
+			\pos, Pseq([
+				Pseg(Pseq([
+					0, 2,
+				],1),4),
+				Pseg(Pseq([
+					1, 2,
+				],1),4),
+			],inf) / Pkey(\st),
+			\dur, PdurStutter(Pseq([2,8,1,1,1,1,8],inf), 1/2),
+			\gain, 0.5,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1119].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/pigs.flac'),
+			\legato, 1,
+			\st, 92.10/4/60,
+			\speed, 1/Pseq([
+					1,1,1,1,
+					1,2,2,2,
+					1,1,1,4,
+					4,1,1,1,
+					1,1,2,1,
+					1,4,2,1,
+				1,2,4,1,
+				1/2,1,1/2,1,
+			],inf) * ~t / Pkey(\st),
+			\pos, Pseq([
+				Pseg(Pseq([
+					0, 1,
+				],1),2),
+				Pseg(Pseq([
+					0, 2,
+				],1),2),
+				Pseg(Pseq([
+					1, 2,
+				],1),2),
+			],inf) / Pkey(\st),
+			\dur, PdurStutter(Pseq([
+				Pseq([4,1],8),
+				2,8,1,1, 1,1,1,8,
+			],inf), 1/2),
+			\gain, 0.5,
+		),
+	])
+)).play;
+);
+

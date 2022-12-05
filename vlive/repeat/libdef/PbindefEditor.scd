@@ -385,6 +385,9 @@ WindowDef(\PbindefEditor, (
 						ControllerDef.getTagSpec(\knobline)
 					).asPopUpMenu.allowsReselection_(true),
 				),
+				BasicButton.new.string_("Copy compile string").action_({ 
+					self.presetCompileString.pbcopy.postln;
+				}),
 				BasicButton.new.string_("Refresh").action_({
 					self.updateParamGroupView;
 					self.updateModulatorView;
@@ -1152,6 +1155,33 @@ WindowDef(\PbindefEditor, (
 		if(self.proxy.source.at(key).isNil) { // if already defined, do not change it
 			self.proxy.source.set(key, val ?? { Param(self.proxy, key).default });
 		}
+	},
+
+	presetCompileString: { arg self;
+		var params;
+		params = ( [self.instrumentParam] ++ self.pbindefKeysParamList ).collect { arg param, idx;
+			// needed because instrumentParam is already a source subparam
+			// and double source in propertyPath return wrong value
+			param = if(
+				PdefParam.associationToArray(param.propertyPath).last != \source
+			) {
+				param.at(\source)
+			} {
+				param;
+			};
+			if(param.spec.isKindOf(ParamBufferSpec)) {
+				"\t%, %,\n".format(
+					param.propertyRoot.asCompileString,
+					"BufDef(%)".format(param.spec.tagSpec.unmapKey(param.get).asCompileString)
+				)
+			} {
+				"\t%, %,\n".format(
+					param.propertyRoot.asCompileString,
+					param.getRaw.asCompileString, // getRaw to keep double brackets for arrays
+				)
+			}
+		}.join;
+		"Pbindef(%,\n%);".format(self.proxy.key.asCompileString, params)
 	},
 
 	asView: { arg self, def, proxy;

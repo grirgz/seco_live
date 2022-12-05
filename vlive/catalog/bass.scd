@@ -1354,3 +1354,95 @@ Pdef(\zed,
 		),
 ).play;
 );
+
+/////////// /////////// /////////// ///////////
+
+
+(
+SynthDef(\simplegran_adsr, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, pos=0, gdur=0.1, pan;
+	var sig;
+	var clk;
+	var phase;
+	clk = Impulse.ar(\gfreq.kr(40));
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = pos;
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, phase % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \simplegran_adsr,
+			\mbufnum, BufDef.mono('loop/pigs.flac'),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\note, Pseq([
+				0,2,1,0,
+			],inf).stutter(4),
+			\octave, 3,
+			\pos, Pseq([
+				~pmodenv.(Pseq([0,0,0.03],1) + Pwhite(0,4.1).stutter(4), 2),
+			],inf),
+			\pitch_stretch, ~pmodenv.(Pseq([1,1/2,1/4,1/8],inf),8).loop,
+			\pitch_stretch, Pwhite(0.4,0.1).stutter(4),
+			\adsr, Pseq([
+				[ Env.adsr(0.051,0.1,0.8,0.1) ],
+			],inf),
+			\gfreq, Pkey(\freq),
+			\dur, 1/4,
+			//\out, BusDef(\sendbus1, \audio),
+			\legato, Pseq([
+				7,0,0,0, 0,0,0,0,
+				2,0,0,3, 0,0,2,0,
+				7,0,0,0, 0,0,0,1,
+				2,0,3,0, 0,3,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \simplegran_adsr,
+			\mbufnum, BufDef.mono('loop/pigs.flac'),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\note, Pseq([
+				0,2,1,0,
+			],inf).stutter(4),
+			\octave, 3,
+			\pos, Pseq([
+				~pmodenv.(Pseq([0,0,0.03],1) + Pwhite(0,4.1).stutter(4), 2),
+			],inf),
+			\pitch_stretch, ~pmodenv.(Pseq([1,1/2,1/4,1/8],inf),8).loop,
+			\pitch_stretch, ~pmodenv.(Pseq([0.8,0.3,0.8,0.5,0.5],1), Pseq([1/4,1/4,1,2/4],1)).loop,
+			\adsr, Pseq([
+				[ Env.adsr(0.051,0.1,0.8,0.1) ],
+			],inf),
+			\gfreq, Pkey(\freq),
+			\gdur, ~pmodenv.(Pseq([0.8,0.3,0.8,0.5,0.5]/20,1), Pseq([1/4,1/4,1,2/4]*2,1)).loop,
+			//\out, BusDef(\fx1, \audio),
+			\dur, 1/4,
+			//\out, BusDef(\sendbus1, \audio),
+			\legato, Pseq([
+				7,0,0,0, 0,0,0,0,
+				2,0,0,3, 0,0,2,0,
+				7,0,0,0, 0,0,0,1,
+				2,0,3,0, 0,3,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+
+		),
+		
+	])
+)).play;
+);

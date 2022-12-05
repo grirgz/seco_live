@@ -109,7 +109,7 @@ Pdef(\part, Pdef(\zedpart,
 				[ Env.adsr(0.01,0.1,0.8,0.01) ],
 			],inf),
 			\dur, 1/8,
-			\amp, 0.91,
+			\amp, 0.091,
 		),
 		
 	])
@@ -467,7 +467,7 @@ Pdef(\part, Pdef(\zedpart,
 (
 var duration = 60 * 5;
 var freqDrift = { |freq| LFDNoise3.ar(0.2, 0.1, freq.cpsmidi).midicps };
-var masterVolume = -2.dbamp;
+var masterVolume = -14.dbamp;
 
 play {
 	var rootFreq = freqDrift.(26.midicps);

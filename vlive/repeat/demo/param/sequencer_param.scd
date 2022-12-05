@@ -48,6 +48,8 @@ Pbindef(\base,
 
 
 ///////////////////
+// with param selector and controller selector
+FileSystemProject.load("libdef/ControllerSelectorView.scd");
 
 
 (
@@ -421,6 +423,11 @@ TagSpecDef(\BuilderLib).clear
 
 	FileSystemProject.load("libdef/tracklist_buildertrack.scd");
 
+/// the godel builder create a TrackList and put itself as the template for each cell
+// so each cell have its pattern and its GUI
+// But there is only one shared GUI at the root builder level that update its content according to \selectedPart message from the TrackList
+// it use old .instrument scheme, new scheme is .trackTemplate_
+// demo_builder is not used in godel_builder 
 Builder(\godel_builder, { arg me;
 	var name = me.key;
 	var tlist;
@@ -510,6 +517,7 @@ Builder(\bla2).build
 ////////:
 
 
+TrackDef(\tlist, TrackTemplateDef(\TrackList));
 (
 Builder(\godel_builder, { arg me, tlist;
 	var name = me.key;
@@ -522,7 +530,7 @@ Builder(\godel_builder, { arg me, tlist;
 			\amp, 0.1,
 		)
 	);
-	//tlist = TrackDef(\godel, TrackTemplateDef(\TrackList));
+	tlist = tlist ?? { TrackDef(\godel, TrackTemplateDef(\TrackList)) };
 	tlist.defineTrack(0, [\TrackInstrument, (\BuilderTrack -> \BuilderTrack)]);
 	//TrackDef(\godel).childAt(0).instrument = ProtoTemplateDef(\TrackInstrument).new([\TrackInstrument, (\BuilderTrack -> \BuilderTrack)]);
 	tlist.childAt(0).instrument.source = Builder(\godel_builder);
@@ -610,6 +618,7 @@ WindowDef(\demotrack, { arg def, tlist;
 
 
 // choose a track
+// broken: to finish
 (
 WindowDef(\demotrack, { arg def, track;
 	
@@ -721,8 +730,19 @@ WindowDef(\win, { arg def;
 WindowDef(\KitTimeline_PatKitDefEditor).front(PatKitDef(\bla))
 
 
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////
 ///////////////////////
 /// from sccode
+// dodoleon GUI
 
 
 (

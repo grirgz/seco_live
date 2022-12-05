@@ -8,9 +8,10 @@ FileSystemProject.loadOnce("libdef/tracklist.scd");
 FileSystemProject.loadOnce("libdef/CustomTrackList.scd");
 FileSystemProject.loadOnce("libdef/ParamSelectDialog.scd");
 FileSystemProject.loadOnce("libdef/JackControl.scd");
+FileSystemProject.loadOnce("libdef/mixerPreset.scd");
 
-ProtoTemplateDef('MainProject', (
-	//parent: FileSystemProject.defaultParent,
+FileSystemProjectTemplate('MainProject', (
+	parent: FileSystemProject.defaultProject,
 	edit: { arg self;
 		WindowDef(\MainProject).front(self);
 	},
@@ -47,7 +48,7 @@ ProtoTemplateDef('MainProject', (
 
 	presetCompileString: { arg self;
 		[
-			"FileSystemProject(%, ProtoTemplateDef(\\MainProject));".format(FileSystemProject.unresolve(self.key.asString).asCompileString),
+			"FileSystemProject(%, \\MainProject);".format(FileSystemProject.unresolve(self.key.asString).asCompileString),
 			"%.mainMixer; // create mixer".format(self.refCompileString),
 			"%; // return project\n".format(self.refCompileString),
 		].join("\n")
@@ -56,6 +57,8 @@ ProtoTemplateDef('MainProject', (
 	loadProject: { arg self, path;
 		var projectfile;
 		var proj;
+		path = path ?? { self.path };
+		path.debug("path");
 		if(path.endsWith("data/project.scd")) {
 			projectfile = path;
 		} {
@@ -192,9 +195,10 @@ ProtoTemplateDef('MainProject', (
 		self.playerTracker.isPlaying;
 	},
 ));
+ProtoTemplateDef(\MainProject, FileSystemProjectTemplate(\MainProject)); // compat
 
 ProtoTemplateDef(\SimpleProject, ( // this is like having no project
-	parent: ProtoTemplateDef(\MainProject),
+	parent: FileSystemProjectTemplate(\MainProject),
 
 	mainTrackList: { arg self;
 		var tracklistname = "%_mainTrackList".format(self.name).asSymbol; 

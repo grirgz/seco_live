@@ -7,6 +7,7 @@
 
 // l'ideal c'est que les colonnes soient dynamiques, qu'on puisse degrouper ou grouper des parametres a l'envie
 
+// FIXME: les clips se recreent en boucle, avec le message "replace parent!!!", probablement a cause de la GUI qui cherche a voir s'il existe ou s'il joue
 
 (
 	//ParamProto.init;
@@ -20,7 +21,7 @@ ProtoDef(\GridPresetWrapper, (
 	new: { arg self, grid;
 		self = self.deepCopy;
 	
-		self.grid = { grid };
+		self.grid = { grid.value };
 	
 		self;
 	},
@@ -38,6 +39,11 @@ ProtoDef(\GridPresetWrapper, (
 ));
 
 TrackTemplateDef(\MixerPresetClip, ().putAll(TrackTemplateDef(\playerwrapper)).putAll((
+	// self.source can be GridPresetWrapper, fxManager or simpleMixer, it all answer to methods
+	// - presetCompileString
+	// and to load the snapshot, just interpret it
+	bla:10,
+	modeTrigger: true, // do not manage play/pause of source
 
 	label: { arg self; 
 		"%: %".format(self.index, 
@@ -77,17 +83,28 @@ TrackTemplateDef(\MixerPresetClip, ().putAll(TrackTemplateDef(\playerwrapper)).p
 		if(self.snapshot.notNil) {
 			self.snapshot.interpret;
 			//self.source.play;
-		}
+		};
+		if(self.modeTrigger == true) {
+			// this prevent PlayerWrapperGridCellView from believing something is playing
+			self.changed(\PlayerWrapper, \stopped); 
+		};
 	},
 
 	isPlaying: { arg self;
 		var mixer = self.source;
-		mixer.notNil and: { mixer.isPlaying == true and: { self.isActive == true and: { self.isEmpty.not } } }; 
+		//Log(\Param).debug("isPlaying?");
+		if(self.modeTrigger != true) {
+			mixer.notNil and:{self.isEmpty.not} and: { 
+				mixer.isPlaying == true and: { self.isActive == true } 
+			}; 
+		} {
+			false
+		}
 	},
 
 	stop: { arg self;
 		var mixer = self.source;
-		mixer.stop;
+		//mixer.stop;
 	},
 
 	presetCompileString: { arg self;
@@ -164,12 +181,16 @@ TrackTemplateDef(\MixerPresetTrack, ().putAll(TrackTemplateDef(\playertrack)).pu
 	childClass: { TrackTemplateDef(\MixerPresetClip) },
 
 	new: { arg self, parent, index, target;
-		self = self.copy;
+		var targetval;
+		self = ProtoClass((parent: self));
 
 		self.selectChild(0);
 		self.index = index;
 		self.parentTrack = {parent};
-		self.target = { target.value };
+		// FIXME: targetval prevent recreating GridPresetWrapper each time
+		// but now when we change project, preset are no longer valid
+		targetval = target.value;
+		self.target = { targetval }; 
 		self;
 	},
 
@@ -191,7 +212,7 @@ TrackTemplateDef(\MixerPresetGrid, ().putAll(TrackTemplateDef(\playergrid)).putA
 		self[\obj_children] ?? { 
 			//self[\obj_children] = SparseArray.new;
 			self[\obj_children] = SparseArray[
-				self.childClass.new(self, 0, { ProtoDef(\GridPresetWrapper).new(self.target.mainTrackGrid) }),
+				self.childClass.new(self, 0, { ProtoDef(\GridPresetWrapper).new({ self.target.mainTrackGrid }) }),
 				self.childClass.new(self, 1, { self.target.mainMixer }),
 				self.childClass.new(self, 2, { self.target.fxManager }),
 			];
@@ -251,6 +272,7 @@ TrackTemplateDef(\MixerPresetGrid, ().putAll(TrackTemplateDef(\playergrid)).putA
 		self.key;
 	},
 	enableMixer:false,
+	showMixerView: false, // no mixer needed
 	mixer:nil,
 )));
 
@@ -310,6 +332,10 @@ TrackDef(\MixerPresetGrid, TrackTemplateDef(\MixerPresetGrid));
 TrackDef(\MixerPresetGrid).clear; TrackTemplateDef(\MixerPresetGrid).clear; TrackTemplateDef(\MixerPresetClip).clear;
 
 TrackDef(\MixerPresetGrid).edit
+TrackDef(\MixerPresetGrid).bla
+TrackDef(\MixerPresetGrid).childAt(0,0).bla
+TrackDef(\MixerPresetGrid).elAt(0,0).alwaysPlay
+TrackDef(\MixerPresetGrid).elAt(2,0).isPlaying
 TrackDef(\MixerPresetGrid).target.mainMixer
 TrackDef(\MixerPresetGrid).target
 TrackDef(\MixerPresetGrid).presetCompileString
@@ -319,6 +345,15 @@ TrackDef(\MixerPresetGrid).savePresetCompileString
 TrackDef(\MixerPresetGrid).presetCompileStringSavePath = "blaxxx.scd";
 TrackDef(\MixerPresetGrid).mixer
 TrackDef(\MixerPresetGrid).children
+TrackDef(\MixerPresetGrid).children[0].children[0].isPlaying
+TrackDef(\MixerPresetGrid).children[0].children[0].isPlaying
+TrackDef(\MixerPresetGrid).children[0].children[0][\isPlaying].asCompileString
+TrackDef(\MixerPresetGrid).children[0].children[0].source
+TrackDef(\MixerPresetGrid).children[0].children[0].isEmpty
+TrackDef(\MixerPresetGrid).children[1].children[0].snapshot
+TrackDef(\MixerPresetGrid).children[0].children[0].snapshot
+TrackDef(\MixerPresetGrid).children[0].target.grid
+TrackDef(\MixerPresetGrid).children[0].
 TrackDef(\MixerPresetGrid).edit
 TrackDef(\MixerPresetGrid).e
 TrackDef(\MixerPresetGrid).source = []
@@ -338,6 +373,8 @@ TrackDef(\MixerPresetGrid).childAt(1,0).presetCompileString
 TrackDef(\MixerPresetGrid).childAt(1,0).takeSnapshot
 TrackDef(\MixerPresetGrid).childAt(0,0).snapshot.compileString
 TrackDef(\MixerPresetGrid).childAt(1,0).snapshot.compileString
+
+TrackDef(\MixerPresetGrid).linePlayerAt(6).play
 
 FileSystemProject.current = FileSystemProject('repeat/simpleProject')
 FileSystemProject.default
@@ -455,3 +492,4 @@ TrackDef(\testproj5_mixerPresetGrid).childAt(1,0).snapshot.interpret;
 TrackDef(\testproj5_mixerPresetGrid).childAt(1,0).snapshot;
 TrackDef(\testproj5_mixerPresetGrid).childAt(1,0).snapshot.size;
 TrackDef(\testproj5_mixerPresetGrid).childAt(1,0).snapshot ++ "jjj"
+

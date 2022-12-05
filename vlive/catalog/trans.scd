@@ -255,3 +255,33 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+/////////////////// up ramp
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	lfo1 = XLine.kr(1,4,20);
+	sig = SinOsc.ar(freq * lfo1 * ( SinOsc.ar(freq+lfo1 * [1,1/4,1/8]) * lfo1 + 1 ) );
+	sig = sig * SinOsc.ar([1,4,8]).unipolar; 
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan) * 2;
+}).play;
+);
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	freq = Duty.kr(1/~t, 0, Dseq([
+		1,0,7,3,
+	],inf)).midiratio * freq * [0,3,7].midiratio;
+	lfo1 = XLine.kr(1,4,20);
+	lfo1 = lfo1 * ( SinOsc.kr(1/4) * 0.1 + 1 );
+	sig = SinOsc.ar(freq  * ( SinOsc.ar(freq+( lfo1 * [1,1/4,1/8] )) * lfo1 + 1 ) );
+	sig = sig + RHPF.ar(sig, \lpfr.kr(1.1) * ( SinOsc.kr(1* [1,1/4,1/8]) * lfo1/4 + 1.1 ) * freq * lfo1, \rq.kr(0.5));
+	sig = sig + RLPF.ar(sig, \lpfr.kr(1.1) * ( SinOsc.kr(3* [1,1/4,1/8]) * lfo1/4 + 1.1 ) * freq * lfo1, \rq.kr(0.5));
+	sig = sig * ( SinOsc.ar([1,4,8]).unipolar * lfo1 + 1 ) / lfo1; 
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan) / 2;
+}).play;
+);

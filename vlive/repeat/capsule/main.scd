@@ -300,3 +300,24 @@ Pan2.ar(sig*0.5, 0.0);
 NoteTimeline(\bla).edit
 ClipTimeline(\bla).edit
 { SinOsc.ar(500) ! 2 * 0.1}.play;
+
+
+//////////:
+
+
+(
+SynthDef('rand-additive', {|out = 0, n = 8, f0 = 110, stretch = 1, gate = 1 |
+    var envs, sins;
+    //envs = Array.fill(n, {
+        //EnvGen.kr(Env.adsr(Rand, Rand, sustainLevel: Rand(0.3, 0.7)),
+        //gate, 
+        //doneAction: 0)
+    //});
+	n.postln;
+    sins = Array.fill(n, { |i| 
+        SinOsc.ar(f0 * 1 * stretch + f0, Rand(0, 2pi), 1/n)
+    });
+    Out.ar(out, sins.sum * 0.3)
+}).add
+)
+DetectSilence

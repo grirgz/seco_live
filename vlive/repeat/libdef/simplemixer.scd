@@ -11,39 +11,44 @@ ProtoTemplateDef(\simpleMixer, (
 		var sendcount = self.sendCount;
 		self[\trackCount] = val.asInteger;
 
-		self.tracks = self.trackCount.collect { arg index;
-			// trackMixerDef is defined in Param/proto/TrackMixerDef
-			var mix = ProtoInst(\TrackMixerDef, self.inbusPrefix+++index);
-			debug("create mixer: "++self.inbusPrefix++index);
+		if(self.tracks.size != self.trackCount) { 
+			// this check on size prevent bug that sometime two parrallel mixer are created
+			// on heavy load (bug cause not found)
 
-			mix.inbus = BusDef(self.inbusPrefix+++index, \audio, 2);
-			mix.define_mixer;
-			mix.stages[\postdelay] = mix.stages.postfx+1;
-			mix[\soloModeHook] = { arg mixer, val;
-				self.tracks.do { arg track, idx;
-					track.muteBySolo(val);
+			self.tracks = self.trackCount.collect { arg index;
+				// trackMixerDef is defined in Param/proto/TrackMixerDef
+				var mix = ProtoInst(\TrackMixerDef, self.inbusPrefix+++index);
+				debug("create mixer: "++self.inbusPrefix++index);
+
+				mix.inbus = BusDef(self.inbusPrefix+++index, \audio, 2);
+				mix.define_mixer;
+				mix.stages[\postdelay] = mix.stages.postfx+1;
+				mix[\soloModeHook] = { arg mixer, val;
+					self.tracks.do { arg track, idx;
+						track.muteBySolo(val);
+					};
 				};
-			};
-			mix.proxy.put(mix.stages.postdelay, \filter -> { arg in, postdelay=0;
-				DelayC.ar(in, 0.1, postdelay);
-			});
-			sendcount.do { arg x;
-				mix.proxy.set(\sendbus+++x, BusDef(self.sendbusPrefix+++x, \audio, 2));
+				mix.proxy.put(mix.stages.postdelay, \filter -> { arg in, postdelay=0;
+					DelayC.ar(in, 0.1, postdelay);
+				});
+				sendcount.do { arg x;
+					mix.proxy.set(\sendbus+++x, BusDef(self.sendbusPrefix+++x, \audio, 2));
+				};
+
+				mix;
 			};
 
-			mix;
-		};
-
-		sendcount.do { arg idx;
-			self[\sendbus +++ idx] = { arg self;
-				self.tracks.first.proxy.get(\sendbus+++idx)
-		   	};
-			self[\sendbus +++ idx +++ '_'] = { arg self, val;
-				self.tracks.do({ arg track;
-					track.proxy.set(\sendbus+++idx, val);
-				})
-		   	}
-		};
+			sendcount.do { arg idx;
+				self[\sendbus +++ idx] = { arg self;
+					self.tracks.first.proxy.get(\sendbus+++idx)
+				};
+				self[\sendbus +++ idx +++ '_'] = { arg self, val;
+					self.tracks.do({ arg track;
+						track.proxy.set(\sendbus+++idx, val);
+					})
+				}
+			};
+		}
 
 
 	},
@@ -152,6 +157,7 @@ ProtoDef(\fxMixer, ProtoTemplateDef(\FxMixer)).init;
 	//PlayerWrapper(ProtoDef(\simpleMixer).tracks[0]y).isPlaying
 	//ProtoDef(\simpleMixer).play;
 
+// deprecated by simpleMixer_advanced GUI
 WindowDef(\simpleMixer, { arg def, simpleMixer;
 	var mixerView = { arg mixer;
 		var sendKnobCount = 8;
@@ -298,6 +304,7 @@ WindowDef(\SimpleMixerOverlayMenu, { arg def, model, view, x=600, y=600;
 }).border_(false);
 //WindowDef(\simpleMixer).front(ProtoDef(\simpleMixer));
 
+// use TrackMixerDef default view
 WindowDef(\simpleMixer_advanced, { arg def, simpleMixer, options;
 	//var mixers = 9.collect { TrackMixerDef(( \mixer++idx ).asSymbol) };
 	var mixers = simpleMixer.tracks;

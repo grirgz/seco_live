@@ -36,7 +36,7 @@ SynthDef(\niarkbass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, 
 );
 
 (
-Pdef(\part, Pdef(\zedpart, 
+Pdef(\drums1,
 	Ppar([
 		Pbind(
 			\instrument, \playersec,
@@ -76,7 +76,16 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, 1/8,
 			\gain, 0.16,
 		),
-		NoteTimeline(\himelo).asPattern,
+	]),
+);
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\drums1),
+		//NoteTimeline(\himelo).asPattern,
+		NoteTimeline(\himelo2).asPattern,
 		NoteTimeline(\molbass).asPattern,
 		NoteTimeline(\niarkbass).asPattern,
 		//Pbind(
@@ -93,18 +102,33 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+(
+Pdef(\part, Pdef(\main, 
+	Pseq([
+		Ptpar([
+			0, Pfindur(24,NoteTimeline(\himelo).asPattern),
+			8, Pdef(\drums1),
+			//0, NoteTimeline(\molbass).asPattern,
+			16, NoteTimeline(\niarkbass).asPattern,
+			24, NoteTimeline(\himelo2).asPattern,
+		]),
+		
+	])
+)).play;
+)
+
 /////////// himelo
 (
 Pdef(\himelo, 
 	Pbind(
 		\instrument, \hili,
 		\degree, Pseq([0],inf),
-		\lpfr, 4.5,
+		//\lpfr, 4.5,
 	)
 );
 
 NoteTimeline(\himelo, Pdef(\himelo));
-//NoteTimeline(\himelo).edit
+NoteTimeline(\himelo).edit;
 
 NoteTimeline('himelo').eventList = TimelineEventList.newFrom([
 	(\absTime: 0.0, \dur: 0.125, \label: 'start', \playDur: 0.125, \relDur: 0.125, \sustain: 0, \type: 'start', ),
@@ -126,6 +150,57 @@ NoteTimeline('himelo').eventList = TimelineEventList.newFrom([
 	(\absTime: 3.5, \amp: 0.1, \clockTime: 544.73012688833, \degree: 0, \dur: 0.25, \instrument: 'hili', \kitIndex: 75, \lpfr: 4.5, \midinote: 76.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.10017793916654, ),
 	(\absTime: 3.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.25, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.12721600966665, ),
 	(\absTime: 4.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+);
+
+NoteTimeline(\himelo2, Pdef(\himelo));
+NoteTimeline(\himelo2).edit;
+NoteTimeline(\himelo2).presetCompileString.editorInsert
+(
+NoteTimeline('himelo2').param = Param(Pdef('himelo'), 'midinote');
+NoteTimeline('himelo2').eventList = TimelineEventList.newFrom([
+	(\absTime: 0.0, \dur: 0.25, \label: 'start', \playDur: 0.25, \relDur: 0.25, \sustain: 0, \type: 'start', ),
+	(\absTime: 0.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.11833051533324, ),
+	(\absTime: 0.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 1.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.11833051533324, ),
+	(\absTime: 1.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 2.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.11833051533324, ),
+	(\absTime: 2.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 3.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.11833051533324, ),
+	(\absTime: 3.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 4.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.11833051533324, ),
+	(\absTime: 4.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 5.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.11833051533324, ),
+	(\absTime: 5.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 6.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.11833051533324, ),
+	(\absTime: 6.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 7.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.11833051533324, ),
+	(\absTime: 7.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 8.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.25, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.11833051533324, ),
+	(\absTime: 8.5, \amp: 0.032585117421549, \curve: 0, \dur: 0.25, \lpfr: 5.7652506574018, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \rq: 0.05699261405238, \sustain: 0.1, ),
+	(\absTime: 8.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 9.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.25, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.11833051533324, ),
+	(\absTime: 9.5, \amp: 0.046754447815532, \curve: 0, \dur: 0.25, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.1, ),
+	(\absTime: 9.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 10.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.25, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.11833051533324, ),
+	(\absTime: 10.5, \amp: 0.043716500104083, \curve: 0, \dur: 0.25, \midinote: 72.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.1, ),
+	(\absTime: 10.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 11.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.25, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.11833051533324, ),
+	(\absTime: 11.5, \amp: 0.049894436343309, \curve: 0, \dur: 0.25, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.1, ),
+	(\absTime: 11.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 12.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.25, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.11833051533324, ),
+	(\absTime: 12.5, \amp: 0.043716500104083, \curve: 0, \dur: 0.25, \lpfr: 5.7652506574018, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \rq: 0.05699261405238, \sustain: 0.1, ),
+	(\absTime: 12.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 13.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.25, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.11833051533324, ),
+	(\absTime: 13.5, \amp: 0.040780593208959, \curve: 0, \dur: 0.25, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.1, ),
+	(\absTime: 13.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 14.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.25, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.11833051533324, ),
+	(\absTime: 14.5, \amp: 0.030057373791731, \curve: 0, \dur: 0.25, \midinote: 72.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.1, ),
+	(\absTime: 14.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.5, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.12721600966665, ),
+	(\absTime: 15.25, \amp: 0.1, \clockTime: 544.457435047, \degree: 0, \dur: 0.25, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 72.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.11833051533324, ),
+	(\absTime: 15.5, \amp: 0.040780593208959, \curve: 0, \dur: 0.25, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.1, ),
+	(\absTime: 15.75, \amp: 0.1, \clockTime: 544.99102912083, \degree: 0, \dur: 0.25, \instrument: 'hili', \kitIndex: 70, \lpfr: 4.5, \midinote: 71.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.12721600966665, ),
+	(\absTime: 16.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
 ]);
 );
 

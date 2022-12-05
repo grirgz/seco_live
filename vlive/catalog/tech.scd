@@ -936,7 +936,7 @@ Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 	//sig = RHPF.ar(sig, \hpf.kr(100) * LFNoise1.kr(1/12!2).range(1.0,30.0), \rq.kr(0.3))*5*2;
 	sig = AllpassL.ar(sig, 4/~t, 0.101 * LFNoise1.kr(1/4!4).range(0.9,2.1),0.3)*3 + sig;
 	sig = Pan2.ar(sig, pan, amp).mean;
-	sig = sig *2 *8;
+	sig = sig *2 *4;
 }).play;
 );
 
@@ -955,7 +955,7 @@ Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 );
 
 (
-// full parrallel grain
+// full parrallel sawlpf grain
 Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	var num = 30;
@@ -1261,3 +1261,31 @@ soundscape
 
 
 
+////////////// granulation grain
+
+- architecture
+	- each grain is panned differently (TGrain)
+	- one granulator for each channel, to have different grain size in left and right for example
+		- can be achieved at pattern level
+- grain frequency
+	- random
+   		- level
+		- frequency
+		- waveform (LFNoise1 or LFNoise0)
+		- can be constant during note (Rand)
+- grain duration
+	- random
+- pitch_stretch
+	- random 
+- buffer position
+	- random
+	- lfo
+		- waveform
+		- left/right dephasing
+		- continuous or unique for each note
+	- scan (forward continuously buffer position)
+		- speed (time_stretch)
+		- 
+- filter
+- fm
+- am

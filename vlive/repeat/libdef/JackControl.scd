@@ -53,8 +53,16 @@ WindowDef(\InputManager, { arg def;
 			Param(Ndef(\soundin), \gain, ControlSpec(0,4,\lin,0,1)).asSlider,
 			Param(Ndef(\soundin), \gain, ControlSpec(0,4,\lin)).asTextField(3),
 		),
-		SimpleServerMeterView(nil, 2,2).minWidth_(70),
-		SimpleServerMeterView(nil, 0,2, BusDef(\soundin, \audio, 2)).minWidth_(50),
+		HLayout (
+			VLayout (
+				[StaticText.new.string_("In / Out").align_(\center), stretch:0],
+				[SimpleServerMeterView(nil, 2,2).minWidth_(70), stretch:10],
+			),
+			VLayout (
+				StaticText.new.string_("soundin").align_(\center),
+				[ SimpleServerMeterView(nil, 0,2, BusDef(\soundin, \audio, 2)).minWidth_(50), stretch:10 ],
+			),
+		)
 	)
 });
 

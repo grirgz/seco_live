@@ -19,6 +19,7 @@ ProtoDef(\FxManager, (
 		[\rdn, \rdn2, \rdn3, \rdn4].do({ arg key;
 			var asso = key -> ProtoDef(key);
 			if(asso.value[\make].notNil) {
+				string = string ++ "ProtoDef(%, \\rdn);\n".format(key.asCompileString);
 				string = string ++ ParamGroup([
 					Param(Message(asso.value), \inbus, TagSpecDef(\BusDef)),
 					//Param(Message(asso.value), \outBus, TagSpecDef(\BusDef_index)),
@@ -43,16 +44,32 @@ ProtoDef(\FxManager, (
 	},
 
 	savePresetCompileString: { arg self, path, onDoneAction;
-		if(File.exists(self.presetCompileStringSaveFile).not or: {self.loadedFromPath == self.presetCompileStringSavePath}) {
-			File.mkdir(self.presetCompileStringSavePath);
-			self.loadedFromPath = self.presetCompileStringSavePath;
-			path = path ? self.presetCompileStringSaveFile;
-			File.use(path, "w") { arg file;
-				file.write(self.presetCompileString);
-			};
-			Log(\Param).info("FxManager saved to %.".format(self.presetCompileStringSaveFile));
+		var pathdir, pathfile;
+		if(path.notNil) {
+			if(path.isFolder) {
+				pathdir = path;
+				pathfile = pathdir +/+ "FxManager_preset.scd";
+			} {
+				pathfile = path;
+				pathdir = PathName(path).pathOnly;
+			}
 		} {
-			"savePresetCompileString: can't save on existing project".error;
+			pathdir = self.presetCompileStringSavePath;
+			pathfile = self.presetCompileStringSaveFile;
+		};
+		if(pathfile.notNil) {
+			if(File.exists(pathfile).not or: {self.loadedFromPath == pathdir}) {
+				File.mkdir(pathdir);
+				self.loadedFromPath = pathdir;
+				File.use(pathfile, "w") { arg file;
+					file.write(self.presetCompileString);
+				};
+				Log(\Param).info("FxManager saved to %.".format(pathfile));
+			} {
+				"savePresetCompileString: can't save on existing project".error;
+			};
+		} {
+			"savePresetCompileString: can't save, no path provided and no path stored".error;
 		}
 	},
 
@@ -118,6 +135,9 @@ WindowDef(\FxManager, {
 						Log(\Param).info("Loaded FxManager preset from %".format(filename));
 					}
 				)
+			}),
+			BasicButton.new.string_("Init").action_({
+				FileSystemProject.load("cavern/FxManager_default.scd")
 			}),
 		),
 		*[\rdn, \rdn2, \rdn3, \rdn4].collect({ arg key;

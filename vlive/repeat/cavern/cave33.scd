@@ -191,3 +191,107 @@ PlayerWrapper(Ndef('fx4')).outBus = 0;
 
 );
 
+
+/////////////////
+
+
+
+(
+Pdef(\part, Pdef(\piaf_harm2, 
+	Pseq([
+		Pbind(
+			\freq, Pswitch1(
+				[
+				 (Prand(Scale.major.degrees,inf) + ( Pkey(\octave) * 12 )).midicps,
+				 (Prand((0..7),inf) + ( Pkey(\octave) * 12 )).midicps,
+				 Pwhite(50,15000),
+				 Pexprand(50,15000),
+				], 
+				Pseq([
+					Pstep(
+						Pseq((0..3))
+					,8),
+				],inf)
+			),
+			//\legato, Pseg(Pseq([0.1,1],inf),8),
+		)
+	],inf) <>
+	Ppar([
+		Pbind(
+			\instrument, \piaf,
+			\octave, 3,
+			\dur, Pwhite(0.01,0.2),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \piaf,
+			\degree, Prand((0..7),inf),
+			\octave, 4,
+			\dur, Pwhite(0.01,0.2),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \piaf,
+			\degree, Prand((0..7),inf),
+			\octave, 5,
+			\dur, Pwhite(0.01,0.2),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \piaf,
+			\degree, Prand((0..7),inf),
+			\octave, 6,
+			\dur, Pwhite(0.01,0.2),
+			\amp, 0.1,
+		),
+	].collect({ arg pat,idx;
+		Pbind(
+			\dur, Pseq([1,0.9,0.8,0.3],inf,idx) ,
+			\legato, 0.1 * Pseg(Pseq([1,10,20],inf),8),
+			\out, BusDef(\sendbus1, \audio),
+			
+		)<> pat
+   
+	})),
+)).play;
+);
+
+(
+Pdef(\part2, Pdef(\zedpart2, 
+	Ppar([
+		Pbind(
+			\instrument, \piaf,
+			\degree, 0,
+			\octave, 6,
+			\dur, Pwhite(0.01,0.2),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \piaf,
+			\degree, 0,
+			\octave, 4,
+			\dur, Pwhite(0.01,0.2) * Pseg(Pseq([1,10],inf),8),
+			\amp, 0.1,
+		),
+	].collect({ arg pat;
+
+		Pbind(
+			\freq, Pstep(
+				Pswitch1(
+					[
+						(Prand(Scale.major.degrees,inf) + ( Pkey(\octave) * 12 )).midicps,
+						(Prand((0..7),inf) + ( Pkey(\octave) * 12 )).midicps,
+						Pwhite(50,15000),
+						Pexprand(50,15000),
+					], 
+					Pseq([
+						Pstep( Pseq((0..3)) ,8),
+					],inf)
+				),
+			1),
+			//\legato, Pseg(Pseq([0.1,1],inf),8),
+		)
+		<> pat;
+	}));
+)).play;
+);

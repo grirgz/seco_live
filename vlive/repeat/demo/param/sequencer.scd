@@ -511,7 +511,9 @@ WindowDef(\myseq, { arg def;
 )
 
 
+/////////////////////////////
 ////// integrate simpler
+/// The newest way to do it!!
 
 (
 WindowDef(\StepSeqParam, { arg def, param, showDur=false;

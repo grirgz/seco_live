@@ -3,6 +3,7 @@ Quark("JITLibExtensions").install; // should have JITLibExtentions quark install
 s.boot;
 
 (
+// the benefit is all modulators can range between 0 and 1 and they are mapped to the spec of the modulated key, each key is scaled independently of the modulator instead of having to create a different modulator for each key
 // a function to map a bus or a Ndef to an argument of another Ndef, using the default spec or a given one
 ~map_bus = { arg obj, key, bus, spec;
 	var halokey = ("busmapper_"++key).asSymbol;

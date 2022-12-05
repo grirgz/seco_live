@@ -2,15 +2,16 @@
 ~t = 1;
 (
 // cuisson ou montagne
-Ndef(\plop, { arg freq=200, pan=0, amp=0.1;
+Ndef(\plop2, { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	sig = LinCongL.ar(4400, 1.1 * SinOsc.kr(40).range(0,1), 1.52 * SinOsc.kr(80).range(0,1), 1.1 * SinOsc.kr(10).range(0,1),1/4);
-	sig = SinOsc.ar(sig*47 + 1 * 700);
+	sig = SinOsc.ar(sig*47 * ( SinOsc.kr(1) * 9 + 1 ) + 1 * 700);
 	sig = RLPF.ar(sig, 400);
 	sig = Pan2.ar(sig, pan, amp);
 }).play;
 );
 
+Ndef(\plop).fadeOut
 
 
 (

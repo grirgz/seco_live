@@ -33,6 +33,7 @@ Spec.add(\isRest, ParamBoolSpec(reverse:true));
 Spec.add(\cpmix, \unipolar);
 Spec.add(\cpt, ControlSpec(0.001,5,\exp));
 Spec.add(\verbmix, \unipolar);
+Spec.add(\lpmix, \unipolar);
 
 
 Spec.add(\wideamp, ControlSpec(0.001,5,\lin,0,1));
@@ -44,6 +45,10 @@ Spec.add(\preamp, \amp.asSpec);
 Spec.add(\compt, ControlSpec(0,2,\lin));
 Spec.add(\complo, ControlSpec(0,2,\lin));
 Spec.add(\comphi, ControlSpec(0,2,\lin));
+
+
+Spec.add(\wavetable, ParamWavetableSpec());
+Spec.add(\wavetable2, ParamWavetableSpec());
 
 // rdn
 

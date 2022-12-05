@@ -1,13 +1,33 @@
 
 (
 ~t = ~t ?? { ~t = 1; TempoClock.default.tempo = ~t; ~t };
-FileSystemProject.load("cavern/lib.scd");
+s.waitForBoot { FileSystemProject.load("cavern/lib.scd"); };
 )
 
 
 /////////////////////////////////////////////////////////////////////////
 // END
 
+Ndef(\bla, { SinOsc.ar(ExpRand(100,4000))!2*0.1  })
+Ndef(\bla).play
+Ndef(\bla).spawn
+Ndef(\bla).stop
+
+
+s.boot
+s.quit
+TreeSnapshotViewo
+TreeSnapshotView().front.autoUpdate();
+Quarks.install("NodeSnapshot")
+Quarks.install("https://github.com/scztt/IconSet.quark")
+Main.version
+Quarks.update
+
+ProtoDef(\rdn4).edit
+ProtoDef(\rdn3, \rdn)
+
+ServerTreeGui.makeWindow(s)
+Insp.insp
 
 
 TagSpecDef
@@ -361,7 +381,6 @@ Tdef(\go, {
 }).play
 )
 ~bla = { f.play(args:[out:0]) } ! 1;
-	g = { ReplaceOut.ar(0, Limiter.ar(CombC.ar(In.ar(0,2), 1.0.rrand(0.02,16.001),Pulse.kr(LFNoise1.kr(10.1),1,1),LFNoise0.kr(10.01)
 ~bla.do(_.release)
 ~bla[1].release
 ~bla[0].release
@@ -396,3 +415,193 @@ FileSystemProject.changed(\project)
 };
 )
 ~is.collect(_.hash)
+
+
+
+////////
+
+Ndef.ar(\fx, numChannels: 2);
+Ndef(\fx).fadeTime = 2.0;
+Ndef(\fx, { LPF.ar(LFNoise1.ar(100!2), 1000) }); // play stereo input with a low-pass filter
+// The NDef is *not* yet audible!
+Ndef(\fx).play; // start consuming resources
+Ndef(\fx).pause
+
+// redefine what \fx is doing
+Ndef(\fx, { HPF.ar(SoundIn.ar([1, 0]), 500) });
+
+// reset to silence
+Ndef(\fx, nil); // silence, still consuming resources
+Ndef(\fx).source = nil
+
+
+Ndef(\fx2).prime({ LPF.ar(LFNoise1.ar(100!2), 1000) })
+Ndef(\fx2)[10] = { SinOsc.ar(100)!2 * 0.1  }
+Ndef(\fx2).prime[10] = { SinOsc.ar(100)!2 * 0.1  }
+Ndef(\fx2).prime = { SinOsc.ar(100)!2 * 0.1  }
+Ndef(\fx2).prime
+Ndef(\fx2).sources[0].prime({ LPF.ar(LFNoise1.ar(100!2), 1000) })
+Ndef(\fx3).sources[0] = { LPF.ar(LFNoise1.ar(100!2), 1000) }
+Ndef(\fx2).play
+Ndef(\fx2).stop
+Ndef(\fx2).free
+Ndef(\fx2).end
+Ndef(\fx2).fadeTime = 1.0;
+
+Ndef(\bla, { SinOsc.ar(100) * 0.1 ! 2  }).play
+Ndef(\bla2, { SinOsc.ar(100) * 0.1 ! 5  }).play
+Ndef(\bla2, { SinOsc.ar(100) * 0.1 ! 5  }).release.free
+Ndef(\bla2, { SinOsc.ar(100) * 0.1 ! 5  }).free
+Ndef(\bla2, { SinOsc.ar(100) * 0.1 ! 5  }).end(0.1)
+WindowDef(\win).asCompileString
+WindowDef(\win)
+(
+WindowDef(\win, { arg def;
+	
+	Button.new
+}).front;
+)
+
+
+~notes = [1,2,3,4]
+~notes = [1,2,3,4]+10
+~dir = 1
+~pa = Pwalk([Pfunc{~notes}], 1, 1).flatten
+~pa = Pwalk([Pfunc{~notes}], 1, 1)
+~pa = Pwalk([Pfunc{~notes}], 1, Pfunc{~dir})
+~pa = Pwalk(Pfunc{~notes}, 1, Pfunc{~dir})
+~pa.asStream.nextN(10,())
+~pas = ~pa.asStream
+~pas.next
+~pa.asStream.next
+
+~pa = Pwalk([Pseq([1,2]), Pseq([4,5])], 1, 1).flatten
+~pa = Pwalk([Pseq([1,2]), Pseq([4,5]), Pseq([10,11])], 1, Pseq([1,-1,1],inf))
+
+~pa = Pwalk([Pfunc{~notes}], 1, -1).flatten
+Pindex
+Plazy({  })
+Pbind(
+	\instrument, \default,
+	\freq, 200,
+	\dur, 1,
+	\amp, 0.1,
+),
+Prout({ arg ev;
+	var idx = 0;
+	100.do {
+		ev = ~notes[idx].yield;
+		idx = idx + ~dir;
+	}
+}),
+
+(
+~notes = [48, 50, 51, 53];
+~dir = 1;
+x = Pbind(
+	\dur, 0.5, 
+	\midinote, Prout({ arg ev;
+		var idx = 0;
+		inf.do {
+			ev = ~notes[idx].yield;
+			idx = idx + ~dir % ~notes.size;
+		}
+	})
+).play
+)
+~dir = -1
+~notes = [48, 50, 51, 53]+10;
+
+
+~pairs = Prout({ arg ev; loop { ev = ( ev*100 ).yield } });
+Pbind(\freq, ~pairs <> Pseq((1..10)) ).trace.play;
+~pat.asStream.nextN(20,())
+
+(
+~pairs = {arg ratio;
+    var difference = 40, result = [1, 1];
+    [difference + (difference / (ratio-1)), difference / (ratio-1)];
+};
+)
+
+~pairs = {arg ratio;
+    var difference = 40, result = [1, 1];
+    difference + (difference / (ratio-1))
+};
+
+(//works
+Pbind(
+    \freq, ~pairs.(61/38),
+    \dur, 0.5
+).trace.play;
+)
+
+(//doesn't work
+Pbind(
+    \freq, (~pairs.(
+        Pseq([61/38, 23/22], inf).poll
+    )
+    ),
+    \dur, 0.5
+).trace.play;
+)
+
+Pbind(
+    \freq, Ptuple(~pairs.(
+        Pseq([61/38, 23/22], inf).poll
+    )
+    ),
+    \dur, 0.5
+).trace.play;
+
+{Mix.ar(SinOsc.ar(Array.rand(100,30,20000),0.0,0.01)*0.5)!2}.play
+{Mix.ar(SinOsc.ar(Array.rand(100,30.0,20000),0.0,0.01)*0.5)!2}.play
+{Mix.ar(SinOsc.ar(Array.rand(100,30,10000)*2,0.0,0.01)*0.5)!2}.play
+{Mix.ar(SinOsc.ar(Array.rand(100,30,20000),0.0,0.01)*0.5)!2}.play
+{Mix.ar(SinOsc.ar([100,200],0.0,0.01)*0.5)!2}.play
+{Mix.ar(SinOsc.ar([400,402],0.0,0.01)*0.5)!2}.play
+
+Envoyer un message dans #ugens
+
+
+/////////////
+
+
+Ndef(\a, {|freq=300|    SinOsc.ar(freq * [1, 1.2]) * 0.1 });
+Ndef(\a).play;
+
+Ndef(\a).set(\gate, 0);
+Ndef(\a).set(\gate, 1);
+
+(
+Ndef(\a)[1] = \pset -> Pbind(
+    \dur, 1/2,
+    \gate, Pseq([1,0],inf),  
+	\freq, Pseq([300, 200, 500, 700], inf),
+);
+)
+
+
+{ Amplitude.kr(SinOsc.ar(500) ! 2 * 2.1).softclip }.plot(1);
+{ SinOsc.ar(500) ! 2 * 0.1 }.plot(1);
+
+WindowDef(\PdefEditor).asCompileString
+
+
+
+(
+~buf = Buffer.alloc(s, 2048);
+~plot = Signal.newClear(2048/2).plot;
+//~plot.editMode = true; //Causes plot not to update until mouse lifted unlike e
+~synth = {Osc.ar(~buf.bufnum, 110, mul: 0.1)}.scope;
+~rout = {
+ loop{
+ ~buf.sendCollection(Signal.newFrom(~plot.value).asWavetable);
+ 0.1.wait; //change this to change the audio update frequency
+ };
+}.r.play;
+)
+
+~plot = Signal.sineFill(2048/2, [1])
+~plot = Signal.sineFill(2048/2, [0,1])
+~plot.plot

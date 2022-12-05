@@ -85,7 +85,7 @@ Ndef('rdn3').put(100, \pset -> Pbind(
 	'mamp', 1,
 ).keep(1));
 
-ProtoDef('rdn4').inbus = BusDef('zero');
+ProtoDef('rdn4').inbus = BusDef('sendbus4');
 ProtoDef('rdn4').outBus = 0;
 ProtoDef('rdn4').make('default', 'rdn4', "4-OPRS-D8TR", BusDef('zero'));
 Ndef('rdn4').put(100, \pset -> Pbind(

@@ -2,6 +2,12 @@
 
 (
 TrackTemplateDef(\playerwrapper, (
+	// if modeTrigger is true, GUI does not track playing state
+	// not implemented here, see mixerPreset
+	// should emit changed(\PlayerWrapper, \stopped) in play method to prevent PlayerWrapper from
+	// believing something is currently playing
+	modeTrigger: false, 
+
 	label: { arg self; 
 		"%: %".format(self.index, if(self.proxy.notNil, { self.proxy.label }, { "-" }))
 	},
@@ -9,7 +15,7 @@ TrackTemplateDef(\playerwrapper, (
 	defaultSource: nil,
 
 	new: { arg self, parent, index;
-		self = self.copy;
+		self = ProtoClass((parent: self));
 
 		self.parentTrack = {parent};
 		self.index = index.asInteger;
@@ -607,9 +613,9 @@ TrackTemplateDef(\playergrid, (
 	///////// presetCompileString saving system
 
 	savePresetCompileString: { arg self;
-		self.children.do({ arg column;
+		self.existingChildren.do({ arg column;
 			column.savePresetCompileString;
-			column.children.do({ arg track;
+			column.existingChildren.do({ arg track;
 				track.savePresetCompileString;
 			})
 		});
@@ -640,6 +646,14 @@ TrackTemplateDef(\playergrid, (
 		self.resources.do { arg track;
 			PlayerWrapper(track).presetCompileStringSavePath = val +/+ "%_%.scd".format(PlayerWrapper(track).targetClass, track.key);
 		};
+	},
+
+	savePresetCompileStringDialog: { arg self;
+		PlayerWrapper(self).savePresetCompileStringDialog;
+	},
+
+	loadPresetCompileStringDialog: { arg self;
+		PlayerWrapper(self).loadPresetCompileStringDialog;
 	},
 
 
@@ -833,7 +847,7 @@ TrackTemplateDef(\lineplayer, (
 	play: { arg self;
 		["play"].postln;
 		self.children.do({ arg x, ii; 
-			["play", ii, x].postln;
+			Log(\Param).debug("lineplayer play % %", ii, x);
 			x.play;
 		});
 		self.changed(\play, self.quant);
@@ -847,7 +861,7 @@ TrackTemplateDef(\lineplayer, (
 	playNow: { arg self;
 		["play now"].postln;
 		self.children.do({ arg x, ii; 
-			["play now", ii, x].postln;
+			Log(\Param).debug("lineplayer playNow % %", ii, x);
 			x.playNow;
 		});
 		self.changed(\PlayerWrapper, \playing); // the view put directly the ProtoDef so need to simulate PlayerWrapper
@@ -856,7 +870,7 @@ TrackTemplateDef(\lineplayer, (
 	stop: { arg self;
 		["stop"].postln;
 		self.children.do({ arg x, ii; 
-			["stop", ii, x].postln;
+			Log(\Param).debug("lineplayer stop % %", ii, x);
 			x.stop;
 		});
 		self.changed(\stop);
@@ -870,7 +884,7 @@ TrackTemplateDef(\lineplayer, (
 	stopNow: { arg self;
 		["stop now"].postln;
 		self.children.do({ arg x, ii; 
-			["stop now", ii, x].postln;
+			Log(\Param).debug("lineplayer stopNow % %", ii, x);
 			x.stopNow;
 		});
 		self.changed(\stop);

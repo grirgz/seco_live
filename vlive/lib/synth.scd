@@ -110,8 +110,7 @@ SynthDef(\oscsampler3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, po
 }, metadata:(specs:(
 	finepos: ControlSpec(-0.001,0.001,\lin, 0, 1),
 	range: ControlSpec(-0.01,0.01,\lin, 0, 1),
-	adsr: \env -> [nil, nil, nil, nil, Env.adsr(0.01,0.1,0.8,0.1)],
-	posenv: \env -> [nil, nil, nil, nil, Env([1,0,0.5,0.2, 0.2], [0.2,0.1,0.1,0.1])],
+	posenv: ParamEnvSpec(\unipolar!5),
 	fshift: ControlSpec(-2000,2000,\lin,0,0),
 	spread: \unipolar.asSpec,
 	lpmix: \unipolar.asSpec,

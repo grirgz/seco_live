@@ -190,6 +190,7 @@ SynthDef(\vache2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, totem=1, spoon;
 			Pfindur(a[0]+1,
 				Pbind(
 					\instrument, \dr_oscsampler,
+					\bufnum, BufDef(\amen, "vipere/amenbreak.wav"),
 					\degree, Pseq([0],inf),
 					\timeScale, a[0] + ( a[9]/10 ) / 7,
 					\levelScale, a[1] + ( a[8]/10 ) / 10,
@@ -276,7 +277,26 @@ SynthDef(\vache2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, totem=1, spoon;
 			if(num.isNil) {
 				nil.yield;
 			} {
-				(num % 10).postln.yield;
+				(num % 10).debug("mod10").yield;
+			}
+		}
+	}).asStream;
+};
+~fileread_rawstr = { arg filepath;
+	Prout({
+		var num;
+		//~file.readInt8
+		//var file;
+		if(~file.notNil) { ~file.close };
+		~file = File(filepath.standardizePath,"rb");
+		inf.do {
+			num = ~file.getInt32;
+			num.debug("NUM");
+
+			if(num.isNil) {
+				nil.yield;
+			} {
+				num.debug("raw").yield;
 			}
 		}
 	}).asStream;
@@ -405,7 +425,7 @@ Pdef(\yop,
 ( (0..7)/4 ).asInteger
 (
 //~str = ~fileread_str.("/home/ggz/Musique/REC00004.WAV");
-~str = ~fileread_str.("/initrd.img");
+~str = ~fileread_str.("/boot/initrd.img");
 Pdef(\soni, 
 	Ppar(
 		8.collect({ arg xx;
@@ -444,7 +464,8 @@ Pdef(\soni,
 
 
 (
-~str = ~fileread_str.("/initrd.img");
+//~str = ~fileread_str.("/boot/initrd.img");
+~str = ~fileread_str.("/bin/ls");
 Pdef(\flute, Pbind(
 	\instrument, \default,
 	\degree, Plazy({ arg ev; 
@@ -547,7 +568,180 @@ Pdef(\flute, Pbind(
 )).play;
 );
 
+(
+~str = ~fileread_rawstr.("/bin/ls");
+//~str = ~fileread_rawstr.("/boot/initrd.img");
+Pdef(\flute, 
+	
+	Ppar(
+		Pbind(
+			//\instrument, \basicbass,
+			\lpf, 5000,
+			\degree, Plazy({ arg ev; 
+				var p = [
+					{{ ~str.next % 14 }.dup(8)+ (0..7)} ,
+					{{ ~str.next % 14 }.dup(8)},
+					{{ ~str.next % 28 - 14 }.dup(8)},
+					(0..7),
+					(0..7)*2,
+					(0..7)*3,
+					(0..7).reverse,
+					(0..7).reverse*2,
+					0!8,
+					4!8,
+				].wrapAt(~str.next).value;
 
+				p = p + ( ~str.next % ( 7*4 ) - ( 7 ) );
+
+				p = [
+					p,
+					{
+						p.collect({ arg x, i; if(i%2==0) { x-2 } { x } })
+					},
+					{
+						p.collect({ arg x, i; if(i%3==0) { x-2 } { x } })
+					},
+				].wrapAt(~str.next).value;
+
+				p = [
+					p,
+					{
+						p.collect({ arg x, i; if(i%x==0) { x+2 } { x } })
+					},
+					{
+						p.collect({ arg x, i; if(i%x==0) { x+2 } { x } })
+					},
+				].wrapAt(~str.next).value;
+
+				p = [
+					p,
+					{
+						p.collect({ arg x, i; if( ~str.next > 4) { x+2 } { x } })
+					},
+					{
+						p.collect({ arg x, i; if( ~str.next > 4) { x-2 } { x } })
+					},
+					{
+						p.collect({ arg x, i; if( ~str.next > 4) { x-1 } { x } })
+					},
+					{
+						p.collect({ arg x, i; if( ~str.next > 4) { x+1 } { x } })
+					},
+				].wrapAt(~str.next).value;
+
+				p = [
+					p,
+					{
+						p.collect({ arg x, i; if( ~str.next > 4) { x+2 } { x } })
+					},
+					{
+						p.collect({ arg x, i; if( ~str.next > 4) { x-2 } { x } })
+					},
+					{
+						p.collect({ arg x, i; if( ~str.next > 4) { x-1 } { x } })
+					},
+					{
+						p.collect({ arg x, i; if( ~str.next > 4) { x+1 } { x } })
+					},
+				].wrapAt(~str.next).value;
+
+				p = [
+					p,
+					{
+						p.collect({ arg x, i; if(x%2==0) { x } { Rest(0) } })
+					},
+					{
+						p.collect({ arg x, i; if(x%4==0) { x } { \r } })
+					},
+					{
+						p.collect({ arg x, i; if(x%i==0) { x } { \r } })
+					},
+					{
+						p.collect({ arg x, i; if( ~str.next % 2==0) { x } { \r } })
+					},
+					{
+						p.collect({ arg x, i; if(i%2!=0) { x } { \r } })
+					},
+				].wrapAt(~str.next).value;
+
+
+				p = [
+					p,
+					{
+						p.collect({ arg x, i; if( ~str.next % 10 > 2) { x + [0,2,4] - 7 } { x } })
+					},
+					{
+						p.collect({ arg x, i; if( ~str.next % 10 > 4) { x + [0,2,4] } { x } })
+					},
+					{
+						p.collect({ arg x, i; if( ~str.next % 10 > 4) { x + [0,4] } { x } })
+					},
+					{
+						p.collect({ arg x, i; if( ~str.next % 10 > 4) { x + [0,2] } { x } })
+					},
+				].wrapAt(~str.next).value;
+
+				Pseq(p.debug("final seq"))
+			}).loop,
+			\dur, 1/8,
+			\amp, 0.1
+		).dup(2).collect({ arg pat, idx; pat <> Pbind(\pan, [-1,1].wrapAt(idx)) })
+	)
+).play;
+);
+
+
+(
+	// rest work in 1 channel
+Pdef(\zed, 
+Pbind(
+	\instrument, \default,
+	\degree, Pseq([
+		0, 0,\r, 1,
+	],inf),
+	\dur, 1/4,
+	\amp, 0.1,
+)
+).play;
+);
+
+(
+	// do not work in Ptuple
+Pdef(\zed, 
+Pbind(
+	\instrument, \default,
+	\degree, Ptuple(Pseq([
+		0, 0,\r, 1,
+	],inf)!1),
+	\dur, 1/4,
+	\amp, 0.1,
+)
+).play;
+);
+
+(
+	// do not work in Ptuple
+Pdef(\zed, 
+Pbind(
+	\instrument, \default,
+	\degree, Ptuple(Pseq([
+		0, 0,Rest(4), 1,
+	],inf)!1),
+	\type, Pfunc({ arg ev;
+		ev[\degree].collect({
+
+		})
+		if(ev[\degree].debug("deg").isKindOf(Rest)) {
+			\rest
+		} {
+			\note
+		}
+	}),
+	\dur, 1/4,
+	\amp, 0.1,
+)
+).play;
+);
 
 //////////////////////////////////////////:
 
