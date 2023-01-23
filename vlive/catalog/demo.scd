@@ -786,3 +786,38 @@ Pdef(\demo, PmonoArtic(\amdel,
 	\amp, 0.1
 )).play;
 );
+
+////////// vocal synth
+
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var lpf, lpf2;
+	sig = WhiteNoise.ar(1/2) + LFSaw.ar(70);
+	sig1 = sig;
+	lpf = SinOsc.ar(2).range(500,600);
+	lpf2 = SinOsc.ar(2.2).range(900,1000);
+	sig = BPF.ar(sig1, lpf, \rq.kr(0.1/2));
+	sig = sig + BPF.ar(sig1, lpf2, \rq2.kr(0.051));
+	sig = sig *4;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var lpf, lpf2;
+	sig = LFSaw.ar(70 * [1,2.5]).mean;
+	sig1 = sig;
+	lpf = SinOsc.ar(2).range(500,600);
+	lpf2 = SinOsc.ar(2.2).range(900,1000);
+	sig = BPF.ar(sig1, lpf, \rq.kr(0.1));
+	sig = sig + BPF.ar(sig1, lpf2, \rq2.kr(0.11));
+	sig = sig *4;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);

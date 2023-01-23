@@ -1,4 +1,5 @@
 (
+FileSystemProject.loadOnce("cavern/main.scd");
 ~t = 165/2/60; TempoClock.default.tempo = ~t;
 FileSystemProject('cavern/cave52').loadProject;
 FileSystemProject.current.addResource(TrackDef(\cave52));
@@ -493,3 +494,310 @@ Ndef('fx4').setVal('gain', 1);
 Window.allWindows.collect{ arg w; w.name }
 
 WindowDef.all.first
+
+
+
+///////////////////////
+
+
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+
+
+(
+SynthDef(\tump, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = FSinOsc.ar(freq* (1..8) * [ [1,3/2] ]) * (LFNoise1.kr(6!8!2) * ( 1/( (1..8)+1 ) ) * 0.8).max(0);
+	sig = sig.mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.3,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig * amp;
+	sig.debug("sig");
+	Out.ar(out, sig);
+}).add;
+);
+( 1/((1..8)) ).plot;
+( 1/((1..8)**(18)) ).plot;
+( ((1..8)) ).plot;
+(1..8) * [[1,2]] * ( 6!2!8 )
+(
+SynthDef(\tump2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = FSinOsc.ar(freq* (1..8) * [ \chord.kr([1,3/2]) ]) * (LFNoise1.kr(6!2!8) * ( 1/( (1..8)**(\harm.kr(1))+1 ) ) * 0.8).max(0);
+	sig = sig.mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.3,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig * amp;
+	sig.debug("sig");
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+SynthDef(\tump, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,1,0],[0.01,0.1]), 1);
+	//sig = SinOsc.ar( (freq* (1..8) * [ [1,3/2] ] * ( SinOsc.ar([[3/2,1]*freq*1]) * (LFNoise1.kr(1!8!2) * ( 1/( (1..8)+1 ) ) * 2.8).max(0) + 1 )) ) * (LFNoise1.kr(6!8!2) * ( 1/( (1..8)+1 ) ) * 0.8).max(0);
+	sig = SinOsc.ar( (freq* (1..8) * [ [1,3/2] ] * ( SinOsc.ar([[3/2,1]*freq*\fmfac.kr(1)]) * (LFNoise1.kr(1!8!2) * ( 1/( (1..8)+1 ) ) * 8.8).max(0) + 1 )) ) * 0.1 ;
+	sig = sig + ( FSinOsc.ar(freq* (1..8) * [ [1,3/2] ]) * (LFNoise1.kr(6!8!2) * ( 1/( (1..8)+1 ) ) * 0.8).max(0) );
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * (env1 + 1) * freq, \rq.kr(0.5));
+	//sig = sig + SinOsc.ar(freq, mul:0.05); 
+	sig = sig.mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.3,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig * amp;
+	sig.debug("sig");
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\demo, 
+	Pbind(
+		\instrument, \tump,
+		\degree, Pstep(Pseq([0,4],inf),4),
+
+		\octave, 3,
+		//\freq, 70,
+		\legato,1,
+		\adsr, Pseq([
+			[ Env.adsr(0.001,0.01,0.4,2.1) ],
+		],inf),
+		\dur, Plazy({ Pseq([3,3,2].scramble/8,8) }).loop,
+		\amp, 2.8,
+	)
+).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \tump2,
+			\chord, [[1/2,1]],
+			\note, Pfunc({ ~melo1 }),
+			\octave, 3,
+			//\freq, 70,
+			\legato,1,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.01,0.4,2.1) ],
+			],inf),
+			\dur, Plazy({ Pseq([3,3,2].scramble/8,8) }).loop,
+			\amp, 2.8,
+		)
+		
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \tump2,
+			\chord, Pseq([
+				[[1.01,1]],
+				[[1/2,2]],
+				[[2,1]],
+				[[1,3.midiratio]],
+			],inf),
+			\note, Pstep(Pseq([0,-1, 0,-6, -9,-1, -10,-9],inf),Pseq([3,1],inf))+8,
+			\harm, Pseg(Pseq([0,0.01,1,10],inf),8),
+			\harm, Pseq([0.01,10,10],inf),
+			\octave, 3,
+			//\freq, 70,
+			\legato,1,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.01,0.4,2.1) ],
+				[ Env.adsr(0.01,0.21,0.4,0.1) ],
+			],inf),
+			\dur, Plazy({ Pseq([3,3,2].scramble/8,8) }).loop,
+			\amp, 2.8,
+		),
+		Pbind(
+			\instrument, \tump2,
+			\chord, Pseq([
+				[[1.01,1]],
+				[[1/2,2]],
+				[[2,1]],
+				[[1,3.midiratio]],
+			],inf),
+			\note, Pstep(Pseq([0,-1, 0,-6, -9,-1, -10,-9],inf),Pseq([3,1],inf))+8,
+			\harm, Pseg(Pseq([1,10],inf),8),
+			//\harm, Pseq([10,10],inf),
+			\octave, 5,
+			//\freq, 70,
+			\legato,1,
+			\adsr, Pseq([
+				//[ Env.adsr(0.001,0.01,0.4,2.1) ],
+				[ Env.adsr(0.01,0.21,0.4,1.1) ],
+			],inf),
+			\dur, Plazy({ Pseq([3,3,2].scramble/8,8) }).loop,
+			\amp, 2.8,
+		),
+		
+	])
+)).play;
+);
+
+
+
+
+(
+Pdefn(\melo1, Pseq([0,3,4,0],inf));
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \tump,
+			\degree, Pstep(Pdefn(\melo1),4),
+
+			\octave, 3,
+			\lpfr, Pseg(Pseq([1,4],inf),16),
+			//\freq, 70,
+			\legato,1,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.01,0.4,2.1) ],
+			],inf),
+			\dur, Plazy({ Pseq([3,3,2].scramble/8,8) }).loop,
+			\amp, 3.8,
+		),
+		Pbind(
+			\instrument, \tump,
+			\degree, Pstep(Pdefn(\melo1),4),
+
+			\octave, 6,
+			//\freq, 70,
+			\legato,1,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.01,0.4,0.1) ],
+			],inf),
+			\dur, Plazy({ Pseq([3,3,2].scramble/8,8)*2 }).loop,
+			\amp, 0.8,
+		),
+		Pbind(
+			\instrument, \tump,
+			\degree, Pstep(Pdefn(\melo1),4),
+
+			\octave, 5,
+			\lpfr, Pseg(Pseq([1/2,2],inf),16),
+			//\freq, 70,
+			\legato,1,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.01,0.4,0.1) ],
+			],inf),
+			\dur, Plazy({ Pseq([3,3,2].scramble/8,8) }).loop,
+			\amp, 0.8,
+		),
+		
+	])
+)).play;
+);
+
+~melo1 = 0;
+
+(
+MIDIdef.noteOn(\track1, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	~melo1 = noteNum - 60;
+	~melo1.postln;
+	
+}).permanent_(true);
+)
+
+(
+Pdefn(\melo1, Pfunc({ ~melo1 }));
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \tump,
+			\note, Pstep(Pdefn(\melo1),4),
+
+			\octave, 3,
+			\lpfr, Pseg(Pseq([1,4],inf),16),
+			//\freq, 70,
+			\legato,1,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.01,0.4,2.1) ],
+			],inf),
+			\dur, Plazy({ Pseq([3,3,2].scramble/8,8) }).loop,
+			\amp, 3.8,
+		),
+		Pbind(
+			\instrument, \tump,
+			\note, Pstep(Pdefn(\melo1),4),
+
+			\octave, 6,
+			//\freq, 70,
+			\legato,1,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.01,0.4,0.1) ],
+			],inf),
+			\dur, Plazy({ Pseq([3,3,2].scramble/8,8)*2 }).loop,
+			\amp, 0.8,
+		),
+		Pbind(
+			\instrument, \tump,
+
+			\octave, 5,
+			\lpfr, Pseg(Pseq([1/2,2],inf),16),
+			//\freq, 70,
+			\legato,1,
+			\adsr, Pseq([
+				[ Env.adsr(0.001,0.01,0.4,0.1) ],
+			],inf),
+			\dur, Plazy({ Pseq([3,3,2].scramble/8,8) }).loop,
+			\amp, 0.8,
+		),
+		
+	].collect({ arg pat;
+		Pbind(
+			\note, Pstep(Pdefn(\melo1),1),
+			\note, Pfunc({ ~melo1 }),
+		)<>
+		pat
+   
+	}))
+)).play;
+);
+
+
+(
+Pdef(\demo, 
+	Pbind(
+		\instrument, \tump,
+		\degree, Pseq([0,4+7,2b,4,0+7,4-7],inf),
+		\mtranspose, Pstep(Pseq([0,5],inf),8),
+		\fmfac, Pseq([1,1/2,2,1,1/3,1,1/4,1],inf),
+		\lpfr, 3,
+		//\freq, 70,
+		\octave, 3,
+		\legato,5,
+		\dur, Pwhite(1.2,2),
+		\amp, 1.8,
+	)
+).play;
+);
+
+
+(
+Ndef(\bla, { SinOsc.ar(ExpRand(10,4000))!2*0.1  });
+Ndef(\bla)[1] = Ndef(\bla)[0].source;
+Ndef(\bla)[2] = Ndef(\bla)[0].source;
+)
+Ndef(\bla).sendEach
+Ndef(\bla).play
+Ndef(\bla).spawn
+Ndef(\bla).clear
+
+
+///////////////////////////////////////////////////
+
+

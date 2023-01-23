@@ -357,6 +357,7 @@ Pdef(\part, Pdef(\zed,
 			\gain, 1,
 			\dur, 2,
 			//\out, BusDef(\fxbus4, \audio),
+			//\out, BusDef(\sendbus1, \audio),
 		),
 	])
 )).play;

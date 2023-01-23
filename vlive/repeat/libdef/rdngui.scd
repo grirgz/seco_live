@@ -251,16 +251,24 @@ WindowDef(\rdngui, { arg def, model;
 				//TextField.new.action_({ arg view;
 				//	model.fxdef = view.value.asSymbol;
 				//}).value_(model.fxdef),
+				PlayerWrapper(Ndef(model.fxkey)).asView, // FIXME: dynamic!
 				popup = Param(
 					Message(model), \fxdef, 
 					MenuSpec(RandDelayNetwork.all.keys.as(Array).sort)
 				).asPopUpMenu,
-				TextField.new.action_({ arg view;
-					model.fxkey = view.value.asSymbol;
-				}).value_(model.fxkey),
-				TextField.new.action_({ arg view;
-					model.fxcode = view.value.asString;
-				}).value_(model.fxcode).minWidth_(40),
+				Param(Message(model), \fxcode, TagSpec([
+					"6--",
+					"5--",
+					"4--",
+					"3--",
+				])).asPopUpMenu.followChange(model, \refresh, { arg me;
+					model.changed(\fxcode);
+					//me.items.collect { arg item, idx;
+						//model.fxcode == 
+					//};
+					//"kj" == "kj"
+					//me.value(model.code)
+				}),
 				currentCodeText = StaticText.new.string_(model.code).followChange(model, \refresh, { arg me;
 					me.string_(model.code)
 				}).font_(Font.default.size_(10)).minWidth_(65).mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
@@ -270,7 +278,11 @@ WindowDef(\rdngui, { arg def, model;
 						model.code.asString.pbcopy;
 					}
 				}),
-				PlayerWrapper(Ndef(model.fxkey)).asView, // FIXME: dynamic!
+				BasicButton.new.string_("...").action_({ arg view;
+					// we do not have x and y, it will use view top left corner
+					// there is no model in this example so first argument is nil
+					WindowDef(\rdngui_overlay).front(model, view, popup)	   
+				}).fixedWidth_(30),
 				BasicButton.new.string_("Gen Fx!").action_({
 					"gen1".debug;
 					model.genfx;
@@ -283,18 +295,6 @@ WindowDef(\rdngui, { arg def, model;
 			
 			),
 			HLayout (
-				BasicButton.new.string_("Load").action_({
-					popup.refreshChange;
-
-					if(ProtoTemplateDef(\rdn).presetDictionary.size == 0) {
-						ProtoTemplateDef(\rdn).readPresetLib; 
-					};
-			
-					WindowDef(\ProtoDef_rdn_loadPreset).front(model);
-				}).minWidth_(35),
-				BasicButton.new.string_("Save").action_({
-					WindowDef(\ProtoDef_rdn_savePreset).front(model);
-				}).minWidth_(35),
 				Param(
 					Message(model), \inbus, 
 					TagSpecDef(\BusDef)
@@ -305,15 +305,58 @@ WindowDef(\rdngui, { arg def, model;
 					TagSpecDef(\BusDef_index)
 					//MenuSpec([\0->0] ++ BusDef.all.keys.as(Array).sort.collect({ arg k; k -> BusDef(k).index }) )
 				).asPopUpMenu,
-				BasicButton.new.string_("Rebuild").action_({
-					model.rebuild;
-				}),
+
 				
 			)
 		),
 		fxview,
 	)
 });
+
+// TODO
+WindowDef(\rdngui_overlay, { arg def, model, view, popup, x=0, y=0;
+    var inview, layout;
+	//var popup;
+
+    def.windowDo { arg win;
+        // move window at the position of the click
+        // x and y are relative to view top left corner
+        var ab = view !? {view.absoluteBounds} ? Rect(0,0,600,600);
+        win.bounds = Rect(x+ab.origin.x, Window.screenBounds.height - ab.top - y, 200,100);
+        win.endFrontAction = { win.close };
+    };
+    inview = View.new;
+
+
+    layout = VLayout (
+				BasicButton.new.string_("Rebuild").action_({
+					model.rebuild;
+				}),
+				HLayout (
+					BasicButton.new.string_("Save").action_({
+						WindowDef(\ProtoDef_rdn_savePreset).front(model);
+					}).minWidth_(35),
+					BasicButton.new.string_("Load").action_({
+						popup.refreshChange;
+					
+						if(ProtoTemplateDef(\rdn).presetDictionary.size == 0) {
+							ProtoTemplateDef(\rdn).readPresetLib; 
+						};
+					
+						WindowDef(\ProtoDef_rdn_loadPreset).front(model);
+					}).minWidth_(35),
+				),
+				TextField.new.action_({ arg view;
+					model.fxcode = view.value.asString;
+				}).value_(model.fxcode).minWidth_(40),
+				TextField.new.action_({ arg view;
+					model.fxkey = view.value.asSymbol;
+				}).value_(model.fxkey),
+        nil
+    );
+    inview.layout_(layout);
+    
+}).border_(false);
 
 WindowDef(\ProtoDef_rdn_savePreset, { arg def, model;
 	var listview = ListView.new;

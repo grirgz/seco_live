@@ -605,3 +605,71 @@ WindowDef(\PdefEditor).asCompileString
 ~plot = Signal.sineFill(2048/2, [1])
 ~plot = Signal.sineFill(2048/2, [0,1])
 ~plot.plot
+
+
+(
+	Prout({arg evv;var t,i;
+		i=0;
+		t=Pbind(*[
+			degree:Pseq((0..7),1),
+			scale:Prout({ arg ev;var scale;
+				scale=Scale.choose;
+				loop{
+					ev=scale.debug("scale").embedInStream(ev);
+					scale=Scale.choose;
+				}
+			})
+		]);
+		loop{
+			evv=t.trace.embedInStream(evv);
+			t=t<>(ctranspose:i+1);
+		}
+	}).play
+)
+
+Scale.choose.embedInStream
+
+
+(
+Pdef(\zed, 
+	Prout({ arg ev;
+		
+		Pbind(
+			\degree, Pseq((0..7),1),
+		)
+	}),
+).play;
+);
+
+
+
+(
+	Prout({arg evv;var t,i;
+		i=0;
+		t=Pbind(*[
+			degree:Pseq((0..7),1),
+			dur: 1/4,
+		]);
+		loop{
+			evv = ( t<>Pbind(*[
+				ctranspose:i,
+				scale: Scale.choose,
+			]) ).embedInStream(evv);
+			i = i + 1;
+		}
+	}).trace.play
+)
+
+
+(
+	Pdef(\zed, 
+		Pbind(
+			\degree, Pseq((0..7),inf),
+			\dur, 1/4,
+		)<>
+		Pbind(
+			\ctranspose,Pseq((0..100)),
+			\scale, Pfunc({ Scale.choose }),
+		).stutter(8)
+	).trace.play;
+);

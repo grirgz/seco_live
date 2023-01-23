@@ -176,7 +176,7 @@ Pdef(\guitar, Pbind(
 			[1,0,0,0,0,0].scramble,
 		].scramble.debug("x"),16)
 	],inf),
-	//\amp, 0.1 * Pser([
+	//\amp, 0.1 * Pser
 	//	//[\rest,\rest,\rest,\rest,\rest],
 )).play;
 )
@@ -192,12 +192,27 @@ WindowDef(\doublerdn, { arg def, rdnlist;
 }).front([ProtoDef(\rdn), ProtoDef(\rdn2)]);
 )
 
+(
+WindowDef(\quatrordn, { arg def, rdnlist;
+	VLayout (
+		*rdnlist.clump(2).collect { arg subrdnlist, idx;
+			HLayout(
+				*subrdnlist.collect({ arg rdn;
+					WindowDef(\rdngui).asView(rdn);
+				})
+			);
+		},
+	)
+
+}).front([ProtoDef(\rdn), ProtoDef(\rdn2), ProtoDef(\rdn3), ProtoDef(\rdn4)]);
+)
+
 ProtoDef(\rdn).edit
 ProtoDef(\rdn2, ProtoTemplateDef(\rdn)).edit
 ProtoDef(\rdn2).edit
 ProtoDef(\rdn).loadDefaultPreset
 ProtoDef(\rdn2).loadDefaultPreset
-Pdef(\guitar).set(\out, BusDef(\sendbus0))
+Pdef(\guitar).set(\out, BusDef(\sendbus1))
 Pdef(\guitar).stop
 Pdef(\drums).set(\out, BusDef(\sendbus0))
 Pdef(\drums).set(\out, BusDef(\sendbus1))

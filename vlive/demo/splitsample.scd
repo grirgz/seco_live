@@ -84,7 +84,7 @@ Pdef(\amen, Pbind(
 	\instrument, \playbuf,
 	\index, Pseq((0..(~list.size-1))),
 	\sframe, Pindex(~list, Pkey(\index)),
-	\eframe, Pindex(~list ++ [d.numFrames], Pkey(\index)+1),
+	\eframe, Pindex(~list ++ [BufDef(\amen).numFrames], Pkey(\index)+1),
 	\buf, BufDef(\amen, "vipere/amenbreak.wav"),
 	\xdur, 1,
 	\amp, 0.1,

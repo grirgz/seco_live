@@ -731,3 +731,197 @@ Pdef(\zed,
 	)
 ).play;
 );
+
+
+//////////////// guitar composition
+
+// guitar strings notes are [4,9,2, 7,11,4]
+// with correct octaves: [4,9,2+12, 7+12,11+12,4+12+12]
+// chords are applied by adding fret count for each string
+// strumming is done with \amp
+// from algokit/guitar.scd
+
+(
+Pdef(\zed, Pbind(
+	\instrument, \default,
+	\note, [4,9,2+12,7+12,11+12,4+12+12] + Pseq([
+		Pstep(Pseq([
+			[1,3,3,2,1,1], // fa maj
+			[1,1,3,3,2,1], // la# min
+			[1,3,3,2,1,1]+1, // fa# maj
+			[1,1,3,3,2,1], // la# min
+		],1),1),
+	],inf),
+	\octave, 4,
+	\isRest, Pseq([
+		false
+	],inf),
+	//\note, [4,0,3,6,1,4],
+	\dur, 1/4,
+	\amp, 0.1 * Pseq([
+		//[\rest,\rest,\rest,\rest,\rest],
+		//[0,1,0,0,1,0],
+		//[0,1,0,0,1,0].rotate(rrand(0,6)),
+		Plazy({ arg ev;
+			Pseq([
+				[0,1,0,0,1,0].rotate(rrand(0,6)),
+				[0,1,0,0,1,0].rotate(rrand(0,6)),
+				[0,1,0,0,1,0].rotate(rrand(0,6)),
+				[0,1,0,0,1,0].rotate(rrand(0,6)),
+			],4)
+		}).loop,
+		//[0,1,0,0,1,0],
+	],inf),
+)).play;
+)
+
+/////////////// Pconst
+// create various rhytms
+// \dur, Pconst(1,Prand([1/2,1/2,1/4,1/8,1/6],inf).stutter(4)).loop.trace,
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1248].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[821].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\legato, 3,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \default,
+			\adsr, Pseq([
+				[ Env.adsr(0.03,0.1,0.8,0.1) ],
+				[ Env.adsr(0.1,0.1,0.8,1.1) ],
+			],inf),
+
+			\note, [4,9,2+12,7+12,11+12,4+12+12] + Pseq([
+				Pstep(Pseq([
+					[1,3,3,2,1,1], // fa maj
+					[1,1,3,3,2,1], // la# min
+					[1,3,3,2,1,1]+1, // fa# maj
+					[1,1,3,3,2,1], // la# min
+				],1),1),
+			],inf),
+			\octave, 4,
+			\isRest, Pseq([
+				false
+			],inf),
+			//\note, [4,0,3,6,1,4],
+			\dur, Pconst(1,Prand([1/2,1/2,1/4,1/8,1/6],inf).stutter(4)).loop.trace,
+			\amp, 0.1 * Pseq([
+				//[\rest,\rest,\rest,\rest,\rest],
+				//[0,1,0,0,1,0],
+				//[0,1,0,0,1,0].rotate(rrand(0,6)),
+				Plazy({ arg ev;
+					Pseg(Pseq([
+						[0,1,0,0,1,0].rotate(rrand(0,6)),
+						[0,1,0,0,1,0].rotate(rrand(0,6)),
+						[0,1,0,0,1,0].rotate(rrand(0,6)),
+						[0,1,0,0,1,0].rotate(rrand(0,6)),
+					],4), 1)
+				}).loop.trace,
+				//[0,1,0,0,1,0],
+			],inf),
+		)
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1248].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[821].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				//0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\legato, 3,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1904].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,
+			],inf).coin.not,
+			\dur, Pconst(1,Prand([1/2,1/2,1/4,1/8,1/6],inf).stutter(4)).loop.trace,
+			\gain, 0.11,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1248].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[821].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				//0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\legato, 3,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1888].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,
+			],inf).coin.not,
+			\dur, Pconst(1/2,Prand([1/2,1/2,1/4,1/8,1/16],inf).stutter(Prand([2,4],inf))).loop.trace,
+			\gain, 0.11,
+		),
+	])
+)).play;
+);
