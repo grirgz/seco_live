@@ -388,7 +388,7 @@ Pdef(\demo,
 				],1*4),
 		
 			],inf),
-			\out, BusDef(\sendbus1, \audio),
+			//\out, BusDef(\sendbus1, \audio),
 			\octave, 3,
 			\dur, 1/8,
 			\amp, 0.1/8

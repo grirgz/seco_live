@@ -387,7 +387,7 @@
 		var indentCount = 0;
 
 		linestr = self.get_line(line, code).debug("line");
-		instr = linestr.split($,).reject({ arg x; x.asCompileString.debug("x"); x.stripWhiteSpace == "\\instrument" }).first.interpret;
+
 		block {  arg break; linestr.do { arg char, idx;
 			if(char == $  or: { char == $\t }) {
 				indentCount = indentCount + 1;
@@ -395,6 +395,26 @@
 				break.value;
 			}
 		}};
+
+		// Pbind support
+		instr = linestr.split($,).reject({ arg x; x.asCompileString.debug("x"); x.stripWhiteSpace == "\\instrument" }).first.interpret;
+		instr.debug("instr pbind");
+		// Pmono support
+		if(instr.isNil) {
+			instr = linestr.split(40.asAscii).reject({ arg x; 
+				x = x.stripWhiteSpace;
+				x.asCompileString.debug("x"); 
+				//( x == "Pmono" ).debug("pppp");
+				["Pmono", "PmonoArtic"].includesEqual(x);
+			}).first;
+			instr = instr.stripWhiteSpace;
+			if(instr.endsWith(",")) {
+				instr = instr.drop(-1)
+			};
+			instr = instr.interpret;
+			indentCount = indentCount + 1; // Pmono is header but args are indent+1
+			instr.debug("instr pmono");
+		};
 		instr.debug("instr");
 		self.insert_after( self.gen_pbind_arguments(instr, indentCount) );
 		
@@ -412,7 +432,7 @@
 	////////////////////////
 
 	gen_pbind_arguments: { arg self, synthDef=\default, indentlevel=0;
-		var controls = SynthDescLib.global.synthDescs.at(synthDef).asParamGroup(()).rejectSystemParams;
+		var controls = SynthDescLib.global.synthDescs.at(synthDef).asParamGroup((instrument:synthDef)).rejectSystemParams;
 		var str = "";
 		controls.debug("con");
 		controls.do{|control| 

@@ -633,6 +633,20 @@ Pdef(\zed,
 ).play;
 );
 
+(
+	// note with ctranspose
+	// does not follow scale
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\note, Pseq([0,4,7,0],inf),
+		\ctranspose, Pseq([0,5,7,5],inf).stutter(4),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
 ///////
 
 
@@ -922,6 +936,539 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, Pconst(1/2,Prand([1/2,1/2,1/4,1/8,1/16],inf).stutter(Prand([2,4],inf))).loop.trace,
 			\gain, 0.11,
 		),
+	])
+)).play;
+);
+
+//////////////////// chaotic chords
+// spawn random notes
+// change chord with compose
+
+(
+SynthDef(\kipik, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFPulse.ar(freq * ( SinOsc.ar(freq*\fmfr.kr(2)) * \fma.kr(1) + 1 ));
+	sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pspawner({ arg sp;
+			loop  {
+				sp.par(
+					Pbind(
+						\instrument, \kipik,
+						\degree, Pseq([ [0,4,7,9,11].choose ],inf),
+						\octave, [3,4,5,6].choose,
+						\sustain, 0.1,
+						//\lpfr, ~pmodenv.(Pseq([1,2,1,4],1), 8).loop,
+						\lpfr, rrand(0.6,4),
+						\dur, rrand(1/4,3),
+						\amp, 0.1/2,
+						\out, BusDef(\ifx1, \audio),
+					)
+				);
+				rrand(1,4.0).wait;
+			}
+		}),
+		Pmono(\fx_echo,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\delay, 1/3/4/~t,
+			//\delay, ~pmodenv.(Pseq([1,1/2,1,1/4]/8/~t,1), 8).loop,
+			\decay, 8,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\ctranspose, Pstep(Pseq([
+				0,7,
+			],inf),8),
+		) <>
+		Pspawner({ arg sp;
+			loop  {
+				sp.par(
+					Pfindur(rrand(8.0,32),Pbind(
+						\instrument, \kipik,
+						\note, Pseq([ [0,4,7,9,11].choose ],inf),
+						\octave, [3,4,5,3,4,5,6].choose,
+						\sustain, 0.1,
+						\fmfr, [1/2,1/3,2,1].choose,
+						//\lpfr, ~pmodenv.(Pseq([1,2,1,4],1), 8).loop,
+						\lpfr, exprand(0.6,4),
+						\dur, rrand(1/4,3),
+						\amp, 0.1/2,
+						\out, BusDef(\ifx1, \audio),
+					))
+				);
+				rrand(1,4.0).wait;
+			}
+		}),
+		Pmono(\fx_echo,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\delay, 1/3/4/~t,
+			//\delay, ~pmodenv.(Pseq([1,1/2,1,1/4]/8/~t,1), 8).loop,
+			\decay, 8,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+
+/////////////////////////
+//////// mute parts of parts 
+
+(
+Pdef(\part, Pdef(\housedrum, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\bufnum, ~buflib.kick[879].value,
+			\score, Pseq([
+				1,0,0,0, 1,0,0,0,
+			],inf),
+			\isRest, Pkey(\score).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[771].value,
+			\score, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf),
+			\isRest, Pkey(\score).coin.not,
+			\dur, 1/8,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\gain, 0.11,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\hats, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[217].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,1,1,1, 
+				1,1,1,1, 0,0,0,0,
+				1,1,0,0, 1,1,0,0, 
+				0,0,1,1, 0,0,1,1, 
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 1,0,0,0,
+				1,0,1,0, 1,0,1,0, 
+				0,0,1,0, 0,0,1,0, 
+				0,0,0,0, 1,0,0,0, 
+			],inf).coin.not,
+			\dur, 1/16,
+			\gain, 0.07,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1360].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+	])
+)).play;
+);
+
+// acting on event type
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\muter, Pstep(Pseq([
+				0,1,1,1,
+			],inf), 1),
+			\rester, Pfunc({ arg ev; if(ev[\muter].coin == true) { 1 } { ev[\type] = \rest; 0 }; }),
+		)<>
+		Pdef(\hats),
+		Pbind(
+			\muter, Pstep(Pseq([
+				1,1,1,0,
+			],inf), 1),
+			\rester, Pfunc({ arg ev; if(ev[\muter].coin == true) { 1 } { ev[\type] = \rest; 0 } }),
+		)<>
+		Pdef(\housedrum)
+	])
+)).play;
+);
+
+// acting on gain and amp
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\muter, Pstep(Pseq([
+				0,1,1,1,
+			],inf), 1),
+			\gain, Pkey(\gain) * Pkey(\muter),
+			\amp, Pkey(\amp) * Pkey(\muter),
+		)<>
+		Pdef(\hats),
+		Pbind(
+			\muter, Pstep(Pseq([
+				1,1,1,0,
+			],inf), 1),
+			\gain, Pkey(\gain) * Pkey(\muter),
+			\amp, Pkey(\amp) * Pkey(\muter),
+		)<>
+		Pdef(\housedrum)
+	])
+)).play;
+);
+
+		Pbind(
+			\muter, Pstep(Pseq([
+				0,1,1,1,
+				1,1,1,1,
+				1,1,1,1,
+				1,1,0,0,
+				1,1,1,1,
+				1,1,1,1,
+				1,1,1,1,
+				1,1,1,0,
+			],inf), 1),
+			//\gain, Pkey(\gain) * Pkey(\muter),
+			//\amp, Pkey(\amp) * Pkey(\muter),
+			\rester, Pfunc({ arg ev; if(ev[\muter].coin == true) { 1 } { ev[\type] = \rest } }),
+		)<>
+		Pdef(\housedrum),
+
+
+/////////////////////
+/// compose drums using delays
+
+
+(
+SynthDef(\fx_fatecho, { arg out=0, gate=1, lfofreq=0.5, lfoamp = 0.1, pan=0;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var num=10;
+	var fbin;
+	var fbsig;
+	sig = in;
+
+	fbin = FbNode(2, \fbdelaymax.kr(0.6));
+	sig = sig + ( fbin.delay(\fbdelay.kr(0.2)) * \fb.kr(0.7) );
+
+	sig = sig.collect { arg isig, idx;
+		var xsig;
+		//xsig = (sig.wrapAt(idx+1)*\crosstalk.kr(0.2));
+		xsig = sig;
+		isig = FreqShift.ar(isig + xsig, ExpRand(\shiftmin.kr(0.001),\shiftmax.kr(0.1)!num) * ( LFNoise1.kr(lfofreq!num) * lfoamp + 1 )).mean + isig;
+		isig = DelayL.ar(isig, \delaymax.kr(0.1), ExpRand(\delaymin.kr(0.001),\delaymax.kr!num) * ( LFNoise1.kr(lfofreq!num) * lfoamp + 1 )).mean + isig;
+		isig;
+	};
+
+	//sig.debug("sig");
+	sig = Pan2.ar(sig, pan + ( [1,-1] * \panspread.kr(0.8) ) + LFNoise1.kr(\panlfofreq.kr(1/2)!2,mul:\panlfoamp.kr(0.2)), 1).mean;
+
+	fbsig = sig;
+	fbsig = HPF.ar(fbsig, \hpf.kr(30));
+	fbin.write(fbsig);
+
+	//sig.debug("sig");
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+
+	sig = Limiter.ar(sig, \limiter.kr(0.4));
+
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				0,0,-1,-1,-2,-2,-3,-3,
+			],inf),
+			\dur, 1,
+			\amp, 0.1,
+			\pan, Pseq([-1,1],inf),
+			\legato, 0.1,
+			\out, BusDef(\ifx1, \audio),
+			//\isRest, true,
+		),
+		Pmono(\fx_fatecho,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\mix, Pseq([1,1,0],inf),
+			\mix, 0.8,
+			\delaymax, 0.04,
+			\lfoamp , 0.01,
+			\lfofreq, 0.3,
+			\shiftmax, 40,
+			\fb, 0.7,
+			\fbdelay, 1/Pseq([1,3,4,16,8],inf)/~t,
+			\gain, 2,
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1187].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\out, BusDef(\ifx2, \audio),
+			//\isRest, true,
+		),
+		Pmono(\fx_fatecho,
+			\inbus, BusDef(\ifx2, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\mix, Pseq([1,1,0],inf),
+			\mix, 0.8,
+			\delaymax, 0.04,
+			\lfoamp , 0.01,
+			\lfofreq, 0.3,
+			\shiftmax, 40,
+			\fb, 0.7,
+			\fbdelay, Pseq([1,2,3,4,1/5,1/10,1/2,1/3],inf)/4/~t,
+			\fbdelay, 1/Pseq([1,2,3,4,8],inf)/~t,
+			//\fbdelay, Pseq([1,1/4],inf)/4/~t,
+			\gain, 1.5,
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[771].value,
+			\score, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf),
+			\isRest, Pkey(\score).coin.not,
+			\dur, 1/8,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\gain, 0.11 * Pkey(\score),
+			\out, BusDef(\ifx3, \audio),
+		),
+		Pmono(\fx_fatecho,
+			\inbus, BusDef(\ifx3, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\mix, Pseq([1,1,0],inf),
+			\mix, 0.8,
+			\delaymax, 0.04,
+			\lfoamp , 0.01,
+			\lfofreq, 0.3,
+			\shiftmax, 40,
+			\fb, 0.7,
+			\fbdelay, Pseq([1,2,3,4,1/5,1/10,1/2,1/3],inf)/4/~t,
+			\fbdelay, 1/Pseq([1,2,4,8],inf)/~t,
+			//\fbdelay, Pseq([1,1/4],inf)/4/~t,
+			\gain, 1.5,
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1090].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\score, Pseq([
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 1,0,0,0,
+				0,0,1,0, 1,0,0,0,
+			],inf),
+			\isRest, Pkey(\score).coin.not,
+			\dur, 1/8,
+			\gain, 0.11 * (Pkey(\score) * 4).clip(0,1),
+			\out, BusDef(\ifx4, \audio),
+		),
+		Pmono(\fx_fatecho,
+			\inbus, BusDef(\ifx4, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\mix, Pseq([1,1,0],inf),
+			\mix, 0.8,
+			\delaymax, 0.04,
+			\lfoamp , 0.01,
+			\lfofreq, 0.3,
+			\shiftmax, 40,
+			\fb, 0.7,
+			\fbdelay, Pseq([1,2,3,4,1/5,1/10,1/2,1/3],inf)/4/~t,
+			\fbdelay, 1/Pseq([4,8,16,2],inf)/~t,
+			//\fbdelay, Pseq([1,1/4],inf)/4/~t,
+			\gain, 2,
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \simplegran_adsrcomp,
+			\mbufnum, BufDef.mono('loop/pigs.flac'),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\note, Pseq([
+				0,0,-1,-1,-2,-2,-3,-3,
+			],inf).stutter(4),
+			\octave, 3,
+			\pos, Pseq([
+				Pseg(Pseq([0,0.01],inf),8)+4.2,
+				//~pmodenv.(Pseq([0,0,0.03],1) + Pwhite(0,4.1).stutter(4), 2),
+			],inf) + Pseq([0,3],inf),
+			\lpmix, 0.71,
+			\lpfr, 8,
+			\rq, 0.8,
+			\resmix, 0.41,
+			\bwr, ~pmodenv.(Pseq([0.1,2,1,14],1), 8).loop,
+			\resfr, Pseq([
+				Pseq([
+					1,1,1,1, 1,1,1,1,
+				],1)*4,
+				1,2,8,1/2,
+			],inf),
+			//\pitch_stretch, ~pmodenv.(Pseq([1,1/2,1/4,1/8],inf),8).loop,
+			//\pitch_stretch, Pwhite(0.4,0.1).stutter(4),
+			\adsr, Pseq([
+				[ Env.adsr(0.051,0.1,0.8,0.1) ],
+			],inf),
+			\gfreq, Pkey(\freq),
+			\dur, 1/4,
+			//\out, BusDef(\sendbus1, \audio),
+			\legato, Pseq([
+				1,0.7, 0.7,0.7, 0.7,0.7, 1,0.7,
+				0.5,0.7, 1,0.7, 0.7,0.7, 1,0.7,
+			],inf),
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+				1,0.7, 0.9,0.7,
+			],inf).coin.not,
+			//\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\gain, 0.7,
+
+		),
+		
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pmono(\fx_fatecho,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\mix, 0.8,
+			\mix, Pseq([
+				0,0,0,0, 0,0,0,0,
+				Pseq([
+					1,0,1,1, 0,1,1,0,
+				],7),
+			],inf),
+			\delaymax, 0.04,
+			\lfoamp , 0.01,
+			\lfofreq, 0.3,
+			\shiftmax, 40,
+			\fb, 0.7,
+			\fbdelay, Pseq([1,2,3,4,1/5,1/10,1/2,1/3],inf)/4/~t,
+			\fbdelay, 1/Pstep(Pseq([1,2,3,4,8],inf),2)/~t,
+			//\fbdelay, Pseq([1,1/4],inf)/4/~t,
+			\gain, 1.5,
+			\dur, 1/2,
+		),
+		Pbind(\out, BusDef(\ifx1, \audio)) <>
+		Ppar([
+			
+			Pbind(
+				\instrument, \playersec,
+				//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+				\bufnum, ~buflib.kick[879].value,
+				\score, Pseq([
+					1,0,0.4,0, 0.3,0,0.3,0,
+					0,0,0.5,0.5, 0,0,0,0,
+				],inf),
+				\isRest, Pkey(\score).coin.not,
+				\dur, 1/8,
+				\gain, 0.15 * Pkey(\score),
+			),
+			Pbind(
+				\instrument, \playersec,
+				//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+				\bufnum, ~buflib.snare[771].value,
+				\score, Pseq([
+					0,0,0,0, 1,0,0,0,
+				],inf),
+				\isRest, Pkey(\score).coin.not,
+				\dur, 1/8,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				],inf),
+				\gain, 0.15 * Pkey(\score),
+			),
+			Pbind(
+				\instrument, \playersec,
+				//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+				\bufnum, ~buflib.snare[771].value,
+				\score, Pseq([
+					1,0,0,0, 0,0,0,1,
+					0,1,0,0, 0,0,0,1,
+				],inf),
+				\isRest, Pkey(\score).coin.not,
+				\sustain, 0.1/2,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.05) ],
+				],inf),
+				\dur, 1/8,
+				\gain, 0.11/2 * Pkey(\score),
+			),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[1090].value,
+				//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+				\score, Pseq([
+					0.2,0,1,0, 0.2,0.2,1,0.2,
+					0.2,0,0.2,0.1, 0.2,0,1,0.2,
+				],inf),
+				\isRest, Pkey(\score).coin.not,
+				\dur, 1/8,
+				\gain, 0.11 * (Pkey(\score) * 4).clip(0,1),
+			),
+		]),
 	])
 )).play;
 );

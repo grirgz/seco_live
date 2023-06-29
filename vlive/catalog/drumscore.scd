@@ -1553,3 +1553,143 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+////////////////////////////////
+/////////// yt synthdef dnb
+
+~t = 170/2/60; TempoClock.default.tempo = ~t;
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\bufnum, ~buflib.kick[879].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				0,0,0.5,0.5, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[771].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[771].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,1,
+				0,1,0,0, 0,0,0,1,
+			],inf).coin.not,
+			\sustain, 0.1/2,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.05) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11/2,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1090].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,0,1,0, 0,0,1,0,
+				0,0,0,0, 0,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		
+	])
+)).play;
+);
+
+
+//////////////////////////
+///////// breakbeat sample chopping
+
+~t = 280/4/60; TempoClock.default.tempo = ~t;
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Igor Bril - Street Without End.wav'),
+			\legato, 1,
+			\st, 272/4/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseq([
+				Pseq([
+					Pser([
+						(0..2)+36,
+						(0..2)+42,
+						(0..2)+36,
+						(0..2)+41,
+						(0..2)+36,
+					].flat,32-4),
+					36,37,38,39,
+				],4) - Pseq((0..32),inf).stutter(32*4)
+				//Pseq([
+					//Pser([
+						//(0..5)+36,
+					//].flat,16-4),
+					//36,37,38,39,
+				//],4),
+			].flat,inf)/8 / Pkey(\st),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 1/8,
+			//\isRest, true,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Baader Meinhof - It\'s a Moral Issue.wav'),
+			\legato, 1,
+			\st, 129/4/60,
+			\speed, 1/2 * ~t / Pkey(\st),
+			\pos, Pseq([
+				//Pseg(Pseq([ 0, 1/16, ]+(0),1),1/16).repeat(8),
+				Pseq([
+					0,10,4,10, 8,10,10,16,
+					20,18,0,19, 8,7,4,7,
+					//0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3
+					0,4,4,4, 8,10,4,0,
+					4,4,0,16, 8,7,7,4,
+					0,4,4,0, 8,10,4,4,
+					17,16,0,16, 8,7,7,4,
+					0,10,10,10, 8,10,10,16,
+					17,16,0,16, 8,7,4,7,
+
+					//16,16,16,16,
+					//0,0,8,0, 0,8,0,8,
+					//0,2,2,0, 8,2,0,8,
+				],inf)/16,
+
+				//Pseg(Pseq([ 0, 1/2, ]+0,1),1/2),
+				//Pseg(Pseq([ 0, 1/2, ]+0,1),1/2),
+				//Pseg(Pseq([ 0, 1/2, ]+1,1),1/2),
+				//Pseg(Pseq([ 0, 1/2, ]+( 1/2 ),1),1/2),
+			],inf) / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+	])
+)).play;
+);

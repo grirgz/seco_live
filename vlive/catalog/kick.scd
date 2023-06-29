@@ -83,3 +83,30 @@ Pdef(\demo, Pdef(\zed,
 )
 
 WindowDef(\PdefEditor).front(Pdef(\303))
+
+
+//////////////
+
+(
+SynthDef(\basickick, { arg out=0, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env = EnvGen.kr(Env([400,70,50],[0.02,0.08]), 1);
+	sig = SinOsc.ar(env);
+	sig = sig * EnvGen.kr(Env([0,1,0],[0.01,0.1]), 1, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \basickick,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);

@@ -64,6 +64,7 @@
 		wrapper = wrapper.replace("sig = RandDelayNetwork(rdnkey).ar(sig, code);", rdncode);
 		"
 		SynthDef(\\rdnfx, { arg out=0, gate=1;
+			// code: %
 			var si, env = ();
 			var in = InFeedback.ar(\\inbus.kr(BusDef(\\fx1, \\audio)), 2); 
 			var code, rdnkey;
@@ -75,6 +76,7 @@
 
 		%
 		".format(
+			code,
 			wrapper,
 			pbindcode
 		)

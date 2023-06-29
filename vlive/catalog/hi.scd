@@ -1228,7 +1228,6 @@ SynthDef(\iron, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
 	sig = SinOsc.ar(freq * ( LFSaw.ar(freq * \fmr.kr(4) * ((0..7)/7 - 0.5 * \diff.kr(1) + 1)) * \fmamp.kr(1) + 1 ));
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
 	sig = sig.fold( SinOsc.ar( (1..8)/8 * \foldfreq.kr(1), (1..8) ) * \foldlevel.kr(1) + \foldbias.kr(1) ).flop.mean;
 	sig.debug("sig");
 	env1 = EnvGen.kr(\env1.kr(Env(2.01-[1,2,1],[0.1,0.8])), \trigenv.tr(1));
@@ -1239,6 +1238,7 @@ SynthDef(\iron, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = LeakDC.ar(sig);
 	sig = HPF.ar(sig, \hpf.kr(10));
 	sig = sig * \gain.kr(18);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
 	sig = Pan2.ar(sig, pan, amp).mean;
 	Out.ar(out, sig);
 }, metadata:(specs:(
@@ -1770,8 +1770,8 @@ Pdef(\demo, Pdef(\demomo,
 SynthDef(\freecorde, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fspread=0.01, spread=1;
 	var sig;
 	sig = SinOsc.ar(freq * ((0..7)/7 - 0.5 * fspread + 1) * ( SinOsc.ar(freq*\fmr.kr(1.2)) * \fmamp.kr(1) + 1 )) * ( SinOsc.ar(freq * \amr.kr(0.2)) * \amamp.kr(1) + 1 );
-	sig = sig * 0.9;
-	sig = SelectX.ar( LFNoise1.ar((1..8)/12).range(0,1), sig  );
+	sig = sig * 0.5;
+	sig = SelectX.ar( LFNoise1.ar((1..8)/12).range(0,sig.size-1), sig  );
 	sig = Splay.ar(sig, spread, amp, pan);
 	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,2.1)),gate,doneAction:2);
 	Out.ar(out, sig);
@@ -1792,7 +1792,7 @@ Pdef(\demo, Pdef(\demomo,
 			\amr, 1.01,
 			\fmr, 1.4,
 			\fmr, ~pmodenv.(Pseq([1,1.002,1.1,7.4,1.04]+0.7,inf), 3),
-			\amamp,1,
+			\amamp, ~pmodenv.(Pseq([0,0.2,0.4],1), 8).loop,
 			\dur, 1,
 			\amp, 0.1,
 		),
@@ -1801,4 +1801,64 @@ Pdef(\demo, Pdef(\demomo,
 )
 
 
+(
+SynthDef(\freecordeenv, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fspread=0.01, spread=1, timeScale=1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\fspreadenv.kr(Env([1,1,1],[0.1,0.8])), 1, timeScale:timeScale);
+	env2 = EnvGen.kr(\fmrenv.kr(Env([1,1,1],[0.1,1.8])), 1, timeScale:timeScale);
+	env3 = EnvGen.kr(\fmampenv.kr(Env([1,1,1],[0.1,0.8])), 1, timeScale:timeScale);
+	env4 = EnvGen.kr(\amrenv.kr(Env([1,1,1],[0.1,0.8])), 1, timeScale:timeScale);
+	env5 = EnvGen.kr(\amampenv.kr(Env([1,1,1],[0.1,0.8])), 1, timeScale:timeScale);
+	sig = SinOsc.ar(freq * ((0..7)/7 - 0.5 * fspread * env1 + 1) * ( SinOsc.ar(freq*\fmr.kr(1.2) * env2) * \fmamp.kr(1) * env3 + 1 )) * ( SinOsc.ar(freq * \amr.kr(0.2) * env4) * \amamp.kr(1) * env5 + 1 );
+	sig.debug("sig");
+	sig = sig * 0.3;
+	sig = SelectX.ar( LFNoise1.ar((1..8)/12 * \selratio.kr(1)).range(0,sig.size-1), sig  );
+	sig = Splay.ar(sig, spread, amp, pan);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,2.1)),gate,doneAction:2);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		Pbind(
+			\instrument, \freecordeenv,
+			\note, Pseq([
+				0,7,8
+			],inf),
+			\octave, 5,
+			//\selratio, 0.010,
+			//\fspread, 1/Pkey(\freq) * Pseq([1,1.2,4,8],inf).stutter(8),
+			\amr, 1/2.01,
+			\fmr, 1.01,
+			\spread, Pseq([1,0,1,1,0],inf),
+			\pan, Pseq([-1,1],inf)*0.4,
+			\amampenv, Pseq([
+				[ Env([0,0.3,8],[0.1,1.8]) ],
+				[ Env([0,1.3,0.3],[0.1,1.8]) ],
+				[ Env([1,0.3,0],[0.1,1.8]) ],
+			],inf),
+			\fspreadenv, Pseq([
+				[ Env([0,0.3,8],[0.1,1.8]) ],
+				[ Env([1,0.3,0],[0.1,1.8]) ],
+			],inf),
+			\fmampenv, Pseq([
+				[ Env([0,0,0],[0.1,1.8]) ],
+				[ Env([0,0,0],[0.1,1.8]) ],
+				[ Env([1,1,1],[0.1,1.8]) ],
+				[ Env([0,0.3,8],[0.1,1.8]) ],
+				[ Env([1,0.3,0],[0.1,1.8]) ],
+			],inf),
+			//\amamp, 0.1,
+			//\fmr, ~pmodenv.(Pseq([1,1.002,1.1,7.4,1.04]+0.7,inf), 3),
+			//\amamp, ~pmodenv.(Pseq([0,0.2,0.4],1), 8).loop,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
 //////////////////////////////:

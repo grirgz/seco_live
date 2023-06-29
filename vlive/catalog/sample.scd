@@ -118,8 +118,8 @@ SynthDef(\playersec_looper, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnu
 Pdef(\amen, 
 	Pbind(
 			\instrument, \playersec_looper,
-			\bufnum, BufDef(\amen),
-			\bufnum, BufDef('loop/loop3b_185bpm.flac'),
+			\bufnum, BufDef(\amen, "vipere/amenbreak.wav"),
+			\bufnum, BufDef.stereo('loop/loop3b_185bpm.flac'),
 			\degree, Pseq([0],inf),
 			\speed, 2*~t/(137/60),
 			\speed, 1*~t/(185/60),
@@ -214,6 +214,7 @@ Pdef(\sample,
 //////////////////////////////////////////////
 // use the sampler as an oscillator with pmodenv to modulate position
 
+(
 SynthDef(\playersec_osc, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
 	// pos in seconds
 	var sig;
@@ -834,6 +835,43 @@ Pdef(\sample, Pdef(\zed,
 	])
 )).play;
 )
+
+(
+	// perc
+Pdef(\sample, Pdef(\zed, 
+	Ppar([
+		
+	Pbind(
+		\instrument, \oscsampler3,
+		\pos, 1.208,
+		\pos, 1.808,
+		\freq, 187,
+		\range, 0.0000001,
+		\posenv, Pseq([
+			[ Env([0.00,0.01001,0].integrate.postln,[0.41,8.1]) ],
+		],inf),
+		\finepos, 1/400 * Pseq([1,4,2,2],inf),
+		\legato, Pseq([
+			4,0,0,0, 1,0,0,1,
+		   	0,0,2,0, 1,0,1,1,
+		],inf),
+		\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+		\dur, 1/8,
+		\fshift, 40,
+		\lpmix, 1,
+		\rq, 0.4,
+		\hpmix, 0,
+		\hpfreq, 100,
+		\ffreq, Pseq([
+			1020,5240,450,700,
+		],inf) * Pseq([1,2,1/2],inf).stutter(4),
+		\amp, 0.1,
+			\bufnum, BufDef.stereo('voices/feynman.flac'),
+
+	) 
+	])
+)).play;
+)
 //////////////////////////////////////////
 
 
@@ -1095,6 +1133,80 @@ Pdef(\part, Pdef(\plop,
 )).play;
 )
 
+///////// bass with grains
+(
+SynthDef(\simplegran_adsrcomp, { arg out=0, gain=1, gate=1, mbufnum=0, pitch_stretch=1, pos=0, gdur=0.1, pan;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var clk;
+	var phase;
+	clk = Impulse.ar(\gfreq.kr(40));
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = pos;
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, phase % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig1 = Resonz.ar(sig, ( \resfr.kr(4) * \gfreq.kr ).clip(20,20000), \bwr.kr(7.3));
+	sig = SelectX.ar(\resmix.kr(0), [sig, sig1]);
+	sig1 = RLPF.ar(sig, ( \lpfr.kr(1.1) * \gfreq.kr ).clip(20,20000), \rq.kr(0.5));
+	sig = SelectX.ar(\lpmix.kr(0), [sig, sig1]);
+	sig = sig * \pregain.kr(1);
+	sig = Compander.ar(sig, sig, \cpt.kr(0.1), \cpbelow.kr(1.001), \cpabove.kr(0.009), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \simplegran_adsrcomp,
+			\mbufnum, BufDef.mono('loop/pigs.flac'),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\note, Pseq([
+				0,0,0,9, 0,0,-1,-1,
+				0,0,3,0,-1,-1,-1,-1,
+			],inf).stutter(2),
+			\octave, 3,
+			\pos, Pseq([
+				Pseg(Pseq([0,0.01],1),8)+2.2,
+				~pmodenv.(Pseq([0,0,0.03],1) + Pwhite(0,4.1).stutter(4), 2),
+			],inf) + Pseq([0,3],inf),
+			\lpmix, 0.71,
+			\lpfr, 8,
+			\rq, 0.8,
+			\resmix, 0.41,
+			\bwr, ~pmodenv.(Pseq([0.1,2,1,14],1), 8).loop,
+			\resfr, Pseq([
+				Pseq([
+					1,1,1,1, 1,1,1,1,
+				],1)*4,
+				1,2,8,1/2,
+			],inf),
+			//\pitch_stretch, ~pmodenv.(Pseq([1,1/2,1/4,1/8],inf),8).loop,
+			//\pitch_stretch, Pwhite(0.4,0.1).stutter(4),
+			\adsr, Pseq([
+				[ Env.adsr(0.051,0.1,0.8,0.1) ],
+			],inf),
+			\gfreq, Pkey(\freq),
+			\dur, 1/4,
+			//\out, BusDef(\sendbus1, \audio),
+			\legato, Pseq([
+				1,0.7, 0.7,0.7, 0.7,0.7, 1,0.7,
+				0.5,0.7, 1,0.7, 0.7,0.7, 1,0.7,
+			],inf),
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+				1,0.7, 0.9,0.7,
+			],inf).coin.not,
+			//\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\gain, 0.7,
+		
+		),
+	])
+)).play;
+);
+
 ///////////////////////////////////
 
 
@@ -1252,6 +1364,22 @@ SynthDef(\gregrain_pan, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, mbufnum, 
 	clk = Impulse.ar(freq);
 	pan = Dseq([1,0.4,-1,0.1,-0.9],inf);
 	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, pos % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+	// with normalizer
+SynthDef(\gregrain_pan, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, mbufnum, pitch_stretch=1, pos=0, gdur=0.1;
+	var sig, clk;
+	clk = Impulse.ar(freq);
+	pan = Dseq([1,0.4,-1,0.1,-0.9],inf);
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, pos % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = HPF.ar(sig, \hpf.kr(180));
+	sig = LPF.ar(sig, \lpf.kr(18000));
+	sig = Normalizer.ar(sig);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = sig * amp;
 	Out.ar(out, sig);

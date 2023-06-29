@@ -155,3 +155,60 @@ SynthDef(\phycymbal, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(out, sig);
 }).add;
 )
+
+// END
+
+(
+Pdef(\drums, 
+	Ppar([
+
+		Pbind(
+			\instrument, \snapkick,
+			\dur, Pseq([1,Rest(1)],inf),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \phyhat,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \snarebpf1,
+			\dur, Pseq([Rest(1), 1],inf),
+			\sustain, 0.1,
+			\amp, 0.1,
+		),
+		
+	])
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \basickick,
+		\degree, Pseq([0],inf),
+		\step, Pseq([
+			1,0,0,0, 1,0,1,1,
+		],inf),
+		\type, Pkey(\step).collect { arg x; if ( x > 0 ) { \note } { \rest } },
+		\dur, 1/8,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \basickick,
+		\degree, Pseq([0],inf),
+		\step, Pseq([
+			1,0.1,0.9,0.1,
+		],inf),
+		\type, Pkey(\step).collect { arg x; if ( x.coin ) { \note } { \rest } },
+		\dur, 1/8,
+		\amp, 0.1,
+	)
+).play;
+);
