@@ -8,6 +8,8 @@ NoteTimeline(\sun2).presetCompileString.editorInsert
 NoteTimeline(\sun2).param.target.presetCompileString
 PlayerWrapper(Pbindef(\NoteTimeline_default)).asSetCompileString
 
+FileSystemProject.load("capsule/PatKitDef_comkit.scd");
+
 NoteTimeline(\sun2).param = Pbindef(\sunbass)
 Pbindef(\sunbass).asParamGroup.getPbindCompileString
 Pbindef(\sunbass).presetCompileString
@@ -33,7 +35,7 @@ Pbindef(\sunbass).edit
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		KitTimeline(\sun2).asPattern,
-		NoteTimeline(\sun2).asPattern,
+		//NoteTimeline(\sun2).asPattern,
 	])
 )).play;
 );
@@ -138,6 +140,7 @@ Pdef(\zed,
 ).play;
 );
 
+Ndef(\sunbass).edit
 
 (
 Ndef(\sunbass, { arg freq=200, pan=0, amp=0.1;
@@ -162,7 +165,7 @@ SynthDef(\sunbass, { arg out=0, gate=1, freq=200, pan=0, amp=0.1;
 );
 
 (
-SynthDef(\sunbass, { arg out=0, gate=1, freq=200, pan=0, amp=0.1;
+SynthDef(\sunbasssin, { arg out=0, gate=1, freq=200, pan=0, amp=0.1;
 	var sig;
 	sig = LFSaw.ar(freq * LFNoise1.kr(\fnoisefreq.kr(1/2)!8).range(1.0, 1 + \noisedelta.kr(0.001)) * ( SinOsc.ar( LFNoise1.kr(\fmnoisefreq.kr(1/2)!8).range(0.1,100.0) ) * \fma.kr(0.1) + 1 ));
 	sig = sig + SinOsc.ar(freq * \sinfreqfac.kr(1));
@@ -265,7 +268,7 @@ Pdef(\part, Pdef(\zedpart,
 		),
 		Pdef(\sunbass,
 			Pbind(
-				\instrument, \sunbass,
+				\instrument, Prand([\sunbass,\sunbasssin],inf),
 				\note, Pseq([
 					-5,
 				],inf),
@@ -833,7 +836,6 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, 1/4,
 			\amp, 0.8,
 			\lag, 0.04,
-			\isRest, true,
 		)
 		
 	])
@@ -1286,7 +1288,7 @@ ProtoDef('rdn').make('deldefault', 'rdn', "5-9K5H-TDF1", BusDef('sendbus1'));
 Ndef('rdn').put(100, \pset -> Pbind(
 	'wet10', 1.0,
 	'mix', 0.37394957983193,
-	'gain', 0.68243243243243,
+	'gain', 0.88243243243243,
 	'fb', 0.00053831493658073,
 	'delay', 0.55962764453196,
 	'delay2', 0.0001,
@@ -1302,7 +1304,7 @@ Ndef('rdn').put(100, \pset -> Pbind(
 	'fbdistamp', 0.47619047619048,
 	'fbdistmix', 0.91176470588235,
 	'postlpf', 17000,
-	'posthpf', 17,
+	'posthpf', 50,
 	'wetamp', 0.46579739809918,
 	'indelay', 0.04,
 	'wet20', 1.0,

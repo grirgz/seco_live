@@ -404,3 +404,287 @@ Ndef(\zed, { arg freq=500, pan=0, amp=0.1;
 
 
 Pd
+
+
+
+//sound recipe, required
+
+SynthDef(\testbleep,{ Out.ar(0,Pan2.ar(Line.kr(1,0,0.1,doneAction:2)*SinOsc.ar(440)*0.1,0.0))}).add;
+
+
+
+//no use of latency, immediate, timing slightly more ragged
+
+
+(
+
+{
+
+    inf.do {|i|    
+
+        Synth(\testbleep); 
+
+        [0.5,0.25,0.02,0.02].wrapAt(i).wait; 
+
+    }    
+
+}.fork;
+
+)
+
+
+
+
+(
+
+{
+
+    inf.do {|i|
+
+        s.bind {  Synth(\testbleep); };  
+
+        //[0.5,0.25,0.02].wrapAt(i).wait; 
+        [0.5,0.25,0.02,0.02].wrapAt(i).wait; 
+
+    }    
+
+}.fork;
+
+)
+
+
+BufDef("/home/ggz/tmp/vin7.ogg")
+
+(
+SynthDef("mktestt", {arg freq = 440;
+    var sig, env, gate;
+    gate = Impulse.kr(0);
+    env = Env.adsr(0.01, 0.03, 0.7, ExpRand(0.1,1.9).poll).ar(Done.freeSelf, gate);
+    sig = SinOsc.ar(freq);
+    sig = sig * env;
+    //sig = AnalogChew.ar(sig,ExpRand(0.3,0.8),1,0.5);
+    sig = FreeVerb.ar(sig,0.2,0.9);
+    sig = sig.dup * 0.2;
+    Out.ar(0, sig);
+}).add;
+
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \mktestt,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+
+~synthdef_object = SynthDef(\test, { }).add;
+~synthdef_object = SynthDescLib.global.at(\test).def;
+
+(
+SynthDef(\test, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+
+~synth = Synth(\test)
+Synth(\test, [\freq, Ndef(\lfo1, { XLine(51, 1000) })])
+~synth.set(\freq, Ndef(\lfo1, { XLine.kr(51, 1000) }))
+
+
+
+
+(
+SynthDef(\modenvlag, { arg out=0, amp=0.1, gate=1;
+	var sig;
+	var prev = In.kr(out);
+	sig = EnvGen.kr(Env([prev,prev,\target.kr],[0,\time.kr]), gate, doneAction:2);
+	Out.kr(out, sig);
+}).add;
+)
+
+~synth = Synth(\test); // launch synth
+~cbus = ~cbus ?? { Bus.control(s,1).set(100) }; // create bus
+~synth.set(\freq, ~cbus.asMap); // map bus
+~cbus.set(1000); // set bus manually
+Synth(\modenvlag, [\out, ~cbus, \target, 100, \time, 1]); // start ramping to 100 in 1 second
+Synth(\modenvlag, [\out, ~cbus, \target, 200, \time, 1])
+
+
+thisProcess.stop
+thisProcess.recompile
+
+
+
+
+(
+SynthDef(\loopenv, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr( Env([0]), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+SynthDef(\seqTest, {
+    var snd, env, envFreq, seq, trig;
+    seq = TDuty.ar(Dseq( [4.0,4.0], inf));        
+	trig = 1;
+    envFreq = Env([0,1.0,0.0,0.5,0.0],[0,90,30,10].normalizeSum * 2, \lin, 3, 0).ar(gate:trig, doneAction: Done.none);
+    snd = SinOsc.ar( 400 + (envFreq * 1000));
+    Out.ar(0, snd ! 2);
+}).add
+);
+
+Synth(\seqTest);
+
+(
+SynthDef(\seqTest, { arg timeScale=1, trigRate=4;
+    var snd, env, envFreq, seq, trig;
+	var phase;
+    seq = TDuty.ar(Dseq( [4.0,4.0], inf));        
+	trig = Impulse.kr(trigRate);
+	phase = Phasor.ar(trig, rate:timeScale/SampleRate.ir,start:0,end:1);
+	envFreq = IEnvGen.kr(Env([0,1.0,0.0,0.5,0.0],[0,90,30,10].normalizeSum , \lin), index:phase);
+    snd = SinOsc.ar( 400 + (envFreq * 1000));
+	snd = Pan2.ar(snd, \pan.kr(0), \amp.kr(0.1));
+    Out.ar(0, snd);
+}).add;
+Ndef(\bla, \seqTest).play;
+);
+
+
+(
+Ndef(\hoo, {
+		var sin = SinOsc.ar(440, 0, MouseX.kr(0, 1));
+	// use offset so negative values of SinOsc will map into the Env
+	var env = Env([-1, -0.7, 0.7, 1], [ 0.8666, 0.2666, 0.8668 ], \lin, offset: -1.0);
+	IEnvGen.ar(env, sin) * 0.1 
+}).play;
+)
+
+(
+Ndef(\zzz, { arg freq=200, pan=0, amp=0.1, timeScale=1, trigRate=2.2;
+	var sig;
+	var trig, phase;
+	var endpos, startpos;
+	var seqlvl = [3,2,3,2,0,1,0,10];
+	//seqlvl = [0,0,0,10];
+	trig = Impulse.kr(trigRate);
+	startpos = Demand.kr(trig, 0, Dseq(seqlvl,inf));
+	endpos = Demand.kr(trig, 0, Dseq(seqlvl.rotate(-1),inf));
+	phase = Phasor.ar(1, rate:(endpos - startpos) * trigRate/SampleRate.ir,start:startpos,end:endpos, resetPos:startpos);
+	startpos.poll(label:"startpos");
+	endpos.poll(label:"endpos");
+	phase.poll(label:"phase");
+	//[startpos, endpos, phase].poll(label:["phase","ss"]);
+	Out.kr(BusDef(\bla), phase);
+	sig = SinOsc.ar(freq * ( phase + 1 ));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+BusDef(\bla, \control, 1).plot(6)
+(0..12).rotate(-1)
+
+
+(
+Ndef(\zzz, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var phase;
+	var seqlvl = [3,2,3,2,0,1,0,10];
+	var seqbuf = LocalBuf.newFrom(seqlvl);
+	var mod;
+	phase = Phasor.ar(1, rate:1/SampleRate.ir,start:0,end:seqlvl.size-1);
+	//phase.poll(label:"phase");
+	mod = IndexL.ar(seqbuf, phase );
+	mod.poll(label:"mod");
+	Out.kr(BusDef(\bla), mod);
+	sig = SinOsc.ar(freq * ( mod + 1 ));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\zzz, { arg freq=200, pan=0, amp=0.1, seqbuf;
+	var sig;
+	var phase;
+	//var seqlvl = [3,2,3,2,0,1,0,10];
+	//var seqbuf = LocalBuf.newFrom(seqlvl);
+	var mod;
+	phase = Phasor.ar(1, rate:1/SampleRate.ir,start:0,end:BufSamples.kr(seqbuf)-1);
+	//phase.poll(label:"phase");
+	mod = IndexL.ar(seqbuf, phase );
+	mod.poll(label:"mod");
+	Out.kr(BusDef(\bla), mod);
+	sig = SinOsc.ar(freq * ( mod + 1 ));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+BufDef(\seq2, 10, 1)
+
+(
+WindowDef(\win, { arg def;
+	var buf = BufDef(\seq2);
+	MultiSliderView.new.action_({
+		buf.setn
+		
+	});
+	Param(buf, \val).asView;
+	
+}).front;
+);
+
+
+(
+
+SynthDef(\test, {
+    var steps = \steps.kr(0.1!5);
+    var rytm = TDuty.ar(Dseq(steps.normalizeSum * 0.5, inf));
+    var value = Demand.ar(rytm, 0, Dseq([8, 2, 1, 8, 5], inf));
+
+    Out.ar(0, SinOsc.ar( (60 + value).midicps));
+}).add;
+
+Synth(\test, [
+    steps: [0.2,0.2,0.2,0.5,0.5], 
+])
+
+);
+
+
+(
+
+SynthDef(\test, {
+    var steps = \steps.kr(0.0!16);
+    var size = \size.ir(1);
+    var rytm = TDuty.ar(Dseq(Dser(steps,size),inf) * 2, inf);
+    var value = Demand.ar(rytm, 0, Dseq([0, 2, 4, 8, 10], inf));
+
+    Out.ar(0, SinOsc.ar((60 + value).midicps) * -20.dbamp ! 2);
+}).add;
+
+Synth(\test, [
+    size: 5,
+    steps: [1,4].normalizeSum,
+])
+
+);
+

@@ -639,6 +639,7 @@ Pdef(\part, Pdef(\basicbreak2,
 
 
 
+// END
 
 
 /////////////////////////////////////////////
@@ -6514,6 +6515,7 @@ Pdef(\part, Pdef(\zedpart,
 			],inf),
 			\dur, 1/8,
 			\amp, 0.1,
+			\amp, 0.071,
 		),
 		Pdef(\basicbreak)
 		
@@ -6548,7 +6550,7 @@ Pdef(\part, Pdef(\zedpart,
 				-12,\r,
 			],inf),
 			\dur, 1/8,
-			\amp, 0.1,
+			\amp, 0.071,
 		),
 		Pdef(\basicbreak)
 		
@@ -6613,6 +6615,7 @@ Pdef(\part, Pdef(\zedpart,
 			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 or: { ev[\isRest] } }),
 			\dur, 1/8,
 			\amp, 0.1,
+			\amp, 0.061,
 		),
 		Pdef(\basicbreak)
 		
@@ -6683,6 +6686,7 @@ Pdef(\part, Pdef(\zedpart,
 				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 or: { ev[\isRest] } }),
 				\dur, 1/4,
 				\amp, 0.1,
+				\amp, 0.051,
 			)
 		})),
 		Ppar(2.collect({ arg idx;
@@ -6732,6 +6736,7 @@ Pdef(\part, Pdef(\zedpart,
 				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 or: { ev[\isRest] } }),
 				\dur, 1/8,
 				\amp, 0.1,
+				\amp, 0.051,
 			)
 		})),
 		Pdef(\basicbreak)
@@ -6767,7 +6772,7 @@ Pdef(\part, Pdef(\zedpart,
 				0,\r,
 			],inf),
 			\dur, 1/8,
-			\amp, 0.1,
+			\amp, 0.071,
 		),
 		Pbind(
 			\instrument, \largechord,
@@ -6781,6 +6786,7 @@ Pdef(\part, Pdef(\zedpart,
 			],inf),
 			\dur, 1/8,
 			\amp, 0.1,
+			\amp, 0.071,
 		),
 		Pdef(\basicbreak)
 		
@@ -6880,7 +6886,7 @@ Pdef(\part, Pdef(\zedpart,
 			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
 			
 			\dur, 1/8,
-			\amp, 0.1,
+			\amp, 0.051,
 		),
 		Pdef(\basicbreak),
 		

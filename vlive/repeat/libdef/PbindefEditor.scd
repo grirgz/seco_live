@@ -608,16 +608,6 @@ WindowDef(\PbindefEditor, (
 						//textView.visible = true;
 
 					}, 
-					{ val.isKindOf(SequenceableCollection) }, {
-						// Pattern multichannel expansion
-						//		Param is scalar but should be treated as array according to Pbindef value
-						//		Note that PstepSeq also fall in this switch case
-						innerView = param.asMultiSlider.attachContextMenu;
-						val.debug("makeParamView: chord");
-						editorView.layout = HLayout(innerView).margins_(0).spacing_(0);
-						textView.visible = false;
-
-					}, 
 					{ val.isKindOf(Pattern) }, {
 						val.debug("makeParamView: pattern");
 						editorView.layout = HLayout(innerView = param.asTextField).margins_(0).spacing_(0);
@@ -633,6 +623,17 @@ WindowDef(\PbindefEditor, (
 						editorView.layout = HLayout(innerView = param.asEnvelopeView.maxHeight_(bigheight)).margins_(0).spacing_(0);
 						textView.visible = false;
 					},
+					{ val.isKindOf(SequenceableCollection) }, {
+						// Pattern multichannel expansion
+						//		Param is scalar but should be treated as array according to Pbindef value
+						//		Note that PstepSeq also fall in this switch case
+						// should be placed after param.type==\env else envs will be treated as chords
+						innerView = param.asMultiSlider.attachContextMenu;
+						val.debug("makeParamView: chord");
+						editorView.layout = HLayout(innerView).margins_(0).spacing_(0);
+						textView.visible = false;
+
+					}, 
 					{ param.type == \scalar }, {
 						val.debug("makeParamView: scalar");
 						editorView.layout = HLayout(innerView = param.asSlider.orientation_(\horizontal)).margins_(0).spacing_(0);

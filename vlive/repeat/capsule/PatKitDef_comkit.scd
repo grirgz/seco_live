@@ -6,7 +6,7 @@ PatKitDef('comkit').targets = [
 	nil,
 	nil,
 	StepEvent.newFrom((instrument: 'playersec', out: 0, gain: 0.3756734311759, bufnum: BufDef('//home/ggz/Musique/sc/samplekit/com/Snare/Snare Gothik 3 V1.wav'))),
-	StepEvent.newFrom((gain: 0.27994635610259, instrument: 'playersec', bufnum: BufDef('//home/ggz/Musique/sc/samplekit/com/Snare/Snare Gothik 6 V2.wav'))),
+	StepEvent.newFrom((gain: 0.10994635610259, instrument: 'playersec', bufnum: BufDef('//home/ggz/Musique/sc/samplekit/com/Snare/Snare Gothik 6 V2.wav'))),
 	nil,
 	nil,
 	StepEvent.newFrom((gain: 0.1067316, instrument: 'playersec', bufnum: BufDef('//home/ggz/Musique/sc/samplekit/com/HiHat/ClosedHH Alphabetical 1.wav'))),

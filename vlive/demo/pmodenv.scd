@@ -1,5 +1,6 @@
 
 // pmodsynth
+FileSystemProject.load("libdef/pmodenv.scd")
 
 (
 Pdef(\plati, 
