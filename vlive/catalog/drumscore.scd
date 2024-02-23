@@ -226,6 +226,7 @@ SynthDef(\dubecho,{|delay = 1, fb = 0.8, sep = 0.012|
 ~t = 71/2/60; TempoClock.default.tempo = ~t;
 Pdef(\part).clear
 
+FileSystemProject.load("holis/synthdef.scd");
 FileSystemProject.load("capsule/PatKitDef_ksh.scd");
 FileSystemProject.load("capsule/PatKitDef_bat.scd");
 
@@ -837,9 +838,11 @@ Pdef(\part, Pdef(\zed,
 		PatKitDef(\sample1).asPattern(Pbind(
 			\kitIndex, 0,
 			\isRest, Pseq([
+				1,0, 0,0,
 				0,0, 0,1,
 				1,0, 1,0,
-				0,0, 1,0,
+				0,1, 1,1,
+
 				1,0, 0,0,
 				0,0, 0,1,
 				1,1, 1,0,
@@ -918,6 +921,7 @@ Pdef(\part, Pdef(\zed,
 // - hat upbeat very unaccentued and rare
 
 ~t = 135/4/60; TempoClock.default.tempo = ~t;
+FileSystemProject.load("capsule/PatKitDef_ksh.scd");
 
 
 Pdef(\part).clear;
@@ -1105,6 +1109,7 @@ Pdef(\part, Pdef(\zed,
 //////// hip hop with dub hat
 // from capsule/suft73.scd
 FileSystemProject.load("capsule/PatKitDef_bat.scd");
+FileSystemProject.load("holis/synthdef.scd");
 (
 SynthDef(\subass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -1521,6 +1526,7 @@ Pdef(\part, Pdef(\zedpart,
 				1,0,0, 1,0,0, 1,0,0, 1,0,0,
 				1,0,0, 1,0,0, 1,0,0, 1,0,1,
 			],inf).coin.not,
+			\legato, 2,
 			\dur, 1/12,
 			\gain, 0.1 * Pseq([
 				1,0,0, 0.1,0,0, 0.3,0,1, 0.1,0,0.1,
@@ -1534,6 +1540,7 @@ Pdef(\part, Pdef(\zedpart,
 				1,0,0, 1,0,0,  1,0,1, 1,0,1,
 				1,0,0, 1,0,1,  1,0,1, 1,0,1,
 			],inf).coin.not,
+			\legato, 2,
 			\dur, 1/12,
 			\gain, 0.1 * Pseq([
 				1,0,0, 1,0,0, 0.2,0,1, 0.2,0,0.2,
@@ -1546,6 +1553,7 @@ Pdef(\part, Pdef(\zedpart,
 			\isRest, Pseq([
 				0,0,0, 1,0,0,  0,0,0, 1,0,0,
 			],inf).coin.not,
+			\legato, 2,
 			\dur, 1/12,
 			\gain, 0.11,
 		),
@@ -1689,6 +1697,328 @@ Pdef(\part, Pdef(\zedpart,
 			],inf) / Pkey(\st),
 			\dur, 1/8,
 			\gain, 1/8,
+		),
+	])
+)).play;
+);
+
+
+//////////////////////
+/////////// trap
+
+
+~t = 140/2/60; TempoClock.default.tempo = ~t;
+
+(
+SynthDef(\kick808, {arg out = 0, freq1 = 240, freq2 = 60, amp = 0.1, ringTime = 100, rel = 10000, dist = 1.5, pan = 0, tott=0.1, durr=0.001, gate=1;
+	var snd, env;
+	snd = Ringz.ar(
+		in: Impulse.ar(0), // single impulse
+		freq: XLine.ar(freq1, freq2, \glisdur.kr(0.1)),
+		decaytime: ringTime);
+	//env = EnvGen.ar(Env.perc(0.001, rel, amp), doneAction: 2);
+	env = EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	snd = (1.0 - dist) * snd + (dist * (snd.distort));
+	snd = snd * env * \gain.kr(0.2);
+	snd = Limiter.ar(snd, tott, durr) * 1.5 *(1/tott);
+	snd = snd * EnvGen.kr(\adsr2.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:0);
+	//snd = Clip.ar(snd, -1 * tott, tott);
+	//	snd = Fold.ar(snd, -1 * tott, tott);
+	//	snd = Wrap.ar(snd, -1 * tott, tott);
+	Out.ar(out, Pan2.ar(snd, pan, amp));
+}).add;
+)
+
+
+(
+	// base
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,1,0, 0,0,0,0, 1,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.clap[198].value,
+			//\bufnum, ~buflib.clap[~buflib.clap.size.rand.debug("c")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
+				0,0,1,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1064].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0, 1,0,1,0, 1,0,0,0,  1,0,0,0, 1,0,0,0, 1,1,1,1, 1,0,0,0,
+			],inf).coin.not,
+			\lag, 0.03, // bounce
+			\dur, 1/16,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \kick808,
+			\note, Pseq([
+				Pstep(Pseq([
+					10,10,10,8,
+				],1),4),
+			],inf),
+			\octave, 2,
+			\freq2, Pkey(\freq),
+			\legato, Pseq([
+				6,0,0,0, 0,0,6,0, 0,0,0,0, 4,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				6,0,0,0, 0,0,6,0, 0,0,0,0, 4,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+
+				6,0,0,0, 0,0,6,0, 0,0,0,0, 4,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				6,0,0,0, 0,0,6,0, 0,0,0,0, 4,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,4,0, 0,0,2,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+/////////////////////////////
+////////// fear not a man
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1568].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				1,1,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1124].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,1,0,
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\velo, Pseq([
+				0,1,3,3, 1,3,0,1,
+				1,1,3,3, 1,1,1,1,
+			],inf),
+			\legato, 1/2 * Pseq([
+				1,1,1,1, 1,1,1,1,
+				1,1,1,1, 4,1,1,1,
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\bufnum, Pfunc({ arg ev;
+				~buflib.hat[1360 + ev[\velo]].value
+			}),
+			\isRest, Pseq([
+				0,0,1,1, 0,1,0,0,
+				0,0,1,1, 0,0,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		
+	])
+)).play;
+);
+
+
+/////////// flam
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1637].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\lag, Pseq([
+				[0,-0.035],0,0,0, 0,0,0,0,
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11 * Pseq([
+				[1,1/4],1,1/2,1, 1/2,1,1/2,1,
+			],inf),
+		),
+		
+	])
+)).play;
+);
+
+
+///////
+///////////////////////// punk drums
+~t = 200/2/60; TempoClock.default.tempo = ~t;
+~t = 250/2/60; TempoClock.default.tempo = ~t;
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.kick[480].value,
+			\bufnum, ~buflib.kick[1059].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				1,0,1,0, 0,0,1,0,
+				1,0,1,0, 0,0,0,0,
+				1,0,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1 * Pseq([
+				Pwhite(0.9,1,1),
+				Phprand(0.5,1,1),
+				Phprand(0.4,1,1),
+				Pexprand(0.2,0.7,1),
+			],inf).stutter(2),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1631].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\legato, 2,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\gain, 0.15,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1131].value,
+			\bufnum, ~buflib.hat[119].value,
+			\bufnum, [
+				~buflib.hat[253].value,
+				~buflib.hat[119].value,
+			],
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\legato, 1/2,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\velo, Pseg(Pseq([0,0,1],1),4).loop,
+			\legato, Pkey(\velo).linlin(0,1,0.1,2),
+			\gain, 0.11 * Pkey(\velo).linlin(0,1,0.3,1/2),
+		),
+	])
+)).play;
+);
+
+(
+	~swing = 0.32;
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.kick[480].value,
+			\bufnum, ~buflib.kick[1059].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0.91,0, 0,0,0.51,0,
+				1,0,0.51,0, 0,0,0.21,0,
+			],inf).coin.not,
+			\gain, 0.1 * Pseq([
+				Phprand(0.9,1,1),
+				Phprand(0.2,0.5,1),
+				Phprand(0.4,1,1),
+				Pexprand(0.1,0.5,1),
+				Phprand(0.4,1,1),
+				Phprand(0.2,0.5,1),
+				Phprand(0.4,1,1),
+				Pexprand(0.1,0.5,1),
+			],inf).stutter(2),
+			\dur, 1/8,
+			\dur, Pkey(\dur) * (1 + (~swing * Pseq([1,0,-1,0],inf))),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1631].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\legato, 2,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\gain, 0.15,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1131].value,
+			\bufnum, ~buflib.hat[119].value,
+			\bufnum, [
+				~buflib.hat[253].value,
+				~buflib.hat[119].value,
+			],
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\legato, 1/2,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\dur, Pkey(\dur) * (1 + (~swing * Pseq([1,0,-1,0],inf))),
+			\velo, Pseg(Pseq([0,0,1],1),4).loop,
+			\legato, Pkey(\velo).linlin(0,1,0.1,2),
+			\gain, 0.11 * Pkey(\velo).linlin(0,1,0.3,1/2),
 		),
 	])
 )).play;

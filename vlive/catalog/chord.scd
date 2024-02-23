@@ -180,7 +180,7 @@ Pdef(\chord,
 // laminated chord
 
 (
-	// problem: nore than stereo
+	// problem: more than stereo
 Ndef(\chord, { arg freq=800, pan=0, amp=0.1;
 	var sig;
 	freq = freq * [0,8,15].midiratio;
@@ -506,7 +506,7 @@ SynthDef(\wavechord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = SelectX.ar( lfo1, [sig1, sig2, sig3] ) * 1;
 	sig = [sig, SelectX.ar( lfo2, [sig1, sig2, sig3] ) * 1];
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,1.4)), gate, doneAction:2);
-	sig = sig * amp * 2;
+	sig = sig * amp * 1.31;
 
 	//sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
@@ -538,7 +538,7 @@ SynthDef(\wavechord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = SelectX.ar( lfo1, [sig1, sig2, sig3] ) * 1;
 	sig = [sig, SelectX.ar( lfo2, [sig1, sig2, sig3] ) * 1];
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,1.4)), gate, doneAction:2);
-	sig = sig * amp * 2;
+	sig = sig * amp ;
 
 	//sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
@@ -607,7 +607,7 @@ Pdef(\part, Pdef(\zed,
 				[11,3,7]-4,
 			],inf) ,
 			\dur, 1,
-			\amp, 0.1,
+			\amp, 0.1/4,
 		),
 	])
 )).play;

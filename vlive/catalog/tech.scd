@@ -526,7 +526,7 @@ Pdef(\plop,
 		\octave, Pseq([4,5],inf).stutter(2),
 		\legato, 1,
 		\dur, 2,
-		\amp, 0.1/8
+		\amp, 0.1/4
 	)
 ).play;
 );
@@ -863,7 +863,7 @@ Pdef(\part, Pdef(\zed,
 Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	sig = SinOsc.ar(freq * [0, 3, 7, 12, 15].midiratio);
-	sig = sig * Decay.kr(Impulse.kr((0..sig.size-1)), 0.4);
+	sig = sig * Decay.kr(Impulse.kr((0..sig.size-1)), 0.4) * 4;
 	sig = Pan2.ar(sig, pan, amp).mean;
 }).play;
 );
@@ -873,7 +873,7 @@ Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	sig = SinOsc.ar(freq * [0, 3, 7, 12, 15].midiratio);
-	sig = sig * Decay.kr(Impulse.kr([2,3,5,7]), 0.4);
+	sig = sig * Decay.kr(Impulse.kr([2,3,5,7]), 0.4) * 4;
 	sig = Pan2.ar(sig, pan, amp).mean;
 }).play;
 );
@@ -1293,3 +1293,11 @@ soundscape
 - filter
 - fm
 - am
+
+
+//////// chan opener
+/// take an array of channel and mute them all of gate is 0 and mute half is gate is 0.5
+
+	~chanOpener = { arg door, array;
+		array * ( door - ((0..array.size-1)/(array.size) ).postln * array.size ).clip(0,1);
+	};

@@ -11,7 +11,7 @@ SynthDef(\modenvlag, { arg out=0, amp=0.1, gate=1;
 	sig = EnvGen.kr(Env([prev,prev,\target.kr],[0,\time.kr]), gate, doneAction:2);
 	Out.kr(out, sig);
 }).store;
-SynthDef(\modenvmono, { arg out=0, amp=0.1, gate=1;
+SynthDef(\modenvmono, { arg out=0, gate=1;
 	var sig;
 	sig = EnvGen.kr(\env.kr(Env([1,1],[0.1])), \itrig.tr(1), doneAction:0);
 	sig = sig * EnvGen.kr(Env([1,1,1],[0.1,0.8], releaseNode:1), gate, doneAction:2);
@@ -34,6 +34,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 );
 (
 ~pmodenv = { arg valpat, timepat=1, repeat=1, curvepat;
+	// return a pattern that append a function to \finish which start a Pmono of modenvmono synth outputing an env curve according to patterns from function parameters
 	repeat = repeat.clip(1,inf); // prevent infinite loop when puting negative curve in repeat
 	Prout({ arg ev;
 		var bus = Bus.control(s, 1);

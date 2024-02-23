@@ -155,7 +155,8 @@ Pdef(\snitch,
 		\instrument, \snitch2,
 		\note2, 0,
 		\octave2, 5,
-		\freq2, 440 * (Pkey(\note2) - 9 + (Pkey(\octave2)-5 * 12)).midiratio,
+		//\freq2, 440 * (Pkey(\note2) - 9 + (Pkey(\octave2)-5 * 12)).midiratio,
+		\freq2, Pkey(\note2).midicps * (Pkey(\octave2)*12).midiratio,
 		\dur, 1,
 		\amp, 0.1,
 	),
@@ -163,8 +164,101 @@ Pdef(\snitch,
 )
 
 
+///// degree2
 // DegreeToKey and PdegreeToKey are used to convert from \degree to \note
 
+(
+Pdef(\snitch, 
+	Pbind(
+		\instrument, \snitch2,
+		\degree2, 3,
+		\octave2, 5,
+		\scale2, Scale.dorian,
+		\note2, PdegreeToKey(Pkey(\degree2), Pkey(\scale2)),
+		\freq2, 440 * (Pkey(\note2) - 9 + (Pkey(\octave2)-5 * 12)).midiratio,
+		\dur, 1,
+		\amp, 0.1,
+	),
+).play;
+)
+
+(
+Pdef(\snitch, 
+	Pbind(
+		\instrument, \snitch2,
+		\degree2, Pseq((0..7),inf),
+		\octave2, 5,
+		\scale2, Scale.locrian,
+		\note2, PdegreeToKey(Pkey(\degree2), Pkey(\scale2)),
+		\freq2, 440 * (Pkey(\note2) - 9 + (Pkey(\octave2)-5 * 12)).midiratio,
+		\dur, 1/4,
+		\amp, 0.1,
+	),
+).play;
+)
+
+(
+	// test
+Pdef(\snitch, 
+	Pbind(
+		\instrument, \snitch,
+		\degree, Pseq((0..7),inf), // default = C4 = 261.626Hz = Do = 60.midicps
+		\octave, 5, // default, octave 0 is 0.midicps = 8.176Hz
+		\scale, Scale.dorian,
+		\dur, 1/4,
+		\amp, 0.1,
+	),
+).play;
+)
+
+//// using event
+
+Event.default
+~ev = Event.default;
+~ev[\degree] = 3;
+~ev.use { ~freq.value }
+
+(
+Pdef(\snitch, 
+	Pbind(
+		\instrument, \snitch2,
+		\degree2, Pseq((0..7),inf),
+		\octave2, 5,
+		\scale2, Scale.locrian,
+		\freq2, Pfunc({ arg ev;
+			var evd = Event.default;
+			evd[\degree] = ev[\degree2];
+			evd[\scale] = ev[\scale2];
+			evd[\octave] = ev[\octave2];
+			evd.use { ~freq.value }
+		}),
+		\dur, 1/4,
+		\amp, 0.1,
+	),
+).play;
+)
+
+(
+	// doesnt work, todo
+Pdef(\snitch, 
+	Pbind(
+		\instrument, \snitch2,
+		\degree2, Pseq((0..7),inf),
+		\octave2, 5,
+		\scale2, Scale.locrian,
+		\freq2, Pfunc({ arg ev;
+			var evd = (
+				degree: ev[\degree2],
+				scale: ev[\scale2],
+				octave: ev[\octave2],
+			) <> Event.default;
+			evd.use { ~freq.value }
+		}),
+		\dur, 1/4,
+		\amp, 0.1,
+	),
+).play;
+)
 
 ////////////////// fx
 - delay network + feedback + dist
@@ -264,6 +358,86 @@ Pdef(\part, Pdef(\zed,
 	])
 )).play;
 )
+///// magic chords
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pbind(
+			\instrument, \chordlock,
+			\degree, Pseq([
+				[0,4, 8,9,13], // Cmaj11
+				[1,5, 10,11,14], // Dmin11
+				[0,4, 14-6,14-5,14-1], // major formula
+				[0,4, 14-5,14-4,14-1]+1, // minor formula
+			],inf),
+			\legato, 1/2,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\degree, Pseq([
+				[0,4, 7-1,7,7+1,7+4], // Cmaj9
+				[0,4, 14-1,14,14+1,14+4],
+				[0,4, 14-1,14,7+1,7+4],
+				[0,4, 21-1,21,14+1,14+4],
+			],inf),
+			\octave, 4,
+			\legato, 1/2,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+////////////
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pbind(
+			\degree, Pkey(\degree) % Pstep(Pseq([64,21,14,7],inf),4),
+			\dur, Pkey(\dur) * Pstep(Pseq([1,1,2,4,1/2],inf),8),
+		) <>
+		Ppar([
+			Pbind(\degree, 0, \dur, 1/3),
+			Pbind(\degree, 4 + Pseq([\r,\r,0],inf), \dur, 1/4),
+			Pbind(\degree, 8, \dur, 1/5),
+			Pbind(\degree, 9, \dur, 1/4),
+			Pbind(\degree, 13 + Pseq([0,\r,\r,0],inf), \dur, 1/5),
+			Pbind(\degree, 12+4 + Pseq([0,\r,0,0],inf), \dur, 1/2),
+		])<>
+		Pbind(
+			\mtranspose, Pstep(Pseq([0,3],inf),4),
+			\instrument, \chordlock,
+			//\degree, Pseq([
+				//[0,4, 8,9,13], // Cmaj11
+				//[1,5, 10,11,14], // Dmin11
+				//[0,4, 14-6,14-5,14-1], // major formula
+				//[0,4, 14-5,14-4,14-1]+1, // minor formula
+			//],inf),
+			\legato, 1/2,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
 
 /////////////////////////
 
@@ -585,16 +759,20 @@ Pdef(\part, Pdef(\zedpart,
 
 //////////////////////////////////////////////////////
 ///////////////// mtranspose ctranspose root
+// \mtranspose use degree indexing
+// \ctranspose use note indexing
+// root is same as ctranspose
+~t = 185/4/60; TempoClock.default.tempo = ~t;
 
 (
-// ctranspose is in semitones: \note indexes
+// \degree and \ctranspose
+// since we use ctranspose instead of mtranspose, every chord is major
+// does not follow scale
 Pdef(\zed, 
 	Pbind(
 		\instrument, \default,
-		\ctranspose, Pseq([
-			0,5,7,5,
-		],inf).stutter(4),
 		\degree, Pseq([0,2,4,0],inf),
+		\ctranspose, Pseq([0,2,4,5],inf).stutter(4),
 		\dur, 1/4,
 		\amp, 0.1,
 	)
@@ -602,49 +780,111 @@ Pdef(\zed,
 );
 
 (
-	// same with mtranspose, 
-	// mtranspose use degree indexes
-	// mtranspose work only with \degree, not \note
-Pdef(\zed, 
-	Pbind(
-		\instrument, \default,
-		\mtranspose, Pseq([
-			0,3,4,3,
-		],inf).stutter(4),
-		\degree, Pseq([0,2,4,0],inf),
-		\dur, 1/4,
-		\amp, 0.1,
-	)
-).play;
-);
-
-(
-	// root is same as ctranspose
-Pdef(\zed, 
-	Pbind(
-		\instrument, \default,
-		\root, Pseq([
-			0,5,7,5,
-		],inf).stutter(4),
-		\degree, Pseq([0,2,4,0],inf),
-		\dur, 1/4,
-		\amp, 0.1,
-	)
-).play;
-);
-
-(
-	// note with ctranspose
-	// does not follow scale
+// \note and \ctranspose
+// since we use ctranspose instead of mtranspose, every chord is major
+// does not follow scale
 Pdef(\zed, 
 	Pbind(
 		\instrument, \default,
 		\note, Pseq([0,4,7,0],inf),
-		\ctranspose, Pseq([0,5,7,5],inf).stutter(4),
+		\ctranspose, Pseq([0,2],inf).stutter(4),
 		\dur, 1/4,
 		\amp, 0.1,
 	)
 ).play;
+);
+
+(
+// \degree and \mtranspose
+// follow the scale
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,2,4,0],inf),
+		\mtranspose, Pseq([0,1],inf).stutter(4), 
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+// \note and \mtranspose
+// does not work, does not transpose
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\note, Pseq([0,4,7,0],inf),
+		\mtranspose, Pseq([0,1],inf).stutter(4),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+
+//// use both
+
+(
+// note 9 is La
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,2,4,2],inf),
+		\mtranspose, Pseq([0,1,2,3],inf).stutter(4),
+		\ctranspose, 9, // now scale start at La, but still in major scale
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+// degree 5 is La
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,2,4,2],inf),
+		\mtranspose, Pseq([0,1,2,3],inf).stutter(4) + 5, // now we are in minor scale
+		\ctranspose, -9, // minor scale but starting at do
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+// with \mtranspose, 1, every chord is minor
+// but we now start at Ré, to start again at Do, we remove 2 to ctranspose
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,2,4,2],inf),
+		\ctranspose, Pseq([0,2,4,5],inf).stutter(4)-2,
+		\mtranspose, 1,
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+
+///// what if i want to use F major scale ?
+// F is number 5 in \note index
+// we want chromatic transpose
+// \mtranspose, 5, would only play white keys starting from A (since mtranspose use \degree index)
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\degree, Pseq((0..7),inf),
+			\ctranspose, 5, // f major scale
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
 );
 
 ///////
@@ -1469,6 +1709,57 @@ Pdef(\part, Pdef(\zedpart,
 				\gain, 0.11 * (Pkey(\score) * 4).clip(0,1),
 			),
 		]),
+	])
+)).play;
+);
+
+
+////////////// utiliser un rythme ternaire au milieu d'un rythme binaire
+//// probleme: impossible de mettre un Rest, et pas utilisable dans le \isRest
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\legato, 0.3,
+			\note, Pseq([
+				0,4,4,4, [1,2,3],4,4,4,
+			],inf),
+			\octave, 3,
+			\strum, 1/3,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+
+
+/////////// grace note and flam
+
+(
+// use multichannel
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1637].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\lag, Pseq([
+				[0,-0.035],0,0,0, 0,0,0,0,
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11 * Pseq([
+				[1,1/4],1,1/2,1, 1/2,1,1/2,1,
+			],inf),
+		),
+		
 	])
 )).play;
 );

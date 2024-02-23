@@ -448,10 +448,10 @@ Pdef(\part, Pdef(\zedpart,
 SynthDef(\fmdouble, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	sig1 = SinOsc.ar(freq*\f1r.kr(1)+\f1offset.kr(0) * ( SinOsc.ar(freq*\f2r.kr(1/2)+\f2offset.kr(0.0002) * ( SinOsc.ar(freq*\f3r.kr(1)+\f3offset.kr(0.001)) * \f3amp.kr(6) + 1 )) * \f2amp.kr(1.80) + 1 )) * \f1amp.kr(1);
+	sig1 = SinOsc.ar(freq*\f1r.kr(1)+\f1offset.kr(0) * ( SinOsc.ar(freq*\f2r.kr(1/2)+\f2offset.kr(0.0002) * ( SinOsc.ar(freq*\f3r.kr(1)+\f3offset.kr(0.001)) * \f3amp.kr(6) + 1 )) * \f2amp.kr(1.80) + 1 )) * \f1amp.kr(1).poll;
 	sig1 = Pan2.ar(sig1, \pan1.kr(-1), 1);
 	sig2 = SinOsc.ar(freq*\f6r.kr(1)+\f6offset.kr(0) * ( SinOsc.ar(freq*\f7r.kr(1)+\f7offset.kr(0.0002) * ( SinOsc.ar(freq*\f8r.kr(1)+\f8offset.kr(0.001)) * \f8amp.kr(6.01) + 1 )) * \f7amp.kr(1.80) + 1 )) * \f6amp.kr(1);
-	sig2 = Pan2.ar(sig2, \pan2.kr(1), 1);
+	sig2 = Pan2.ar(sig2, \pan2.kr(0), 1);
 
 	//sig = SelectX.ar(\wavemix.kr(0.5), [sig1, sig2]);
 	sig = sig1 + sig2;
@@ -491,6 +491,37 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				0,4,7,0,
+			],inf),
+			\octave, 4,
+			\dur, 1,
+			\amp, 0.1,
+			\isRest, true,
+		),
+		Pbindef(\fmdouble,
+			\instrument, \fmdouble,
+			\note, Pseq([
+				0,4,7,0,
+			],inf),
+			\octave, 5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+
+		
+	])
+)).play;
+);
+
+Pbindef(\fmdouble).edit
+
 
 
 
@@ -576,6 +607,61 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\degree, Pseq([
+				0,3,2b,1,
+			],inf),
+			\octave, 3,
+			\dur, 1,
+			\legato, 0.4,
+			\amp, 0.1,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		
+	])
+)).play;
+);
+
+ProtoDef(\rdn).presetCompileString.editorInsert
+(
+ProtoDef('rdn').make('deldefault', 'rdn', "5-RASG-3P1L", BusDef('sendbus1'));
+Ndef('rdn').put(100, \pset -> Pbind(
+	'wet10', 1.0,
+	'mix', 0.83193277310924,
+	'gain', 0.49159663865546,
+	'fb', 0.0001,
+	'delay', 0.62852032692401,
+	'delay2', 0.0001,
+	'shift', 0.0,
+	'shift2', 0.0,
+	'distamp', 66.608462908092,
+	'pitchlag', 1.0,
+	'pitchmix', 0.45378151260504,
+	'prelpf', 17000,
+	'prehpf', 17,
+	'lpf', 17000,
+	'hpf', 17,
+	'fbdistamp', 0.47619047619048,
+	'fbdistmix', 0.91176470588235,
+	'postlpf', 17000,
+	'posthpf', 17,
+	'wetamp', 0.46579739809918,
+	'indelay', 0.04,
+	'wet20', 1.0,
+	'mamp', 1,
+).keep(1));
+
+);
+
+
+/////////////////////////////
+
 
 
 FileSystemProject.load("./sun22_FxManager_dirtybass.scd")
@@ -821,6 +907,7 @@ Pdef(\part, Pdef(\zedpart,
 			   ),
 			   16,Prout({ arg ev;
 			   	loop  {
+					// lenght: 32 beats
 			   		// 5-8O8U-8I0S
 						
 			   		ProtoDef(\rdn).proxy.set(\delay, 0.0001);

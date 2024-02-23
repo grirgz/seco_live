@@ -688,3 +688,1100 @@ Synth(\test, [
 
 );
 
+Quarks.checkForUpdates({Quarks.install("SuperDirt", "v1.7.3"); thisProcess.recompile()})
+
+
+Synth(\default)
+
+[1] ++ [2,3]
+[1] ++ 2
+
+~scalesBuffers = [];
+
+~mothra = { | mode 0 offset 36 |
+    var modes = [
+        Tuning.new(#[ 0, 2.31, 4.64, 6.98, 9.29, 11.68 ]),
+        Tuning.new(#[ 0, 2.31, 4.64, 6.98, 9.29, 9.68 ]),
+        Tuning.new(#[ 0, 2.31, 4.64, 6.98, 7.35, 9.68 ]),
+        Tuning.new(#[ 0, 2.31, 4.64, 5.03, 7.35, 9.68  ]),
+        Tuning.new(#[ 0, 2.31, 7.21, 5.03, 7.35, 9.68 ]),
+        Tuning.new(#[ 0, 0.39, 7.21, 5.03, 7.35, 9.68 ]),
+    ];
+    modes.do { |mothra|
+        var scale = Scale([0,1,2,3,4,5], 6, mothra).cents / 100;
+
+        ~scalesBuffers = ~scalesBuffers ++ Buffer.loadCollection(s, [0,1,2,3]);
+    };
+    ~scalesBuffers;
+};
+
+~mothra.value()[0].postln;
+~scalesBuffers
+
+
+// in the style of Autechre - Mirrage
+// https://www.youtube.com/watch?v=rXQ9sNRcHYE
+
+(
+{
+	var note, snd, delaytime, damp, size, diff, feedback, localout;
+	note = Demand.kr(Impulse.kr(0) + Dust.kr(0.1), 0, Diwhite(60, 80, inf));
+	delaytime = Demand.kr(Impulse.kr(0) + Dust.kr(0.3), 0, Dwhite(0.1, 0.3, inf));
+	damp = Demand.kr(Impulse.kr(0) + Dust.kr(0.4), 0, Dwhite(0.2, 0.6, inf));
+	size = Demand.kr(Impulse.kr(0) + Dust.kr(0.3), 0, Dwhite(2, 10, inf));
+	diff = Demand.kr(Impulse.kr(0) + Dust.kr(0.2), 0, Dwhite(0.5, 1.0, inf));
+	feedback = Demand.kr(Impulse.kr(0) + Dust.kr(0.4), 0, Dwhite(0.8, 1.0, inf));
+	snd = SinOsc.ar(freq: [note, note+LFNoise1.kr(freq: 0.1).range(-0.25, 0.25)].midicps);
+	localout = Mix.ar(5.collect({ |i|
+		Pan2.ar(
+			in: Greyhole.ar(in: PitchShift.ar(in: snd, pitchRatio: i), delayTime: delaytime, damp: damp, size: size, diff: diff, feedback: feedback, modDepth: 0.1, modFreq: 5),
+			pos: LFNoise1.ar(freq: TRand.ar(10.reciprocal, 1, Impulse.kr(8.reciprocal))).range(-1,1),
+			level: (i+1).reciprocal
+		) * -20.dbamp;
+	}));
+	localout = Compander.ar(in: localout, control: localout, thresh: -6.dbamp, slopeAbove: 3.reciprocal);
+	LocalOut.ar(localout);
+	snd = LocalIn.ar(2);
+	snd.tanh;
+}.play;
+)
+
+
+
+Quarks.install("https://github.com/madskjeldgaard/plugins.quark")
+Plugins.gui
+
+AnalogBassDrum
+
+
+(
+Ndef(\stormofkicks, { 
+    var trig = Impulse.kr(1);
+    var sig = AnalogBassDrum.ar(
+        trig, 
+        infsustain: 0.002, 
+        accent: 0.05, 
+        freq: Duty.kr(1/~t, 0, Dseq([
+        	30,32,25,28
+        ].midicps,inf)),
+        //tone: TRand.kr(0.05,0.2,trig), 
+        tone: 0.01,//TRand.kr(0.5,1.0,trig), 
+        decay: 20.05, 
+		attackfm: 0.0001,//TRand.kr(0.1,1.0,trig),
+        //attackfm: TRand.kr(0.001,0.1,trig),
+        //selffm:TRand.kr(0.0,3.1,trig) 
+    ) * 13;
+
+    Pan2.ar(sig, TRand.kr(-1.0,1.0,trig));
+}).play;
+)
+NonlinearFilter
+
+
+// Lowpass with ahypsin saturation
+(
+{
+    var freq=550, q=0.5, gain=1, shape=5, saturation=4;
+    var sig = PinkNoise.ar();
+    NonlinearFilter.ar(sig, freq.poll, q, gain, shape, saturation)!2 * 0.5;
+}.play
+)
+
+// Highpass with hard saturation
+(
+{
+    var freq=1000, q=0.5, gain=1, shape=4, saturation=1;
+    var sig = PinkNoise.ar();
+    NonlinearFilter.ar(sig, freq.poll, q, gain, shape, saturation)!2 * 0.5;
+}.play
+)
+
+// Fucked up EQ:
+// Bell shape filter with hyptan saturation
+(
+{
+    var q=0.95, gain=7, shape=0, saturation=3;
+    var sig = PinkNoise.ar();
+    var freq = SinOsc.kr(0.1).exprange(100.0,5500.0).poll;
+    NonlinearFilter.ar(sig, freq.poll, q, gain, shape, saturation)!2 * 0.5;
+}.play
+)
+
+// Notch shape filter with ahypsin saturation
+(
+{
+    var q=0.95, gain=7, shape=1, saturation=4;
+    var sig = PinkNoise.ar();
+    var freq = SinOsc.kr(0.1).exprange(100.0,5500.0).poll;
+    NonlinearFilter.ar(sig, freq.poll, q, gain, shape, saturation)!2 * 0.5;
+}.play
+)
+PhasorModal
+(
+	Ndef(\phasormodal, { |pitchstretch=(-0.1), f0=80|
+		var amountVoices = 32;
+
+		var sig = Splay.ar(
+			Array.fill(amountVoices, {|i|
+				PhasorModal.ar(
+					LPF.ar(Dust2.ar(i+1 / 3.0), 1500), 
+					freq: (i+1)*(pitchstretch+1)*f0, 
+					decay: rrand(0.225,0.35), 
+					damp: 1.0, 
+					amp: LFNoise2.kr(1).range(0.25,0.45), 
+					phase: 0
+
+				);
+			}).scramble, 
+			spread: LFNoise2.kr(0.1).unipolar,
+			center: 0
+		);
+
+		sig
+	}).mold(2).play
+
+)
+
+Rongs
+
+(
+Ndef(\c, {|pan=0.0, trigfreq=4|
+    var trig = Dust2.kr(trigfreq);
+
+    var sig = Rongs.ar(
+        trig,
+        sustain: trig,
+        f0: TExpRand.kr(50.0,500.0, trig),
+        structure: TRand.kr(0.0,0.99,trig),
+        brightness: TRand.kr(0.6,0.99,trig),
+        stretch: TRand.kr(0.1,0.99,trig),
+        damping: 0.5,
+        //damping: TRand.kr(0.5,0.85, trig),
+        accent: 0.99,
+        loss: 0.1
+    );
+
+    Splay.ar(LeakDC.ar(sig), spread: 0.25, center: pan);
+}).play;
+)
+
+// Want more mayhem?
+(
+
+Ndef(\c).copy(\c2).set(\pan, 0.285).play;
+Ndef(\c).copy(\c3).set(\pan, (-0.2855285)).play;
+)
+
+// A synth def
+(
+SynthDef.new(\rongsinator, {|out, amp=0.25, pan=0, sustainTime=0.01, f0=100.05, structure=0.5, brightness=0.5, damping=0.75, accent=0.9, harmonicstretch=0.5, position=0.15, loss=0.15|
+    var trig = Trig.kr(1, dur: sustainTime);
+
+    var modeNum=2, cosFreq=0.025;
+    var sig = Rongs.ar(
+        trigger:trig,
+        sustain:trig,
+        f0:f0,
+        structure:structure,
+        brightness:brightness,
+        damping:damping,
+        accent:accent,
+        stretch:harmonicstretch,
+        position:position,
+        loss:loss,
+        modeNum:modeNum,
+        cosFreq:cosFreq
+    );
+
+    DetectSilence.ar(in: sig, amp: 0.0001, time: 0.1, doneAction: 2);
+    sig = Pan2.ar(sig, pan);
+    Out.ar(out, sig);
+}).add;
+)
+
+// Trig it once
+Synth(\rongsinator, [\damping, 0.5])
+
+// Play pattern
+(
+Pdef('🌻',
+    Pbind(
+        \instrument, \rongsinator,
+        \amp, 0.20,
+        \pan, Pwhite(-1.0,1.0),
+        \f0, Pwhite(100,500),
+        \dur, 0.125,
+        \structure, Pseg([0.1,1.0], 5, \lin, inf),
+        \brightness, 0.5,
+        \damping, Pseg([0.65,0.30], 13, \lin, inf),
+        \accent, 0.69,
+        \harmonicstretch, 0.0151,
+        \position, Pseg([0.6,0.0], 8, \lin, inf),
+        \loss, 0.15,
+        \modeNum, 3,
+        \cosFreq, 0.15,
+    )
+).play
+)
+
+VosimOs
+
+
+~s = Pseq((1..10),inf).asStream;
+~s.value
+~s
+
+Pchain
+
+~e = (bla: Pseq((1..10),inf).asStream).asStream
+~e = (bla: Pseq((1..10),inf)).asStream
+~e.next((bla:1))
+
+p = Pseq([
+ (note: 0, dur: 0.5),
+ //(note: 2, dur: 0.75),
+ //(note: 3, dur: 0.25),
+], inf);
+x = (p <> (ctranspose: Pseq([-12, 0, 12], inf).asStream)).trace.play;
+
+
+~x = (freq: 1000)
+~x.play
+~x.next
+~x
+
+~x = (freq: Prand([200,1000]))
+~x = (freq: Prand([200,1000],inf).asStream)
+~x = (freq: Prand([200,1000],inf).asStream).asStream
+
+~x = Pseq([ (freq: Prand([200,1000],inf).asStream) ],inf);
+~x = Pseq([ (freq: Pseq([200,1000],inf)) ],inf);
+
+
+p = Pbind(\note, 0);
+x = (p <> (ctranspose: Pseq([-12, 0, 12], inf).asStream)).trace.play;
+~s = (p <> (ctranspose: Pseq([-12, 0, 12], inf).asStream))
+~s = (p <> (ctranspose: Pseq([-12, 0, 12], inf).asStream)).asStream
+~s.next.play
+
+
+(
+	var freq1 = rrand(200,400);
+	var freq2 = freq1 * 1.5;
+	var freq3 = freq2 * 2.25;
+	{LFPulse.ar(100)}.play;
+	{LFPulse.ar(100)}.play;
+	{LFPulse.ar(100)}.play;
+)
+
+(
+var freq1 = rrand(200,400);
+var freq2 = freq1 * 1.5;
+var freq3 = freq2 * 2.25;
+{LFPulse.ar([freq1,freq1],0,MouseX.kr(0.5,0.125),MouseY.kr(0,0.33))}.play;
+{LFPulse.ar(100,0,MouseX.kr(0.5,0.125),MouseY.kr(0,0.33))}.play;
+{LFPulse.ar(100)}.play;
+)
+
+"\033[2J]".postln
+27.asAscii
+"%[2J".format(27.asAscii).postln
+0x33
+
+(
+	var freq1 = rrand(200,400);
+	var freq2 = freq1 * 1.5;
+	var freq3 = freq2 * 2.25;
+	{LFPulse.ar([freq1,freq1],0,MouseX.kr(0.5,0.125),MouseY.kr(0,0.33))}.play;
+	{LFPulse.ar([freq2,freq2],0,MouseX.kr(0.5,0.125),MouseY.kr(0,0.33))}.play;
+	{LFPulse.ar([freq3,freq3],0,MouseX.kr(0.5,0.125),MouseY.kr(0,0.33))}.play;
+)
+// 310
+
+
+(
+var freq1 = rrand(200,400);
+var freq2 = freq1 * 1.5;
+var freq3 = freq2 * 2.25;
+{LFPulse.ar(freq:[freq1,freq1],width:MouseX.kr(0.5,0.125),mul:MouseY.kr(0,0.33))}.play;
+{LFPulse.ar(freq:[freq2,freq2],width:MouseX.kr(0.5,0.125),mul:MouseY.kr(0,0.33))}.play;
+)
+// 255
+
+(
+	"hello this is long line to test char limit, why oh why it doesn't work, please tell me why this error".postln;
+	"hello this is long line to test char limit, why oh why it doesn't work, please tell me why this error".postln;
+	"hello this is long line to test char limit, why oh why it doesn't work, please tell me why this error".postln;
+)
+
+
+
+(
+{
+    var volume, input;
+    
+    volume = Select.kr(MouseX.kr < 0.2, [0, (MouseX.kr - 0.2) / 0.8]);
+    
+    input = ((PinkNoise.ar * (1 - volume)) + (BrownNoise.ar * volume))*0.3;
+
+    (Pan2.ar(input));
+
+}.play
+)
+
+
+(
+SynthDef.new(\singat2,
+    {
+        arg freq=440, amp=0.5, pos=0,
+        
+        num=2, wid=0.4;
+        var snd;
+
+        snd = SinOsc.ar(463, pi/2);
+
+
+		snd = snd * LFPulse.kr(444, 0.3).poll;
+		snd = snd * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), \gate.kr(1), doneAction:2);
+        snd = Pan2.ar(snd, pos, amp);
+        Out.ar(0, snd);
+}).add;
+)
+~s = Synth.new(\singat2);
+~s.release
+~s.stop
+~s.free
+~s.release
+Synth.new(\singat2);
+1/0
+sqrt(-2)
+
+
+(
+SynthDef.new(\singat,
+    {
+        arg freq=440, c=24, r=0.5, amp=1;
+        var snd;
+
+        snd = SinOsc.ar(463, pi/2);
+
+
+        snd = Compander.ar(snd, snd, Pulse.kr(12, 0.3).abs+0.1, 10, 2, c, r);
+
+        Out.ar(0, snd);
+}).add;
+)
+
+Synth.new(\singat, [\c, rrand(1, 44), \r, rrand(0.1, 1.7)]);
+
+
+// https://audio-video.gnu.org/video/stallman_free_software_song_320x240.ogv
+
+(
+
+// Free(hack).share(us.join[now]);
+SynthDef(\iGNUcius, {
+    var 
+        freq, amp, 
+                  gate, osc, 
+                                lfo, out, 
+                                            aenv, filterEnv, 
+                                                       bus, resoFilter, 
+                                                                      bowNoise;
+    
+   // [hackers]:free.be(ll), you!help(software).share;
+    freq = \freq.kr(440);
+    amp = \amp.kr(0.5);
+    gate = \gate.kr(1);
+    bus = \bus.kr(0);
+    
+    // piles.of(can.get)hoarders.money,is[true];
+    osc = Pulse.ar([freq, freq*2], LFNoise1.kr(0.5!2).range(0.1, 0.9)) +
+          Pulse.ar([freq*3, freq], LFNoise1.kr(0.5!2).range(0.1, 0.9));
+
+    // neighbors.their(help).but!cannot; true.is[that];
+    lfo = SinOsc.kr(\lfoFreq.kr(0.5)).range(-0.05, 0.05) * \lfoDepth.kr(1);
+    bowNoise = WhiteNoise.ar(0.15) * EnvGen.kr(Env.perc(0.01, 0.1), gate); 
+
+    // enough(when).software.free.have[we], call.our[at];
+    out = (osc + bowNoise) * (1 + lfo);
+    aenv = EnvGen.ar(Env.adsr(0.05, 0.2, 0.9, 0.5), gate, doneAction: Done.freeSelf) * amp;
+    filterEnv = EnvGen.kr(Env.adsr(0.01, 0.3, 0.7, 0.5), gate);
+
+    // dirty.those(licenses).kick[we'll] out.ever.more;
+    resoFilter = RLPF.ar(out, freq * \filterMul.kr(4) * filterEnv, \resonance.kr(0.4));
+    out = RHPF.ar(resoFilter, 100) * aenv;
+
+    // be.free, hackers.you'll.join(us).now[and];
+	Out.ar(bus, DFM1.ar(out));
+    //Out.ar(bus, out);
+}).add;
+
+)
+
+(
+// software.free.and.share(us.join[now]);
+p = Pbind(
+    \instrument, \iGNUcius,
+    \octave, Prand([2, 3], inf),
+    
+    // call.at[hackers].our, have(we).free;
+    \degree, Pseq([2, 1, 0, -1, 0, 1, 0, -1, -2, -2, -1, 0, 1, 0, 2, -1, -1, 2, 1, 0, 2, 1, 0, -1, 0, 1, 0, -1, -2, -2, -1, 0, 1, 0, 2, -1, -1, -1], inf),
+    \dur, Pseq([0.5, 0.25, 0.5, 0.5, 0.5, 0.25, 0.25, 0.25, 0.5, 0.75, 0.75, 0.25, 0.75, 0.5, 0.5, 0.75, 1.5, 0.5, 0.25, 1, 0.5, 0.25, 0.5, 0.5, 0.5, 0.25, 0.25, 0.25, 0.5, 0.75, 0.75, 0.25, 0.75, 0.5, 0.5, 0.75, 1.25, 1.5], inf)
+);
+
+// be.free[hackers].you'll.share(software).join;
+p.play;
+)
+1/0.75
+1/1.5
+
+
+(
+{
+
+	2.do{
+		{BPF.ar (WhiteNoise.ar, [73,81].midicps, 1e-4, Env.sine(10,50).kr(2)).sum!2}.play; gauss (7,0.2).wait;
+		{BPF.ar (WhiteNoise.ar, [71,80].midicps, 1e-4, Env.sine(10).kr(2)).sum!2*50}.play; gauss (7,0.2).wait;
+		{BPF.ar (WhiteNoise.ar, [69,78].midicps, 1e-4, Env.sine(10).kr(2)).sum!2*50}.play; gauss (7,0.2).wait;
+		{BPF.ar (WhiteNoise.ar, [68,80].midicps, 1e-4, Env.sine(10).kr(2)).sum!2*50}.play; gauss (7,0.2).wait;
+}
+}.fork
+)
+
+
+
+
+(
+Pdef(
+		\mySound,
+		Pbind(
+					\dur, Pn(Plazy({ ~myRhythmValues  }))
+						
+		)
+
+).play
+)
+
+~myRhythmValues = Pseq( [0.1,0.1,0.1], 1);
+~myRhythmValues = Pseq( [1,1,1,1], 1);
+~myRhythmValues = 1
+  
+
+(
+Pdef(
+		\mySound,
+		Pbind(
+					\degree, Pn(Plazy({ ~myRhythmValues  }))
+						
+		)
+
+).play
+)
+
+
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var input;
+	input = MouseX.kr(50,200) * MouseButton.kr(0,lag:0);
+	//input = Gate.kr(DelayL.kr(input,0.2,0.01), input > 10.1);
+	input = Gate.kr(input, input > 0);
+	input.poll;
+	sig = SinOsc.ar(input);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\zed).reset;
+);
+
+(
+Pdef(\zed, 
+	Pmono(
+		 \zed,
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+
+{ MouseButton.kr }.plot(2)
+
+
+(
+~infSeries = {
+   |n|
+   // Return the nth value in Noergaard's infinity series.
+   // More info: https://oeis.org/A004718
+   if(n <= 0){
+      0
+   }{
+      if(n.asInteger.even){
+         ~infSeries.value(n / 2) + -1
+      }{
+         ~infSeries.value(n - 1 / 2) + 1
+      }
+   }
+};
+)
+
+~infSeries.(1024)
+~infSeries.dup(1024)
+.set
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\count, Pseries(0,1,1000),
+			\degree, Pfunc({ arg ev;  ~infSeries.(ev[\count])}),
+			\octave, 4,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+Pdef.defaultQuant
+
+
+(
+Ndef(\soundin, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SoundIn.ar([0,1]);
+	sig = sig * \gain.kr(1);
+	//sig = sig * ( LFSaw.kr( LFNoise0.kr(1).unipolar * 5600 ) * 1 + 1 );
+}).play(BusDef(\soundin, \audio, 2).index, 2);
+);
+Ndef(\soundin).play(0,2)
+Ndef(\soundin).edit;
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+
+
+48.90.midicps == 137.79
+53.70.midicps == 181.81
+56.45.midicps == 213.12
+
+( [48,53,56]%12+10 ).midiratio * 77
+
+(
+~list = [
+[ 0.0077703297138214, 48.910087585449  ],
+[ 0.017483713105321, 53.690689086914  ],
+[ 0.020635280758142, 61.197845458984  ],
+[ 0.023812716826797, 53.585838317871  ],
+[ 0.023903254419565, 61.478565216064  ],
+[ 0.025951128453016, 61.263679504395  ],
+[ 0.026071844622493, 57.730617523193  ],
+[ 0.026369325816631, 56.46821975708  ],
+[ 0.030202079564333, 48.893745422363  ],
+[ 0.03471602126956, 46.843811035156  ],
+[ 0.034953143447638, 45.754936218262  ],
+[ 0.035043682903051, 46.526725769043  ],
+[ 0.038160759955645, 56.449726104736  ],
+[ 0.041251968592405, 48.911476135254  ],
+[ 0.042825598269701, 45.746288299561  ],
+[ 0.052508804947138, 48.907501220703  ],
+];
+)
+
+~x = ~list.collect({ arg x; x[1]*5 })
+48.90/5
+53.70/5
+
+11.1 5.4
+11.1 * x = int(y)
+:wc
+
+
+Event.partialEvents
+Event.parentEvents.keys
+Event.partialEvents[\mypartial] = (\sp: { arg self; self.debug("self"); 444 })
+
+~de = Event.parentEvents.default
+~de[\buf] = { [~sp, ~n].debug("should return a buffer"); 0 }
+Event.parentEvents.default[\freq].asCompileString
+Event.parentEvents.default[\sp].asCompileString
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bla,
+			\sp, 123,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+SynthDef(\bla, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, buf;
+	var sig;
+	sig = SinOsc.ar(buf.poll);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Tdef(\bla, { arg ev;
+	loop { 0.5.wait;
+		(instrument: 'default', sustain: 2, octave: [3,3.99]-1, note: [7, 3, 0, 5].choose, out:ev[\out]).play;
+		0.5.wait;
+		(instrument: 'default', sustain: 2, octave: [4,3.99]-1, note: [5, 12, 12+5, 12+7].choose, out:ev[\out]).play;
+		1.wait;
+	};
+})
+)
+Tdef(\bla).play
+Tdef(\bla).set(\out, BusDef(\bla, \audio, 2))
+
+~mybus
+(
+Ndef(\foo, { InFeedback.ar(\inbus.kr(BusDef(\bla, \audio)), 2);  }).play;
+);
+~y[10] = \filter -> {arg in; JPverb.ar(in, size: 20)};
+Ndef(\foo)[10] = \filter -> {arg in; JPverb.ar(in, size: 20)};
+~y.set(\wet10, 1);
+
+~myfxbus = BusDef(\bla, \audio)
+Ndef(\foo, { InFeedback.ar(\inbus.kr(~myfxbus), 2);  }).play;
+Ndef(\foo)[10] = \filter -> {arg in; JPverb.ar(in, size: 20)};
+
+Ndef(\foo, { In.ar(\inbus.kr(~myfxbus), 2);  }).play;
+Ndef(\foo)[10] = \filter -> {arg in; JPverb.ar(in, size: 20)};
+
+
+
+
+
+
+// -- SynthDefs --
+(
+SynthDef(\beep, {
+    arg amp;
+    var sig, env;
+
+    sig = 4.collect({ |i|
+        FSinOsc.ar(i.linlin(0,3,800,1400, 80));
+    });
+
+    sig = RLPF.ar(sig, 400);
+
+    env = EnvGen.kr(
+        Env.perc(),
+        \gate.kr(1),
+        doneAction:2,
+    );
+
+    sig = sig * env;
+    sig = RLPF.ar(sig, 400);
+
+    sig = sig * amp;
+    Out.ar(0, sig!2);
+}).add;
+// Synth(\beep, [\amp:1.75]);
+
+SynthDef(\error, {
+    arg amp=0.5, freq=200;
+    var sig, env;
+
+    sig = LFTri.ar(freq);
+    sig = sig + LFPar.ar(freq-(7.midicps));
+
+    env = EnvGen.kr(
+        Env.perc(),
+        \gate.kr(1),
+        doneAction:2,
+    );
+
+    sig = RLPF.ar(sig, 900);
+    sig = sig *env;
+    sig = sig * amp;
+
+    Out.ar(0, sig!2);
+}).add;
+// Synth(\error);
+
+SynthDef(\inc, {
+    arg amp, freq=200;
+    var sig, env;
+
+    sig = LFTri.ar(freq);
+
+    env = EnvGen.kr(
+        Env.asr(0,1,0),
+        \gate.kr(1),
+        doneAction:2,
+    );
+
+    sig = RLPF.ar(sig, 200);
+
+    Out.ar(0, sig!2);
+}).add;
+// Synth(\inc);
+)
+// -- main fun --
+(
+// window dimensions for function calculation
+var left=1400, top=500, width=500, height=500;
+Window.closeAll;
+w = Window.new(
+    "sc-win: Function plotter",
+    Rect(1400,500,500,500),
+    resizable: false,
+).front;
+
+u=UserView.new(w, w.view.bounds)
+.background_(Color.gray(0.1));
+
+~count=0;
+~continue=0;
+~finalpoint;
+~inc_synth=Synth(\inc,[freq:200]);
+u.drawFunc_({
+
+    var target = 415@85;
+    var x, y;
+
+
+    Pen.width_(4);
+
+    //- draw target -
+    Pen.moveTo(target);
+    Pen.lineTo(target - (0@1));
+    Pen.moveTo(target);
+    Pen.lineTo(target + (1@(-1)));
+    Pen.moveTo(target);
+    Pen.lineTo(target - (1@(-1)));
+    Pen.moveTo(target);
+
+    Pen.strokeColor_(Color.new(1, 1, 1, 1));
+    Pen.stroke;
+
+    if(~continue==0) // -- step 1 -- (getting to final point)
+    {
+        x = ~count;
+        y = top - ~count;
+
+
+
+        //moves pen to bottom before starting line to point
+        Pen.moveTo(0@top);
+        Pen.width_(4);
+
+
+        if( (x@y) != (target) ) //if point isnt match to x@y, update pen position
+        {
+            Pen.strokeColor_(Color.new(1, 1, 1, 1));
+            Pen.lineTo(x@y);
+            (x@y).postln;
+
+            ~inc_synth.set(\freq, (200+~count));
+        }
+        { // else if point is match to x@y
+
+            Pen.lineTo(x@y);
+            "=== POINT MATCH ===".postln;
+
+            //set continue to zero to move to step 2
+            ~continue=1;
+
+            ~finalpoint = (x@y);
+            ~finalpoint.postln;
+
+            ~inc_synth.free;
+            Synth(\beep, [\amp,0.85]);
+        };
+        if( y < 0 ) // if line goes out of bounds
+        {
+            ~continue=2;
+
+            ~finalpoint = (x@y);
+            ~finalpoint.postln;
+
+            ~inc_synth.free;
+            Synth(\error, [\amp,0.85]);
+
+            Pen.stroke;
+        };
+
+    };
+
+    if(~continue > 0) // -- step 2 -- (permanently draw final line)
+    {
+        // ~finalpoint.postln;
+
+        if(~continue == 1)
+        {
+            Pen.strokeColor_(Color.new(0, 1, 0, 1));
+        };
+        if(~continue == 2)
+        {
+            Pen.strokeColor_(Color.new(1, 0, 0, 1));
+        };
+
+        Pen.moveTo(0@top);
+        Pen.lineTo(~finalpoint);
+        Pen.stroke;
+    };
+
+
+    //applies transformations, updates pen position
+    Pen.stroke;
+    Pen.moveTo(0@top);
+
+    // -- counter increment = plotter speed --
+
+    //count success
+    ~count = ~count+5;
+
+    //count fail
+    ~count = ~count+10;
+});
+
+u.animate_(true);
+)
+
+
+(
+Pdef(\melo, 
+	Pbind(
+		\instrument, \default,
+	)
+)
+);
+ProtoDef(\piano).startControl(Pdef(\melo))
+
+
+////////
+
+
+(
+SynthDef(\sawbasseli, {
+    var env, sig;
+    env = EnvGen.kr(Env.perc(0.001, 2, [0,1,0], [-3,50]),doneAction:2);
+
+    sig = Saw.ar(\freq.kr(123));
+    sig = RLPF.ar(sig, \cutoff.kr(350));
+    sig = CombC.ar(sig, 1, 0.125, \decay.kr(1));
+
+    sig = sig * env;
+
+     sig = Pan2.ar(sig, 0, \amp.kr(1.2));
+
+    Out.ar(\out.kr(0), sig);
+}).add;
+~bus = ~bus ?? { Bus.control };
+~scale = Buffer.sendCollection(s, [0,1,3,7,9]);
+)
+// this func wont work!
+(
+{
+    var sig, index, pch, freq;
+
+    index = LFDNoise0.kr(7).range(0,1);
+    index = index * BufFrames.kr(~scale);
+    
+    // index.poll(7);
+    pch = DegreeToKey.kr(~scale, index) + 48;
+    freq = pch.midicps;
+    
+    freq.poll;
+    
+	Out.kr(~bus, freq);
+    //sig = Synth(\sawbasseli, [note: freq]);
+    // sig = LFTri.ar(freq, mul:0.2!2);
+}.play;
+Synth(\sawbasseli, [freq: ~bus.asMap]);
+)
+
+~scale
+
+
+//////////
+
+// synth
+(
+SynthDef(\sawbasseli, {
+    var env, sig;
+    env = EnvGen.kr(Env.perc(0.001, 2, [0,1,0], [-3,50]),doneAction:2);
+
+    // sig = Saw.ar(\note.kr(23).midicps);
+    
+    // sig gets frequency from bus 6
+    sig = Saw.ar(\freq.kr(100));
+
+    sig = RLPF.ar(sig, \cutoff.kr(350));
+    sig = CombC.ar(sig, 1, 0.125, \decay.kr(1));
+
+    sig = sig * env;
+
+    sig = sig * \amp.kr(1.2);
+
+    Out.ar(\out.kr(0), sig!2);
+}).add;
+)
+
+// scale synth sends freq into bus 6
+(
+~scale = Buffer.loadCollection(s, Scale.dorian.degrees);
+
+SynthDef(\scales, { arg out=0;
+    var sig, index, pch, freq;
+
+    index = LFDNoise0.kr(7).range(0,1);
+    index = index * BufFrames.kr(~scale);
+
+    // index.poll(7);
+    pch = DegreeToKey.kr(~scale, index) + 48;
+    freq = pch.midicps;
+    freq.poll;
+    
+    Out.kr(out, freq);
+}).add;
+)
+
+// test routine
+(
+Ppar([
+	Pmono(*[
+		\scales,
+		\out, ~bus,
+	]),
+	Pbind(*[
+		\instrument: \sawbasseli,
+		\freq, ~bus.asMap,
+		\dur: 0.25,
+		\cutoff: 550,
+	])
+]).play;
+)
+
+
+s.options.memSize = 8192 * 8;
+
+
+(
+SynthDef(\grain, {|out = 0, freq = 100, attack = 0, decay = 1, sustain = 0.1, distort = 0, fTime = 0.1, fFac = 1.2, amp = 1, delay = 0|
+    var startFreq, endFreq, src, aEnv, fEnv;
+    
+    startFreq = fFac * freq;
+    endFreq = freq;
+    
+    aEnv = EnvGen.ar(Env.perc(attack, decay), timeScale: sustain, doneAction: 2, levelScale: amp);
+    fEnv = EnvGen.ar(Env([startFreq, endFreq], [fTime]));
+    src = SinOsc.ar(fEnv, 1, mul: 1 + distort).wrap2(1);
+    
+    Out.ar(out, DelayN.ar(src * aEnv!2, 0.1, delay) * 0.1)
+}).add
+)
+
+(
+Pdef(\grainer, Pbind(
+    \radiation, Pseq([
+        Pseq([10] ++ (0.1 ) ++ [10] ++ (0.1!6), 1),
+        Pseq([ 1] ++ (0.1!6) ++ [ 1], inf)
+    ]),
+    \instrument, \grain,
+    \freq, ([1200, 800, 600, 200]!12).flat.collect{|v| v * rrand(0.99, 1)} * Prand([4, 1, 2, 3, 4, 8], inf),
+    \fTime, 0.0125,
+    \fFac, 5,
+    \sustain, 0.1,
+    \attack, 0.0005,
+    \decay, 2,
+    //\distort, {Pwhite(0.1, 5.0)}!(12 * 4),
+    \amp, 0.1,
+    \delay, {Pwhite(0.01, 0.1)}!(12 * 4),
+    \dur, Pkey(\radiation)
+)).play
+)
+
+
+Pdef(\grainer).stop
+
+
+(
+~klank = { |pan=0, amp=0.2|
+	var sig, freq;
+	var freqs, amps, rings, specs;
+
+	//Rand operates much like client-side rrand, except that it generates a new number each time the Synth is
+	//instanced (rrand will only produce a new value if the SynthDef itself is recompiled), and it always returns
+	//floats (rrand returns integers if no decimal is given):
+	freq = Rand(100, 5000);
+	sig  = Impulse.ar(0.1);
+
+	//Array.series prefills an array with an arithmetic series, in this case the first 12 partials above the
+	//randomly generated fundamental:
+	freqs = Array.series(13, freq, freq);
+
+	//Array.fill prefills an array using values returned from its user-defined function. Here we're returning
+	//amplitude values derived from the reciprocal of the one-indexed partial number:
+	amps = Array.fill(13, { |i|
+		var partial = i + 1;
+
+		partial.reciprocal;
+	});
+	rings = Array.fill(13, { Rand(0.1, 2) });
+
+	//A tick mark (`) preceding an array will set up a reference to that array, thus preventing SuperCollider
+	//from automatically expanding the signal across multiple audio channels:
+	specs = `[freqs, amps, rings];
+
+	sig = Klank.ar(specs, sig);
+
+	//As our code will spawn many Synths, we have to provide some way for the server to release them once they've
+	//stopped sounding, otherwise each new Synth will continue to pile on as new running processes without any
+	//of the old ones clearing, eventually leading to CPU overload and client/server crash. This can be achieved
+	//through DetectSilence, with Done.freeSelf (or simply 2) placed in the doneAction argument:
+	DetectSilence.ar(sig, doneAction: Done.freeSelf); //'doneAction: 2' without quotes also works
+	Pan2.ar(sig * amp, pan); //Here we opt for Pan2 instead of .dup to be able to spatialize across the stereo field.
+}.asDefName;
+)
+
+//Now let's test our code!
+x = Synth(~klank); //Since we used .asDefName, the environmental variable is used as the Synth name.
+
+~klank = nil
+~klank
+
+~rah = 10
+{ arg bla=~rah; bla.debug("bla") }.value
+
+~rah = (1..3)
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, bla=~rah;
+	var sig;
+	sig = SinOsc.ar(freq * bla).mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \zed,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);

@@ -466,6 +466,15 @@ SynthDef(\fx_limiter, { arg out=0, gate=1;
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\fx_crossfade, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var in2 = InFeedback.ar(\inbus2.kr(BusDef(\zero, \audio)), 2); 
+	sig = SelectX.ar(\mix.kr(0.5), [in, in2]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
 );
 
 (
@@ -606,17 +615,18 @@ SynthDef(\fx_compander, { arg out=0, gate=1, sidemode=1;
 	Out.ar(out, sig);
 }).add;
 
-SynthDef(\fx_sidechain, { arg out=0, gate=1, sidemode=1;
+SynthDef(\fx_sidechain, { arg out=0, sideout=0, gate=1, sidemode=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	var sidein = InFeedback.ar(\sideinbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = in;
 	sig = sig * \pregain.kr(1);
-	sig = Compander.ar(sig, sidein, \cpt.kr(0.4), \cpbelow.kr(1.001), \cpabove.kr(0.9), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	sig = Compander.ar(sig, sidein, \cpt.kr(0.01), \cpbelow.kr(1), \cpabove.kr(0.009), \cpclamp.kr(0.01), \cprelax.kr(0.1));
 	sig = SelectX.ar(\mix.kr(1), [in, sig]);
 	sig = sig * \gain.kr(1);
 	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
 	Out.ar(out, sig);
+	Out.ar(sideout, sidein * \sidegain.kr(1));
 }).add;
 
 SynthDef(\fx_bandcomp, { arg out=0, gate=1, low = 1200, hi = 10000, lowlevel = -24;

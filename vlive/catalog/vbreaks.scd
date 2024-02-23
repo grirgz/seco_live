@@ -276,3 +276,123 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Bacao Rhythm & Steel Band - Bacao Suave.wav'),
+			\legato, 1,
+			\st, 103/2/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				2, 4,
+			]+0,1),2).loop / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'),
+			\legato, 1,
+			\st, 85/2/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 4,
+			]+0.6,1),4).loop / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+
+// setup: pos / 8 + 0.6 / Pkey(\st)
+// kick 3, 9, 15,19,25, 29,31, 35,41,47
+// hat, 2, 6, 7, 8, 14, 18, 22, 23, 24, 30,34,38,39,40,46,50
+// doublehat, 1, 5, 11,13,17,21,27,33,37,43,45,49
+// snare 4, 12, 20, 28, 36,44
+// cymkick: 16, 42, 
+// snarekick, 10,26,32, 48,0
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Bernard Purdie - Funky Donkey (part1).wav'),
+			\legato, 1,
+			\st, 167/4/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 4,
+			],1),4).loop / Pkey(\st) + 0.9,
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Bernard Purdie - Funky Donkey (part3).wav'),
+			\legato, 1,
+			\st, 177/4/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 4,
+			]+0,1),4).loop / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Bill Withers - Kissing My Love (part1).wav'),
+			\legato, 1,
+			//\st, 184/4/60,
+			\st, 183/4/60, // sound better, at 185bpm at least
+
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 8,
+			]+0,1),8).loop / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);

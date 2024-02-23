@@ -1446,3 +1446,237 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+////////
+
+(
+SynthDef(\bassfmenkor2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	lfo1 = SinOsc.ar(0.01*(1..10)/1) * 1; 
+	sig = SinOsc.ar(freq * \freqfac1.kr(1) * ( SinOsc.ar(freq * \freqfac2.kr(1) * ( LFNoise1.ar(0.1) * (1..10)* \fma2.kr(1) + 1 ))  * \fma1.kr(1)*lfo1 + 1 ));
+	sig = SinOsc.ar(freq * \freqfac3.kr(1) * ( sig * \fma3.kr(4) + 1 ));
+	sig = SinOsc.ar(freq * ( sig * \fma4.kr(0.8) + 1 ));
+	//sig = sig * SinOsc.ar((1..10)*0.03).clip(0,1); 
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \bassfmenkor2,
+			\note, Pseq([
+				Ppatlace([0,Pseq((1..6),inf).stutter(8)],inf),
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.4,0.1) ],
+			],inf),
+			//\freqfac2, ~pmodenv.(Pseq([1,2,1,4],1), 8).loop,
+			\fma3, ~pmodenv.(Pseq([0.1,20,1,4],1), 8).loop,
+			\fma2, ~pmodenv.(Pseq([0.1,20,1,4],1), 3).loop,
+			\freqfac1, 2,
+			\freqfac3, 1/4,
+			\freqfac2, Pseq([1,1/2,1/4],inf),
+			\legato, 0.4,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+SynthDef(\bassfmenkor_env, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	lfo1 = SinOsc.ar(0.01*(1..10)/100) * 1; 
+	//lfo1 = Duty.kr(1/8/~t, 0, Dseq([
+		//1,2,4,2,
+	//],inf));
+	lfo2 = EnvGen.kr(\fma4env.kr(Env([2,1,1],[0.02,0.1])), 1);
+	sig = SinOsc.ar(freq * \freqfac1.kr(1) * ( SinOsc.ar(freq * \freqfac2.kr(1) * ( LFNoise1.ar(0.1) * (1..10)* \fma2.kr(1) + 1 ))  * \fma1.kr(1)*lfo1 + 1 ));
+	sig = SinOsc.ar(freq * \freqfac3.kr(1) * ( sig * \fma3.kr(4) + 1 ));
+	sig = SinOsc.ar(freq * ( sig * \fma4.kr(0.8) * lfo2 + 1 ));
+	//sig = sig * SinOsc.ar((1..10)*0.03).clip(0,1); 
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \default,
+			\instrument, \bassfmenkor_env,
+			\note, Pseq([
+				Ppatlace([0,Pseq((1..6),inf).stutter(8)],inf),
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.4,0.4) ],
+			],inf),
+			//\freqfac2, ~pmodenv.(Pseq([1,2,1,4],1), 8).loop,
+			\fma1, 1000,
+			\fma2, 1000,
+			\fma4env, Pseq([
+				[ Env([1,2,1],[0.01,0.8]) ],
+				[ Env([2,1,1],[0.01,0.8]) ],
+				[ Env([2,1,1],[0.1,0.8]) ],
+				[ Env([1,1,2],[0.1,0.8]) ],
+			],inf).stutter(3),
+			\fma3, ~pmodenv.(Pseq([0.1,20,1,4],1), 8).loop,
+			\fma4, 1,
+			\freqfac1, 8,
+			\freqfac2, 8,
+			\freqfac3, 1/4,
+			\legato, 0.4,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+////////////
+
+
+(
+SynthDef(\gransinfm, { arg out=0, freq=100, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, pos=0, gdur=0.1, pan;
+	var sig;
+	var clk;
+	var phase;
+	clk = Impulse.ar(\gfreq.kr(40));
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = pos;
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, phase % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = SinOsc.ar(freq * [1,1 + \fdelta.kr(0.001)] * ( LFSaw.ar(sig*\fmffac.kr(100)+(\freqfac.kr(1)*freq)) * \fma.kr(1) + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gransinfm,
+			\mbufnum, BufDef.mono('loop/pigs.flac'),
+			\mbufnum, BufDef.mono('voices/feynman.flac'),
+			\note, Pseq([
+				0,3,12-7,
+			],inf).stutter(4),
+			\fmffac, 100,
+			\freqfac, Pseq([1,2,4,1/2],inf),
+			\octave, 3,
+			\fdelta, 1,
+			\pos, Pseq([
+				~pmodenv.(Pseq([0,0,0.03],1) + Pwhite(0,4.1).stutter(4), 2),
+			],inf),
+			\pitch_stretch, ~pmodenv.(Pseq([1,1/2,1/4,1/8],inf),8).loop,
+			\pitch_stretch, Pwhite(0.4,0.1).stutter(4),
+			\adsr, Pseq([
+				[ Env.adsr(0.051,0.1,0.8,0.1) ],
+			],inf),
+			\gfreq, Pkey(\freq),
+			\dur, 1/4,
+			//\out, BusDef(\sendbus1, \audio),
+			\legato, Pseq([
+				7,0,0,0, 0,0,0,0,
+				2,0,0,3, 0,0,2,0,
+				7,0,0,0, 0,0,0,1,
+				2,0,3,0, 0,3,0,0,
+			],inf),
+			\gain, 0.1,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+
+		),
+		
+	])
+)).play;
+);
+
+
+//////////:
+
+
+(
+SynthDef(\bass_fmek, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	lfo1 = SinOsc.ar(0.01*(1..10)/100) * 1; 
+	//lfo1 = Duty.kr(1/8/~t, 0, Dseq([
+		//1,2,4,2,
+	//],inf));
+	lfo2 = EnvGen.kr(\fma4env.kr(Env([2,1,1],[0.02,0.1])), 1);
+	sig1 = SinOsc.ar(freq * \freqfac1.kr(1) * ( LFNoise1.ar((1..10)*\noisefreqfac.kr(0.1)) * \fma1.kr(1) + 1 ));
+	sig2 = SinOsc.ar(freq * \freqfac2.kr(1) * ( sig1 * \fma2.kr(1)*lfo1 + 1 ));
+	sig3 = SinOsc.ar(freq * \freqfac3.kr(1) * ( sig2 * \fma3.kr(4) + 1 ));
+	sig4 = SinOsc.ar(freq * ( sig3 * \fma4.kr(0.8) * lfo2 + 1 ));
+	sig = sig4;
+	//sig = sig * SinOsc.ar((1..10)*0.03).clip(0,1); 
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bass_fmek,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.4,0.4) ],
+			],inf),
+			//\freqfac2, ~pmodenv.(Pseq([1,2,1,4],1), 8).loop,
+			\fma4env, Pseq([
+				Pstep(Pseq([
+					[ Env([4,1,1],[0.01,0.8]) ],
+					[ Env([4,1,1],[0.01,0.8]) ],
+					[ Env([4,1,1],[0.01,0.8]) ],
+					[ Env([1,0.7,4],[0.1,2.8]) ],
+				],inf),2),
+				//[ Env([2,1,1],[0.01,0.8]) ],
+				//[ Env([2,1,1],[0.1,0.8]) ],
+			],inf),
+			//\fma3, ~pmodenv.(Pseq([0.1,20,1,4],1), 8).loop,
+			\fma1, 0.1,
+			\fma2, 0.1,
+			\fma3, 0.2,
+			\fma4, ~pmodenv.(Pseq([2,2,8,2,1,4,1],1), 1/4).loop,
+			//\fma4, 1.4,
+			\freqfac3, ~pmodenv.(Pseq([1,2,8,1,2,8,1,2],inf), 1/4, 1, \step).loop,
+			\freqfac2, 1,
+			\freqfac1, 1,
+			\legato, 0.4,
+			\octave, 3,
+			\note, Pseq([
+				Pstep(Pseq([0,-2,-4,1],inf),1),
+			],inf),
+			\isRest, Pseq([
+				1,0,0,1, 0,0,1,0,
+				1,0,0,0, 0,0,0,1,
+				1,0,0,1, 0,0,1,0,
+				1,0,0,0, 1,0,1,0,
+			],inf).coin.not,
+			\legato, Pseq([
+				8,0,0,0, 0,0,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\amp, 0.1/2,
+		),
+		
+	])
+)).play;
+);

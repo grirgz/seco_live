@@ -55,6 +55,37 @@ Pdef(\demo,
 )
 
 (
+SynthDef(\metalcut, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,2,1],[0.1,0.9]*4,[ 1,-1 ]), 1).round(0.1);
+	env2 = EnvGen.kr(Env([100,200,1,1/2],[0.1,0.9,1]*4), 1).round(0.1);
+	env3 = EnvGen.kr(Env([1,120,0.1],[0.1,0.9]*4), 1).round(0.1);
+	sig = SinOsc.ar(freq * env1 * ( SinOsc.ar(freq * env3) * env2 + 1 ));
+	//sig = CombL.ar(sig, 4/~t,0.01,1.1) + sig;
+	sig = AllpassL.ar(sig, 4/~t,0.1,1.1) + sig;
+	sig = FreeVerb.ar(sig,1,2);
+	sig = sig * EnvGen.ar(Env.adsr(0.1,0.1,0.8,3.01),gate,doneAction:2);
+	//sig = sig * EnvGen.kr(Env([0,1,0],[1.0,0.08], [4,-1]), 1);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\demo, 
+	Pbind(
+		\instrument, \metalcut,
+		\freq, 800,
+		\legato, 4,
+		\isRest, Pseq([
+			1,0, 0,0, 0,0, 0,0,
+			0,0, 0,0, 0,0, 0,0,
+		],inf).coin.not,
+		\dur, 1/8,
+		\amp, 0.1,
+	),
+).play;
+)
+
+(
 SynthDef(\nidi, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
