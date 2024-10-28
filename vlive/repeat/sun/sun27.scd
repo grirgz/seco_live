@@ -8770,7 +8770,7 @@ Pdef(\part, Pdef(\zedpart,
 		),
 		Pbind(
 			\instrument, \playersec,
-			\bufnum, BufDef('loop/pigs.flac'),
+			\bufnum, BufDef.stereo('loop/pigs.flac'),
 			\legato, 1,
 			\st, 92.10/4/60,
 			\speed, 1/Pseq([1,1,2,4, 2,1,0.5,8],inf)*0.4 * ~t / Pkey(\st),
@@ -8881,7 +8881,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
-Pdef(\part, Pdef(\zedpart, 
+Pdef(\part, Pdef(\smoothbreak6, 
 	Ppar([
 		
 		Pbind(
@@ -9019,7 +9019,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
-Pdef(\part, Pdef(\zedpart, 
+Pdef(\part, Pdef(\smoothbreak7, 
 	Ppar([
 		
 		Pbind(

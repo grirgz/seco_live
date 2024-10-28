@@ -1969,6 +1969,141 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 )
 
+(
+	// var kick
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1441].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,1,0,
+				1,0,0,0, 0,0,0,0,
+				1,0,1,0, 0,0,0,0,
+				1,0,0,0, 1,0,0,1,
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,1,
+				0,0,1,0, 0,1,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\out, BusDef(\sendbus3, \audio),
+		),
+		Pbind(
+			\instrument, \kickmut,
+			\dur, 1,
+			\amp, 0.1,
+			\freqpan, 1,
+			\env0,[ Env.new([0, 1, 5.5, 0], [0.005, 0.36, 3.2], [-4, -2, -4]) ],
+			\env1,[ Env.new([410, 62, 59], [0.025, 1.29], [-4, -5]) ],
+			\out, BusDef(\sendbus1, \audio),
+		),
+		//Pmono(\rdnsunbass,
+			//\dur, 1,
+		//)<>
+		//Pbind(
+			//\inbus, BusDef(\ifx1, \audio),
+			//'wet10', 1.0,
+			//'mix', 0.77791010151461,
+			//'gain', 0.51260504201681/2,
+			//'fb', ~pmodenv.(Pseq([0,0.1,0.51],1), 8).loop,
+			//'delay', 0.6996996996997,
+			//'delay2', 0.0001,
+			//'shift', 0.0,
+			//'shift2', 0.0,
+			//'distamp', 4.2492192141522,
+			//'pitchlag', 1.0,
+			//'pitchmix', 0.0,
+			//'prelpf', 17000,
+			//'prehpf', 17,
+			//'lpf', 17000,
+			//'hpf', 17,
+			//'fbdistamp', 0.47619047619048,
+			//'fbdistmix', 0.91176470588235,
+			//'postlpf', 17000,
+			//'posthpf', 17,
+			//'wetamp', 0.46579739809918,
+			//'indelay', 0.04,
+			//'wet20', 1.0,
+		//),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[567].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+			\out, BusDef(\ifx2, \audio),
+		),
+		Pmono(\rdnsunsnare,
+			\dur, 1,
+		)<>
+		Pbind(
+			\inbus, BusDef(\ifx2, \audio),
+			'wet10', 1.0,
+			'mix', 0.77791010151461* Pseq([1,0],inf),
+			\mix, ~pmodenv.(Pseq([
+				0,1,0,1,
+				1,2,0,0,
+				1,1,1,2,
+				1,1,1,1,
+			] * 0.7,1), 1/8).loop,
+			'gain', 0.51260504201681,
+			'fb', 0.0001,
+			'delay', 0.8001 * Pseq([
+				0,0,0,0,
+				1,1,0,0,
+				0.8,0.8,1,1,
+				1,1/2,1,1,
+			],inf),
+			'delay2', 0.0001,
+			'shift', 0.01,
+			'shift2', 0.0,
+			'distamp', 10.700689556932,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 17000,
+			'prehpf', 17,
+			'lpf', 17000,
+			'hpf', 17,
+			'fbdistamp', 0.47619047619048,
+			'fbdistmix', 0.91176470588235,
+			'postlpf', 17000,
+			'posthpf', 17,
+			'wetamp', 0.16579739809918,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 3,
+		),
+		Pbind(\lag, 0.04)<>
+		Ppar([
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[1535].value,
+				//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+				\isRest, Pseq([
+					1,1,
+				],inf).coin.not,
+				\legato, 1/8 * Pseq([
+					1,1,1,1, 1,1,1,1,
+					1,1,1/2,1, 1,1,2,1,
+				],inf) * Pwhite(1,2.5,inf),
+				\adsr, Pseq([
+					[ Env.adsr(0.001,0.1,0.8,0.1,1,2) ],
+				],inf),
+				\dur, 1/8,
+				\gain, 0.03,
+			),
+		]),
+	])
+)).play;
+)
+
 ~protordn_to_fbstring.(ProtoDef(\rdn)).editorInsert
 (
 

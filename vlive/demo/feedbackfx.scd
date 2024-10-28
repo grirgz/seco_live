@@ -4,9 +4,9 @@
 
 
 Ndef(\fb).put(0, Pbind(
-	\instrument, \kick,
+	\instrument, \zkick,
 	\dur, 1,
-	\amp, 0.2
+	\amp, 0.1
 )).play;
 
 Ndef(\fb).put(1, \filter -> {  arg in, fb=0.1;
@@ -14,7 +14,7 @@ Ndef(\fb).put(1, \filter -> {  arg in, fb=0.1;
 	var sig;
 
 	fbnode = FbNode(2);
-	sig = in + { fb * fbnode };
+	sig = in + ( fb * fbnode );
 	sig = DelayC.ar(sig, 0.01) + sig;
 	fbnode.write(sig);
 	sig = Limiter.ar(sig);

@@ -10,6 +10,7 @@ sig3 = sig1.mean;
 sig1 = SelectX.ar( SinOsc.kr(1/18).range(0,1), [sig2, sig3]);
 
 // rotate the channels contents
+//  rotate sig1.size channels into freq.size channels
 
 sig1 = PanAz.ar(freq.size, sig1, {LFNoise1.kr(( 1/2 ).rand).range(-1,1)} ! sig1.size).flop.mean;
 
@@ -215,7 +216,7 @@ Ndef(\stereo, { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	sig = SinOsc.ar(freq * [0,4,7, 0+12,4+12,7+12].midiratio, [[0,1]]  ).mean;
 	sig = sig.debug("sig");
-	sig = Pan2.ar(sig, pan, amp).sum;
+	sig = Pan2.ar(sig, pan, amp).mean;
 }).play;
 );
 
@@ -405,7 +406,7 @@ SynthDef(\amdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	freq = freq.lag(0.1);
 
-	sig = SinOsc.ar(freq); 
+	sig = LFSaw.ar(freq); 
 	sig = Select.ar(sig+1*2, [ Saw.ar(freq), Pulse.ar(freq/2), SinOsc.ar(freq+1) ]);
 	sig = LeakDC.ar(sig);
 	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
@@ -414,6 +415,23 @@ SynthDef(\amdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }).add;
 );
 
+// change indexer freq
+(
+SynthDef(\amdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	freq = freq.lag(0.1);
+
+	//freq = freq * 2; // true octave
+	sig = SinOsc.ar(freq * 2); // nice octave
+	sig = Select.ar(sig+1*2, [ LFSaw.ar(freq), LFPulse.ar(freq), SinOsc.ar(freq) ]);
+	sig = LeakDC.ar(sig);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+// recursive select
 // each repeat change the sound
 (
 SynthDef(\amdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
@@ -712,8 +730,8 @@ SynthDef(\ringme, { arg out=0, gate=1;
 	var tabsize = 30;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = in;
-	sig = Ringz.ar(sig, { exprand(70,12000) }.dup(tabsize).sort, { exprand(0.5000,5.6000) }.dup(tabsize).sort) * 0.01;
-	//sig = Ringz.ar(sig, { exprand(70,12000) }.dup(tabsize).sort, { exprand(0.5000,5.6000) }.dup(tabsize).sort.reverse.rotate(10)) * 0.01;
+	//sig = Ringz.ar(sig, { exprand(70,12000) }.dup(tabsize).sort, { exprand(0.5000,5.6000) }.dup(tabsize).sort) * 0.01;
+	sig = Ringz.ar(sig, { exprand(70,12000) }.dup(tabsize).sort, { exprand(0.5000,5.6000) }.dup(tabsize).sort.reverse.rotate(10)) * 0.01;
 	sig = Splay.ar(sig, \spread.kr(0.8), 1, 0);
 	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
@@ -726,16 +744,17 @@ Pdef(\part).reset;
 (
 Pdef(\part, Pdef(\zed, 
 	Ppar([
-		PatKitDef(\bat).asPattern(Pbind(
-			\kitIndex, 4,
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
 			\isRest, Pseq([
 				0,0,0,0, 1,0,0,0,
 			],inf).coin.not,
-			\sustain, 0.1,
-			\velamp, 1/3,
 			\dur, 1/8,
+			\gain, 0.11,
 			\out, BusDef(\ring, \audio),
-		)),
+		),
 		Pmono(\ringme,
 			\inbus, BusDef(\ring, \audio),
 			\dur, 1,
@@ -816,6 +835,66 @@ Pdef(\demo, Pdef(\latched,
 			],inf),
 			\dur, 1,
 			\amp, 0.1/2,
+		),
+		
+	])
+)).play;
+);
+
+
+// bass with latch
+// does not work, like fm it change pitch
+
+(
+Pdef(\demo, Pdef(\latched, 
+	Ppar([
+		Pbind(
+			\instrument, \latched,
+			\adsr, Pseq([
+				[ Env.adsr(0.3,0.3,0.8,2.1) ],
+			],inf),
+			\octave, 6,
+			\note, Pseq([
+				0,2,4,
+			],inf),
+			\dur, 1,
+			\amp, 0.1/2,
+		),
+		
+	])
+)).play;
+);
+
+(
+SynthDef(\latchbass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig = SinOsc.ar(freq * \freqmul.kr(8));
+	//sig2 = Latch.ar(sig, Impulse.ar(MouseX.kr(10,4999).poll));
+	sig2 = Latch.ar(sig, Impulse.ar( ( freq * \fmf.kr(1) ).poll ));
+	//sig = sig + sig2;
+	sig = sig2;
+	//sig = Latch.ar(sig, Impulse.ar( freq * 4/1));
+	//sig = RLPF.ar(sig, \lpfr.kr(2.1) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+(
+Pdef(\demo, Pdef(\latched, 
+	Ppar([
+		Pbind(
+			\instrument, \latchbass,
+			\note, Pseq([
+				0,2,4,5,
+			],inf),
+			\freqmul, 4,
+			\fmf, 2.001,
+			\lpfr, 10,
+			\octave, 3,
+			\dur, 1,
+			\amp, 0.1,
 		),
 		
 	])
@@ -1097,6 +1176,7 @@ SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig2 = SinOsc.ar(SinOsc.ar(freq*2 + [0,0.27] ) * freq*2  * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.012).exprange(0.01,2) );
 	sig3 = SinOsc.ar(SinOsc.ar(freq*3 + [0,1.27]) * freq*3  * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.012).exprange(0.01,2) );
 	sig = sig1 + sig2 + sig3;
+	sig = sig / 3;
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
 	Out.ar(out, sig);
@@ -1301,3 +1381,63 @@ soundscape
 	~chanOpener = { arg door, array;
 		array * ( door - ((0..array.size-1)/(array.size) ).postln * array.size ).clip(0,1);
 	};
+
+
+/////////////////// modulation
+// two kind : linear and exponential
+// linear:
+//   mod = (lfo * amt) + base
+// exponential:
+//   mod = (amt ** lfo) * base
+
+// normalized linear: 
+//   mod = base * ( lfo * amt + 1 )
+//   mod = ( base * lfo * amt ) + base
+//     here the amt goes from 0 to 1 and when at 1, it can't exceed 0 or 2*base
+//     in non normalized linear modulation, maximum amt shoud be equal to base
+
+
+// harkins: In the example above, I set a default baseline filter frequency = 600 (your
+// value) and a default modulation amount = 4x (2 octaves). When the envelope
+// is at rest, it's 0 -- then 4 ** 0 = 1, then 600 * 1 = 600 so the modulation
+// isn't deviating from the baseline at that point (desired behavior for
+// modulator = 0). At its peak, 4 ** 1 = 4, then ffreq = 600 * 4 = 2400 =
+// maximum deviation (also desired behavior).
+
+2**0
+2**0.1001
+1**3.1001
+0.1**0.0001
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * (\amt.kr(3) ** SinOsc.ar(1) ));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+Ndef(\zed).edit
+Ndef(\zed).set(\amt, 0.0001)
+
+
+(
+{ [ 
+	0.3 ** SinOsc.ar(2), 
+	1 ** SinOsc.ar(2), 
+	3 ** SinOsc.ar(2), 
+	30 ** SinOsc.ar(2), 
+	SinOsc.ar(2)   
+] }.plot(2)
+)
+
+(
+{ 
+	var eg = EnvGen.kr(Env([0,1,0],[0.1,0.8]), 1);
+	[ 
+	0.3 ** eg,
+	1 ** eg,
+	3 ** eg,
+	//30 ** eg,
+	eg,
+] }.plot(2)
+)

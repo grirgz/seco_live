@@ -11,7 +11,7 @@ Ndef(\yo, {
         form1freq: SinOsc.kr([0.5,0.1]).exprange(100,1000), 
         form2freq: SinOsc.kr(0.39).exprange(100,1000), 
         shape: SinOsc.kr(10)
-    ) 
+    ) * 0.1
 }).play;
 )
 

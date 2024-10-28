@@ -316,3 +316,42 @@ Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan) / 2;
 }).play;
 );
+
+////////////////// detune chord and exp
+
+(
+SynthDef(\chordgrow, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	lfo1 = EnvGen.kr(Env([1,4000,1],[6.1,4.8],\exp), 1);
+	lfo2 = EnvGen.kr(Env([1/3,20,1],[6.1,4.8],\exp), 1);
+	sig = SinOsc.ar(freq * \chord.kr([0,4,7]).midiratio);
+	sig = sig + LFSaw.ar(freq/2 * \chord.kr([0,4,7]).midiratio);
+	sig = sig.mean;
+	sig = sig + DelayC.ar(sig, 0.1,0.0001 * lfo1);
+	sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq * lfo2 ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(5.1,0.1,0.8,0.1,1,4)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \chordgrow,
+			\note, 0,
+			\chord, Pseq([
+				[ [2,5,8] ],
+			],inf),
+			\octave, 6,
+			\dur, 4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+

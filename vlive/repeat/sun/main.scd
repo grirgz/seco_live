@@ -4,6 +4,7 @@
 s.waitForBoot { FileSystemProject.load("sun/lib.scd"); };
 )
 
+ParamProto.init
 // END
 
 
@@ -23,461 +24,273 @@ Document.current.path
 	Quarks.install(quark);
 }
 )
-(..40)
 
 
-(
-Tdef(\bla, {
-	SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-		var sig;
-		sig = SinOsc.ar(rrand(100,1000));
-		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-		sig = Pan2.ar(sig, pan, amp);
-		Out.ar(out, sig);
-	}).add;
-	s.sync;
-	Synth(\zed)
-});
-)
+////////////////////////////////////////////////////////////////////
+Array
 
-Tdef(\bla).play
-Tdef(\bla).isPlaying
-
-Quarks.install("https://github.com/madskjeldgaard/PolyBuf.git")
-
-
-SampleTimeline(\bla).edit
-{ SinOsc.ar(500) ! 2 * 0.1}.play;
-
-b = BufFiles(s, "/tmp/sn/")
-
-PathName("/tmp/sn").entries
-PathName("/tmp/sn").entries[0].isFolder
-PathName("/tmp/sn").entries[0].isFile
-PathName("/tmp/sn").entries[0].pathMatch
-String
+(1..1000).join(", ").postln
+(1..1000).postln
 
 (
-SynthDef(\trig2, {
-    arg in=0, out=0;
-    var mic, amp, trig, timer, filteredTrig, tog;
-    
-    mic = SoundIn.ar(in);
-	//mic.poll;
-    trig = DetectSilence.ar(mic, 0.05, time:1);
-	//trig.poll;
-    filteredTrig = Changed.ar(trig);
-	//filteredTrig.lagud(0,1).poll;
-    SendTrig.ar(filteredTrig, 0, trig);
-    //Out.ar(out, mic);
-}).add;
-Pdef(\part).reset;
-)
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pmono(\trig2,
-			\freq, 200,
-			\dur, 1,
-			\amp, 0.1,
-		),
-	])
-)).play;
-);
-
-(
-o = OSCFunc({ arg msg, time;
-	[time, msg].postln;
-},'/tr', s.addr);
-)
-
-
-r = Routine({ "bla".yield }); 
-r.next
-
-
-
-(
-Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	sig = LFNoise1.ar(1/2).range(100,500);
-	//sig2 = LFNoise1.ar(1/2).range(100,500);
-	sig2 = sig.copy;
-	sig = SinOsc.ar( [ sig, sig2 ]) ;
-	//sig = SinOsc.ar( sig) ;
-	sig = Pan2.ar(sig, [-1,1], amp).mean;
-	//sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-(\a: 1 + 2)
-
-
-
-
-(
-SynthDef(\duty, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var mod;
-	mod = Duty.kr(1, 0, Dseq([
-		0,3,4,7,
-	].midiratio,inf))
-	sig = SinOsc.ar(freq * mod);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-{ SinOsc.ar( Duty.kr(1/8, 0, Dseq([100,200,300],inf)) ) * 0.1 ! 2 }.play
-{ SinOsc.ar( Duty.kr(1/8, 0, Dseq([100,200,300,1000],inf)) ) * 0.1 ! 2 }.play
-{ SinOsc.ar( Duty.kr(1/2, 0, Dseq([100,200,300],inf)) ) }.play
-{ SinOsc.ar(100!2) * 0.1 * EnvGen.kr(Env.perc(0.01,0.1), gate: TDuty.kr(1/8, 0, Dseq([1,0,0,1, 0,0,1,0],inf)))  }.play
-
-
-(
-Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
-	var sig;
-	sig = LFSaw.ar(freq);
-	//sig = HPF.ar(sig, 1000);
-	//sig = sig + LFSaw.ar(freq); 
-	//sig = sig + LFSaw.ar(freq); 
-	//sig = sig - SinOsc.ar(freq * [1,2],mul:[1,1/2]).mean;
-	sig = Pan2.ar(sig, pan, amp);
-}).play(BusDef(\sendbus1), 2);
-);
-Ndef(\zed).edit
-
-(
-Ndef(\zed2, { arg freq=80, pan=0, amp=0.1;
-	var sig;
-	sig = LFSaw.ar(freq);
-	sig = sig - BPF.ar(LFSaw.ar(freq), 1000);
-	//sig = HPF.ar(sig, 1000);
-	//sig = sig + LFSaw.ar(freq); 
-	//sig = sig + LFSaw.ar(freq); 
-	//sig = sig - SinOsc.ar(freq * [1,2],mul:[1,1/2]).mean;
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-(
-Ndef(\zed2, { arg freqbass=50, freq=50, pan=0, amp=0.1;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	//RandSeed.kr(1,1);
-	//thisThread.randSeed = 18;
-	sig = LFSaw.ar(freq * ( SinOsc.ar(LFNoise1.ar(10) * 356) * 4 + 1 ));
-	sig = LFSaw.ar(freq * ( SinOsc.ar(freq) * 14 + 1 ));
-	sig = LFSaw.ar(freq);
-	//sig = LFPulse.ar(freq) * ( SinOsc.ar(freq) * 1 + 1 );
-	sig = LFPulse.ar(freq);
-	sig1 = SinOsc.ar(1050 * ( SinOsc.ar(210) * 10 * ( SinOsc.ar(30) * 0.1 + 1 ) + 1 )) ;
-	sig1 = HPF.ar(sig1, 1000) * 0.1;
-	sig = sig + sig1;
-	//sig = LFPulse.ar(freq * rrand(0.3,1.3!3)).mean * 1;
-	20.do {
-		//sig = BRF.ar(sig, 8000 * rrand(0.4,1.2), 0.1);
-		sig = MidEQ.ar(sig, exprand(300.0,12000), 0.1, -20);
-	};
-	sig = sig * 3;
-	//sig = sig + LFSaw.ar(exprand(20.0,200!10),mul:4.6).mean;
-	//sig = sig + HPF.ar(LFSaw.ar(6000!1 * ( LFNoise1.ar(6) * 0.1 + 1 ),mul:4.6).mean, 12000);
-	//sig = LFSaw.ar([50,1500,6000]/4).mean;
-	//sig = sig.clip2(0.01) * 30;
-	//sig = LFSaw.ar(freq * [1,1.12]).mean;
-	//sig = LFSaw.ar(freq * ( PinkNoise.kr * 8 + 1 ));
-	//sig = LFSaw.ar( rrand(50.0,100!3) ).mean *3;
-	sig = HPF.ar(sig, \hpf.kr(2000));
-	sig = LPF.ar(sig, \lpf.kr(11000));
-	sig = sig + ( SinOsc.ar(freqbass) ); 
-	//sig = sig + LFSaw.ar(freq); 
-	//sig = sig + LFSaw.ar(freq); 
-	//sig = sig - SinOsc.ar(freq * [1,2],mul:[1,1/2]).mean;
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-(
-Ndef(\zed2, { arg freqbass=50, freq=50, pan=0, amp=0.1;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	//RandSeed.kr(1,1);
-	//thisThread.randSeed = 18;
-	sig = LFSaw.ar(freq * ( SinOsc.ar(LFNoise1.ar(10) * 356) * 4 + 1 ));
-	sig = LFSaw.ar(freq * ( SinOsc.ar(freq) * 14 + 1 ));
-	sig = LFSaw.ar(freq);
-	//sig = LFPulse.ar(freq) * ( SinOsc.ar(freq) * 1 + 1 );
-	sig = LFPulse.ar(freq);
-	sig1 = SinOsc.ar(1050 * ( SinOsc.ar(210) * 10 * ( SinOsc.ar(30) * 0.1 + 1 ) + 1 )) ;
-	sig1 = HPF.ar(sig1, 1000) * 0.1;
-	sig = sig + sig1;
-	//sig = LFPulse.ar(freq * rrand(0.3,1.3!3)).mean * 1;
-	20.do {
-		//sig = BRF.ar(sig, 8000 * rrand(0.4,1.2), 0.1);
-		sig = MidEQ.ar(sig, exprand(300.0,12000), 0.1, -20);
-	};
-	10.do {
-		//sig = BRF.ar(sig, 8000 * rrand(0.4,1.2), 0.1);
-		sig = MidEQ.ar(sig, exprand(300.0,2000), 0.1, 8);
-	};
-	sig = sig * 3;
-	//sig = sig + LFSaw.ar(exprand(20.0,200!10),mul:4.6).mean;
-	//sig = sig + HPF.ar(LFSaw.ar(6000!1 * ( LFNoise1.ar(6) * 0.1 + 1 ),mul:4.6).mean, 12000);
-	//sig = LFSaw.ar([50,1500,6000]/4).mean;
-	//sig = sig.clip2(0.01) * 30;
-	//sig = LFSaw.ar(freq * [1,1.12]).mean;
-	//sig = LFSaw.ar(freq * ( PinkNoise.kr * 8 + 1 ));
-	//sig = LFSaw.ar( rrand(50.0,100!3) ).mean *3;
-	sig = HPF.ar(sig, \hpf.kr(2000));
-	sig = LPF.ar(sig, \lpf.kr(11000));
-	sig = sig + ( SinOsc.ar(freqbass) ); 
-	//sig = sig + LFSaw.ar(freq); 
-	//sig = sig + LFSaw.ar(freq); 
-	//sig = sig - SinOsc.ar(freq * [1,2],mul:[1,1/2]).mean;
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-Ndef(\zed2).edit
-
-(
-Ndef(\zed3, { arg freq=200, pan=0, amp=0.1;
-	var sig;
-	sig = SinOsc.ar(freq);
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-(
-Ndef(\zed4, { arg freq=200, pan=0, amp=0.1;
-	var sig;
-	sig = LFNoise2.ar(2000);
-	sig = WhiteNoise.ar;
-	sig = SinOsc.ar(1050 * ( SinOsc.ar(210) * 10 * ( SinOsc.ar(30) * 0.1 + 1 ) + 1 )) ;
-	sig = HPF.ar(sig, 10000);
-	//sig = BPF.ar(sig, 1000, 0.1) * 1;
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-Ndef(\zed3).edit
-
-
-SampleTimeline(\bla).edit
-
-SampleTimeline('bla').buffer
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \playersec_onechan,
-			\bufnum, SampleTimeline('bla').buffer,
-			\chan, 0,
-			\legato, 1,
-			\pos, 3.3,
-			\hpf, 0,
-			\dur, 1/2,
-			\gain, 1,
-		)
-		
-	])
-)).play;
-);
-
-(
-SynthDef(\playersec_onechan, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, trigger=1, velamp=1;
-	// pos in seconds
-	var sig;
-	var sig1;
-	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufSampleRate.kr(bufnum)), doneAction:doneAction, loop: loop);
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.001,0,1,0.01)),gate,doneAction:doneAction);
-	sig = SelectX.ar(\chan.kr(0), sig);
-	sig = HPF.ar(sig, \hpf.kr(350));
-	sig = Pan2.ar(sig, pan, 1);
-	Out.ar(out, sig * \gain.kr(1) * velamp);
-}, metadata:(specs:(
-	bufnum: ParamAudioBufferSpec()
-		.startParamName_(\pos)
-		.numChannels_(2)
-		.startType_(\seconds)
-		.sustainType_(\beats)
-		.sustainParamName_(\sustain)
-		.speedParamName_(\speed),
-	pos: ControlSpec(0,20,\lin),
-	\velamp: \unipolar.asSpec,
-))).add;
-)
-
-(
-var synth16 = {
-    var freq = [48, 49];
-    var freq2 = 48 * 32;
-    var gate1 = LFDClipNoise.ar(11);
-    var gate2 = LFDNoise0.ar(11);
-    var mul1 = Env.perc.ar(0, gate1);
-    var mul2 = Env.perc.ar(0, gate2);
-    
-    var soundA = { [SinOsc.ar(freq, mul:mul1), SinOsc.ar(freq, mul:mul2)] * 0.3 };    
-    var soundB = { [Saw.ar(freq * 16, mul:mul1), Saw.ar(freq * 16, mul:mul2)] * 0.3 };    
-    var soundC = { [Pulse.ar(freq2, mul:mul1), Pulse.ar(freq2, mul:mul2) ] * 0.3 };
-    
-    var out = soundA + soundB + soundC;
-    
-    out = FreeVerb.ar(out) + out;
-    out = CombC.ar(out) + out;
-    out = out * 0.3;
-    out;
+c = [0, 2, 1, 5, 4, 7, 9, 8, 0, 1, 3, 2, 4, 3, 1];
+// c = { 20.rand }!300; // does not always find a pattern, so run several times
+// we can image this being midinotes numbers. Now I want to find a 3-note pattern in the sequence
+// with 3 or more occurrences
+r = ();
+d = c.differentiate;
+~pats = ();
+(d.size - 3).collect{|i|
+	var pat = d[i + 1..i + 2];
+	var key = pat.asSymbol;
+	if (r[key].notNil)
+	{ 
+		i.debug("i");
+		r[key].add(i);
+		r.debug("r");
+		if (r[key].size > 2) {  ~pats.add(key -> r[key]) }
+	}
+	{ r.add(key -> List.new) }
 };
-synth16.play;
+~pats.keysDo{|n| ~pats[n].collect{|i| c[i..i + 2 ] }.debug(\pattern) }; // finds the one pattern with 3 occurrences 
+""
 )
 
-(
-Ndef(\hummer, { arg freqbass=50, freq=50, pan=0, amp=0.1;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	//thisThread.randSeed = 18;
-	sig = LFSaw.ar(freq);
-	sig = LFPulse.ar(freq);
-	20.do {
-		//sig = BRF.ar(sig, 8000 * rrand(0.4,1.2), 0.1);
-		sig = MidEQ.ar(sig, exprand(300.0,12000), 0.1, -20);
-	};
-	sig = sig * 3;
-	sig = HPF.ar(sig, \hpf.kr(7000));
-	sig = LPF.ar(sig, \lpf.kr(11000));
-	sig = sig + ( SinOsc.ar(freqbass) ); 
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-
-s.scope
-
-Synth(\default).plot(1)
-
+d
+r
 
 (
-SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = SinOsc.ar(freq).scope;
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
+c = [0, 2, 1, 5, 4, 7, 9, 8, 0, 1, 3, 2, 4, 3, 1];
+// c = { 20.rand }!300; // does not always find a pattern, so run several times
+// we can image this being midinotes numbers. Now I want to find a 3-note pattern in the sequence
+// with 3 or more occurrences
+r = ();
+d = c.differentiate;
+~pats = ();
+(d.size - 3).collect{|i|
+	var pat = d[i + 1..i + 2];
+	var key = pat.asSymbol;
+	if (r[key].notNil)
+	{ 
+		i.debug("i");
+		r[key].add(i);
+		r.debug("r");
+		if (r[key].size > 2) {  ~pats.add(key -> r[key]) }
+	}
+	{ r.add(key -> List.new) }
+};
+~pats.keysDo{|n| ~pats[n].collect{|i| c[i..i + 2 ] }.debug(\pattern) }; // finds the one pattern with 3 occurrences 
+""
+)
+
+
+(
+Routine.run {
+s.boot;
+s.bootSync;
+
+// Global Stuff
+~tempo = 128/60;
+~loopBarCt = 8;
+TempoClock.default.tempo = ~tempo;
+
+// Busses and Routing
+
+// allocate busses
+~masterBus = Bus.audio(s, 2);
+~drumBus = Bus.audio(s, 2);
+~tonalBus = Bus.audio(s, 2);
+
+// Define Bus Types
+SynthDef(\bus2x2, {
+  var sig;
+  sig = In.ar(\in.kr(0), 2);
+  Out.ar(\out.kr(0), sig);
 }).add;
+s.sync;
+
+SynthDef(\bus2x2clip, {
+  var sig;
+  sig = In.ar(\in.kr(0), 2);
+  sig = Limiter.ar(sig, 1.0);
+  sig = Clip.ar(sig, -1.0, 1.0);
+  Out.ar(\out.kr(0), sig);
+}).add;
+s.sync;
+
+// Route Busses
+~masterBusIns = Synth(\bus2x2clip, [in: ~masterBus, out: 0]);
+~drumBusIns = Synth(\bus2x2, [in: ~drumBus, out: ~masterBus]);
+~tonalBusIns = Synth(\bus2x2, [in: ~tonalBus, out: ~masterBus]);
+
+// Modulation
+
+// Instruments
+SynthDef(\kick0, {
+  var sig, pitchEnv, freqModHz, ampEnv, destFreq, amp;
+  destFreq = 40;
+  amp = \amp.kr(0.3);
+  freqModHz = 120;
+  pitchEnv = EnvGen.kr(Env.perc(0.01, 0.4, 1, -20), doneAction: 2);
+  ampEnv = EnvGen.kr(Env.linen(0.01, 0.08, 0.08, \amp.kr()), doneAction: 2);
+  sig = SinOsc.ar((freqModHz * pitchEnv) + destFreq);
+  // use amp env to control the amplitude of the signal down to 0
+  sig = sig * ampEnv;
+
+  Out.ar(\out.kr(), sig ! 2);
+}).add;
+s.sync;
+
+SynthDef(\sub, {
+  var sig;
+  sig = SinOsc.ar(\freq.kr()).dup * \amp.kr(0.1);
+  sig = sig * EnvGen.kr(Env.linen(0.03, \dur.kr(1.0)/4, 0.21*\dur.kr(), 1.0), doneAction: 2);
+  Out.ar(\out.kr(), sig);
+}).add;
+s.sync;
+
+// saw wave synth
+SynthDef(\saw, {
+  var sig;
+  sig = Saw.ar(\freq.kr()).dup * \amp.kr(0.1);
+  sig = sig * EnvGen.kr(Env.linen(0.03, \dur.kr(1.0)/4, 0.21*\dur.kr(), 1.0), doneAction: 2);
+
+  sig = BHiPass4.ar(sig, 80, 1);
+  sig = BMoog.ar(sig, LFTri.kr(~tempo/3*4).range(100, 1000), 0.2, 0.0, 1.75);
+  
+  Out.ar(\out.kr(), sig);
+}).add;
+s.sync;
+};
+)
+
+// Patterns
+(
+~kick0Loop = Pbind(
+  \instrument, \kick0,
+  \dur, 1.0,
+  \amp, 1,
+  \out, ~drumBus,
 );
 
+~subLoop = Pbind(
+  \instrument, \sub,
+  \dur, Pseq([0.5, 0.50*0.75, 0.50*0.25]*4, inf),
+  \freq, Pseq(([28, 29, 40]-1).midicps, inf),
+  \amp, 0.2,
+  \out, ~tonalBus,
+);
 
+~sawLoop = Pbind(
+  \instrument, \saw,
+  \dur, 4.0,
+  \freq, Pseq([28].midicps, inf),
+  \amp, 0.1,
+  \out, ~tonalBus,
+);
+)
+
+~masterBusIns = Synth(\bus2x2clip, [in: ~masterBus, out: 0]);
+~drumBusIns = Synth(\bus2x2, [in: ~drumBus, out: ~masterBus]);
+~tonalBusIns = Synth(\bus2x2, [in: ~tonalBus, out: ~masterBus]);
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
+		Pmono(\bus2x2clip,
+			\in, ~masterBus,
+			\out, 0,
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		Pmono(\bus2x2,
+			\in, ~tonalBus,
+			\out, ~masterBus,
+			\addAction, \addToTail,
+			\lag, 0.0008,
+			\dur, 1,
+		),
+		Pmono(\bus2x2,
+			\in, ~drumBus,
+			\out, ~masterBus,
+			\addAction, \addToTail,
+			\lag, 0.0008,
+			\dur, 1,
+		),
+		~kick0Loop = Pbind(
+			\instrument, \kick0,
+			\dur, 1.0/8,
+			\amp, 1,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 1,0,1,0,
+			],inf).coin.not,
+			\out, ~drumBus,
+		),
+
+		~subLoop = Pbind(
+			\instrument, \sub,
+			\dur, Pseq([0.5, 0.50*0.75, 0.50*0.25]*4, inf),
+			\freq, Pseq(([28, 49, 60]-1).midicps, inf),
+			\amp, 0.2,
+			\out, ~tonalBus,
+		),
 		Pbind(
 			\instrument, \default,
-			\freq, 200,
-			\dur, 1,
+			\note, Pseq([
+				12,
+			],inf),
+			\octave, 5,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
 			\amp, 0.1,
 		),
-		
-	])
-)).play();
-);
 
-s.freqscope
-
-
-(
-Ndef(\zed, { arg freq=500, pan=0, amp=0.1;
-	var sig;
-	sig = SinOsc.ar( LFPulse.ar(1/16,1/2+0.45).range(200,1200).lag(8) * rrand(0.5,1.5!10) ).mean;
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-
-"python3 -c \"print(%**(2**%))\"".format(5,4).unixCmdGetStdOut.drop(-1).as(Array).collect(_.digit)
-"python3 -c 'print(123)'".unixCmdGetStdOut
-
-
-
-~seq = "python3 -c \"print(%**(2**%))\"".format(5,9).unixCmdGetStdOut.drop(-1).as(Array).collect(_.digit)
-
-
-Pd
-
-
-
-//sound recipe, required
-
-SynthDef(\testbleep,{ Out.ar(0,Pan2.ar(Line.kr(1,0,0.1,doneAction:2)*SinOsc.ar(440)*0.1,0.0))}).add;
-
-
-
-//no use of latency, immediate, timing slightly more ragged
-
-
-(
-
-{
-
-    inf.do {|i|    
-
-        Synth(\testbleep); 
-
-        [0.5,0.25,0.02,0.02].wrapAt(i).wait; 
-
-    }    
-
-}.fork;
-
-)
-
-
-
-
-(
-
-{
-
-    inf.do {|i|
-
-        s.bind {  Synth(\testbleep); };  
-
-        //[0.5,0.25,0.02].wrapAt(i).wait; 
-        [0.5,0.25,0.02,0.02].wrapAt(i).wait; 
-
-    }    
-
-}.fork;
-
-)
-
-
-BufDef("/home/ggz/tmp/vin7.ogg")
-
-(
-SynthDef("mktestt", {arg freq = 440;
-    var sig, env, gate;
-    gate = Impulse.kr(0);
-    env = Env.adsr(0.01, 0.03, 0.7, ExpRand(0.1,1.9).poll).ar(Done.freeSelf, gate);
-    sig = SinOsc.ar(freq);
-    sig = sig * env;
-    //sig = AnalogChew.ar(sig,ExpRand(0.3,0.8),1,0.5);
-    sig = FreeVerb.ar(sig,0.2,0.9);
-    sig = sig.dup * 0.2;
-    Out.ar(0, sig);
-}).add;
-
-)
-
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \mktestt,
-			\freq, 200,
-			\dur, 1,
+		~sawLoop = Pbind(
+			\instrument, \saw,
+			\dur, 4.0,
+			\freq, Pseq([28].midicps, inf),
 			\amp, 0.1,
+			\out, ~tonalBus,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Led Zeppelin - When The Levee Breaks.wav'),
+			\legato, 1,
+			\st, 71/2/60,
+			\speed, 1/2 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 2,
+				0, 1,
+			]+0,1),2).loop / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[2302].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1795].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
 		),
 		
 	])
@@ -485,1077 +298,89 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 
-~synthdef_object = SynthDef(\test, { }).add;
-~synthdef_object = SynthDescLib.global.at(\test).def;
-
 (
-SynthDef(\test, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = SinOsc.ar(freq);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-
-
-~synth = Synth(\test)
-Synth(\test, [\freq, Ndef(\lfo1, { XLine(51, 1000) })])
-~synth.set(\freq, Ndef(\lfo1, { XLine.kr(51, 1000) }))
-
-
-
-
-(
-SynthDef(\modenvlag, { arg out=0, amp=0.1, gate=1;
-	var sig;
-	var prev = In.kr(out);
-	sig = EnvGen.kr(Env([prev,prev,\target.kr],[0,\time.kr]), gate, doneAction:2);
-	Out.kr(out, sig);
-}).add;
-)
-
-~synth = Synth(\test); // launch synth
-~cbus = ~cbus ?? { Bus.control(s,1).set(100) }; // create bus
-~synth.set(\freq, ~cbus.asMap); // map bus
-~cbus.set(1000); // set bus manually
-Synth(\modenvlag, [\out, ~cbus, \target, 100, \time, 1]); // start ramping to 100 in 1 second
-Synth(\modenvlag, [\out, ~cbus, \target, 200, \time, 1])
-
-
-thisProcess.stop
-thisProcess.recompile
-
-
-
-
-(
-SynthDef(\loopenv, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = SinOsc.ar(freq);
-	sig = sig * EnvGen.kr( Env([0]), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-
-(
-SynthDef(\seqTest, {
-    var snd, env, envFreq, seq, trig;
-    seq = TDuty.ar(Dseq( [4.0,4.0], inf));        
-	trig = 1;
-    envFreq = Env([0,1.0,0.0,0.5,0.0],[0,90,30,10].normalizeSum * 2, \lin, 3, 0).ar(gate:trig, doneAction: Done.none);
-    snd = SinOsc.ar( 400 + (envFreq * 1000));
-    Out.ar(0, snd ! 2);
-}).add
-);
-
-Synth(\seqTest);
-
-(
-SynthDef(\seqTest, { arg timeScale=1, trigRate=4;
-    var snd, env, envFreq, seq, trig;
-	var phase;
-    seq = TDuty.ar(Dseq( [4.0,4.0], inf));        
-	trig = Impulse.kr(trigRate);
-	phase = Phasor.ar(trig, rate:timeScale/SampleRate.ir,start:0,end:1);
-	envFreq = IEnvGen.kr(Env([0,1.0,0.0,0.5,0.0],[0,90,30,10].normalizeSum , \lin), index:phase);
-    snd = SinOsc.ar( 400 + (envFreq * 1000));
-	snd = Pan2.ar(snd, \pan.kr(0), \amp.kr(0.1));
-    Out.ar(0, snd);
-}).add;
-Ndef(\bla, \seqTest).play;
-);
-
-
-(
-Ndef(\hoo, {
-		var sin = SinOsc.ar(440, 0, MouseX.kr(0, 1));
-	// use offset so negative values of SinOsc will map into the Env
-	var env = Env([-1, -0.7, 0.7, 1], [ 0.8666, 0.2666, 0.8668 ], \lin, offset: -1.0);
-	IEnvGen.ar(env, sin) * 0.1 
-}).play;
-)
-
-(
-Ndef(\zzz, { arg freq=200, pan=0, amp=0.1, timeScale=1, trigRate=2.2;
-	var sig;
-	var trig, phase;
-	var endpos, startpos;
-	var seqlvl = [3,2,3,2,0,1,0,10];
-	//seqlvl = [0,0,0,10];
-	trig = Impulse.kr(trigRate);
-	startpos = Demand.kr(trig, 0, Dseq(seqlvl,inf));
-	endpos = Demand.kr(trig, 0, Dseq(seqlvl.rotate(-1),inf));
-	phase = Phasor.ar(1, rate:(endpos - startpos) * trigRate/SampleRate.ir,start:startpos,end:endpos, resetPos:startpos);
-	startpos.poll(label:"startpos");
-	endpos.poll(label:"endpos");
-	phase.poll(label:"phase");
-	//[startpos, endpos, phase].poll(label:["phase","ss"]);
-	Out.kr(BusDef(\bla), phase);
-	sig = SinOsc.ar(freq * ( phase + 1 ));
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-BusDef(\bla, \control, 1).plot(6)
-(0..12).rotate(-1)
-
-
-(
-Ndef(\zzz, { arg freq=200, pan=0, amp=0.1;
-	var sig;
-	var phase;
-	var seqlvl = [3,2,3,2,0,1,0,10];
-	var seqbuf = LocalBuf.newFrom(seqlvl);
-	var mod;
-	phase = Phasor.ar(1, rate:1/SampleRate.ir,start:0,end:seqlvl.size-1);
-	//phase.poll(label:"phase");
-	mod = IndexL.ar(seqbuf, phase );
-	mod.poll(label:"mod");
-	Out.kr(BusDef(\bla), mod);
-	sig = SinOsc.ar(freq * ( mod + 1 ));
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-(
-Ndef(\zzz, { arg freq=200, pan=0, amp=0.1, seqbuf;
-	var sig;
-	var phase;
-	//var seqlvl = [3,2,3,2,0,1,0,10];
-	//var seqbuf = LocalBuf.newFrom(seqlvl);
-	var mod;
-	phase = Phasor.ar(1, rate:1/SampleRate.ir,start:0,end:BufSamples.kr(seqbuf)-1);
-	//phase.poll(label:"phase");
-	mod = IndexL.ar(seqbuf, phase );
-	mod.poll(label:"mod");
-	Out.kr(BusDef(\bla), mod);
-	sig = SinOsc.ar(freq * ( mod + 1 ));
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-BufDef(\seq2, 10, 1)
-
-(
-WindowDef(\win, { arg def;
-	var buf = BufDef(\seq2);
-	MultiSliderView.new.action_({
-		buf.setn
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
 		
-	});
-	Param(buf, \val).asView;
-	
-}).front;
+		~kick0Loop = Pbind(
+			\instrument, \kick0,
+			\dur, 1.0/8,
+			\amp, 1,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 1,0,1,0,
+			],inf).coin.not,
+			\out, ~drumBus,
+		),
+		Pmono(\bus2x2,
+			\inbus, ~drumBus,
+			//\out, ~masterBus,
+			\out, 0,
+			\addAction, \addToTail,
+			\lag, 0.0008,
+			\dur, 1,
+		),
+	])
+)).play;
 );
 
 
-(
-
-SynthDef(\test, {
-    var steps = \steps.kr(0.1!5);
-    var rytm = TDuty.ar(Dseq(steps.normalizeSum * 0.5, inf));
-    var value = Demand.ar(rytm, 0, Dseq([8, 2, 1, 8, 5], inf));
-
-    Out.ar(0, SinOsc.ar( (60 + value).midicps));
-}).add;
-
-Synth(\test, [
-    steps: [0.2,0.2,0.2,0.5,0.5], 
-])
-
-);
-
+//////////
 
 (
-
-SynthDef(\test, {
-    var steps = \steps.kr(0.0!16);
-    var size = \size.ir(1);
-    var rytm = TDuty.ar(Dseq(Dser(steps,size),inf) * 2, inf);
-    var value = Demand.ar(rytm, 0, Dseq([0, 2, 4, 8, 10], inf));
-
-    Out.ar(0, SinOsc.ar((60 + value).midicps) * -20.dbamp ! 2);
-}).add;
-
-Synth(\test, [
-    size: 5,
-    steps: [1,4].normalizeSum,
-])
-
-);
-
-Quarks.checkForUpdates({Quarks.install("SuperDirt", "v1.7.3"); thisProcess.recompile()})
-
-
-Synth(\default)
-
-[1] ++ [2,3]
-[1] ++ 2
-
-~scalesBuffers = [];
-
-~mothra = { | mode 0 offset 36 |
-    var modes = [
-        Tuning.new(#[ 0, 2.31, 4.64, 6.98, 9.29, 11.68 ]),
-        Tuning.new(#[ 0, 2.31, 4.64, 6.98, 9.29, 9.68 ]),
-        Tuning.new(#[ 0, 2.31, 4.64, 6.98, 7.35, 9.68 ]),
-        Tuning.new(#[ 0, 2.31, 4.64, 5.03, 7.35, 9.68  ]),
-        Tuning.new(#[ 0, 2.31, 7.21, 5.03, 7.35, 9.68 ]),
-        Tuning.new(#[ 0, 0.39, 7.21, 5.03, 7.35, 9.68 ]),
-    ];
-    modes.do { |mothra|
-        var scale = Scale([0,1,2,3,4,5], 6, mothra).cents / 100;
-
-        ~scalesBuffers = ~scalesBuffers ++ Buffer.loadCollection(s, [0,1,2,3]);
-    };
-    ~scalesBuffers;
-};
-
-~mothra.value()[0].postln;
-~scalesBuffers
-
-
-// in the style of Autechre - Mirrage
-// https://www.youtube.com/watch?v=rXQ9sNRcHYE
-
-(
-{
-	var note, snd, delaytime, damp, size, diff, feedback, localout;
-	note = Demand.kr(Impulse.kr(0) + Dust.kr(0.1), 0, Diwhite(60, 80, inf));
-	delaytime = Demand.kr(Impulse.kr(0) + Dust.kr(0.3), 0, Dwhite(0.1, 0.3, inf));
-	damp = Demand.kr(Impulse.kr(0) + Dust.kr(0.4), 0, Dwhite(0.2, 0.6, inf));
-	size = Demand.kr(Impulse.kr(0) + Dust.kr(0.3), 0, Dwhite(2, 10, inf));
-	diff = Demand.kr(Impulse.kr(0) + Dust.kr(0.2), 0, Dwhite(0.5, 1.0, inf));
-	feedback = Demand.kr(Impulse.kr(0) + Dust.kr(0.4), 0, Dwhite(0.8, 1.0, inf));
-	snd = SinOsc.ar(freq: [note, note+LFNoise1.kr(freq: 0.1).range(-0.25, 0.25)].midicps);
-	localout = Mix.ar(5.collect({ |i|
-		Pan2.ar(
-			in: Greyhole.ar(in: PitchShift.ar(in: snd, pitchRatio: i), delayTime: delaytime, damp: damp, size: size, diff: diff, feedback: feedback, modDepth: 0.1, modFreq: 5),
-			pos: LFNoise1.ar(freq: TRand.ar(10.reciprocal, 1, Impulse.kr(8.reciprocal))).range(-1,1),
-			level: (i+1).reciprocal
-		) * -20.dbamp;
-	}));
-	localout = Compander.ar(in: localout, control: localout, thresh: -6.dbamp, slopeAbove: 3.reciprocal);
-	LocalOut.ar(localout);
-	snd = LocalIn.ar(2);
-	snd.tanh;
-}.play;
-)
-
-
-
-Quarks.install("https://github.com/madskjeldgaard/plugins.quark")
-Plugins.gui
-
-AnalogBassDrum
-
-
-(
-Ndef(\stormofkicks, { 
-    var trig = Impulse.kr(1);
-    var sig = AnalogBassDrum.ar(
-        trig, 
-        infsustain: 0.002, 
-        accent: 0.05, 
-        freq: Duty.kr(1/~t, 0, Dseq([
-        	30,32,25,28
-        ].midicps,inf)),
-        //tone: TRand.kr(0.05,0.2,trig), 
-        tone: 0.01,//TRand.kr(0.5,1.0,trig), 
-        decay: 20.05, 
-		attackfm: 0.0001,//TRand.kr(0.1,1.0,trig),
-        //attackfm: TRand.kr(0.001,0.1,trig),
-        //selffm:TRand.kr(0.0,3.1,trig) 
-    ) * 13;
-
-    Pan2.ar(sig, TRand.kr(-1.0,1.0,trig));
-}).play;
-)
-NonlinearFilter
-
-
-// Lowpass with ahypsin saturation
-(
-{
-    var freq=550, q=0.5, gain=1, shape=5, saturation=4;
-    var sig = PinkNoise.ar();
-    NonlinearFilter.ar(sig, freq.poll, q, gain, shape, saturation)!2 * 0.5;
-}.play
-)
-
-// Highpass with hard saturation
-(
-{
-    var freq=1000, q=0.5, gain=1, shape=4, saturation=1;
-    var sig = PinkNoise.ar();
-    NonlinearFilter.ar(sig, freq.poll, q, gain, shape, saturation)!2 * 0.5;
-}.play
-)
-
-// Fucked up EQ:
-// Bell shape filter with hyptan saturation
-(
-{
-    var q=0.95, gain=7, shape=0, saturation=3;
-    var sig = PinkNoise.ar();
-    var freq = SinOsc.kr(0.1).exprange(100.0,5500.0).poll;
-    NonlinearFilter.ar(sig, freq.poll, q, gain, shape, saturation)!2 * 0.5;
-}.play
-)
-
-// Notch shape filter with ahypsin saturation
-(
-{
-    var q=0.95, gain=7, shape=1, saturation=4;
-    var sig = PinkNoise.ar();
-    var freq = SinOsc.kr(0.1).exprange(100.0,5500.0).poll;
-    NonlinearFilter.ar(sig, freq.poll, q, gain, shape, saturation)!2 * 0.5;
-}.play
-)
-PhasorModal
-(
-	Ndef(\phasormodal, { |pitchstretch=(-0.1), f0=80|
-		var amountVoices = 32;
-
-		var sig = Splay.ar(
-			Array.fill(amountVoices, {|i|
-				PhasorModal.ar(
-					LPF.ar(Dust2.ar(i+1 / 3.0), 1500), 
-					freq: (i+1)*(pitchstretch+1)*f0, 
-					decay: rrand(0.225,0.35), 
-					damp: 1.0, 
-					amp: LFNoise2.kr(1).range(0.25,0.45), 
-					phase: 0
-
-				);
-			}).scramble, 
-			spread: LFNoise2.kr(0.1).unipolar,
-			center: 0
-		);
-
-		sig
-	}).mold(2).play
-
-)
-
-Rongs
-
-(
-Ndef(\c, {|pan=0.0, trigfreq=4|
-    var trig = Dust2.kr(trigfreq);
-
-    var sig = Rongs.ar(
-        trig,
-        sustain: trig,
-        f0: TExpRand.kr(50.0,500.0, trig),
-        structure: TRand.kr(0.0,0.99,trig),
-        brightness: TRand.kr(0.6,0.99,trig),
-        stretch: TRand.kr(0.1,0.99,trig),
-        damping: 0.5,
-        //damping: TRand.kr(0.5,0.85, trig),
-        accent: 0.99,
-        loss: 0.1
-    );
-
-    Splay.ar(LeakDC.ar(sig), spread: 0.25, center: pan);
-}).play;
-)
-
-// Want more mayhem?
-(
-
-Ndef(\c).copy(\c2).set(\pan, 0.285).play;
-Ndef(\c).copy(\c3).set(\pan, (-0.2855285)).play;
-)
-
-// A synth def
-(
-SynthDef.new(\rongsinator, {|out, amp=0.25, pan=0, sustainTime=0.01, f0=100.05, structure=0.5, brightness=0.5, damping=0.75, accent=0.9, harmonicstretch=0.5, position=0.15, loss=0.15|
-    var trig = Trig.kr(1, dur: sustainTime);
-
-    var modeNum=2, cosFreq=0.025;
-    var sig = Rongs.ar(
-        trigger:trig,
-        sustain:trig,
-        f0:f0,
-        structure:structure,
-        brightness:brightness,
-        damping:damping,
-        accent:accent,
-        stretch:harmonicstretch,
-        position:position,
-        loss:loss,
-        modeNum:modeNum,
-        cosFreq:cosFreq
-    );
-
-    DetectSilence.ar(in: sig, amp: 0.0001, time: 0.1, doneAction: 2);
-    sig = Pan2.ar(sig, pan);
-    Out.ar(out, sig);
-}).add;
-)
-
-// Trig it once
-Synth(\rongsinator, [\damping, 0.5])
-
-// Play pattern
-(
-Pdef('🌻',
-    Pbind(
-        \instrument, \rongsinator,
-        \amp, 0.20,
-        \pan, Pwhite(-1.0,1.0),
-        \f0, Pwhite(100,500),
-        \dur, 0.125,
-        \structure, Pseg([0.1,1.0], 5, \lin, inf),
-        \brightness, 0.5,
-        \damping, Pseg([0.65,0.30], 13, \lin, inf),
-        \accent, 0.69,
-        \harmonicstretch, 0.0151,
-        \position, Pseg([0.6,0.0], 8, \lin, inf),
-        \loss, 0.15,
-        \modeNum, 3,
-        \cosFreq, 0.15,
-    )
-).play
-)
-
-VosimOs
-
-
-~s = Pseq((1..10),inf).asStream;
-~s.value
-~s
-
-Pchain
-
-~e = (bla: Pseq((1..10),inf).asStream).asStream
-~e = (bla: Pseq((1..10),inf)).asStream
-~e.next((bla:1))
-
-p = Pseq([
- (note: 0, dur: 0.5),
- //(note: 2, dur: 0.75),
- //(note: 3, dur: 0.25),
-], inf);
-x = (p <> (ctranspose: Pseq([-12, 0, 12], inf).asStream)).trace.play;
-
-
-~x = (freq: 1000)
-~x.play
-~x.next
-~x
-
-~x = (freq: Prand([200,1000]))
-~x = (freq: Prand([200,1000],inf).asStream)
-~x = (freq: Prand([200,1000],inf).asStream).asStream
-
-~x = Pseq([ (freq: Prand([200,1000],inf).asStream) ],inf);
-~x = Pseq([ (freq: Pseq([200,1000],inf)) ],inf);
-
-
-p = Pbind(\note, 0);
-x = (p <> (ctranspose: Pseq([-12, 0, 12], inf).asStream)).trace.play;
-~s = (p <> (ctranspose: Pseq([-12, 0, 12], inf).asStream))
-~s = (p <> (ctranspose: Pseq([-12, 0, 12], inf).asStream)).asStream
-~s.next.play
-
-
-(
-	var freq1 = rrand(200,400);
-	var freq2 = freq1 * 1.5;
-	var freq3 = freq2 * 2.25;
-	{LFPulse.ar(100)}.play;
-	{LFPulse.ar(100)}.play;
-	{LFPulse.ar(100)}.play;
-)
-
-(
-var freq1 = rrand(200,400);
-var freq2 = freq1 * 1.5;
-var freq3 = freq2 * 2.25;
-{LFPulse.ar([freq1,freq1],0,MouseX.kr(0.5,0.125),MouseY.kr(0,0.33))}.play;
-{LFPulse.ar(100,0,MouseX.kr(0.5,0.125),MouseY.kr(0,0.33))}.play;
-{LFPulse.ar(100)}.play;
-)
-
-"\033[2J]".postln
-27.asAscii
-"%[2J".format(27.asAscii).postln
-0x33
-
-(
-	var freq1 = rrand(200,400);
-	var freq2 = freq1 * 1.5;
-	var freq3 = freq2 * 2.25;
-	{LFPulse.ar([freq1,freq1],0,MouseX.kr(0.5,0.125),MouseY.kr(0,0.33))}.play;
-	{LFPulse.ar([freq2,freq2],0,MouseX.kr(0.5,0.125),MouseY.kr(0,0.33))}.play;
-	{LFPulse.ar([freq3,freq3],0,MouseX.kr(0.5,0.125),MouseY.kr(0,0.33))}.play;
-)
-// 310
-
-
-(
-var freq1 = rrand(200,400);
-var freq2 = freq1 * 1.5;
-var freq3 = freq2 * 2.25;
-{LFPulse.ar(freq:[freq1,freq1],width:MouseX.kr(0.5,0.125),mul:MouseY.kr(0,0.33))}.play;
-{LFPulse.ar(freq:[freq2,freq2],width:MouseX.kr(0.5,0.125),mul:MouseY.kr(0,0.33))}.play;
-)
-// 255
-
-(
-	"hello this is long line to test char limit, why oh why it doesn't work, please tell me why this error".postln;
-	"hello this is long line to test char limit, why oh why it doesn't work, please tell me why this error".postln;
-	"hello this is long line to test char limit, why oh why it doesn't work, please tell me why this error".postln;
-)
-
-
-
-(
-{
-    var volume, input;
-    
-    volume = Select.kr(MouseX.kr < 0.2, [0, (MouseX.kr - 0.2) / 0.8]);
-    
-    input = ((PinkNoise.ar * (1 - volume)) + (BrownNoise.ar * volume))*0.3;
-
-    (Pan2.ar(input));
-
-}.play
-)
-
-
-(
-SynthDef.new(\singat2,
-    {
-        arg freq=440, amp=0.5, pos=0,
-        
-        num=2, wid=0.4;
-        var snd;
-
-        snd = SinOsc.ar(463, pi/2);
-
-
-		snd = snd * LFPulse.kr(444, 0.3).poll;
-		snd = snd * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), \gate.kr(1), doneAction:2);
-        snd = Pan2.ar(snd, pos, amp);
-        Out.ar(0, snd);
-}).add;
-)
-~s = Synth.new(\singat2);
-~s.release
-~s.stop
-~s.free
-~s.release
-Synth.new(\singat2);
-1/0
-sqrt(-2)
-
-
-(
-SynthDef.new(\singat,
-    {
-        arg freq=440, c=24, r=0.5, amp=1;
-        var snd;
-
-        snd = SinOsc.ar(463, pi/2);
-
-
-        snd = Compander.ar(snd, snd, Pulse.kr(12, 0.3).abs+0.1, 10, 2, c, r);
-
-        Out.ar(0, snd);
-}).add;
-)
-
-Synth.new(\singat, [\c, rrand(1, 44), \r, rrand(0.1, 1.7)]);
-
-
-// https://audio-video.gnu.org/video/stallman_free_software_song_320x240.ogv
-
-(
-
-// Free(hack).share(us.join[now]);
-SynthDef(\iGNUcius, {
-    var 
-        freq, amp, 
-                  gate, osc, 
-                                lfo, out, 
-                                            aenv, filterEnv, 
-                                                       bus, resoFilter, 
-                                                                      bowNoise;
-    
-   // [hackers]:free.be(ll), you!help(software).share;
-    freq = \freq.kr(440);
-    amp = \amp.kr(0.5);
-    gate = \gate.kr(1);
-    bus = \bus.kr(0);
-    
-    // piles.of(can.get)hoarders.money,is[true];
-    osc = Pulse.ar([freq, freq*2], LFNoise1.kr(0.5!2).range(0.1, 0.9)) +
-          Pulse.ar([freq*3, freq], LFNoise1.kr(0.5!2).range(0.1, 0.9));
-
-    // neighbors.their(help).but!cannot; true.is[that];
-    lfo = SinOsc.kr(\lfoFreq.kr(0.5)).range(-0.05, 0.05) * \lfoDepth.kr(1);
-    bowNoise = WhiteNoise.ar(0.15) * EnvGen.kr(Env.perc(0.01, 0.1), gate); 
-
-    // enough(when).software.free.have[we], call.our[at];
-    out = (osc + bowNoise) * (1 + lfo);
-    aenv = EnvGen.ar(Env.adsr(0.05, 0.2, 0.9, 0.5), gate, doneAction: Done.freeSelf) * amp;
-    filterEnv = EnvGen.kr(Env.adsr(0.01, 0.3, 0.7, 0.5), gate);
-
-    // dirty.those(licenses).kick[we'll] out.ever.more;
-    resoFilter = RLPF.ar(out, freq * \filterMul.kr(4) * filterEnv, \resonance.kr(0.4));
-    out = RHPF.ar(resoFilter, 100) * aenv;
-
-    // be.free, hackers.you'll.join(us).now[and];
-	Out.ar(bus, DFM1.ar(out));
-    //Out.ar(bus, out);
-}).add;
-
-)
-
-(
-// software.free.and.share(us.join[now]);
-p = Pbind(
-    \instrument, \iGNUcius,
-    \octave, Prand([2, 3], inf),
-    
-    // call.at[hackers].our, have(we).free;
-    \degree, Pseq([2, 1, 0, -1, 0, 1, 0, -1, -2, -2, -1, 0, 1, 0, 2, -1, -1, 2, 1, 0, 2, 1, 0, -1, 0, 1, 0, -1, -2, -2, -1, 0, 1, 0, 2, -1, -1, -1], inf),
-    \dur, Pseq([0.5, 0.25, 0.5, 0.5, 0.5, 0.25, 0.25, 0.25, 0.5, 0.75, 0.75, 0.25, 0.75, 0.5, 0.5, 0.75, 1.5, 0.5, 0.25, 1, 0.5, 0.25, 0.5, 0.5, 0.5, 0.25, 0.25, 0.25, 0.5, 0.75, 0.75, 0.25, 0.75, 0.5, 0.5, 0.75, 1.25, 1.5], inf)
-);
-
-// be.free[hackers].you'll.share(software).join;
-p.play;
-)
-1/0.75
-1/1.5
-
-
-(
-{
-
-	2.do{
-		{BPF.ar (WhiteNoise.ar, [73,81].midicps, 1e-4, Env.sine(10,50).kr(2)).sum!2}.play; gauss (7,0.2).wait;
-		{BPF.ar (WhiteNoise.ar, [71,80].midicps, 1e-4, Env.sine(10).kr(2)).sum!2*50}.play; gauss (7,0.2).wait;
-		{BPF.ar (WhiteNoise.ar, [69,78].midicps, 1e-4, Env.sine(10).kr(2)).sum!2*50}.play; gauss (7,0.2).wait;
-		{BPF.ar (WhiteNoise.ar, [68,80].midicps, 1e-4, Env.sine(10).kr(2)).sum!2*50}.play; gauss (7,0.2).wait;
-}
-}.fork
-)
-
-
-
-
-(
-Pdef(
-		\mySound,
-		Pbind(
-					\dur, Pn(Plazy({ ~myRhythmValues  }))
-						
-		)
-
-).play
-)
-
-~myRhythmValues = Pseq( [0.1,0.1,0.1], 1);
-~myRhythmValues = Pseq( [1,1,1,1], 1);
-~myRhythmValues = 1
-  
-
-(
-Pdef(
-		\mySound,
-		Pbind(
-					\degree, Pn(Plazy({ ~myRhythmValues  }))
-						
-		)
-
-).play
-)
-
-
-(
-SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+Ndef(\zedy, { arg freq=200, pan=0, amp=0.1;
 	var sig;
-	var input;
-	input = MouseX.kr(50,200) * MouseButton.kr(0,lag:0);
-	//input = Gate.kr(DelayL.kr(input,0.2,0.01), input > 10.1);
-	input = Gate.kr(input, input > 0);
-	input.poll;
-	sig = SinOsc.ar(input);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	var changed;
+	var env;
+	var value, time;
+	value = \value.kr(2);
+	time = \time.kr(4);
+	changed = Changed.kr(value) + Changed.kr(time);
+	env = EnvGen.kr(Env([1,value],[time]), changed);
+	sig = SinOsc.ar(freq * env);
 	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-Pdef(\zed).reset;
+}).play;
 );
 
+Ndef(\zedx).set(\value, 4)
+Ndef(\zedx).set(\time, 3.4)
+Ndef(\zedx).set(\time, 0.4)
+
+
+
+
 (
+// \degree and \ctranspose
+// since we use ctranspose instead of mtranspose, every chord is major
+// does not follow scale
 Pdef(\zed, 
-	Pmono(
-		 \zed,
-		\degree, Pseq([0],inf),
-		\dur, 1,
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,2,4,0],inf),
+		\mtranspose, Pseq([0,2,4,5],inf).stutter(4),
+		\dur, 1/4,
 		\amp, 0.1,
-	)
+	).trace
 ).play;
 );
-
-
-{ MouseButton.kr }.plot(2)
-
+.gtranspose
 
 (
-~infSeries = {
-   |n|
-   // Return the nth value in Noergaard's infinity series.
-   // More info: https://oeis.org/A004718
-   if(n <= 0){
-      0
-   }{
-      if(n.asInteger.even){
-         ~infSeries.value(n / 2) + -1
-      }{
-         ~infSeries.value(n - 1 / 2) + 1
-      }
-   }
-};
-)
-
-~infSeries.(1024)
-~infSeries.dup(1024)
-.set
-
-
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \default,
-			\count, Pseries(0,1,1000),
-			\degree, Pfunc({ arg ev;  ~infSeries.(ev[\count])}),
-			\octave, 4,
-			\dur, 1/4,
-			\amp, 0.1,
-		),
-		
-	])
-)).play;
+// \degree and \ctranspose
+// since we use ctranspose instead of mtranspose, every chord is major
+// does not follow scale
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,2,4,0],inf),
+		\ctranspose, Pseq([0,2],inf).stutter(4),
+		\dur, 1/4,
+		\amp, 0.1,
+	).trace
+).play;
 );
-
-Pdef.defaultQuant
-
-
-(
-Ndef(\soundin, { arg freq=200, pan=0, amp=0.1;
-	var sig;
-	sig = SoundIn.ar([0,1]);
-	sig = sig * \gain.kr(1);
-	//sig = sig * ( LFSaw.kr( LFNoise0.kr(1).unipolar * 5600 ) * 1 + 1 );
-}).play(BusDef(\soundin, \audio, 2).index, 2);
-);
-Ndef(\soundin).play(0,2)
-Ndef(\soundin).edit;
-{ SinOsc.ar(500) ! 2 * 0.1}.play;
-
-
-48.90.midicps == 137.79
-53.70.midicps == 181.81
-56.45.midicps == 213.12
-
-( [48,53,56]%12+10 ).midiratio * 77
-
-(
-~list = [
-[ 0.0077703297138214, 48.910087585449  ],
-[ 0.017483713105321, 53.690689086914  ],
-[ 0.020635280758142, 61.197845458984  ],
-[ 0.023812716826797, 53.585838317871  ],
-[ 0.023903254419565, 61.478565216064  ],
-[ 0.025951128453016, 61.263679504395  ],
-[ 0.026071844622493, 57.730617523193  ],
-[ 0.026369325816631, 56.46821975708  ],
-[ 0.030202079564333, 48.893745422363  ],
-[ 0.03471602126956, 46.843811035156  ],
-[ 0.034953143447638, 45.754936218262  ],
-[ 0.035043682903051, 46.526725769043  ],
-[ 0.038160759955645, 56.449726104736  ],
-[ 0.041251968592405, 48.911476135254  ],
-[ 0.042825598269701, 45.746288299561  ],
-[ 0.052508804947138, 48.907501220703  ],
-];
-)
-
-~x = ~list.collect({ arg x; x[1]*5 })
-48.90/5
-53.70/5
-
-11.1 5.4
-11.1 * x = int(y)
-:wc
-
-
-Event.partialEvents
-Event.parentEvents.keys
-Event.partialEvents[\mypartial] = (\sp: { arg self; self.debug("self"); 444 })
-
-~de = Event.parentEvents.default
-~de[\buf] = { [~sp, ~n].debug("should return a buffer"); 0 }
-Event.parentEvents.default[\freq].asCompileString
-Event.parentEvents.default[\sp].asCompileString
-
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \bla,
-			\sp, 123,
-			\freq, 200,
-			\dur, 1,
-			\amp, 0.1,
-		),
-		
-	])
-)).play;
-);
-
-(
-SynthDef(\bla, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, buf;
-	var sig;
-	sig = SinOsc.ar(buf.poll);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-
-(
-Tdef(\bla, { arg ev;
-	loop { 0.5.wait;
-		(instrument: 'default', sustain: 2, octave: [3,3.99]-1, note: [7, 3, 0, 5].choose, out:ev[\out]).play;
-		0.5.wait;
-		(instrument: 'default', sustain: 2, octave: [4,3.99]-1, note: [5, 12, 12+5, 12+7].choose, out:ev[\out]).play;
-		1.wait;
-	};
-})
-)
-Tdef(\bla).play
-Tdef(\bla).set(\out, BusDef(\bla, \audio, 2))
-
-~mybus
-(
-Ndef(\foo, { InFeedback.ar(\inbus.kr(BusDef(\bla, \audio)), 2);  }).play;
-);
-~y[10] = \filter -> {arg in; JPverb.ar(in, size: 20)};
-Ndef(\foo)[10] = \filter -> {arg in; JPverb.ar(in, size: 20)};
-~y.set(\wet10, 1);
-
-~myfxbus = BusDef(\bla, \audio)
-Ndef(\foo, { InFeedback.ar(\inbus.kr(~myfxbus), 2);  }).play;
-Ndef(\foo)[10] = \filter -> {arg in; JPverb.ar(in, size: 20)};
-
-Ndef(\foo, { In.ar(\inbus.kr(~myfxbus), 2);  }).play;
-Ndef(\foo)[10] = \filter -> {arg in; JPverb.ar(in, size: 20)};
-
-
-
-
-
-
-// -- SynthDefs --
-(
-SynthDef(\beep, {
-    arg amp;
-    var sig, env;
-
-    sig = 4.collect({ |i|
-        FSinOsc.ar(i.linlin(0,3,800,1400, 80));
-    });
-
-    sig = RLPF.ar(sig, 400);
-
-    env = EnvGen.kr(
-        Env.perc(),
-        \gate.kr(1),
-        doneAction:2,
-    );
-
-    sig = sig * env;
-    sig = RLPF.ar(sig, 400);
-
-    sig = sig * amp;
-    Out.ar(0, sig!2);
-}).add;
-// Synth(\beep, [\amp:1.75]);
-
-SynthDef(\error, {
-    arg amp=0.5, freq=200;
-    var sig, env;
-
-    sig = LFTri.ar(freq);
-    sig = sig + LFPar.ar(freq-(7.midicps));
-
-    env = EnvGen.kr(
-        Env.perc(),
-        \gate.kr(1),
-        doneAction:2,
-    );
-
-    sig = RLPF.ar(sig, 900);
-    sig = sig *env;
-    sig = sig * amp;
-
-    Out.ar(0, sig!2);
-}).add;
-// Synth(\error);
-
-SynthDef(\inc, {
-    arg amp, freq=200;
-    var sig, env;
-
-    sig = LFTri.ar(freq);
-
-    env = EnvGen.kr(
-        Env.asr(0,1,0),
-        \gate.kr(1),
-        doneAction:2,
-    );
-
-    sig = RLPF.ar(sig, 200);
-
-    Out.ar(0, sig!2);
-}).add;
-// Synth(\inc);
-)
-// -- main fun --
-(
-// window dimensions for function calculation
-var left=1400, top=500, width=500, height=500;
-Window.closeAll;
-w = Window.new(
-    "sc-win: Function plotter",
-    Rect(1400,500,500,500),
-    resizable: false,
-).front;
-
-u=UserView.new(w, w.view.bounds)
-.background_(Color.gray(0.1));
-
-~count=0;
-~continue=0;
-~finalpoint;
-~inc_synth=Synth(\inc,[freq:200]);
-u.drawFunc_({
-
-    var target = 415@85;
-    var x, y;
-
-
-    Pen.width_(4);
-
-    //- draw target -
-    Pen.moveTo(target);
-    Pen.lineTo(target - (0@1));
-    Pen.moveTo(target);
-    Pen.lineTo(target + (1@(-1)));
-    Pen.moveTo(target);
-    Pen.lineTo(target - (1@(-1)));
-    Pen.moveTo(target);
-
-    Pen.strokeColor_(Color.new(1, 1, 1, 1));
-    Pen.stroke;
-
-    if(~continue==0) // -- step 1 -- (getting to final point)
-    {
-        x = ~count;
-        y = top - ~count;
-
-
-
-        //moves pen to bottom before starting line to point
-        Pen.moveTo(0@top);
-        Pen.width_(4);
-
-
-        if( (x@y) != (target) ) //if point isnt match to x@y, update pen position
-        {
-            Pen.strokeColor_(Color.new(1, 1, 1, 1));
-            Pen.lineTo(x@y);
-            (x@y).postln;
-
-            ~inc_synth.set(\freq, (200+~count));
-        }
-        { // else if point is match to x@y
-
-            Pen.lineTo(x@y);
-            "=== POINT MATCH ===".postln;
-
-            //set continue to zero to move to step 2
-            ~continue=1;
-
-            ~finalpoint = (x@y);
-            ~finalpoint.postln;
-
-            ~inc_synth.free;
-            Synth(\beep, [\amp,0.85]);
-        };
-        if( y < 0 ) // if line goes out of bounds
-        {
-            ~continue=2;
-
-            ~finalpoint = (x@y);
-            ~finalpoint.postln;
-
-            ~inc_synth.free;
-            Synth(\error, [\amp,0.85]);
-
-            Pen.stroke;
-        };
-
-    };
-
-    if(~continue > 0) // -- step 2 -- (permanently draw final line)
-    {
-        // ~finalpoint.postln;
-
-        if(~continue == 1)
-        {
-            Pen.strokeColor_(Color.new(0, 1, 0, 1));
-        };
-        if(~continue == 2)
-        {
-            Pen.strokeColor_(Color.new(1, 0, 0, 1));
-        };
-
-        Pen.moveTo(0@top);
-        Pen.lineTo(~finalpoint);
-        Pen.stroke;
-    };
-
-
-    //applies transformations, updates pen position
-    Pen.stroke;
-    Pen.moveTo(0@top);
-
-    // -- counter increment = plotter speed --
-
-    //count success
-    ~count = ~count+5;
-
-    //count fail
-    ~count = ~count+10;
-});
-
-u.animate_(true);
-)
-
 
 (
 Pdef(\melo, 
@@ -1567,206 +392,1474 @@ Pdef(\melo,
 ProtoDef(\piano).startControl(Pdef(\melo))
 
 
-////////
 
 
 (
-SynthDef(\sawbasseli, {
-    var env, sig;
-    env = EnvGen.kr(Env.perc(0.001, 2, [0,1,0], [-3,50]),doneAction:2);
 
-    sig = Saw.ar(\freq.kr(123));
-    sig = RLPF.ar(sig, \cutoff.kr(350));
-    sig = CombC.ar(sig, 1, 0.125, \decay.kr(1));
+s.waitForBoot({
 
-    sig = sig * env;
+	SynthDef(\farEnough, {
+		arg pitch, freq=70, addFreq=17, attack=1, release = 12;
+		var sig, sig1, saws, env, shapeEnv, local, local2;
+		sig =
+		Mix.new(
+			Array.fill(8,
+				{SinOsc.ar(freq + addFreq.rand, 0.95.rand, 0.03)}));
 
-     sig = Pan2.ar(sig, 0, \amp.kr(1.2));
+		env = EnvGen.kr(
+			Env.perc(attack, release ),
+			doneAction:2);
+		sig1 = sig + (sig *
+			Mix.new(
+				Array.fill(8,
+					{SinOsc.ar(0.02, 0.7.rand, LFNoise1.kr(0.02, 0.08))})));
 
-    Out.ar(\out.kr(0), sig);
-}).add;
-~bus = ~bus ?? { Bus.control };
-~scale = Buffer.sendCollection(s, [0,1,3,7,9]);
+		sig = sig * env;
+		sig1 = sig1 * env;
+
+		sig = PitchShift.ar(sig, 0.1, SinOsc.kr(pitch.rrand(0.1, 0.2), 3.2.rand, 0.9, 3));
+		sig1 = PitchShift.ar(sig1, 0.1, SinOsc.kr(pitch.rrand(0.1, 9.2), 0, 0.9, 3));
+
+		saws = Mix.new(
+			Array.fill(8,
+				{LFSaw.ar(\sawFreq.ir(4000) + addFreq.rand, 0.9.rand, 0.02)}));
+		shapeEnv = EnvGen.kr(Env([0.1, 0.02, 0.8, 0.0], [1, 5, 3 , 2]));
+
+		saws = saws * shapeEnv;
+		saws = saws * env;
+
+		local = LocalIn.ar(2) + [sig+sig1, sig1+sig];
+		local = DelayN.ar(local, 0.8, [0.3, 0.33.rand]);
+		local2 = LocalIn.ar(2) + [saws, saws];
+		local2 = DelayN.ar(local2, 0.8, [0.02, 0.02.rand]);
+		local = local + local2;
+
+		local = Compander.ar(
+			local, local,
+			0.2, slopeBelow: 1.3,
+			slopeAbove: 0.1,
+			clampTime:0.1,
+			relaxTime:0.01);
+		local = local.tanh;
+		local = HPF.ar(local, 70);
+		//local = BRF.ar(local, 260);
+		LocalOut.ar(local * 0.8);
+		Out.ar(0, local);
+
+	}).add;
+
+
+
+
+	SynthDef(\impul, {
+		arg freq = 1000;
+		var sig, sig1, env;
+		sig = Pan2.ar(
+			Mix.ar(
+				Array.fill(8,
+					{Impulse.ar(freq + 130.rand, 0.7.rand,
+						LFNoise1.kr(20, 0.2.rand))})), 0);
+		4.do({ sig = AllpassN.ar(sig, 0.050, [0.050.rand, 0.050.rand], 1) });
+		sig1 = sig * LFNoise1.ar(23, Dust2.kr(20));
+		4.do({ sig1 = AllpassN.ar(sig, 0.050, [0.050.rand, 0.050.rand], 1) });
+		env = EnvGen.kr(Env.perc(5, 20), doneAction:2);
+		sig = (sig  + sig1)*env;
+
+
+		Out.ar(0, sig);
+	}).add;
+
+
+
+
+	SynthDef(\f, {
+		arg pitch, addFreq=200;
+		var sig, sig1, env, local;
+		sig =
+		Mix.new(Array.fill(8,
+			{SinOsc.ar(\freq.ir(300) + addFreq.rand, 0.45.rand, 0.02)}));
+
+		env = EnvGen.kr(
+			Env.perc(
+				\attack.ir(0.1),
+				\release.ir(10)),
+			doneAction:2);
+
+		sig1 = sig + (sig * SinOsc.ar(30, 0.7.rand));
+
+		sig1 = sig1 * env;
+		sig = sig * env;
+		sig = PitchShift.ar(sig, 0.1, SinOsc.kr(pitch.rrand(0.1, 3.2), 0, 0.9, 3));
+
+		local = LocalIn.ar(2) + [sig+sig1, sig1+sig];
+		local = DelayN.ar(local, 0.8, [0.3, 0.33.rand]);
+		LocalOut.ar(local * 0.8);
+		Out.ar(0, local);
+	}).add;
+
+
+	SynthDef(\bur, {
+		arg freq=232, gate=10, dauer = 20, amp=1;
+		var sig, env, lastEnv;
+
+		sig = SinOsc.ar(freq);
+		env = EnvGen.kr(Env.perc, Impulse.kr(gate), doneAction:2);
+
+		sig = sig * env;
+		sig = Compander.ar(sig, sig, 0.2, 4.3, clampTime:0.1, relaxTime:0.001);
+		lastEnv = EnvGen.kr(Env([0, 1, 1, 0], [0.01, dauer, 3, 0.02]), doneAction:2);
+		sig = sig * lastEnv;
+		sig = sig * amp;
+		Out.ar(0, sig!2);
+	}).add;
+
+
+	s.sync;
+
+
+
+
+
+	s.record("home", 0, 2); //RECORD
+
+	fork{
+		for(1, 100000){arg i;
+			0.01.wait;
+			i = i/100;
+
+			i.postln;
+
+			if(i ==1){Synth(\farEnough, [\addFreq, 4,\attack, 4, \release, 10])};
+			if(i ==7){
+				Synth(\farEnough, [\addFreq, 21, \release, 13]);
+				Synth(\farEnough, [\addFreq, 20,\release, 10]);
+			};
+
+			if(i == 11){Synth(\farEnough, [\addFreq, 38,\release, 10])};
+			if(i == 17.77){Synth(\farEnough, [\addFreq, 43,\release, 16])};
+			if(i == 24){Synth(\farEnough, [\addFreq, 403,\attack, 6, \release, 16])};
+			if(i == 26.2){Synth(\farEnough, [\addFreq, 803,\release, 9])};
+			if(i == 29.6){Synth(\farEnough, [\addFreq, 2803,\release, 15])};
+
+			if(i == 29.9){Synth(\impul)};
+			if(i == 36.9){
+				Synth(\impul, [\freq, 700]);
+				Synth(\farEnough, [\addFreq, 12,\release, 12]);
+				Synth(\farEnough, [\addFreq, 17,\release, 14]);
+			};
+
+			if(i == 44.3){Synth(\impul, [\freq, 964])};
+
+			if(i == 47.2){Synth(\f)};
+			if(i == 52){Synth(\farEnough, [\addFreq, 2400,\release, 20])};
+			if(i == 61.3){
+				Synth(\impul, [\freq, 2904]);
+				Synth(\farEnough, [\addFreq, 240,\release, 20]);
+
+			};
+
+			if(i == 102.3){Synth(\f,
+				[\freq, 400 + 500.rand,
+					\attack, 6,
+					\release, 20
+			]);
+			};
+
+			if(i ==143){Synth(\farEnough, [
+				\addFreq, 2.1,
+				\attack, 14,
+				\release, 30]
+			)};
+
+
+
+		};
+
+
+	};
+
+	//another routine
+
+	fork{
+		"hello".postln;
+		62.wait;         ///////////after 62 SECs
+		2.do({
+			Synth(\f, [
+				\freq, 30 + 5.rand,
+				\addFreq, 3000.rand,
+				\attack, 14,
+				\release, 30
+			]);
+			10.wait;
+		});
+		10.wait;
+		"click".postc();
+
+
+		4.do({Synth(\bur, [
+			\freq, 230 + 30.rand,
+			\gate, [11, 2, 5, 9].choose,
+		]);
+		});
+		11.wait;
+
+		Synth(\f);
+		4.wait;
+
+		Synth(\f,
+			[\freq, 400 + 50.rand,
+				\attack, 6,
+				\release, 20
+			]
+		);
+
+		0.3.wait;
+
+
+
+		3.do({Synth(\bur, [
+			\freq, 230 + 30.rand,
+			\gate, [11, 2, 9].choose,
+			\dauer, 33,
+			\amp, [0.1, 0.8, 0.03].choose,
+		]);
+		});
+
+		14.wait;
+
+		2.do({Synth(\bur, [
+			\freq, 230 + 300.rand,
+			\gate, [3, 5].choose,
+			\dauer, 13,
+			\amp, [0.1, 0.8, 0.03].choose,
+		]);
+		});
+
+
+
+	};
+
+
+	113.wait; //113 seconds later
+
+	Synth(\f,
+			[\freq, 400 + 50.rand,
+				\attack, 16,
+				\release, 23
+			]
+		);
+
+	fork{
+		p=[
+			Pbind(\instrument, \bur,
+				\freq, 200 + 30.rand,
+				\dur, 0.09.rand,
+				\amp, Pfunc({[0.04, 0.6].choose}),
+				\dauer, 12
+			).play,
+
+			5.3.wait;
+
+			Pbind(\instrument, \bur,
+				\dur, 0.09,
+				\amp, Pfunc({[0.1, 0.6].choose}),
+				\dauer, 16
+			).play,
+
+			Pbind(\instrument, \bur,
+				\dur, 0.1,
+				\amp, Pfunc({[0.04, 0.6].choose}),
+				\dauer, 16
+			).play,
+
+		];
+
+		19.wait;
+		p[0].stop;
+		0.2.wait;
+		p[1].stop;
+		p[2].stop;
+
+
+
+	};
+
+
+	s.sync;
+});
 )
-// this func wont work!
+ProtoDef(\piano).startControl(Pdef(\melo))
 (
-{
-    var sig, index, pch, freq;
-
-    index = LFDNoise0.kr(7).range(0,1);
-    index = index * BufFrames.kr(~scale);
-    
-    // index.poll(7);
-    pch = DegreeToKey.kr(~scale, index) + 48;
-    freq = pch.midicps;
-    
-    freq.poll;
-    
-	Out.kr(~bus, freq);
-    //sig = Synth(\sawbasseli, [note: freq]);
-    // sig = LFTri.ar(freq, mul:0.2!2);
-}.play;
-Synth(\sawbasseli, [freq: ~bus.asMap]);
+Pdef(\melo, 
+	Pbind(
+		\instrument, \default,
+	)
 )
+);
 
-~scale
 
-
-//////////
-
-// synth
 (
-SynthDef(\sawbasseli, {
-    var env, sig;
-    env = EnvGen.kr(Env.perc(0.001, 2, [0,1,0], [-3,50]),doneAction:2);
-
-    // sig = Saw.ar(\note.kr(23).midicps);
-    
-    // sig gets frequency from bus 6
-    sig = Saw.ar(\freq.kr(100));
-
-    sig = RLPF.ar(sig, \cutoff.kr(350));
-    sig = CombC.ar(sig, 1, 0.125, \decay.kr(1));
-
-    sig = sig * env;
-
-    sig = sig * \amp.kr(1.2);
-
-    Out.ar(\out.kr(0), sig!2);
-}).add;
-)
-
-// scale synth sends freq into bus 6
-(
-~scale = Buffer.loadCollection(s, Scale.dorian.degrees);
-
-SynthDef(\scales, { arg out=0;
-    var sig, index, pch, freq;
-
-    index = LFDNoise0.kr(7).range(0,1);
-    index = index * BufFrames.kr(~scale);
-
-    // index.poll(7);
-    pch = DegreeToKey.kr(~scale, index) + 48;
-    freq = pch.midicps;
-    freq.poll;
-    
-    Out.kr(out, freq);
-}).add;
-)
-
-// test routine
-(
-Ppar([
-	Pmono(*[
-		\scales,
-		\out, ~bus,
-	]),
-	Pbind(*[
-		\instrument: \sawbasseli,
-		\freq, ~bus.asMap,
-		\dur: 0.25,
-		\cutoff: 550,
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
 	])
-]).play;
-)
+)).play;
+);
+
+2**250
+2**125
+
+1 / 25
+
+proba de tout rater
+( 1-0.77 )**25
+1-( ( 1-0.77 )**25 )
+1-( ( 1-0.73 )**25 )
+0.77**1.2
+250/12
+(1-)20.83
+1-( ( 1-0.77 )**1.9 )
+1-( ( 1-0.77 )**2 )
+
+250/6
+
+( 1-0.77 )**2
+
+1-( ( 1-0.77 )**2 )
+
+NoteTimeline(\bla).edit
 
 
-s.options.memSize = 8192 * 8;
+{ SinOsc.ar(5).unipolar.bipolar}.plot(1);
 
 
 (
-SynthDef(\grain, {|out = 0, freq = 100, attack = 0, decay = 1, sustain = 0.1, distort = 0, fTime = 0.1, fFac = 1.2, amp = 1, delay = 0|
-    var startFreq, endFreq, src, aEnv, fEnv;
-    
-    startFreq = fFac * freq;
-    endFreq = freq;
-    
-    aEnv = EnvGen.ar(Env.perc(attack, decay), timeScale: sustain, doneAction: 2, levelScale: amp);
-    fEnv = EnvGen.ar(Env([startFreq, endFreq], [fTime]));
-    src = SinOsc.ar(fEnv, 1, mul: 1 + distort).wrap2(1);
-    
-    Out.ar(out, DelayN.ar(src * aEnv!2, 0.1, delay) * 0.1)
+{ |out=0, freq, mul=512, vsweep=0.5, hold=0.25, release=0.25, amp=0.5, pan=0|
+    var p0, p1, p, freq0, freq1, freqEnv, sig;
+    p0 = 0.006699687;
+    p1 = 0.00001884606;
+    p = (1-vsweep)*p0 + (vsweep*p1);
+    freq1 = freq;
+    freq0 = freq1 * mul;
+    freqEnv = EnvGen.ar(Env([0,1], [1.0], [0]));
+    freqEnv = freq1 + ((freq0-freq1)/(1.0 + (freqEnv/p)));
+    sig = SinOsc.ar(freqEnv);
+    sig = sig * EnvGen.ar(Env([1,1,0], [hold,release], [0,0]), doneAction: Done.freeSelf) * amp;
+    sig = Pan2.ar(sig, pan);
+    Out.ar(out, sig);
+}.play(args: [freq: 25.midicps, vsweep: 0.914, hold: 0.18, release: 0.02]);
+)
+
+(
+{ |out=0, freq, mul=512, vsweep=0.5, hold=0.25, release=0.25, amp=0.5, pan=0|
+    var p0, p1, p, freq0, freq1, freqEnv, sig;
+	vsweep = 0.914; hold = 0.18; release = 0.02; freq=25.midicps;
+    p0 = 0.006699687;
+    p1 = 0.00001884606;
+    p = (1-vsweep)*p0 + (vsweep*p1);
+    freq1 = freq;
+    freq0 = freq1 * mul;
+	release.poll;
+    freqEnv = EnvGen.ar(Env([0,1], [1.0], [0]), 1);
+    //freqEnv = freq1 + ((freq0-freq1)/(1.0 + (freqEnv/p)));
+
+	[freqEnv, freqEnv/p, (1.0 + (freqEnv/p)), (freq0-freq1),((freq0-freq1)/(1.0 + (freqEnv/p))) ];
+}.plot(0.2,args: [freq: 25.midicps, vsweep: 0.914, hold: 0.18, release: 0.02]);
+)
+
+(
+{ |out=0, freq, mul=512, vsweep=0.5, hold=0.25, release=0.25, amp=0.5, pan=0|
+    var p0, p1, p, freq0, freq1, freqEnv, sig;
+	vsweep = 0.914; hold = 0.18; release = 0.02; freq=25.midicps; mul=2;
+    p0 = 0.006699687;
+    p1 = 0.00001884606;
+    p = (1-vsweep)*p0 + (vsweep*p1);
+    freq1 = freq;
+    freq0 = freq1 * mul;
+	release.poll;
+    freqEnv = EnvGen.ar(Env([0,1], [1.0], [0]), 1);
+    //freqEnv = freq1 + ((freq0-freq1)/(1.0 + (freqEnv/p)));
+
+	[freqEnv, freqEnv/p, (1.0 + (freqEnv/p)), (freq0-freq1),((freq0-freq1)/(1.0 + (freqEnv/p))) ];
+}.plot(0.2,args: [freq: 25.midicps, vsweep: 0.914, hold: 0.18, release: 0.02]);
+)
+
+(
+{ |out=0, freq, mul=512, vsweep=0.5, hold=0.25, release=0.25, amp=0.5, pan=0|
+    var p0, p1, p, freq0, freq1, freqEnv, sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	vsweep = 0.914; hold = 0.18; release = 0.02; freq=25.midicps;
+    p0 = 0.006699687;
+    p1 = 0.00001884606;
+    p = (1-vsweep)*p0 + (vsweep*p1);
+    freq1 = freq;
+    freq0 = freq1 * mul;
+	release.poll;
+    freqEnv = EnvGen.ar(Env([0,1], [1.0], [0]), 1);
+    sig1 = freq1 + ((freq0-freq1)/(1.0 + (freqEnv/p)));
+
+    p0 = 0.096699687;
+    p1 = 0.00000084606;
+    p = (1-vsweep)*p0 + (vsweep*p1);
+    freq1 = freq;
+    freq0 = freq1 * mul;
+	release.poll;
+    freqEnv = EnvGen.ar(Env([0,1], [1.0], [0]), 1);
+    sig2 = freq1 + ((freq0-freq1)/(1.0 + (freqEnv/p)));
+
+    p0 = 0.000699687;
+    p1 = 0.01111884606;
+    p = (1-vsweep)*p0 + (vsweep*p1);
+    freq1 = freq;
+    freq0 = freq1 * mul;
+	release.poll;
+    freqEnv = EnvGen.ar(Env([0,1], [1.0], [0]), 1);
+    sig3 = freq1 + ((freq0-freq1)/(1.0 + (freqEnv/p)));
+	[sig1, sig2, sig3];
+}.plot(0.2,args: [freq: 25.midicps, vsweep: 0.914, hold: 0.18, release: 0.02]);
+)
+
+
+(
+SynthDef(\horn, {
+    arg pitch = 40, readerVoices=3, crewVoices=5, readerComplexity=0.1, crewComplexity=0.2, gate=1;
+    var maxReaders=8, maxCrews=6;
+    var snd, intensity, freq, fb, wet;
+    var melodies;
+
+    var scale = Scale.hexAeolian.degrees.as(LocalBuf);
+    var chordAmpScalar = Select.kr(readerVoices,  8.collect{ arg i; (i+1).reciprocal });
+    var melodyAmpScalar = Select.kr(crewVoices,  8.collect{ arg i; (i+1).reciprocal });
+
+    freq = DegreeToKey.kr(scale, LFNoise2.kr(LFNoise0.kr(1/20!maxReaders).range(1/20,1/2) * (1 + (readerComplexity * 3))).unipolar(1 + (readerComplexity * 2))) + pitch;
+    freq = freq;
+
+    intensity = LFNoise2.kr(1/3).range(0.3, 0.8);
+
+    snd = freq.collect { |degree, idx|
+        var amp, snd;
+        snd = Saw.ar(freq.midicps);
+        snd = snd *  ToggleFF.kr(CoinGate.kr(readerComplexity, LFClipNoise.kr(2))).lag(0.02);
+        snd = snd * (idx < readerVoices);
+        snd = LeakDC.ar(snd);
+    };
+    snd = Splay.ar(snd.sum) * chordAmpScalar;
+    snd = snd * intensity;
+    snd = DelayC.ar(snd, 0.06, 0.06);
+    snd = AllpassC.ar(snd, 0.2, [0.03, 0.05] * (LFNoise2.kr(3 ! 2) * 0.7).midiratio, 0.4);
+    snd = AllpassC.ar(snd, 0.04, [0.04, 0.03], 0.002);
+    snd = AllpassC.ar(snd, 0.04, [0.024, 0.004], 0.05);
+    snd = snd * -2.dbamp;
+    snd = LPF.ar(snd, 4000);
+    snd = HPF.ar(snd, 100);
+
+    snd = LPF.ar(snd, 120 + (700 * (LFNoise2.kr(LFNoise0.kr(1/20).range(1/10,2)).unipolar(0.2 + (readerComplexity * 1.6)))));
+    snd = snd * -14.dbamp;
+
+    melodies = LFNoise0.kr(1/10 + SinOsc.kr(1/20).unipolar( 1/4 + (crewComplexity * 4))).bipolar(1/8 + (crewComplexity * 3));
+    melodies = DegreeToKey.kr(scale, melodies + LFNoise2.kr((1/20 + LFNoise0.kr(1/20).unipolar(2)) ! maxCrews).unipolar( 3 + (crewComplexity * 2 ))) + (pitch + 12);
+    melodies = melodies.collect{ |degree, idx|
+        var amp, osc;
+        osc = Saw.ar(degree.midicps.lag(0.02));
+        osc = osc *  ToggleFF.kr(CoinGate.kr(crewComplexity, LFClipNoise.kr(2))).lag(0.02);
+        osc = osc * (idx < crewVoices);
+        osc = BPF.ar(osc, 180 + (1000 * LFNoise2.kr(1/3).unipolar(4.0 * crewComplexity)), 1.7);
+        osc = BHiShelf.ar(osc, 3000, 1, -20);
+        osc = LeakDC.ar(osc);
+        osc = Pan2.ar(osc, LFNoise2.ar(1/3).range(-1,1));
+    };
+    melodies = Splay.ar(melodies) * melodyAmpScalar;
+
+	snd = FreeVerb.ar([snd, melodies].sum, 0.3, 1.3);
+	snd = snd * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+    Out.ar(0, snd);
+}).add; 
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pmono(\horn,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+
+
+Synth(\default); Bus(\audio, 0).plot(5);
+
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).plot(5);
+);
+
+
+PathName()
+
+
+// Default test Pbind
+Ndef(\test, Pbind(*[
+  instrument: \default,
+  dur: 2,
+]));
+// Trying to hard pan to the left
+(
+Ndef(\test)[100] = \filterIn -> {
+  arg in;
+  Pan2.ar(in, 0)
+  //Balance2.ar(in[0],in[1], -1)
+};
+)
+Ndef(\test).play;
+// Nope
+Ndef(\test).scope;
+
+
+Pbind(\degree, Pseries(0, 1, inf), \dur, Pseq([2, [1, 1, 2, Rest(1), 1, -1], 2].convertRhythm)).play;
+Pbind(\degree, Pseries(0, 1, inf), \dur, Pseq([2, [1, 1, 1, 1], 1].convertRhythm.postln)).play;
+s.quit
+s.start
+dentityDictionary(know: true);
+Pbind(\degree, Pseries(0, 1, inf), \dur, Pseq([2, [1, [1, [2, 1, 1, -1]]], 2].convertRhythm)).play;
+~factory = IdentityDictionary(know: true);
+~factory.perc = { arg x, y, z; [x, y, z].postln; }
+~factory.perc(1,2,3)
+~factory.perc
+
+
+(
+SynthDef(\lfo1, { arg out=0, gate=1, amp=0.1, freq=2;
+	var sig;
+	sig = SinOsc.kr(freq) * amp + \add.kr(200);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	Out.kr(out, sig);
+}).add;
+);
+
+(
+SynthDef(\bpfbank, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq);
+	sig = BPF.ar(sig, [\bpf1.kr(100), \bpf2.kr(100), \bpf3.kr(100)]).mean;
+	sig = SinOsc.ar([\bpf1.kr(100), \bpf2.kr(100), \bpf3.kr(100)]).mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+~bus1 = BusDef(\bus1,\control);
+~bus2 = BusDef(\bus2,\control);
+~bus3 = BusDef(\bus3,\control);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Ppar(3.collect { arg x;
+			Pmono(\lfo1,
+				\freq, x+1,
+				\amp, 90.3,
+				\out, [~bus1, ~bus2, ~bus3][x],
+			)
+		}),
+		Pbind(
+			\instrument, \bpfbank,
+			\freq, 100,
+			\bpf1, ~bus1.asMap,
+			\bpf2, ~bus2.asMap,
+			\bpf3, ~bus3.asMap,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+Ppar(3.collect { arg x;
+	Pmono(\lfo1,
+		\freq, x+1,
+		\amp, 90.3,
+		\out, [~bus1, ~bus2, ~bus3][x],
+	)
+})
+
+
+(
+TempoClock.default.sched(2,{
+	s.makeBundle(s.latency, {
+		3.do { arg x;
+			Synth(\lfosin, [\lfofreq, x+1])
+		};
+	})
+})
+)
+
+s.makeBundle(2, {
+	3.do { arg x;
+		Synth(\lfosin, [\lfofreq, x+1])
+	};
+})
+
+(
+SynthDef(\lfosin, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq * ( SinOsc.kr(\lfofreq.kr(2)) * 1 + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar([200 * SinOsc.ar(1), 500 * SinOsc.ar(0.1)  ]);
+	pan = Line.kr(-1,1,10);
+	sig = Pan2.ar(sig, [pan,0-pan].poll, amp).sum;
+}).play;
+);
+Ndef(\zed).clear
+
+
+(
+	s.bind{
+		SynthDef(\beep, {
+			var sig, env, gate;
+			gate = Impulse.ar(1);
+			env = EnvGen.kr(Env.asr(0.005,1,0.5),gate:gate.lag(0.0001).poll);
+			sig = SinOsc.ar(220, mul: \amp.kr(0.5));
+			sig = sig *env;
+			Out.ar(0, sig);
+
+		}).add;
+
+		s.sync;
+		x = Synth(\beep, [\amp, 0.05])
+	}
+)
+
+
+ (modifié)
+
+(
+	s.bind{
+		SynthDef(\beep, {
+			var sig, env, gate;
+			gate = Impulse.kr(1);
+			env = EnvGen.kr(Env.asr,gate:gate);
+			sig = SinOsc.ar(220, mul: \amp.kr(0.5));
+			sig = sig *env;
+			Out.ar(0, sig);
+
+		}).add;
+
+		s.sync;
+		x = Synth(\beep, [\amp, 0.05])
+	}
+)
+(
+	s.bind{
+		SynthDef(\beep, {
+			var sig, env, gate;
+			gate = Trig1.ar(Impulse.ar(1), 0.1);
+			env = EnvGen.kr(Env.asr,gate:gate.poll);
+			sig = SinOsc.ar(220, mul: \amp.kr(0.5));
+			sig = sig *env;
+			Out.ar(0, sig);
+
+		}).add;
+
+		s.sync;
+		x = Synth(\beep, [\amp, 0.05])
+	}
+)
+(
+	s.bind{
+		SynthDef(\beep, {
+			var sig, env, gate;
+			gate = Impulse.ar(1);
+			env = EnvGen.kr(Env.linen(0.1,0.1,0.1),gate:gate.poll);
+			sig = SinOsc.ar(220, mul: \amp.kr(0.5));
+			sig = sig *env;
+			Out.ar(0, sig);
+
+		}).add;
+
+		s.sync;
+		x = Synth(\beep, [\amp, 0.05])
+	}
+)
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		 Pbind(\dur, Pseq([1,1/4],inf)) <>
+		Ppar([
+			Pbind(
+				\freq, 200,
+			),
+			Pbind(
+				\freq, 450,
+			),
+		])
+		
+	])
+)).play;
+);
+
+
+(
+Pdef(\zed2, Pbind(
+	\instrument, \default,
+	\note, Pseq((0..7),inf),
+	\dur, 1,
+	\amp, 0.1,
+)).play;
+)
+Pdef(\zed2).count(8)
+Pbindef(\zed2, \octave, 3)
+Pbindef(\zed2, \octave, 4)
+Pbindef(\zed2, \detune, 140)
+Pbindef(\zed2, \detune, 0)
+Pbindef(\zed2).source.at(\octave).quant
+Pbindef(\zed2).source.at(\octave).count(8)
+Pbindef(\zed2).count(8)
+Pbindef(\zed2).play
+Pbindef(\zed).quant = 8
+Pbindef(\zed).play
+Pdef(\zed).clear
+Pdef(\zed2).clear
+Pdef(\zed).quant
+
+
+t = TempoClock(80/60).permanent_(true);
+q = 1/4;
+
+t.tempo * 8*
+(
+Routine({
+	var fxGroup = Group.new;
+	loop {
+		#[ 8, 8, 8, 8, 8, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+		   16, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0,
+		   8, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+		   8, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0 ].do { |v|
+			if (v > 0) {
+				v.do {
+					s.bind {
+						Synth('sonic-pi-sc808_closed_hihat', [ amp: rrand(0.01, 0.02)*3/sqrt(v+2), decay: q/2 ], fxGroup);
+					};
+					(q/v).wait;
+				};
+			} {
+				q.wait;
+			};
+		};
+	};
+	fxGroup.free;
+}).play(t, quant: q);
+)
+sqrt(8)
+sqrt(1)
+log(8+1)
+log(1+1)
+
+(
+Routine({
+	var fxGroup = Group.new;
+	loop {
+		#[ 8, 8, 8, 8, 8, 8, 8, 8, 8, 0, 1, 1, 1, 0, 1, 1,
+		   16, 16, 16, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0,
+		   8, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+		   8, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0 ].do { |v|
+			if (v > 0) {
+				v.do {
+					s.bind {
+						Synth('sonic-pi-sc808_closed_hihat', [ amp: 0.02, decay: 0.0001 ], fxGroup);
+					};
+					(q/v).wait;
+				};
+			} {
+				q.wait;
+			};
+		};
+	};
+	fxGroup.free;
+}).play(t, quant: q);
+)
+
+(
+SynthDef('sonic-pi-sc808_closed_hihat', {|
+    amp = 1, amp_slide = 0, amp_slide_shape = 1, amp_slide_curve = 0,
+    pan = 0, pan_slide = 0, pan_slide_shape = 1, pan_slide_curve = 0,
+    hpf = 121.25219487074914, hpf_slide = 0, hpf_slide_shape = 1, hpf_slide_curve = 1,
+    lpf = 121.05875888638981, lpf_slide = 0, lpf_slide_shape = 1, lpf_slide_curve = 1,
+
+    decay=0.42,
+    decay_curve = 0,
+    out_bus = 0|
+
+    var sig, sighi,siglow, sum, env, osc1, osc2, osc3, osc4, osc5, osc6;
+
+    hpf = hpf.midicps;
+    lpf = lpf.midicps;
+    amp = amp.varlag(amp_slide, amp_slide_curve, amp_slide_shape);
+    pan = pan.varlag(pan_slide, pan_slide_curve, pan_slide_shape);
+
+    hpf = hpf.varlag(hpf_slide, hpf_slide_curve, hpf_slide_shape);
+    lpf = lpf.varlag(lpf_slide, lpf_slide_curve, lpf_slide_shape);
+
+    //env = EnvGen.kr(Env.perc(0.005, decay, 1, decay_curve),doneAction:2);
+    env = EnvGen.kr(Env.perc(0.001, 0.0001, 1, 0),doneAction:2);
+    osc1 = LFPulse.ar(203.52);
+    osc2 = LFPulse.ar(366.31);
+    osc3 = LFPulse.ar(301.77);
+    osc4 = LFPulse.ar(518.19);
+    osc5 = LFPulse.ar(811.16);
+    osc6 = LFPulse.ar(538.75);
+    sighi = (osc1 + osc2 + osc3 + osc4 + osc5 + osc6);
+    siglow = (osc1 + osc2 + osc3 + osc4 + osc5 + osc6);
+    sighi = BPF.ar(sighi, lpf, 1);
+    sighi = HPF.ar(sighi, hpf);
+    siglow = BBandPass.ar(siglow, 8900, 0.8);
+    siglow = BHiPass.ar(siglow, 9000, 0.3);
+    sig = BPeakEQ.ar((siglow+sighi), 9700, 0.8, 0.7);
+    sig = sig * env * amp * 12;
+    //DetectSilence.ar(sig, doneAction: Done.freeSelf);
+    Out.ar(out_bus, Pan2.ar(sig, pan));
+
+}).add
+)
+
+
+(
+t = TempoClock(80/60).permanent_(true);
+q = 1/4;
+
+Routine({
+	var fxGroup = Group.new;
+	#[ 8, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+	   3, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0,
+	   1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+	   3, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0 ].do { |v|
+		if (v > 0) {
+			v.do {
+				s.bind {
+					Synth('sonic-pi-sc808_closed_hihat', [ amp: rrand(0.01, 0.02), decay: q/2 ], fxGroup);
+				};
+				(q/v).wait;
+			};
+		} {
+			q.wait;
+		};
+	};
+	fxGroup.free;
+}).play(t, quant: q);
+)
+
+(
+t = TempoClock(80/60).permanent_(true);
+q = 1/4;
+
+Routine({
+	var fxGroup = Group.new;
+	#[ 8, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+	   3, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0,
+	   1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+	   3, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0 ].do { |v|
+		if (v > 0) {
+			v.do {
+				s.bind {
+					Synth('sonic-pi-sc808_closed_hihat', [ amp: rrand(0.01, 0.02) * 2/sqrt(v+3), decay: q/2 ], fxGroup);
+				};
+				(q/v).wait;
+			};
+		} {
+			q.wait;
+		};
+	};
+	fxGroup.free;
+}).play(t, quant: q);
+)
+
+
+
+(
+SynthDef('sonic-pi-sc808_closed_hihat', {|
+    amp = 1, amp_slide = 0, amp_slide_shape = 1, amp_slide_curve = 0,
+    pan = 0, pan_slide = 0, pan_slide_shape = 1, pan_slide_curve = 0,
+    hpf = 121.25219487074914, hpf_slide = 0, hpf_slide_shape = 1, hpf_slide_curve = 1,
+    lpf = 121.05875888638981, lpf_slide = 0, lpf_slide_shape = 1, lpf_slide_curve = 1,
+
+    decay=0.42,
+    decay_curve = -30,
+    out_bus = 0|
+
+    var sig, sighi,siglow, sum, env, osc1, osc2, osc3, osc4, osc5, osc6;
+
+    hpf = hpf.midicps;
+    lpf = lpf.midicps;
+    amp = amp.varlag(amp_slide, amp_slide_curve, amp_slide_shape);
+    pan = pan.varlag(pan_slide, pan_slide_curve, pan_slide_shape);
+
+    hpf = hpf.varlag(hpf_slide, hpf_slide_curve, hpf_slide_shape);
+    lpf = lpf.varlag(lpf_slide, lpf_slide_curve, lpf_slide_shape);
+
+    env = EnvGen.kr(Env.perc(0.005, decay, 1, decay_curve),doneAction:2);
+    osc1 = LFPulse.ar(203.52);
+    osc2 = LFPulse.ar(366.31);
+    osc3 = LFPulse.ar(301.77);
+    osc4 = LFPulse.ar(518.19);
+    osc5 = LFPulse.ar(811.16);
+    osc6 = LFPulse.ar(538.75);
+    sighi = (osc1 + osc2 + osc3 + osc4 + osc5 + osc6);
+    siglow = (osc1 + osc2 + osc3 + osc4 + osc5 + osc6);
+    sighi = BPF.ar(sighi, lpf, 1);
+    sighi = HPF.ar(sighi, hpf);
+    siglow = BBandPass.ar(siglow, 8900, 0.8);
+    siglow = BHiPass.ar(siglow, 9000, 0.3);
+    sig = BPeakEQ.ar((siglow+sighi), 9700, 0.8, 0.7);
+    sig = sig * env * amp * 12;
+    DetectSilence.ar(sig, doneAction: Done.freeSelf);
+    Out.ar(out_bus, Pan2.ar(sig, pan));
+
 }).add
 )
 
 (
-Pdef(\grainer, Pbind(
-    \radiation, Pseq([
-        Pseq([10] ++ (0.1 ) ++ [10] ++ (0.1!6), 1),
-        Pseq([ 1] ++ (0.1!6) ++ [ 1], inf)
-    ]),
-    \instrument, \grain,
-    \freq, ([1200, 800, 600, 200]!12).flat.collect{|v| v * rrand(0.99, 1)} * Prand([4, 1, 2, 3, 4, 8], inf),
-    \fTime, 0.0125,
-    \fFac, 5,
-    \sustain, 0.1,
-    \attack, 0.0005,
-    \decay, 2,
-    //\distort, {Pwhite(0.1, 5.0)}!(12 * 4),
-    \amp, 0.1,
-    \delay, {Pwhite(0.01, 0.1)}!(12 * 4),
-    \dur, Pkey(\radiation)
-)).play
-)
-
-
-Pdef(\grainer).stop
+Pdef(\pat, 
+	Pbind(
+		\instrument, 'sonic-pi-sc808_closed_hihat',
+		\degree, Pseq([0],inf),
+		\score, Pseq([
+			8, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+			3, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0,
+			1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+			3, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0 
+		],1),
+		\dur, Plazy({ arg ev;
+			if(ev[\score] == 0) { Rest(1) } { 1/ev[\score] }
+		}),
+		\amp, 0.01,
+	)
+).play;
+);
 
 
 (
-~klank = { |pan=0, amp=0.2|
-	var sig, freq;
-	var freqs, amps, rings, specs;
+	t = TempoClock(80/60).permanent_(true);
+	q = 1/4;
+	Pdef(\pat, 
+		Pbind(
+			\instrument, 'sonic-pi-sc808_closed_hihat',
+			\decay, q/2,
+			\dur , PdurStutter(Pseq([
+				8, 8, 8, 8, 1, -1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+				3, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0,
+				1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+				3, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0 
+			].collect { arg item, idx;
+				//if(item == 0) { Rest(1) } { item }
+				item
+			},1), q).trace,
+			\amp, Pwhite(0.01,0.02,inf) * 2 / sqrt(( 1/( Pkey(\dur)/q ) )+3),
+		)
+	).play(t);
+);
 
-	//Rand operates much like client-side rrand, except that it generates a new number each time the Synth is
-	//instanced (rrand will only produce a new value if the SynthDef itself is recompiled), and it always returns
-	//floats (rrand returns integers if no decimal is given):
-	freq = Rand(100, 5000);
-	sig  = Impulse.ar(0.1);
-
-	//Array.series prefills an array with an arithmetic series, in this case the first 12 partials above the
-	//randomly generated fundamental:
-	freqs = Array.series(13, freq, freq);
-
-	//Array.fill prefills an array using values returned from its user-defined function. Here we're returning
-	//amplitude values derived from the reciprocal of the one-indexed partial number:
-	amps = Array.fill(13, { |i|
-		var partial = i + 1;
-
-		partial.reciprocal;
-	});
-	rings = Array.fill(13, { Rand(0.1, 2) });
-
-	//A tick mark (`) preceding an array will set up a reference to that array, thus preventing SuperCollider
-	//from automatically expanding the signal across multiple audio channels:
-	specs = `[freqs, amps, rings];
-
-	sig = Klank.ar(specs, sig);
-
-	//As our code will spawn many Synths, we have to provide some way for the server to release them once they've
-	//stopped sounding, otherwise each new Synth will continue to pile on as new running processes without any
-	//of the old ones clearing, eventually leading to CPU overload and client/server crash. This can be achieved
-	//through DetectSilence, with Done.freeSelf (or simply 2) placed in the doneAction argument:
-	DetectSilence.ar(sig, doneAction: Done.freeSelf); //'doneAction: 2' without quotes also works
-	Pan2.ar(sig * amp, pan); //Here we opt for Pan2 instead of .dup to be able to spatialize across the stereo field.
-}.asDefName;
-)
-
-//Now let's test our code!
-x = Synth(~klank); //Since we used .asDefName, the environmental variable is used as the Synth name.
-
-~klank = nil
-~klank
-
-~rah = 10
-{ arg bla=~rah; bla.debug("bla") }.value
-
-~rah = (1..3)
 (
-SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, bla=~rah;
+	t = TempoClock(80/60).permanent_(true);
+	q = 1/4;
+	Pdef(\pat, 
+		Pbind(
+			\instrument, 'sonic-pi-sc808_closed_hihat',
+			\decay, q/2,
+			\dur, Prout({ arg ev;
+				var fxGroup = Group.new;
+				#[ 
+					8, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+					3, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0,
+					1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1,
+					3, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0 
+				].do { |v|
+					if (v > 0) {
+						v.do { ( q/v ).yield }
+					} {
+						Rest(q).yield;
+					};
+				};
+				fxGroup.free;
+			}).trace,
+			\amp, Pwhite(0.01,0.02,inf) * 2 / sqrt(( 1/( Pkey(\dur)/q ) )+3),
+		)
+	).play(t);
+);
+
+
+t = TempoClock(80/60).permanent_(true);
+q = 1/4;
+
+(
+Routine({
+	var fxGroup = Group.new;
+
+	var fxReverbBus = Bus.audio(s, 2);
+	var fxReverb = Synth('sonic-pi-fx_reverb', [ room: 1, in_bus: fxReverbBus, out_bus: 0 ], fxGroup);
+
+	var args = [ amp: 0.08, out_bus: fxReverbBus ];
+
+	var dur = { |ticks|
+		(60 / 80) * ticks * q;
+	};
+
+	var play = { |note, ticks|
+		s.bind {
+			Synth('sonic-pi-beep', args ++ [
+				note: note,
+				attack: dur.(0.1 * ticks),
+				sustain: dur.(0.8 * ticks),
+				release: dur.(0.1 * ticks),
+			], fxGroup);
+		};
+		(q * ticks).wait;
+	};
+
+	play.(57, 2);
+	play.(60, 2);
+	play.(62, 4);
+	play.(69, 4);
+	play.(65, 4);
+
+	play.(64, 4);
+	play.(62, 4);
+	play.(57, 8);
+
+	play.(60, 2);
+	play.(57, 2);
+	play.(62, 4);
+	play.(67, 4);
+	play.(65, 4);
+
+	play.(69, 4);
+	play.(67, 4);
+	play.(64, 4);
+	play.(65, 4);
+
+	fxReverb.free;
+	fxReverbBus.free;
+	fxGroup.free;
+}).play(t, quant: q);
+)
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+
+
+Syt
+
+SynthDesc(\default).class
+SynthDesc(\xxaze).controls
+s.quit
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+
+(
+SynthDef(\xxaze, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
-	sig = SinOsc.ar(freq * bla).mean;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+~patch = {
+		Out.ar(\out.kr, SoundIn.ar(\in.kr, \atten.kr(1)))
+
+};
+)
+
+~sd = SynthDef(\bla, ~patch)
+~sd.allControlNames
+~sd.children; // last is Out ugen
+~sd.children.last.inputs // Out inputs
+
+
+(
+SynthDef(\sss, { arg out=0, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr( Env([0,1,0],[0.1,\sustainsec.kr(0.8)]), 1, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pbind(
+	\instrument, \sss,
+	\dur, 0.4,
+	\legato, 0.2,
+	\freq, Pseq([300,100],inf),
+	\sustainsec, Pkey(\sustain) * TempoClock.default.tempo,
+	\amp, 0.1,
+).play;
+)
+
+
+
+RecordBuf
+b = Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav"); // remember to free the buffer later.
+~r1 = Buffer.alloc(s, s.sampleRate * 0.5, numChannels: 1); 
+
+
+(
+	{
+		arg recL=1, preL=0.5;
+		var snd;
+
+		snd = PlayBuf.ar(1, b, BufRateScale.kr(b), 0, startPos: (0*BufFrames.kr(b)), doneAction:0, loop: 0);
+		RecordBuf.ar(snd, ~r1, recLevel: 1, preLevel: 0);
+		snd
+
+
+	}.play;
+
+)
+
+~r1.play
+
+Pbind(\dur, 1)
+
+
+(
+Pdef(\zed, 
+	Pbind(
+		\note, Pseq([0,1,4,5],inf),
+		\dur, 1/8,
+	) <> Pstep(Pbind(\octave, Pseq([6,5],inf), \legato, Pseq([1,0.1],inf)), Pseq([1,1,1/2,1/2],inf))
+).play;
+);
+
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+
+(
+Pdef(\zed, 
+	Pbind(
+		\note, Pseq([0,1,4,5],inf),
+		\dur, 1/8,
+	) <> Pseg(Pbind(\octave, Pseq([6,5],inf), \legato, Pseq([1,0.1],inf)), Pseq([1,1,1/2,1/2],inf))
+).play;
+);
+
+(
+Pdef(\zed, 
+	Pbind(
+		\note, Pseq([0,1,4,5],inf),
+		\dur, 1/8,
+	) <> Pbind(\dur, 1, \octave, Pseq([6,5],inf), \legato, Pseq([1,0.1],inf))
+).play;
+);
+
+
+88.cpsmidi
+1318.cpsmidi
+~makeharm = { arg freq; freq*rrand(1,freq.cpsmidi/2).round.debug("r") }; ~makeharm.(88)
+~makeharm.(2088)
+(1..20)
+0.ibeta(1,0.2)
+
+~makeharm = { arg freq; (128 - freq.cpsmidi)/20 }; ~makeharm.(88)
+~makeharm = { arg freq; Array.series(20,freq.cpsmidi,(128 - freq.cpsmidi)/20) }; ~makeharm.(88)
+20000.cpsmidi
+(1..20).ratiomidi
+
+(2000.collect { (1..20).wchoose(( (1..20)**(1/2) ).normalizeSum) }).plotHisto
+(
+~makeharm = { arg freq; 
+	var weights = ( (1..20)**(1/freq.cpsmidi.midiratio.debug("f")) ).normalizeSum.debug("h");
+	(2000.collect { (1..20).wchoose(weights) }).plotHisto;
+}
+)
+(
+~makeharm = { arg freq; 
+	var weights = ( (1..20)/freq.cpsmidi.midiratio.debug("f") ).normalizeSum.debug("h");
+	(2000.collect { (1..20).wchoose(weights) }).plotHisto;
+}
+)
+(
+~makeharm = { arg freq; 
+	var weights = ( (1..20)**(1/freq.debug("f")) ).normalizeSum.debug("h");
+	(2000.collect { (1..20).wchoose(weights) }).plotHisto;
+}
+)
+~makeharm.(88)
+~makeharm.(2088)
+2088.cpsmidi.midiratio
+(1..20)**(1/2)
+(1..20).normalizeSum
+(1..20).size
+(
+~makeharm = { arg freq; 
+	var xfade = { arg i,a,b; b*i + ( a*(1-i) ) };
+	var cur = freq.explin(60,10000, 0, 1);
+	var weights = xfade.(cur.debug("c"), 1!20, (1..20));
+	weights.debug("w");
+	weights = weights.reverse.normalizeSum;
+	(2000.collect { (1..20).wchoose(weights) }).plotHisto;
+}
+)
+
+
+(
+var checkCall, plotSpecs;
+// make sure z isn't a negative integer
+checkCall = { |selector, z|
+    if ((z <= 0) nand: { (z % 1) == 0 }) { z.perform(selector) }
+};
+
+plotSpecs = [
+    [   { |z| checkCall.(\tgamma, z) },
+        (-4, -3.95 .. 6),
+        "tgamma(z)\n\"True\" gamma function",
+        -125, 125
+    ],
+    [   { |dz| checkCall.(\tgamma1pm1, dz) },
+        (-4, -3.95 .. 6),
+        "tgamma1pm1(dz)\ngamma(dz + 1) - 1",
+        -125, 125
+    ],
+    [   { |z| checkCall.(\lgamma, z) },
+        (-4, -3.95 .. 10),
+        "lgamma(z)\nLog gamma",
+        -2.5, 12.5
+    ],
+    [   { |z| checkCall.(\digamma, z) },
+        (-3, -2.95 .. 10),
+        "digamma(z)\nDigamma",
+        -2.5, 12.5
+    ],
+    [   { |z| checkCall.(\trigamma, z) },
+        (-3.99, -3.94 .. 10),
+        "trigamma(z)\nTrigamma",
+        0, 30
+    ],
+    [   // make sure z isn't a negative integer
+        { |n, z| if ( z <= 0 nand: { (z % 1) == 0 }) { polygamma(n, z) } },
+        [[2,3], (-6, -5.95 .. 5)],
+        "polygamma(z)\nPolygamma\nn=",
+        -50, 400
+    ]
+];
+
+~layOutPlots.( plotSpecs.collect{ |data| ~multiPlot.(*data) }, "Gamma Functions", 2 );
+)
+
+(
+var genCol, getPlotLay, multiPlot, layOutPlots, plotSpecs;
+
+// generate colors for each plot
+genCol = { |num, offset=(rrand(0,1.0)), range=(rrand(0.15,1.3))|
+    num.collect { |i|
+        Color.hsv(((i/(max(num,1.0001)-1)) * range + offset).wrap(0,1), 0.6, 1, 1)
+    }
+};
+// generate a vertical layout for the plot and its text
+getPlotLay = { |plot, text|
+    VLayout(plot, StaticText().string_(text).maxHeight_(50).align_(\center), 10)
+};
+
+~multiPlot = { |func, data, txt, min, max|
+    var res, params, samps, clumped, pltr;
+    var gridcol = Color.gray.alpha_(0.2);
+
+    if(data.shape.size == 1) {
+        samps = data;
+        clumped = data.asList.flop;
+    }{
+        #params, samps = data;
+        if (params.size > 6) {
+            txt = txt ++ format("( % .. % )", params.first, params.last);
+        } {
+            txt = txt ++ params.asString;
+        };
+        clumped = params.collect{ |param, i|
+            samps.collect([param, _, i])
+        }
+    };
+
+    res = clumped.collect({ |bundle, i|
+        bundle.collect(func.applyTo(*_)).select(_.notNil)
+    });
+
+    pltr = res.plot( txt, minval: min, maxval: max)
+    .superpose_(true)
+    .domainSpecs_([samps.minItem, samps.maxItem].asSpec)
+    .plotColor_(
+        genCol.(params !? params.size ?? 1, rrand(0,1.0))
+    )
+    ;
+
+    pltr.plots[0]
+    .gridColorX_(gridcol)
+    .gridColorY_(gridcol)
+    ;
+
+    pltr
+};
+
+~layOutPlots = { |plotters, title="", numCols|
+    var cols, hl, plotlay, colbut, plots, wscl;
+    var vl = VLayout();
+    var sb = Window.screenBounds;
+
+    cols = numCols ?? { plotters.size.sqrt.ceil.asInteger };
+    wscl = cols.linlin(1, 4, 0.5, 0.9);
+    w = Window(title,
+        Rect().width_(sb.width*wscl).height_(sb.height).center_(sb.center)
+    ).view.layout_(vl).front;
+
+    colbut = Button().states_([["Light Plots"], ["Dark Plots"]]).maxSize_(Size(80,15));
+    vl.add(HLayout(nil, colbut));
+
+    plotters.do { |pltr, i|
+        var plot = pltr.parent.view.children[0];
+        if(i % cols == 0) {
+            vl.add(hl = HLayout())
+        };
+        plotlay = getPlotLay.(plot, pltr.name.asString);
+        hl.add(plotlay);
+        pltr.parent.close;
+    };
+
+    if((plotters.size) % cols > 0) {
+        ((cols-(plotters.size)%cols)).do{hl.add(StaticText().string_(""))}
+    };
+
+    colbut.action_({ |but|
+        var switch = but.value.asBoolean;
+        plotters.do{ |pltr|
+            pltr.plots[0]
+            .backgroundColor_(
+                switch.if({Color.white.alpha_(1)}, {Color(*0.1.dup(3)).alpha_(0.95)})
+            )
+            .fontColor_(
+                switch.if({Color.gray},{Color.red});
+            );
+        };
+        w.refresh;
+    });
+    colbut.value_(0).doAction; // start with dark plots
+};
+)
+
+(
+var plotSpecs = [
+    [   \gammaP,
+        [ (0.1, 0.3 .. 8), (0.01, 0.05 .. 20) ],
+        "gammaP(a, z)\nLower incomplete gamma function (normalized)\na=",
+    ],
+    [   \gammaQ,
+        [ (0.1, 0.3 .. 8), (0.01, 0.05 .. 20) ],
+        "gammaQ(a, z)\nUpper incomplete gamma function (normalized)\na=",
+    ],
+    [   \tgammaLower,
+        [ (0.1, 0.3 .. 8), (0.01, 0.05 .. 6) ],
+        "tgammaLower(a, z)\nLower incomplete gamma function (non-normalized)\na=",
+        0, 3
+    ],
+    [   \tgammaUpper,
+        [ (0.1, 0.3 .. 8), (0.01, 0.05 .. 6) ],
+        "tgammaUpper(a, z)\nUpper incomplete gamma function (non-normalized)\na=",
+        0, 3
+    ],
+    [   { |delta, z| if(z.neg != delta) { tgammaDeltaRatio(z, delta) } },
+        [ (-0.5, -0.45  .. 1), (0.0001, 0.1 .. 40)],
+        "tgammaDeltaRatio(z, delta)\nGamma Delta Ratio\ndelta=",
+        0, 7
+    ]
+];
+
+~layOutPlots.( plotSpecs.collect { |data| ~multiPlot.(*data) }, "Gamma Functions (cont'd)", 2 );
+)
+
+(
+var as = [9,7,5,2,1];
+var bs = [1,2,5,7,9];
+var xs = (0, 0.005 .. 1);
+var plotSpecs = [
+    [   { |a, b| log(beta(a, b)) }, // NOTE: using log for plot as in boost doc
+        [[0.5, 1.0, 5.0, 10.0], (0.001, 0.005 .. 5)],
+        "log(beta(a, b))\nBeta function\nas=",
+        -10, 10
+    ],
+    [   { |a, x, i| ibetaDerivative(a, bs[i], x) },
+        [as, xs],
+        "ibetaDerivative(a, b, x)\nDerivative of the Incomplete Beta function (norm)\nbs=[1,2,5,7,9]  as=",
+        0, 6
+    ],
+    [   { |a, x, i| ibeta(a, bs[i], x) },
+        [as, xs],
+        "ibeta(a, b, x)\nIncomplete Beta function (norm)\nbs=[1,2,5,7,9]  as=",
+        0, 1
+    ],
+    [   { |a, x, i| ibetaC(a, bs[i], x) },
+        [as, xs],
+        "ibetaC(a, b, x)\nComplement of Incomplete Beta function (norm)\nbs=[1,2,5,7,9]  as=",
+        0, 1
+    ],
+    [   { |a, x, i| betaFull(a, bs[i], x) },
+        [as, xs],
+        "betaFull(a, b, x)\nIncomplete Beta function (non-norm)\nbs=[1,2,5,7,9]  as=",
+        0, 0.125
+    ],
+    [   { |a, x, i| betaFullC(a, bs[i], x) },
+        [as, xs],
+        "betaFullC(a, b, x)\nComplement of the Incomplete Beta function (non-norm)\nbs=[1,2,5,7,9]  as=",
+        0, 0.125
+    ]
+];
+
+~layOutPlots.( plotSpecs.collect{ |data| ~multiPlot.(*data) }, "Beta Functions, Incomplete and Derivative", 2);
+)
+
+beta(0.1,0.2)
+
+
+
+
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var fenv;
+	sig = WhiteNoise.ar;
+	sig = LFSaw.ar(3340);
+	fenv = EnvGen.kr(Env([7000,60,10],[0.01,0.8]), 1);
+	sig = RLPF.ar(sig, fenv, \rq.kr(0.5)) * 1;
+	sig = HPF.ar(sig, 30);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
@@ -1778,10 +1871,122 @@ Pdef(\part, Pdef(\zedpart,
 	Ppar([
 		Pbind(
 			\instrument, \zed,
-			\freq, 200,
+			\sustain, 0.1,
 			\dur, 1,
 			\amp, 0.1,
 		),
+		
 	])
 )).play;
 );
+
+(
+SynthDef(\additive13, {
+    arg out=0;
+    var partialAmps, ratios, pitch, partialNum = 320, amp = 0.2, sigArray, freqsArray, amps, levels;
+
+    partialAmps=\partialamps.kr(0.5!320, 1/30, fixedLag: true);
+    pitch=\pitch.kr(36!13, 1/30, fixedLag: true);
+    levels=\levels.kr(1!13, 1/30, fixedLag: true);
+    ratios=\ratios.kr(Array.fill(partialNum, { |j| (j + 1) }), 1/30, fixedLag: true);
+
+    sigArray = Array.fill(pitch.size, { |i|
+
+        var baseFreq = pitch[i].midicps;
+        freqsArray = Array.fill(partialNum, { |j| baseFreq * ratios[j] });
+        amps = partialAmps[0 .. (partialNum - 1)];
+
+        Mix(SinOsc.ar(freqsArray, 0, amps)) * amp
+    });
+
+    Out.ar(out, sigArray*levels * 0.01)
+}).add;
+)
+
+Synth(\additive13);
+
+(
+SynthDef(\additive13, {
+    arg out=0;
+    var partialAmps, ratios, pitch, partialNum = 320, amp = 0.2, sigArray, freqsArray, amps, levels;
+	var baseFreq;
+
+    partialAmps=\partialamps.kr(0.5!320, 1/30, fixedLag: true);
+    pitch=\pitch.kr(36, 1/30, fixedLag: true);
+    levels=\levels.kr(1, 1/30, fixedLag: true);
+    ratios=\ratios.kr(Array.fill(partialNum, { |j| (j + 1) }), 1/30, fixedLag: true);
+
+	baseFreq = pitch.midicps;
+	freqsArray = Array.fill(partialNum, { |j| baseFreq * ratios[j] });
+	amps = partialAmps[0 .. (partialNum - 1)];
+
+	sigArray = Mix(SinOsc.ar(freqsArray, 0, amps)) * amp;
+
+    Out.ar(out, sigArray*levels * 0.1)
+}).add;
+)
+
+Synth(\additive13);
+
+(
+SynthDef(\additive13, {
+    arg out=0;
+    var partialAmps, ratios, pitch, partialNum = 320, amp = 0.2, sigArray, freqsArray, amps, levels;
+
+    partialAmps=\partialamps.kr(0.5!320, 1/30, fixedLag: true);
+    pitch=\pitch.kr(36!2, 1/30, fixedLag: true);
+    levels=\levels.kr(1!1, 1/30, fixedLag: true);
+    ratios=\ratios.kr(Array.fill(partialNum, { |j| (j + 1) }), 1/30, fixedLag: true);
+
+	pitch.debug("p");
+    sigArray = Array.fill(pitch.size.debug("pitch"), { |i|
+
+        var baseFreq = pitch[i].midicps;
+        freqsArray = Array.fill(partialNum, { |j| baseFreq * ratios[j] });
+        amps = partialAmps[0 .. (partialNum - 1)];
+
+        Mix(SinOsc.ar(freqsArray, 0, amps)).debug("mix") * amp
+    });
+	sigArray.debug("sa");
+
+    Out.ar(out, sigArray*levels * 0.01)
+}).add;
+)
+
+Array.fill(1, { arg x; x.debug("bla") })
+
+/////////
+
+(
+    Pdef(\a
+        Pbind(
+        \instrument, \whateverA
+        \param1a, 0.5,
+        \param2a, 2,
+        \param3a, 3,
+        )
+    );
+
+    Pdef(\b
+        Pbind(
+        \instrument, \whateverB
+        \param1B, 0.5,
+        \param2B, 2,
+        \param3B, 4,
+        )
+    );
+
+    Pdef(\p1
+        Pbind(
+            \dur, 1,
+            \choose, Prand([1, 2], inf)
+        )
+    );
+)
+
+
+~a = Pswitch1( Prand([1, 2]), [Pdef(\a), Pdef(\b)] )
+~s = ~a.asStream
+~s.next(())
+
+(\bla: \blo)

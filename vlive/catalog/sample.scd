@@ -1915,3 +1915,49 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+////////// record and sample
+
+(
+	// record
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				[0,4,7],
+				[0,4,8],
+			],inf),
+			\dur, 1,
+			\legato, 1,
+			\amp, 0.1,
+		),
+		Pmono(\recorder,
+			\inbus, 0,
+			\bufnum, BufDef(\loop8),
+			\addAction, \addToTail,
+			\lag, 0.0001,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+BufDef(\loop8, 8/~t*s.sampleRate, 2)
+BufDef.clear(\loop8)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef(\loop8),
+			\pos, 0/~t,
+			\legato, 1,
+			\dur, 1,
+			\gain, 1,
+		)
+		
+	])
+)).play;
+);

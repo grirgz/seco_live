@@ -2228,3 +2228,208 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+////////////////////////////////////
+
+(
+Pdef(\part, Pdef(\ck, 
+	Ppar([
+		
+		// there is a channel problem, forgot mean, how to create it with good code ?
+		Pmono(
+			{ arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+				var sig;
+				var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+				lfo1 = Duty.kr(1/8/~t, 0, Drand([
+					1,2,1/2,1/4,
+				],inf));
+				lfo2 = Line.kr(1,0.1,8/~t);
+				sig = SinOsc.ar(freq * LFNoise1.kr(0.1,mul:0.1,add:1) * ((0..7)/7 - 0.5 * \fspread.kr(0.1) + 1));
+				sig = sig + SinOsc.ar(freq*lfo1 * LFNoise1.kr(0.1,mul:0.1,add:1) * ((0..7)/7 - 0.5 * \fspread.kr(0.1) + 1));
+				sig = sig * LFNoise1.kr(1).unipolar;
+				sig = sig * LFNoise1.kr(1).unipolar;
+				sig = sig.clip2(lfo2);
+				// delay play big part
+				sig = DelayL.ar(sig, 1/2/~t, 0.0001 * LFNoise1.kr(0.1)) + sig;
+				sig = DelayL.ar(sig, 1/2/~t, 0.001 * LFNoise1.kr(0.1)) + sig;
+				sig = sig/2;
+				//sig = sig * Line.kr(0,1,8/~t);
+				sig = FreeVerb.ar(sig, mix:0.9, room:1.5, damp:0.5);
+				sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+				sig = Pan2.ar(sig, pan, amp);
+				sig.debug("endsig");
+				Out.ar(out, sig);
+			}.asDefName,
+			\note, Pstep(Pseq([
+				11,12,
+			],inf),4),
+			\octave, 5,
+			\dur, 2,
+			\amp, 0.1,
+		)
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\ck, 
+	Ppar([
+		
+		// try to fix channel problem
+		Pmono(
+			{ arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+				var sig;
+				var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+				lfo1 = Duty.kr(1/8/~t, 0, Drand([
+					1,2,1/2,1/4,
+				],inf));
+				lfo2 = Line.kr(1,0.1,8/~t);
+				sig = SinOsc.ar(freq * LFNoise1.kr(0.1,mul:0.1,add:1) * ((0..1)/7 - 0.5 * \fspread.kr(0.1) + 1));
+				sig = sig + SinOsc.ar(freq*lfo1 * LFNoise1.kr(0.1,mul:0.1,add:1) * ((0..1)/7 - 0.5 * \fspread.kr(0.1) + 1));
+				sig = sig * LFNoise1.kr(1).unipolar;
+				sig = sig * LFNoise1.kr(1).unipolar;
+				sig = sig.clip2(lfo2);
+				// delay play big part
+				sig = DelayL.ar(sig, 1/2/~t, 0.0001 * LFNoise1.kr(0.1)) + sig;
+				//sig = DelayL.ar(sig, 1/2/~t, 0.001 * LFNoise1.kr(0.1)) + sig;
+				sig = sig/2;
+				//sig = sig * Line.kr(0,1,8/~t);
+				sig = FreeVerb2.ar(sig[0],sig[1], mix:0.9, room:1.5, damp:0.5);
+				sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+				sig = sig * amp;
+				//sig = Pan2.ar(sig, pan, amp);
+				Out.ar(out, sig);
+			}.asDefName,
+			\note, Pstep(Pseq([
+				11,12,
+			],inf),4),
+			\octave, 5,
+			\dur, 2,
+			\amp, 0.1,
+		)
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\ck, 
+	Ppar([
+		
+		// try to fix channel problem
+		Pmono(
+			{ arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+				var sig;
+				var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+				lfo1 = Duty.kr(1/8/~t, 0, Drand([
+					1,2,1/2,1/4,
+				],inf));
+				lfo2 = Line.kr(1,0.1,8/~t);
+				sig = SinOsc.ar(freq * LFNoise1.kr(0.1,mul:0.1,add:1) * ((0..7)/7 - 0.5 * \fspread.kr(0.01) + 1));
+				sig = sig + SinOsc.ar(freq*lfo1 * LFNoise1.kr(0.1,mul:0.1,add:1) * ((0..7)/7 - 0.5 * \fspread.kr + 1));
+				sig = sig * LFNoise1.kr(1/2!sig.size).unipolar;
+				sig = DelayL.ar(sig, 1/2/~t, 0.0001 * LFNoise1.kr(0.1!sig.size)) + sig;
+				sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+				sig = sig * LFNoise1.kr(1/2).unipolar;
+				sig = sig.clip2(lfo2);
+				// delay play big part
+				//sig = DelayL.ar(sig, 1/2/~t, 0.001 * LFNoise1.kr(0.1)) + sig;
+				sig = sig/2;
+				//sig = sig * Line.kr(0,1,8/~t);
+				sig = FreeVerb2.ar(sig[0],sig[1], mix:0.9, room:1.5, damp:0.5);
+				sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+				//sig = sig * amp;
+				//sig = Pan2.ar(sig, pan, amp);
+				Out.ar(out, sig);
+			}.asDefName,
+			\note, Pstep(Pseq([
+				11,12,
+			],inf),4),
+			\octave, 5,
+			\dur, 2,
+			\amp, 0.1,
+		)
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\ck, 
+	Ppar([
+		
+		Pmono(
+			{ arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+				var sig;
+				var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+				var cfreq;
+				lfo1 = Duty.kr(1/8/~t, 0, Drand([
+					1,2,1/2,1/4,4,
+				],inf));
+				lfo2 = Line.kr(1,0.1,8/~t);
+				cfreq = freq * [0,3+12,7,11].midiratio;
+				sig = SinOsc.ar(cfreq * LFNoise1.kr(0.1,mul:0.01,add:1) * ((0..7)/7 - 0.5 * \fspread.kr(0.01) + 1));
+				sig = sig + LFPulse.ar(cfreq*lfo1 * LFNoise1.kr(0.1,mul:0.01,add:1) * ((0..7)/7 - 0.5 * \fspread.kr + 1));
+				sig = sig * LFNoise1.kr(1/2!sig.size).unipolar;
+				sig = DelayL.ar(sig, 1/2/~t, 0.0001 * LFNoise1.kr(0.1!sig.size)) + sig;
+				sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+				sig = sig * LFNoise1.kr(1/2).unipolar;
+				sig = sig.clip2(lfo2);
+				// delay play big part
+				sig = DelayL.ar(sig, 1/2/~t, 0.2 * LFNoise1.kr(0.1).unipolar) + sig;
+				sig = sig/4;
+				sig = LeakDC.ar(sig);
+				//sig = sig * Line.kr(0,1,8/~t);
+				sig = FreeVerb2.ar(sig[0],sig[1], mix:0.9, room:1.5, damp:0.5);
+				sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+				//sig = sig * amp;
+				//sig = Pan2.ar(sig, pan, amp);
+				Out.ar(out, sig);
+			}.asDefName,
+			\note, Pstep(Pseq([
+				11,12,
+			],inf),4),
+			\octave, 4,
+			\dur, 2,
+			\amp, 0.1,
+		)
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\ck, 
+	Ppar([
+		
+		Pmono(
+			{ arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+				var sig;
+				var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+				var cfreq;
+				lfo1 = Duty.kr(1/8/~t, 0, Drand([
+					1,2,1/2,1/4,4,
+				],inf));
+				lfo2 = Line.kr(1,0.1,8/~t);
+				cfreq = freq * [0,3+12,7].midiratio;
+				sig = SinOsc.ar(cfreq * LFNoise1.kr(0.1,mul:0.1,add:1) * ((0..7)/7 - 0.5 * \fspread.kr(0.1) + 1));
+				sig = sig + SinOsc.ar(freq*lfo1 * LFNoise1.kr(0.1,mul:0.1,add:1) * ((0..7)/7 - 0.5 * \fspread.kr(0.1) + 1));
+				sig = sig.mean;
+				sig = sig * LFNoise1.kr(1).unipolar;
+				sig = sig * LFNoise1.kr(1).unipolar;
+				sig = sig.clip2(lfo2);
+				sig = DelayL.ar(sig, 1/2/~t, 0.0001 * LFNoise1.kr(0.1)) + sig;
+				sig = DelayL.ar(sig, 1/2/~t, 0.001 * LFNoise1.kr(0.1)) + sig;
+				sig = sig/2;
+				//sig = sig * Line.kr(0,1,8/~t);
+				sig = FreeVerb.ar(sig, mix:0.9, room:1.5, damp:0.5);
+				sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+				sig = Pan2.ar(sig, pan, amp);
+				Out.ar(out, sig);
+			}.asDefName,
+			\note, Pstep(Pseq([
+				0,
+			],inf),4),
+			\octave, 5,
+			\dur, 2,
+			\amp, 0.1,
+		)
+	])
+)).play;
+);

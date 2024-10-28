@@ -662,6 +662,18 @@ SynthDef(\fx_bandcomp, { arg out=0, gate=1, low = 1200, hi = 10000, lowlevel = -
 }).add;
 );
 
+(
+SynthDef(\fx_decimator, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = Decimator.ar(sig, rate: \rate.kr(44100/2), bits:\bits.kr(4));
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+);
 
 (
 	[
@@ -702,6 +714,7 @@ SynthDef(\fx_bandcomp, { arg out=0, gate=1, low = 1200, hi = 10000, lowlevel = -
 		\fx_compander,
 		\fx_sidechain,
 		\fx_bandcomp,
+		\fx_decimator,
 	].do { arg key;
 		TagSpecDef(\SynthDef_fx).addUnique(key)
 	};

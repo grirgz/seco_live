@@ -25,6 +25,70 @@ SynthDef(\basicpadfm, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	det2: ControlSpec(0.000001,0.1,\exp),
 ))).add;
 );
+(
+SynthDef(\noisybass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freq = freq.lag(0.4);
+	env1 = EnvGen.kr(Env([0,0,7000,0],[0.01,0.4,0.8]), \trigx.tr(1));
+	env2 = EnvGen.kr(Env([0,0,1,0],[0.01,0.2,1.4]), \trigx.tr(1));
+	env3 = EnvGen.kr(Env([1,1,0,0],[0.01,0.4,1.8]), \trigx.tr(1));
+	sig = Pulse.ar(freq * [1,1.0001]);
+	//sig = sig * ( SinOsc.ar(freq) + 1  );
+	sig1 = ( SinOsc.ar(freq) + 1  );
+	sig1 = SelectX.ar(env2, [DC.ar(1), sig1]);
+	sig = sig * sig1;
+	sig = LPF.ar(sig, \lpfr.kr(8.1) * freq);
+
+	sig1 = SinOsc.ar(2*~t).exprange(0.1,1);
+	sig1 = SelectX.ar(env2, [DC.ar(1), sig1]);
+	sig = sig/4 + LPF.ar(sig.fold2( sig1 ), 10000);
+
+	//sig = sig * EnvGen.ar(\adsEnv.adsr(0.01,0.1,0.8,0.4),gate,doneAction:2);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+SynthDef(\star, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	var env1;
+	var fspread;
+	env1 = EnvGen.kr(Env([1,2,1],[1.7,0.8]), 1);
+	fspread = 0.0007 + Rand(0,0.007);
+	sig = SinOsc.ar(freq * ((0..7)/7 - 0.5 * fspread + 1));
+	sig = sig * ( sig/(sig+1.1)*50 * env1 ).clip(0.5);
+	sig1 = sig * (sig.abs > Rand(0.1,0.7));
+	sig = SelectX.ar( EnvGen.kr(Env([0,1,0],[0.1+Rand(0,2.0),0.1+Rand(0,2.0)]), 1), [sig, sig1]);
+	sig = sig * 2;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1.01,0.1,1,1.1)),gate,doneAction:doneAction);
+	sig = sig /10;
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+SynthDef(\oscsmpcomp, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, bufnum;
+	var sig;
+	var osc;
+	var phase;
+	var posenv;
+	osc = SinOsc.ar(freq) *  \oscrange.kr(1);
+	posenv = EnvGen.kr(\posenv.kr(Env([0,1,1.1,0],[0.1,1,2.8])), 1, levelScale:\levelScale.kr(1));
+	phase = \pos.kr(0) + posenv * BufSampleRate.kr(bufnum);
+	sig = BufRd.ar(2, bufnum, phase + osc % BufFrames.kr(bufnum), 1);
+	sig = Compander.ar(sig, sig, \cpt.kr(0.1), \cpbelow.kr(0.01), \cpabove.kr(0.001), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	//sig = sig * \compgain.kr(1/0.1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
 
 (
 Pdef(\demo, Pdef(\xdemo, 
@@ -1043,70 +1107,6 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-
-(
-SynthDef(\noisybass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	freq = freq.lag(0.4);
-	env1 = EnvGen.kr(Env([0,0,7000,0],[0.01,0.4,0.8]), \trigx.tr(1));
-	env2 = EnvGen.kr(Env([0,0,1,0],[0.01,0.2,1.4]), \trigx.tr(1));
-	env3 = EnvGen.kr(Env([1,1,0,0],[0.01,0.4,1.8]), \trigx.tr(1));
-	sig = Pulse.ar(freq * [1,1.0001]);
-	//sig = sig * ( SinOsc.ar(freq) + 1  );
-	sig1 = ( SinOsc.ar(freq) + 1  );
-	sig1 = SelectX.ar(env2, [DC.ar(1), sig1]);
-	sig = sig * sig1;
-	sig = LPF.ar(sig, \lpfr.kr(8.1) * freq);
-
-	sig1 = SinOsc.ar(2*~t).exprange(0.1,1);
-	sig1 = SelectX.ar(env2, [DC.ar(1), sig1]);
-	sig = sig/4 + LPF.ar(sig.fold2( sig1 ), 10000);
-
-	//sig = sig * EnvGen.ar(\adsEnv.adsr(0.01,0.1,0.8,0.4),gate,doneAction:2);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = sig * amp;
-	Out.ar(out, sig);
-}).add;
-);
-
-(
-SynthDef(\star, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
-	var sig, sig1, sig2, sig3;
-	var env1;
-	var fspread;
-	env1 = EnvGen.kr(Env([1,2,1],[1.7,0.8]), 1);
-	fspread = 0.0007 + Rand(0,0.007);
-	sig = SinOsc.ar(freq * ((0..7)/7 - 0.5 * fspread + 1));
-	sig = sig * ( sig/(sig+1.1)*50 * env1 ).clip(0.5);
-	sig1 = sig * (sig.abs > Rand(0.1,0.7));
-	sig = SelectX.ar( EnvGen.kr(Env([0,1,0],[0.1+Rand(0,2.0),0.1+Rand(0,2.0)]), 1), [sig, sig1]);
-	sig = sig * 2;
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1.01,0.1,1,1.1)),gate,doneAction:doneAction);
-	sig = sig /10;
-	sig = Splay.ar(sig, spread, amp, pan);
-	Out.ar(out, sig);
-}).add;
-)
-
-(
-SynthDef(\oscsmpcomp, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, bufnum;
-	var sig;
-	var osc;
-	var phase;
-	var posenv;
-	osc = SinOsc.ar(freq) *  \oscrange.kr(1);
-	posenv = EnvGen.kr(\posenv.kr(Env([0,1,1.1,0],[0.1,1,2.8])), 1, levelScale:\levelScale.kr(1));
-	phase = \pos.kr(0) + posenv * BufSampleRate.kr(bufnum);
-	sig = BufRd.ar(2, bufnum, phase + osc % BufFrames.kr(bufnum), 1);
-	sig = Compander.ar(sig, sig, \cpt.kr(0.1), \cpbelow.kr(0.01), \cpabove.kr(0.001), \cpclamp.kr(0.01), \cprelax.kr(0.1));
-	//sig = sig * \compgain.kr(1/0.1);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
 
 
 (

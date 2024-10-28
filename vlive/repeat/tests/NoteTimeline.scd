@@ -118,3 +118,115 @@ SynthDef(\monobo, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 );
 
 NoteTimeline(\mono, Pdef(\mono)).edit
+
+
+//////////////////////////////////////// test recording with scripted midi input
+
+
+//// draft
+//m = MIDIOut(0, MIDIClient.destinations[0].uid)
+m = MIDIOut(0, MIDIClient.destinations[2].uid)
+m.noteOn(0, 60, 60);
+m.noteOff(0, 60, 60);
+m.uid
+MIDIClient.destinations.do(_.postln)
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+m.uid = 123;
+m.noteOn(16, 61, 60);
+m.allNotesOff(16);
+ProtoDef(\piano).stopControl(Pdef(\melo))
+
+(
+MIDIdef.noteOn(\track1, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug("track1 debug");
+	
+});
+)
+
+
+// see libdef/controllers.scd
+
+
+(
+MIDIdef.noteOn(\piano, { arg ... args;
+	//var midinote = args[1];
+	args.debug("fakepiano on");
+	//playergroup.elAt(midinote).play;
+}).fix;
+)
+
+/////// test 1
+// init midi F4-j
+
+
+(
+ControllerDef(\fakepiano, { arg def, target; 
+		var playergroup;
+		"FAKEPIANO GO!".debug;
+		playergroup = ProtoTemplateDef(\SeqPlayerGroup).new(target);
+		~sc_device_id = 8388613;
+		MIDIdef.noteOn(\piano, { arg ... args;
+			var midinote = args[1];
+			args.debug("fakepiano on");
+			playergroup.elAt(midinote).play;
+		}, srcID: ~sc_device_id).fix;
+		MIDIdef.noteOff(\piano_off, { arg ... args;
+			var midinote = args[1];
+			args.debug("fakepiano off");
+			playergroup.elAt(midinote).stop;
+		}, srcID: ~sc_device_id).fix;
+}, [ \piano ]);
+)
+ControllerDef(\fakepiano).startControl( NoteTimeline(\testmidi) )
+
+m = MIDIOut(0, MIDIClient.destinations[2].uid); // connect to sc midi port 0
+m.noteOn(0, 60, 60); // should hear the note
+m.noteOff(0, 60, 60);
+
+NoteTimeline(\testmidi).edit; // selecting fakepiano and recording should work
+
+
+
+////// test 2
+
+
+(
+Tdef(\testsendmidi, {
+	m = MIDIOut(0, MIDIClient.destinations[2].uid); // connect to sc midi port 0
+	10.do { arg i;
+		m.noteOn(0, 60+i, 60); // should hear the note
+		1.wait;
+		m.noteOff(0, 60+i, 60);
+	};
+	
+});
+Tdef(\testsendmidi).play;
+)
+Tdef.defaultQuant
+
+
+//// test 0
+// push nektar key same time as kick and see if it's one the line
+
+
+FileSystemProject.load("sndlib/buflib.scd");
+FileSystemProject.load("libdef/synthplayrec.scd"); // playersec
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1579].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+NoteTimeline(\testmidi).edit; 

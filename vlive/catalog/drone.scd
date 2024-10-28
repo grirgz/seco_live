@@ -981,3 +981,36 @@ Pdef(\demo,
 	)
 ).play;
 );
+
+//////////////////
+// use fm noise to get noise drones
+
+(
+Ndef(\zed, { arg freq=39, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = XLine.kr(10,2000,100);
+	freq = XLine.kr(10,1000,100);
+	sig = SinOsc.ar(freq * ( SinOsc.ar(4 * ( SinOsc.ar(1 * ( SinOsc.ar(1/8) * 100 + 1 )) * 10 + 1 )) * env1 + 1 ));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\zed, { arg freq=39, pan=0, amp=0.1;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = XLine.kr(1,12000,100);
+	env2 = XLine.kr(1000,0.02,100);
+	freq = XLine.kr(10,1000,100);
+	sig = SinOsc.ar(freq * ( SinOsc.ar(4 * ( SinOsc.ar(env2 * ( SinOsc.ar(1/8) * 100 + 1 )) * 10 + 1 )) * env1 + 1 ));
+	sig = sig + SinOsc.ar(freq/2 * ( SinOsc.ar(4.01 * ( SinOsc.ar(env2 * ( SinOsc.ar(1/8) * 100 + 1 )) * 10 + 1 )) * env1 + 1 ));
+	sig = sig + SinOsc.ar(env2 * ( SinOsc.ar(4.01 * ( SinOsc.ar(env2 * ( SinOsc.ar(1/8) * 100 + 1 )) * 10 + 1 )) * env1 + 1 ));
+	sig = sig + SinOsc.ar(freq*2 * ( LFPulse.ar(env1 * ( SinOsc.ar(env2 * ( SinOsc.ar(1/8) * 100 + 1 )) * 10 + 1 )) * env1 + 1 ));
+	sig = CombL.ar(sig, 4/~t, 1/3/~t * ( SinOsc.kr(0.01) * 0.31 + 1 ),1/~t) + sig;
+	sig = CombL.ar(sig, 4/~t, 1/3/~t * ( SinOsc.kr(0.02) * 0.31 + 1 ),1/~t) + sig;
+	sig = sig / 4;
+	sig = Compander.ar(sig, sig, \cpt.kr(0.4), \cpbelow.kr(1.001), \cpabove.kr(0.01), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);

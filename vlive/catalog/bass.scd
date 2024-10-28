@@ -1,3 +1,22 @@
+(
+SynthDef(\basicbass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	var in;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,1.2,1],[0.1,1.8]), 1);
+	sig = LFSaw.ar(freq * [1,1.0001,1.001]);
+	sig = sig + LFPulse.ar(freq * [1,1.0001,1.001]);
+	sig = sig / 2;
+	sig = BPF.ar(sig, freq * env1, 0.1).tanh + sig;
+
+	//sig = sig;
+	sig = RLPF.ar(sig, \lpf.kr(100), \rq.kr(0.5));
+	sig.debug("basicbas");
+	sig = Splay.ar(sig, spread, amp, pan);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	Out.ar(out, sig);
+}).add;
+)
 
 //////////// simple pulse bass
 // stereo by detune
@@ -23,6 +42,7 @@ Pdef(\demo, PmonoArtic(\noisybass,
 	\trigx, 1,
 	\legato, Pseq([1,1,1,0.8,0.1,1,1,0.9],inf),
 	\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+	\lpfr, ~pmodenv.(Pseq([1,2,1,4]*2,1), 8).loop,
 	//\legato, 0.7,
 	\octave, 3,
 	\dur, 1/2,

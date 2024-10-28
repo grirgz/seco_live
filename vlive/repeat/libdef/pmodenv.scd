@@ -118,7 +118,9 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 
 		while{ running == true } {
 			//"pmodenv running".debug;
-			ev = bus.asMap.yield;
+			var ret = bus.asMap;
+			cleanup.update(ev);
+			ev = ret.yield;
 			//ev.debug("ev");
 			if(ev.isNil) {
 				"pmodenv: pattern ends".debug; // this never happen

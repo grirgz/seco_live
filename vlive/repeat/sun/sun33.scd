@@ -176,3 +176,140 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 
+(
+// reggaeton
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'),
+			\legato, 1,
+			\st, 85/2/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 4,
+			]+0.6,1),4).loop / Pkey(\st),
+			\pos, Pseq([
+				//(0..15),
+				0,5,5,4, 0,5,12,5,
+				0,5,4,4, 10,11,12,5,
+				0,1,5,4, 3,7,4,9,
+				0,1,4,5, 2,4,0,8,
+				//8,12,14,13,12,13,12,24,
+			].flatten/8+0.6,inf) / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+			//\out, BusDef(\sendbus1, \audio),
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'),
+			\legato, 1,
+			\st, 85/2/60,
+			\speed, Pstep(Pseq([1,1/2],inf),1/8) * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 4,
+			]+0.6,1),4).loop / Pkey(\st),
+			\pos, Pseq([
+				//(0..15),
+				0,0,0,4, 0,4,4,0,
+				//8,12,14,13,12,13,12,24,
+			].flatten/8+0.6,inf) / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+			//\out, BusDef(\sendbus1, \audio),
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'),
+			\legato, 1,
+			\st, 85/2/60,
+			\speed, Pstep(Pseq([
+				1,1,1,1, 1,1,1,1,
+				//1,1,1,1, 1,1,2,1,
+				//1,1,1,1, 1,1,1.2,0.9
+			],inf),1/4) * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 4,
+			]+0.6,1),4).loop / Pkey(\st),
+			\pos, Pseq([
+				//(0..15),
+				Pseq([
+					12,0,0,5
+				],inf),
+				0,1,2,2,2,2,4,0,
+				8,12,14,13,12,13,12,24,
+				//8,12,14,13,12,13,12,24,
+			].flatten/8+0.6,inf) / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+			//\out, BusDef(\sendbus1, \audio),
+		),
+	])
+)).play;
+);
+
+
+(
+ControllerDef(\piano_launcher, { arg def, targetList, offset=60; 
+		var playergroup;
+		playergroup = ProtoTemplateDef(\ParPlayerGroup).new(targetList);
+		MIDIdef.noteOn(\piano, { arg ... args;
+			var midinote = args[1];
+			args.debug("generic on");
+			playergroup.elAt(midinote-offset).play;
+		}).fix;
+		MIDIdef.noteOff(\piano_off, { arg ... args;
+			var midinote = args[1];
+			args.debug("generic off");
+			playergroup.elAt(midinote-offset).stop;
+		}).fix;
+}, [ \launcherline ]);
+)
+
+
+(
+~group = 
+ControllerDef(\piano_launcher).startControl(~group);
+)
+
+~pg = ProtoTemplateDef(\ParPlayerGroup).new(~group)
+~pg.elAt(0).play
+~pg.elAt(0).stop
+
+
+(
+PatKitDef(\barrykit, 32.collect { arg idx;
+	Pbind(
+		\instrument, \playersecmax,
+		\bufnum, BufDef.stereo('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'),
+		\legato, 1,
+		\st, 85/2/60,
+		\pos, idx/8+0.6/Pkey(\st),
+		\maxsustain, 0.2,
+		\dur, 1/8,
+		\gain, 1/4,
+	)
+});
+)
+
+PatKitDef(\barrykit).elAt(0).play
+PatKitDef(\barrykit).edit
+KitTimeline(\kit1, PatKitDef(\barrykit)).edit

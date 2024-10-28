@@ -221,3 +221,46 @@ Pdef(\set, Pbind(
 ) <> Pdef(\base)).play
 )
 
+
+
+/////////////////////////////
+// my tests
+
+(
+	// does not work when the pmod is multichannel
+Pdef(\basicMod, Pbind(
+	\lpf, Pmod({
+		SinOsc.kr(1/8, 0.3).range(100,1000)
+	}),
+) <> Pdef(\base)).play;
+)
+
+(
+	// ok
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\freq, Pmod(Pseq([200,4000,300],inf)),
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+	// ok
+Pdef(\part, Pdef(\zedpart, 
+	Pseq([
+		Pbind(
+			\instrument, \default,
+			\freq, Pmod(Pseq([200,4000,300],inf)),
+			\dur, Pn(1,2),
+			\amp, 0.1,
+		),
+		
+	],100)
+)).play;
+);

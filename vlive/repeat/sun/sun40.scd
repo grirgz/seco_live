@@ -69,7 +69,6 @@ Pdef(\part, Pdef(\zedpart,
 			\speed, 0.8,
 			\dur, 1/8,
 			\gain, 1/3,
-			\isRest, true,
 		),
 		Pbind(
 			\instrument, \playersec,
@@ -1748,6 +1747,61 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+(
+	// rand rythm
+	// test compander
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'),
+			\legato, Pseq([
+				Pwhite(1,1.5,1),
+				Pwhite(0.9,1.7,3),
+
+				Pwhite(1,1.5,1),
+				Pwhite(0.9,1.7,3),
+			],inf),
+			\st, 85/2/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\pos, Pseq([
+				// kick 3, 9, 15,19,25, 29,31, 35,41,47
+				// hat, 2, 6, 7, 8, 14, 18, 22, 23, 24, 30,34,38,39,40,46,50
+				// doublehat, 1, 5, 11,13,17,21,27,33,37,43,45,49
+				// snare 4, 12, 20, 28, 36,44
+				// cymkick: 16, 42, 
+				// snarekick, 10,26,32, 48,0
+				//(0..15),
+				Prand([
+					3, 9, 15,19,25, 29,31, 35,41,47
+				],1),
+				Prand([
+					\r,\r,\r,\r,
+					2, 6, 7, 8, 14, 18, 22, 23, 24, 30,34,38,39,40,46,50,16,42,
+					2, 6, 7, 8, 14, 18, 22, 23, 24, 30,34,38,39,40,46,50,16,42,
+					1, 5, 11,13,17,21,27,33,37,43,45,49,
+				],3),
+				Prand([
+					4, 12, 20, 28, 36,44
+				],1).trace,
+				Prand([
+					\r,\r,\r,\r,
+					2, 6, 7, 8, 14, 18, 22, 23, 24, 30,34,38,39,40,46,50,16,42,
+					2, 6, 7, 8, 14, 18, 22, 23, 24, 30,34,38,39,40,46,50,16,42,
+					1, 5, 11,13,17,21,27,33,37,43,45,49,
+				],3),
+			]/8+0.6,inf) / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+			\out, BusDef(\sendbus5, \audio),
+		),
+	])
+)).play;
+);
+
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -2965,7 +3019,6 @@ Pdef(\part, Pdef(\zedpart,
 			]/3,inf).coin.not,
 			\dur, 1/8,
 			\gain, 0.071,
-			\isRest, true,
 		),
 		Pbind(
 			\instrument, \playersec,

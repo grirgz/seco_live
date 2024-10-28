@@ -2023,3 +2023,237 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+//////////////////////
+
+// subtile decalage des ghost kicks
+// alternance de hat par le \speed et silences probabilistes
+
+FileSystemProject.load("holis/synthdef.scd");
+(
+Pdef(\part2, Pdef(\zedpartx2, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[727].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				0,0,1,0, 0,0,0,0,
+				0,0,1,0, 0,1,0,0,
+				1,0,0,0, 0,0,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[727].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				0,0,1,0, 0,0,1,0,
+				1,0,0,0, 0,0,1,0,
+				1,0,0,0, 0,0,1,0,
+				0,0,1,0, 0,0,1,0,
+
+				0,0,1,0, 0,0,1,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.1/3,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[2437].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[324].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[324].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,0.99,
+				0,0.91,
+				0,0.98,
+				0,0.81,
+				0,0.99,
+				0,0.91,
+				0,0.98,
+				0,0.71,
+			],inf).coin.not,
+			\dur, 1/8,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\speed, Pwrand([0.9,1],[0.9,0.1],inf),
+			\gain, 0.11/2 * Pseg(Pwhite(0.1,1,inf),1),
+		),
+		Pbind(
+			\instrument, \basicbass,
+			\note, Pseq([
+				2,\r,\r,\r, \r,\r,5,\r,
+				8,\r,\r,\r, \r,\r,\r,\r,
+
+				2,\r,\r,\r, \r,\r,5,2,
+				-4,\r,\r,\r, \r,\r,\r,\r,
+			],inf),
+			\lpf, ~pmodenv.(Pseq([1,2,1,6]*70,1), 4).loop,
+			\rq, ~pmodenv.(Pseq(1/[1,2,1,4,8],1), 5).loop,
+			\legato, Pseq([
+				6,0,0,0, 0,0,1,0,
+				6,0,0,0, 0,0,0,0,
+				6,0,0,0, 0,0,1,1,
+				6,0,0,0, 0,0,0,0,
+			]*0.8,inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\octave, 3,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+/// double length with ghost snare
+(
+Pdef(\part2, Pdef(\zedpartx2, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[727].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				0,0,1,0, 0,0,0,0,
+				0,0,1,0, 0,1,0,0,
+				1,0,0,0, 0,0,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[727].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				0,0,1,0, 0,0,1,0,
+				1,0,0,0, 0,0,1,0,
+				1,0,0,0, 0,0,1,0,
+				0,0,1,0, 0,0,1,0,
+
+				0,0,1,0, 0,0,1,0,
+				1,0,0,0, 0,0,1,0,
+				1,0,0,0, 0,0,1,0,
+				0,0,1,0, 0,0,1,0,
+
+				0,0,1,0, 0,0,1,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.1/3,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[2437].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[2437].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				Pseq([
+					0,0,0,0, 0,0,0,0,
+				],6),
+					0,0,0,1, 0,0,1,0,
+					0,1,0,0, 0,1,0,0,
+			]*0.7,inf).coin.not,
+			\dur, 1/8,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\gain, 0.11/3,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[324].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[324].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,0.99,
+				0,0.91,
+				0,0.98,
+				0,0.81,
+				0,0.99,
+				0,0.91,
+				0,0.98,
+				0,0.71,
+			],inf).coin.not,
+			\dur, 1/8,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\speed, Pwrand([0.9,1],[0.9,0.1],inf),
+			\gain, 0.11/2 * Pseg(Pwhite(0.1,1,inf),1),
+		),
+		Pbind(
+			\instrument, \basicbass,
+			\note, Pseq([
+				2,\r,\r,\r, \r,\r,5,\r,
+				8,\r,\r,\r, \r,\r,\r,\r,
+
+				2,\r,\r,\r, \r,\r,5,2,
+				-4,\r,\r,\r, \r,\r,\r,\r,
+			],inf),
+			\lpf, ~pmodenv.(Pseq([1,2,1,6]*70,1), 4).loop,
+			\rq, ~pmodenv.(Pseq(1/[1,2,1,4,8],1), 5).loop,
+			\legato, Pseq([
+				6,0,0,0, 0,0,1,0,
+				6,0,0,0, 0,0,0,0,
+				6,0,0,0, 0,0,1,1,
+				6,0,0,0, 0,0,0,0,
+			]*0.8,inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\octave, 3,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);

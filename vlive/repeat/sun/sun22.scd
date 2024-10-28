@@ -115,7 +115,7 @@ SynthDef(\fx_washit, { arg out=0, gate=1;
 		isig;
 	});
 	sig = RHPF.ar(sig, 200);
-	sig = RLPF.ar(sig, 8000);
+	sig = RLPF.ar(sig, \lpf.kr(8000));
 
 	sig = SelectX.ar(\mix.kr(1.0), [in, sig]);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
@@ -571,7 +571,7 @@ Pdef(\part, Pdef(\zedpart,
 
 
 (
-SynthDef(\hum, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+SynthDef(\dirtybass1, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	//sig = LFSaw.ar(freq *  ( LFNoise1.ar(1/2 * [1,1]) * 0.01 + 1 )).mean;
 	//freq = 30;
@@ -590,7 +590,7 @@ Pdef(\part).reset;
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(
-			\instrument, \hum,
+			\instrument, \dirtybass1,
 			\note, Pseq([
 				0,4,2,-1,
 				-4,-5,9,8,
@@ -660,13 +660,13 @@ Ndef('rdn').put(100, \pset -> Pbind(
 );
 
 
-/////////////////////////////
+///////////////////////////// dirty bass compo
 
 
 
 FileSystemProject.load("./sun22_FxManager_dirtybass.scd")
 (
-Pdef(\part, Pdef(\zedpart, 
+Pdef(\part, Pdef(\dbcompo1, 
 	Ppar([
 		Pbind(
 			\instrument, \playersec,
@@ -716,7 +716,7 @@ Pdef(\part, Pdef(\zedpart,
 			\out, BusDef(\sendbus3, \audio),
 		),
 		Pbind(
-			\instrument, \hum,
+			\instrument, \dirtybass1,
 			\note, Pseq([
 				0, 7-12,
 				0, 7-12,
@@ -808,7 +808,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
-Pdef(\part, Pdef(\zedpart, 
+Pdef(\part, Pdef(\dbcompo2, 
 	Ppar([
 		Ptpar([
 			0, Pbind(
@@ -868,7 +868,7 @@ Pdef(\part, Pdef(\zedpart,
 			   	\out, BusDef(\sendbus3, \audio),
 			   ),
 			   16,Pbind(
-			   	\instrument, \hum,
+			   	\instrument, \dirtybass1,
 			   	\note, Pseq([
 			   		0, 7-12,
 			   		0, 7-12,
@@ -965,6 +965,7 @@ Pdef(\part, Pdef(\zedpart,
 			   }),
 			   32,Pbind(
 			   	\instrument, \playersec,
+				\lag, -0.04,
 			   	\bufnum, BufDef.stereo('vbreaks/Grady Tate - Be Black Baby.wav'),
 			   	\legato, 1,
 			   	\st, 110/2/60,
@@ -996,6 +997,14 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+Pdef(\part, Pdef(\main, 
+	Pseq([
+		Pdef(\dirtyintro),
+		Pdef(\dbcompo1),
+
+		
+	])
+)).play;
 
 
 ///////////////
@@ -1085,4 +1094,534 @@ Pdef(\mypat,
 ).play;
 );
 
+
+
+
+//////////////////////
+
+
+(
+SynthDef(\whitenoisebassmod, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	//lfo1 = SinOsc.ar(0.1,pi/2).range(0.01,20);
+	lfo1 = \pulsetime.kr(1);
+	sig = WhiteNoise.ar(1);
+	sig = Ringz.ar(sig, \ringzfreq.kr(10),\ringzdecay.kr(0.01)) * \ringzgain.kr(1/10);
+	sig = LPF.ar(sig, (\lpf.kr(7000) ).clip(20,20000));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), gate, doneAction:2);
+	sig = sig * Duty.kr(1/16/~t * lfo1, 0, Dseq([
+		1,0,1,0,
+	],inf));
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+	ProtoDef(\FxManager).play;
+Pdef(\part, Pdef(\zedpart, 
+	Pfindur(32,Ppar([
+		Pmono(\whitenoisebassmod,
+			\freq, 200,
+			\lpf, ~pmodenv.(Pseq([20000,4000,4,4],1), 16).loop,
+			\ringzfreq, ~pmodenv.(Pseq([3401,20,100,10,30,1000,14000,15888],1), 6).loop,
+			\pulsetime, ~pmodenv.(Pseq([0.1,1,4,4],1), 16).loop,
+			\dur, 1,
+			\amp, 0.1,
+			\adsr, Pseq([
+				[ Env.adsr(3.1,0.1,0.8,0.1,1,3) ],
+			],inf),
+			//\out, BusDef(\ifx1, \audio),
+			\out, BusDef(\sendbus1, \audio),
+			//\isRest, true,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('samplekit/vipere/camelcactus.flac'),
+			\pos, Pseq([
+				Pseg(Pseq([0,5],inf),8*2),
+			].flat/8,inf)+4,
+			\speed, ~pmodenv.(Pseq([2,1,0.3,0.2,0.1],1), 16).loop,
+			\legato, 2,
+			\adsr, Pseq([
+				[ Env.adsr(0.3,0.1,0.8,0.3) ],
+			],inf),
+			\dur, 1/16,
+			\gain, ~pmodenv.(Pseq([0,0.1,0.5,0.9,0.9],1), 8, 1, 3).loop,
+			//\isRest, true,
+		),
+		Ptpar([
+			6, Ppar([
+				Pbind(
+					\instrument, \angelchord,
+					\note, Pseq([
+						-23,-12,1,6,12,18,24,24+6
+					],inf),
+					\scale, Scale.minor,
+					\dur, Pseq([2],8),
+					\legato, Pseq([
+						Pseq((1..8).reverse*4),
+					],inf),
+					\lpfr, 2.1,
+					\octave, 5,
+					\amp, 0.1/4,
+					\out, BusDef(\fxreverb, \audio),
+					//\out, BusDef(\sendbus2, \audio),
+				),
+
+				Pmono(\rdnwashit,
+					'mix', 0.48739495798319,
+					'gain', 0.60924369747899,
+					'fb', 0.0001,
+					'delay', 0.44366873309786,
+					'delay', ~pmodenv.(Pseq([0.00001,0.2,1,1,1],1), 8).loop,
+					'delay2', 0.53838436220335,
+					'delay2', ~pmodenv.(Pseq([1,0.501,0.00002].reverse,1), 8).loop,
+					'shift', 0.042016806722689,
+					'shift2', -0.042016806722689,
+					'distamp', 1.0195378685327,
+					'pitchlag', 1.0,
+					'pitchmix', 0.0,
+					'prelpf', 17000,
+					'prehpf', 17,
+					'lpf', 17000,
+					'hpf', 17,
+					'fbdistamp', 0.47619047619048,
+					'fbdistmix', 0.91176470588235,
+					'postlpf', 17000,
+					'posthpf', 17,
+					'wetamp', 0.46579739809918,
+					'indelay', 0.04,
+					'wet20', 1.0,
+					'mamp', 1,
+					\inbus, BusDef(\fxreverb, \audio),
+					\addAction, \addToTail,
+					\mix, Pseq([
+						~pmodenv.(Pseq([0,0.1,0.6],1), 8),
+						Pn(0.6,inf)
+					],inf),
+					\lag, 0.0009,
+					\dur, 1,
+				)
+			]),
+		])
+	]))
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+				Pmono(\rdnwashit,
+					'mix', 0.48739495798319,
+					'gain', 0.60924369747899,
+					'fb', 0.0001,
+					'delay', 0.44366873309786,
+					'delay', ~pmodenv.(Pseq([0.00001,0.2,1,1,1],1), 8).loop,
+					'delay2', 0.53838436220335,
+					'delay2', ~pmodenv.(Pseq([1,0.501,0.00002].reverse,1), 8).loop,
+					'shift', 0.042016806722689,
+					'shift2', -0.042016806722689,
+					'distamp', 1.0195378685327,
+					'pitchlag', 1.0,
+					'pitchmix', 0.0,
+					'prelpf', 17000,
+					'prehpf', 17,
+					'lpf', 17000,
+					'hpf', 17,
+					'fbdistamp', 0.47619047619048,
+					'fbdistmix', 0.91176470588235,
+					'postlpf', 17000,
+					'posthpf', 17,
+					'wetamp', 0.46579739809918,
+					'indelay', 0.04,
+					'wet20', 1.0,
+					'mamp', 1,
+					\inbus, BusDef(\fxreverb, \audio),
+					\addAction, \addToTail,
+					\mix, Pseq([
+						~pmodenv.(Pseq([0,0.1,0.6],1), 8),
+						Pn(0.6,inf)
+					],inf),
+					\lag, 0.0009,
+					\dur, 1,
+				)
+	])
+)).play;
+);
+
+(
+Pdef(\melo, 
+	Pbind(
+		\instrument, \angelchord,
+		\out, BusDef(\sendbus2, \audio),
+	)
+)
+);
+ProtoDef(\piano).startControl(Pdef(\melo))
+
+~protordn_to_fbstring.(ProtoDef(\rdn2)).editorInsert
+(
+
+	SynthDef(\rdnwashit, { arg out=0, gate=1;
+		// code: 5-KF01-P1SO
+		var si, env = ();
+		var in = InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio)), 2); 
+		var code, rdnkey;
+
+		var sig;
+		var sigin;
+		var del, shi;
+		var del2, shi2;
+		var distamp;
+		var hasFreq, afreq;
+		var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+		var pitchlag;
+		var pitchmix;
+		var fb, fb1, fb2;
+		var gain;
+		var mix;
+		var indelay;
+		//"default_make_graph".debug("!!!");
+		rdnkey = rdnkey ? \default;
+		code = code ? "4--";
+		sig = in;
+		mix = \mix.kr(0.5);
+		gain = \gain.kr(1);
+		fb = \fb.kr(0.001);
+		del = \delay.kr(0.001,0.1);
+		del2 = \delay2.kr(0.001,0.1);
+		shi = \shift.kr(0);
+		shi2 = \shift2.kr(0);
+		distamp = \distamp.kr(1);
+		pitchlag = \pitchlag.kr(1/8) / TempoClock.default.tempo;
+		pitchmix = \pitchmix.kr(0);
+
+		sig = LPF.ar(sig, \prelpf.kr(17000));
+		sig = HPF.ar(sig, \prehpf.kr(17));
+
+		sig = sig + (LocalIn.ar(2) * fb);
+
+		sig = LPF.ar(sig, \lpf.kr(17000));
+		sig = HPF.ar(sig, \hpf.kr(17));
+		thisThread.randSeed = 821144.0;
+		si = sig;
+		sig = { arg si, env;
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+			si = FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift.kr) + si / 1.2;
+		}.value(si, env);
+
+
+		sig1 = sig.tanh * \fbdistamp.kr(1/2);
+		sig = SelectX.ar(\fbdistmix.kr(1), [sig, sig1]);
+
+		sig = Limiter.ar(sig);
+
+		sig1 = sig;
+		#afreq, hasFreq = Pitch.kr(sig1).flop;
+		sig1 = BRF.ar(sig1, afreq.lag(pitchlag));
+		#afreq, hasFreq = Pitch.kr(sig1).flop;
+		sig1 = BRF.ar(sig1, afreq.lag(pitchlag));
+		sig = SelectX.ar(pitchmix, [sig, sig1]);
+
+		LocalOut.ar(sig);
+		sig = LPF.ar(sig, \postlpf.kr(17000));
+		sig = HPF.ar(sig, \posthpf.kr(17));
+		sig = Limiter.ar(sig);
+		sig = sig * \wetamp.kr(1);
+
+		indelay = \indelay.kr(0);
+		sigin = DelayL.ar(in, 0.2, indelay);
+		sig = SelectX.ar(mix, [sigin, sig]);
+		sig = sig * gain;
+		//sig.debug("end sig");
+		sig;
+
+
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.001,0,1,0.001)), gate, doneAction:2);
+		Out.ar(out, sig);
+	}).add;
+
+		
+Pbind(
+	'wet10', 1.0,
+	'mix', 0.48739495798319,
+	'gain', 0.60924369747899,
+	'fb', 0.0001,
+	'delay', 0.44366873309786,
+	'delay2', 0.53838436220335,
+	'shift', 0.042016806722689,
+	'shift2', -0.042016806722689,
+	'distamp', 1.0195378685327,
+	'pitchlag', 1.0,
+	'pitchmix', 0.0,
+	'prelpf', 17000,
+	'prehpf', 17,
+	'lpf', 17000,
+	'hpf', 17,
+	'fbdistamp', 0.47619047619048,
+	'fbdistmix', 0.91176470588235,
+	'postlpf', 17000,
+	'posthpf', 17,
+	'wetamp', 0.46579739809918,
+	'indelay', 0.04,
+	'wet20', 1.0,
+	'mamp', 1,
+)
+
+		
+);
+
+
+//////////////////////
+// dirtybass intro
+
+
+
+(
+SynthDef(\dirtybass2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	//sig = LFSaw.ar(freq *  ( LFNoise1.ar(1/2 * [1,1]) * 0.01 + 1 )).mean;
+	//freq = 30;
+	sig = Blip.ar(freq , \numharm.kr(100));
+	//sig = sig * ( WhiteNoise.ar * 0.1 + 1 );
+	//sig = HPF.ar(sig, 199);
+	//sig = LPF.ar(sig, 11000);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+
+(
+Pdef(\part, Pdef(\dirtyintro, 
+	Pfindur(8,Ppar([
+
+		Pbind(
+			\instrument, \dirtybass2,
+			\numharm, ~pmodenv.(Pseq([301,200,1,1,1,1],1), 4).loop,
+			\note, Pseq([
+				0, 7-12,
+				0, 7-12,
+				0, 7-12,
+				4-12,-12,
+				//0,4,2,-1,
+				//-4,-5,9,8,
+			],inf).stutter(2) + Pseq([
+				0,0,0,-1,0,0,0,-7
+				
+			],inf).stutter(16) -5 + Pseq([
+				0,7
+				
+			],inf).stutter(8*16),
+			\legato, Pseq([
+				1,1,1,1,
+				0.4,0.1,0.5,0.4,
+			],inf) * 0.8,
+			\octave, 2,
+			\legato, Pseq([
+				8,0,0,0, 0,0,0,0,
+				6,0,0,0, 0,0,0,1,
+				8,0,0,0, 0,0,0,0,
+				2,0,0,2, 0,0,2,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\amp, 0.1,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\rdndirtybass,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			//'delay2', ~pmodenv.(Pseq([1,0.501,0.00002],1), 1).loop,
+			'wet10', 1.0,
+			'mix', 0.079831932773109,
+			'gain', 0.2,
+			'fb', 0.0001,
+			'delay', 0.0033007105395782,
+			'delay2', 0.0001,
+			'shift', 0.0,
+			'shift2', 0.0,
+			'distamp', 1.9236664026787,
+			'pitchlag', 1.0,
+			'pitchmix', 0.45378151260504,
+			'prelpf', 17000,
+			'prehpf', 17,
+			'lpf', 17000,
+			'hpf', 17,
+			'fbdistamp', 0.47619047619048,
+			'fbdistmix', 0.91176470588235,
+			'postlpf', 17000,
+			'posthpf', 17,
+			'wetamp', 0.46579739809918,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+			//'delay', ~pmodenv.(Pseq([0.00001,0.2,1,1,1],1), 4).loop,
+			'delay', ~pmodenv.(Pseq([1,0.2,0.00001,0.0002],1), 4).loop,
+			'delay2', ~pmodenv.(Pseq([1,0.2,0.00001,0.0002],1), 4).loop,
+			\mix, Pseq([
+				//Pn(0,inf),
+				~pmodenv.(Pseq([0,0.1,0.8],1), 1),
+				Pn(0.8,inf)
+			],inf),
+			\dur, 1,
+		)
+		
+	]))
+)).play;
+);
+
+
+~protordn_to_fbstring.(ProtoDef(\rdn)).editorInsert
+(
+
+	SynthDef(\rdndirtybass, { arg out=0, gate=1;
+		// code: 5-Q8UN-EQ4U
+		var si, env = ();
+		var in = InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio)), 2); 
+		var code, rdnkey;
+
+		var sig;
+		var sigin;
+		var del, shi;
+		var del2, shi2;
+		var distamp;
+		var hasFreq, afreq;
+		var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+		var pitchlag;
+		var pitchmix;
+		var fb, fb1, fb2;
+		var gain;
+		var mix;
+		var indelay;
+		//"default_make_graph".debug("!!!");
+		rdnkey = rdnkey ? \default;
+		code = code ? "4--";
+		sig = in;
+		mix = \mix.kr(0.5);
+		gain = \gain.kr(1);
+		fb = \fb.kr(0.001);
+		del = \delay.kr(0.001,0.1);
+		del2 = \delay2.kr(0.001,0.1);
+		shi = \shift.kr(0);
+		shi2 = \shift2.kr(0);
+		distamp = \distamp.kr(1);
+		pitchlag = \pitchlag.kr(1/8) / TempoClock.default.tempo;
+		pitchmix = \pitchmix.kr(0);
+
+		sig = LPF.ar(sig, \prelpf.kr(17000));
+		sig = HPF.ar(sig, \prehpf.kr(17));
+
+		sig = sig + (LocalIn.ar(2) * fb);
+
+		sig = LPF.ar(sig, \lpf.kr(17000));
+		sig = HPF.ar(sig, \hpf.kr(17));
+		thisThread.randSeed = 386049.0;
+		si = sig;
+		sig = { arg si, env;
+			si = (si * 10.rand * \distamp.kr).tanh / 2;
+			si = FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift2.kr) + si / 1.2;
+			si = BPF.ar(si, exprand(100,10000), 0.5.rand + 0.01) + ( si / 4 );
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+			si = FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift.kr) + si / 1.2;
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+			si = [
+				{ arg si, env;
+					si = BRF.ar(si, exprand(100,10000), 0.5.rand + 0.01) + ( si / 4 );
+				}.value(si, env);
+				,
+				{ arg si, env;
+					si = BRF.ar(si, exprand(100,10000), 0.5.rand + 0.01) + ( si / 4 );
+				}.value(si, env);
+				,
+				{ arg si, env;
+					si = BRF.ar(si, exprand(100,10000), 0.5.rand + 0.01) + ( si / 4 );
+				}.value(si, env);
+				,
+				{ arg si, env;
+					si = BRF.ar(si, exprand(100,10000), 0.5.rand + 0.01) + ( si / 4 );
+				}.value(si, env);
+
+			].mean;
+			si = (si * 10.rand * \distamp.kr).tanh / 2;
+			si = FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift.kr) + si / 1.2;
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+			si = BRF.ar(si, exprand(100,10000), 0.5.rand + 0.01) + ( si / 4 );
+			si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+		}.value(si, env);
+
+
+		sig1 = sig.tanh * \fbdistamp.kr(1/2);
+		sig = SelectX.ar(\fbdistmix.kr(1), [sig, sig1]);
+
+		sig = Limiter.ar(sig);
+
+		sig1 = sig;
+		#afreq, hasFreq = Pitch.kr(sig1).flop;
+		sig1 = BRF.ar(sig1, afreq.lag(pitchlag));
+		#afreq, hasFreq = Pitch.kr(sig1).flop;
+		sig1 = BRF.ar(sig1, afreq.lag(pitchlag));
+		sig = SelectX.ar(pitchmix, [sig, sig1]);
+
+		LocalOut.ar(sig);
+		sig = LPF.ar(sig, \postlpf.kr(17000));
+		sig = HPF.ar(sig, \posthpf.kr(17));
+		sig = Limiter.ar(sig);
+		sig = sig * \wetamp.kr(1);
+
+		indelay = \indelay.kr(0);
+		sigin = DelayL.ar(in, 0.2, indelay);
+		sig = SelectX.ar(mix, [sigin, sig]);
+		sig = sig * gain;
+		//sig.debug("end sig");
+		sig;
+
+
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.001,0,1,0.001)), gate, doneAction:2);
+		Out.ar(out, sig);
+	}).add;
+
+
+	Pbind(
+		'wet10', 1.0,
+		'mix', 0.079831932773109,
+		'gain', 1.2,
+		'fb', 0.0001,
+		'delay', 0.33007105395782,
+		'delay2', 0.0001,
+		'shift', 0.0,
+		'shift2', 0.0,
+		'distamp', 6.9236664026787,
+		'pitchlag', 1.0,
+		'pitchmix', 0.45378151260504,
+		'prelpf', 17000,
+		'prehpf', 17,
+		'lpf', 17000,
+		'hpf', 17,
+		'fbdistamp', 0.47619047619048,
+		'fbdistmix', 0.91176470588235,
+		'postlpf', 17000,
+		'posthpf', 17,
+		'wetamp', 0.46579739809918,
+		'indelay', 0.04,
+		'wet20', 1.0,
+		'mamp', 1,
+	)
+
+
+);
 

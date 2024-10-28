@@ -144,6 +144,7 @@ ProtoDef(\generic_piano, (
 );
 
 
+// not used, now NoteTimeline use ControllerDef in libdef/controllers.scd
 TagSpecDef(\NoteTimeline_controller).addUnique(\generic_piano, ProtoDef(\generic_piano));
 TagSpecDef(\NoteTimeline_controller).addUnique(\nektar, ProtoDef(\nektar));
 TagSpecDef(\NoteTimeline_controller).addUnique(\apro, ProtoDef(\apro));

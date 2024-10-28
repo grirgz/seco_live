@@ -446,23 +446,19 @@ Pdef(\part, Pdef(\zedpart,
 (
 Pdef(\part, Pdef(\ze_hat_ksh2b, 
 	Ppar([
-		PatKitDef(\ksh2b).asPattern(Pbind(
-			\kitIndex, 9,
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[703].value,
 			\isRest, Pseq([
-				1,1,1,1,
+				1,
 			],inf).coin.not,
-			\lag, 0.04,
-			\sustain, 0.1,
 			\dur, 1/8,
-			\gain, 0.2 * Pseq([
+			\gain, 0.1 * Pseq([
 				1,0.7,
 			],inf) * Pseq([
 				1,Pwhite(0.01,0.5,1),
 			],inf),
-			\amp, 0.1,
-			//\lag, 0.04,
-			//\out, BusDef(\fx1, \audio),
-		)),
+		),
 	])
 )).play;
 );
@@ -761,7 +757,8 @@ Pdef(\part, Pdef(\zedpart,
 ///////////////// mtranspose ctranspose root
 // \mtranspose use degree indexing
 // \ctranspose use note indexing
-// root is same as ctranspose
+// \root is same as ctranspose
+// \gtranspose is like ctranspose but use provided scale instead of 12TET
 ~t = 185/4/60; TempoClock.default.tempo = ~t;
 
 (
@@ -1086,7 +1083,7 @@ Pdef(\part, Pdef(\zedpart,
 				//[0,1,0,0,1,0],
 				//[0,1,0,0,1,0].rotate(rrand(0,6)),
 				Plazy({ arg ev;
-					Pseg(Pseq([
+					Pstep(Pseq([
 						[0,1,0,0,1,0].rotate(rrand(0,6)),
 						[0,1,0,0,1,0].rotate(rrand(0,6)),
 						[0,1,0,0,1,0].rotate(rrand(0,6)),
@@ -1762,4 +1759,87 @@ Pdef(\part, Pdef(\zedpart,
 		
 	])
 )).play;
+);
+
+
+///////// arpegiator
+
+~t = 145/4/60; TempoClock.default.tempo = ~t;
+(
+Pdef(\arper, 
+	Pbind(
+		\cnote, Pstep(Pseq([
+			[0,4,7],
+			[4,7,11-12],
+			[5,9,12-12],
+			[7,11-12,14-12],
+		],inf),1/2),
+		\arp, Plazy({ arg ev;
+			if(ev[\arp].notNil) {
+				ev[\arp]
+			} {
+				Pseq(rrand(0,9!ev[\plen]).postln,ev[\prepeat])
+			}
+		}).loop.trace,
+		\note, Pfunc({ arg ev;
+			var it;
+			it = ev[\cnote] % 12;
+			it = it +.x [-12,0,12];
+			it.wrapAt(ev[\arp]);
+		}),
+	)
+);
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\arper) <> Pbind(\dur, 1/8, \octave, 3, \plen, 2, \prepeat,8*16,
+			\isRest, Pseq([
+				1,1,0,0, 1,0,0,0,
+				1,0,0,1, 1,0,0,0,
+			].rotate(rrand(0,8)),inf).coin.not,
+		),
+		Pdef(\arper) <> Pbind(\dur, 1/8, \octave, 4, \plen, 4, \prepeat,8*2,
+			\isRest, Pseq([
+				1,1,1,0, 0,0,0,0,
+			].rotate(rrand(0,8)),inf).coin.not,
+		),
+		Pdef(\arper) <> Pbind(\dur, 1/8, \octave, 5, \plen, 4, \prepeat,400,
+			\isRest, Pseq([
+				1,1,1,0.3, 1,1,0,0,
+				0,0,0,0, 0,0,0,0,
+			].rotate(rrand(0,8)),inf).coin.not,
+		),
+		Pdef(\arper) <> Pbind(\dur, 1/8, \octave, 5, \plen, 4, \prepeat,400,
+			\isRest, Pseq([
+				1,1,1,0.3, 0,1,0.5,0.5,
+				1,1,1,0.3, 1,1,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+			].rotate(rrand(0,8)),inf).coin.not,
+		),
+		Pdef(\arper) <> Pbind(\dur, 1/16, \octave, 6, \plen, 4, \prepeat,8*8,
+			\arp, Pseq([
+				0,3,2,3, 2,3,0,0,
+			],inf),
+			\isRest, Pseq([
+				1,1,1,0.3, 1,1,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+			].rotate(rrand(0,8)),inf).coin.not,
+		),
+	])
+)).play;
+);
+
+
+/// stutter whole Pbind with Pstep
+
+
+(
+Pdef(\zed, 
+	Pbind(
+		\note, Pseq([0,1,4,5],inf),
+		\dur, 1/8,
+	) <> Pstep(Pbind(\octave, Pseq([6,5],inf), \legato, Pseq([1,0.1],inf)), 1)
+).play;
 );
