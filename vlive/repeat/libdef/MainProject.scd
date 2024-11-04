@@ -130,7 +130,7 @@ FileSystemProjectTemplate('MainProject', (
 		if(TrackDef(tracklistname).isNil or: {
 			TrackDef(tracklistname).name.isNil
 		}) {
-			TrackDef(tracklistname, TrackTemplateDef(\TrackList));
+			TrackDef(tracklistname, TrackTemplateDef(\CustomTrackList));
 			self.addResource(TrackDef(tracklistname));
 		};
 		TrackDef(tracklistname);
@@ -205,7 +205,7 @@ ProtoTemplateDef(\SimpleProject, ( // this is like having no project
 		if(TrackDef(tracklistname).isNil or: {
 			TrackDef(tracklistname).name.isNil
 		}) {
-			TrackDef(tracklistname, TrackTemplateDef(\TrackList));
+			TrackDef(tracklistname, TrackTemplateDef(\CustomTrackList));
 			self.addResource(TrackDef(tracklistname));
 		};
 		TrackDef(tracklistname);

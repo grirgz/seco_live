@@ -1,5 +1,17 @@
 
 NoteTimeline(\bla).edit
+NoteTimeline(\bla).eventList = TimelineEventList[] 
+NoteTimeline(\bla2).edit
+NoteTimeline(\bla3).edit
+NoteTimeline(\bla4).edit
+NoteTimeline(\bla5).edit
+NoteTimeline(\bla6).edit
+NoteTimeline(\bla7).edit
+~debug.historyList.size
+~debug.historyIndex
+~debug.list.print
+~debug.historyCanUndo
+~debug.historyCanRedo
 
 (
 Pdef(\melo, 
@@ -230,3 +242,6 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 NoteTimeline(\testmidi).edit; 
+
+
+

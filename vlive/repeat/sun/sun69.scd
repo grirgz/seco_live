@@ -117,7 +117,7 @@ Pdef(\mel2,
 		\instrument, \fmc_ambientchords2,
 		\amp, 0.1/2,
 	)
-)
+);
 NoteTimeline('mel2').param = Param(Pdef('mel2'), 'midinote');
 NoteTimeline('mel2').eventList = TimelineEventList.newFrom([
 	(\absTime: -0.012061511841239, \clockTime: 3233.1879384882, \dur: 0.012061511841239, \instrument: 'fmclustergen', \kitIndex: 72, \midinote: 72.0, \playDur: 0.012061511841239, \relDur: 0.012061511841239, \sustain: 2.2557466389085, ),

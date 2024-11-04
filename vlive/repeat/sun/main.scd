@@ -1990,3 +1990,148 @@ Array.fill(1, { arg x; x.debug("bla") })
 ~s.next(())
 
 (\bla: \blo)
+
+
+b = c.par(                // now start a pattern in spawner
+    Pbind(*[degree: Pseq((0..6) ++ (7..1), inf), dur: 0.2])
+);
+
+
+// example 5: Spawner can be used directly in the manner of Pspawner.
+// This allows external code to access to the spawner whether or not it has run
+(
+c = Spawner({ |sp|
+    100.do{ sp.wait(1) }
+});
+b = c.par(                // now start a pattern in spawner
+    Pbind(*[degree: Pseq((0..6) ++ (7..1), inf), dur: 0.2])
+);
+c.play;                    // in this case, c is always valid
+)
+c.suspend(b)                // we can suspend and resume the stream
+c.par(b)
+c.suspend(b)
+(
+b = c.par(                // or just start up a new pattern
+    Pbind(*[degree: Pseq((0..6) ++ (7..1), inf), dur: 0.2])
+);
+)
+
+c.par(Pbindef(\bla, Pbind(\note, Pseq((0..5)*2,inf))))
+c.par(Pbind(\note, Pseq((0..5)*2,inf)))
+
+c = Spawner({})
+Pbindef(\xxx, \note, 10)
+c.par(Pdef(\xxx))
+c.play; 
+Pbindef(\xxx, \note, 4)
+c.par(Pbind(\note,4))
+c.par(Pbind(\note,5))
+(
+Pdef(\xxxx, 
+
+	Pbind(\note, 7)
+).play;
+);
+
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+p = ProxySpace();
+p.push
+
+(
+~sig = Pbind(
+	\instrument, \zed,
+	\rel,0.5,
+	\dist, 0.5,
+	\ringTime, 10,
+	\amp, 0.5,
+	\dur, Pseq([
+		Pseq([1/2],6),
+		Pseq([1/8],8)
+	],inf)
+	
+	
+);
+)
+
+~sig.play; // This works fine
+~sig.clock = t
+~sig.clock
+~sig.stop;
+~sig.end;
+~sig.clear
+
+t = TempoClock.default
+t = TempoClock().tempo_(2)
+t.tempo = 1/2
+t.tempo = 2
+p.clock = t
+
+~sig.play(t); // This works without sound
+~sig.stop;
+
+Pdef(\arze, Pdef(\modpat) <> Pdef(\ddd))
+Pdef(\ddd, Pbind())
+Pdef(\arze).play
+Pdef(\modpat, Pbind())
+Pbindef(\modpat, \freq, 1000)
+Pbindef(\modpat, \freq, nil)
+
+NoteTimeline
+
+c = Array2D.new(rows: 4, cols: 2)
+c.rowsDo(_.postln)
+
+//this will take a second
+//make 100 different buffers
+(
+    {
+        ~bufs = List.newClear;
+        100.do{|i|
+            var env=Env([0]++ Array.rand(10,-1.0,1.0).normalize(-1,1)++[0],Array.rand(11,0.01,1),Array.rand(11,-4.0,4.0));
+            var wt=env.discretize(2.pow(12)).asWavetable;
+            i.postln;
+            ~bufs.add(Buffer.loadCollection(s, wt));
+            s.sync;
+        };
+        "I'm done".postln;
+    }.fork
+)
+
+//make the synth
+(
+a = {|buf|
+    var left = Mix(Osc.ar(buf, 200*[0.125, 0.25, 0.5, 2, 3/2, 4/3, 5/4, 6/5, 7/6, 8/7, 9/8, 11/10], 0, 0.04));
+    var right = Mix(Osc.ar(buf, 201*[0.125, 0.25, 0.5, 2, 3/2, 4/3, 5/4, 6/5, 7/6, 8/7, 9/8, 11/10], 0, 0.04));
+    Out.ar(0, [left, right])
+}.play(s, args:[\buf, ~bufs[0]]);
+)
+
+//change the buffer every second
+(
+Routine({
+	inf.do{
+		a.set(\buf, ~bufs.choose);
+		1.wait;
+	}
+}).play
+
+)
+
+(
+a = {|buf|
+    var left = Mix(Osc.ar(buf, 200, 0, 0.04));
+    var right = Mix(Osc.ar(buf, 201, 0, 0.04));
+    Out.ar(0, [left, right])
+}.play(s, args:[\buf, ~bufs[0]]);
+)
+

@@ -239,7 +239,7 @@ TrackTemplateDef(\playerwrapper, (
 	},
 
 	isPlaying: { arg self;
-		(self.proxy.isPlaying == true) and: {
+		(self.proxy.notNil and: { self.proxy.isPlaying == true }) and: {
 			self.mixer.isNil or: { self.mixer.isPlaying == true }
 		};
 	},
@@ -309,6 +309,8 @@ TrackTemplateDef(\playertrack, (
 		self.selectChild(0);
 		self;
 	},
+
+	//defaultTrackTemplate: { TrackTemplateDef(\NoteTimelineTrack) },
 
 	trackTemplate: { arg self;
 		self.parent;
@@ -490,7 +492,11 @@ TrackTemplateDef(\playertrack, (
 		self.selectedChild = idx; // to be deprecated, should be an object instead an index
 		self.selectedIndex = idx;
 		self.activeIndex = idx; // this one is the good one
-		self.childProxy.source = self.childAt(idx).asPattern;
+
+		// childProxy is not defined, can be used to have only one proxy per track
+		// FIXME: should i keep it ?
+		// source can be called on nil so there is no error
+		self.childProxy.source = self.childAt(idx).asPattern; 
 	},
 
 	init_mixer_busses: { arg self;

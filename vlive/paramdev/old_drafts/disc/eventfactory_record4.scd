@@ -287,24 +287,27 @@ WindowDef(\gg, { ~v }).frontTop
 
 };
 WindowDef(\gg, {~vsplitview.();}).frontTop;
-~m.onResize_({
-	~v1.fixedHeight_(~m.bounds.height * ~r)
-});
+//~m.onResize_({
+	//~v1.fixedHeight_(~m.bounds.height * ~r)
+//});
 )
 ~r = 1/5;
 ~m.bounds.height
 (
 ~h.mouseDownAction_({ arg me, x, y;
 	~is_drag = true;
-	~orig = x;
+	~orig = y;
+	~origHeight = ~origHeight ?? { ~m.bounds.height/2 };
 });
-~h.mouseDownAction_({ arg me, x, y;
+~h.mouseUpAction_({ arg me, x, y;
 	~is_drag = false;
 });
 ~h.mouseMoveAction_({ arg me, x, y;
 	y.debug("yyy");
 	if(~is_drag == true) {
-		(y - ~orig).debug("y-o")
+		var diff;
+		diff = (y - ~orig).debug("y-o");
+		~v1.fixedHeight = ~origHeight + diff;
 		
 	}
 });

@@ -1,4 +1,8 @@
 
+//// DEPRECATED: we use CustomTrackList now
+
+// END
+
 (
 ParamProto.init;
 FileSystemProject.load("libdef/tracks.scd");
@@ -342,14 +346,20 @@ TrackTemplateDef(\InstrumentTrackPart, (
 	},
 
 	outBus: { arg self;
-		self.proxy.outBus;
+		if(self.proxy.notNil) {
+			self.proxy.outBus;
+		} {
+			nil
+		}
 	},
 
 	outBus_: { arg self, val;
 		if(val.isNil) {
 			val = self.parentTrack.outBus ? 0;
 		};
-		self.proxy.outBus = val;
+		if(self.proxy.notNil) {
+			self.proxy.outBus = val;
+		}
 	},
 
 	asPatternEvent: { arg self;

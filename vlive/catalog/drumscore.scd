@@ -2257,3 +2257,39 @@ Pdef(\part2, Pdef(\zedpartx2,
 	])
 )).play;
 );
+
+
+////////////////////////
+// hats with pre ghost
+
+~t = 175/4/60; TempoClock.default.tempo = ~t;
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+		) <>
+		Ppar([
+
+			Pbind(
+				\instrument, \playersec,
+				\isRest, Pseq([
+					1,0,1,0, 1,0,1,0,
+				],inf).coin.not,
+				\dur, 1/8,
+				\gain, 0.11,
+			),
+			Pbind(
+				\instrument, \playersec,
+				\speed, 0.9,
+				\isRest, Pseq([
+					0,0,0,1,
+				],inf).coin.not,
+				\dur, 1/16,
+				\gain, 0.11/6,
+			),
+		]),
+		
+	])
+)).play;
+);
