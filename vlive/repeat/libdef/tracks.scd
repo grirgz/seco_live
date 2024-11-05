@@ -317,8 +317,10 @@ TrackTemplateDef(\playertrack, (
 	},
 	trackTemplate_: { arg self, val;
 		self[\parent] = val;
+		self.hasTrackTemplate = true;
 		self.updateChildren;
 	},
+	hasTrackTemplate: false,
 
 	updateChildren: { arg self;
 		"updateChildren x".debug;

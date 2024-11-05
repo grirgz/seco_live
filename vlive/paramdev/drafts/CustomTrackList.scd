@@ -1,16 +1,26 @@
 
-// moved to libdef
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// END
-
 ///// test real tracklist gui for CustomTrackList (instead of grid)
+(
+~t = ~t ?? { ~t = 1; TempoClock.default.tempo = ~t; ~t };
+s.waitForBoot { FileSystemProject.load("sun/lib.scd"); };
+)
 
 TrackDef(\myseq, TrackTemplateDef(\CustomTrackList))
 TrackDef(\myseq).edit
+StaticText
+TrackDef(\myseq).presetCompileStringSavePath = nil
+TrackDef(\myseq).presetCompileStringSavePath
+TrackDef(\myseq).savePresetCompileString("/tmp/testme12/")
+TrackDef(\myseq).loadedFromPath
+TrackDef(\myseq).loadPresetCompileString
+TrackDef(\myseq).isEmpty = true
+FileSystemProject.load("/tmp/testme11/TrackDef_myseq.scd")
+TrackDef(\myseq).dataPath
 WindowDef(\CustomTrackList).front(TrackDef(\myseq))
+SampleTimeline(\bla).edit
 
 TrackDef(\myseq).clearTrack
+TrackDef(\myseq).clipTimeline
 TrackDef(\myseq).selectedPart
 TrackDef(\myseq).selectedPart = 0
 TrackDef(\myseq).childAt(0).childAt(0).asPreview
@@ -19,8 +29,92 @@ TrackDef(\myseq).childAt(1).trackTemplate
 TrackDef(\myseq).childAt(1).isEmpty
 TrackDef(\myseq).children[1] = nil
 TrackDef(\myseq).childAt(1).asCompileString
+TrackDef(\myseq).childAt(0).isEmpty
+TrackDef(\myseq).childAt(0).trackTemplate
+TrackDef(\myseq).childAt(2).label
+TrackDef(\myseq).childAt(0,0).isEmpty
+TrackDef(\myseq).childAt(0,0).proxy.target.asCompileString
+TrackDef(\myseq).childAt(0,0).score.asCompileString
+TrackDef(\myseq).childAt(0,0).score.source.at(\velamp).source.list
+TrackDef(\myseq).childAt(0,0).score.fadeOut
+TrackDef(\myseq).childAt(0,0).score.postPatternPreset.asCompileString
+TrackDef(\myseq).childAt(0,0).score.presetCompileString
+TrackDef(\myseq).childAt(0,0).score.keys.do(_.postln)
+TrackDef(\myseq).childAt(0,0).score.presetCompileString
+TrackDef(\myseq).childAt(0,0).score.buffer.asString
+BufDef.bufferCompileString(TrackDef(\myseq).childAt(0,0).score.buffer)
+BufDef.bufferCompileString(~buf)
+~buf = Buffer.alloc(s, 1000)
+~buf.asString
+
+TrackDef(\myseq).childAt(0,0).presetCompileString
+TrackDef(\myseq).childAt(0).base.asParamGroup.getSetCompileString("sdf")
+TrackDef(\myseq).childAt(0).base.asParamGroup[7].spec
+TrackDef(\myseq).childAt(0).base.asParamGroup[7].isSet
+Param(TrackDef(\myseq).childAt(0).base, \speed).get.asCompileString
+Param(TrackDef(\myseq).childAt(0).base, \buffer).get.asCompileString
+BufferProxy
+TrackDef('myseq').childAt(0, 0).score = [ 0.0, 0.42543858289719, 0.47368422150612, 0.47368422150612, 0.43508777022362, 0.40350878238678, 0.0, 0.0  ];
 ~view_selector
 
+~me = Menu( ~ma = MenuAction("hh") )
+~me.front
+~ma
+
+~buf = Buffer.read(s, "/home/ggz/Musique/sc/samplekit/field/clap.flac")
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \playersec,
+		\pos, 0,
+		\legato, 1,
+		\dur, 1,
+		\gain, 1,
+	)
+).play;
+);
+Pdef(\zed).asParamGroup.getSetCompileString
+Pdef(\zed).asParamGroup.collect(_.spec)
+~pa = Pdef(\zed).asParamGroup[6]
+~pa.spec.tagSpec.unmapKey(6)
+~pa.spec.tagSpec.l)ist
+~pa.spec.tagSpec.key
+TagSpecDef(\BufDef).unmapKey(6)
+Param(Pdef('zed'), 'bufnum').get
+Spec.add(\bufnum, ParamAudioBufferSpec())
+Pdef(\zed).asParamGroup.getBufferCompileString(~pa)
+BufDef('samplekit/com/HiHat/ClosedHH 606 1.wav').play
+~pa.get
+WindowDef(\ParamAsSoundFileView).front(Param(Pdef(\zed), \bufnum, ParamAudioBufferSpec()))
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * ( SinOsc.ar(freq * \fmr.kr(1/100)) * \fmamp.kr(0.5) + 1 ));
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+Ndef(\zed).asParamGroup.getSetCompileString
+Ndef(\zed).nodeMap.keys
+Ndef(\zed).edit
+
+Pdef(\zed).asParamGroup.collect(_.spec)
+~pa = Param(Pdef(\zed), \bufnum, ParamAudioBufferSpec())
+~pa.getRaw
+Pdef(\zed).get(\bufnum)
+Pdef(\zed).set(\xxx, 34)
+Pdef(\zed).envir.keys
+nil.keys
+~en = Pdef(\zed).envir
+~en.copy.parent_(nil)[\bufnum]
+
+Param(Pdef(\zed), \bufnum, ParamAudioBufferSpec()).edit
+Param(Pdef(\zed), \bufnum, ParamAudioBufferSpec()).get.asCompileString
+Param(Pdef(\zed), \bufnum, ParamAudioBufferSpec()).presetCompileString
+Pdef(\zed).get(\bufnum)
+t
+Param(Pdef(\zed), \buffer, ParamAudioBufferSpec()).spec.tagSpec.unmapKey(1);
 FileSystemProject.load("holis/synthdef.scd")
 
 ~data = ProtoClass()
@@ -29,10 +123,14 @@ Param(Message(~data), \lab, ParamStringSpec()).edit
 (
 WindowDef(\win, { arg def;
 	
-Param(Message(~data), \lab, ParamStringSpec()).asTextField
+	Menu(
+		~ma = Param(Message(~data), \lab, ParamBoolSpec()).asMenuAction(action: { ~data.debug("data") })
+	)
 }).front;
 )
 ~data
+~ma.checked
+~ma.checkable
 
 ///////////
 TrackDef(\myseq).clear;
