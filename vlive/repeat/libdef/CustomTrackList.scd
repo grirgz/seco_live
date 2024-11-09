@@ -94,14 +94,14 @@ TrackTemplateDef(\CustomTrackList, (
 		self.changed(\tracklist);
 	},
 
-	isEmpty: { arg self;
-		self.children.every(_.isEmpty);
-	},
-
 	////// editor
 
 	edit: { arg self;
 		WindowDef(( \CTrackList_++self.key ).asSymbol, WindowDef(\CustomTrackList)).front(self);
+	},
+
+	editGrid: { arg self;
+		WindowDef(( \CTrackGrid_++self.key ).asSymbol, WindowDef(\customgrid)).front(self);
 	},
 
 	////// save/load
@@ -239,15 +239,16 @@ TrackTemplateDef(\CustomInstrumentTrack, (
 	clearTrack: { arg self;
 		self.clearAllTrackParts;
 		//self.trackTemplate = nil;
-		self.parent = TrackTemplateDef(\playertrack);
+		if(self != TrackTemplateDef(\CustomInstrumentTrack)) {
+			self.parent = TrackTemplateDef(\CustomInstrumentTrack);
+		};
 		self.hasTrackTemplate = false;
 	},
 
 	clearAllTrackParts: { arg self;
 		self.children.do { arg child;
 			if(child.notNil) {
-				child.score = nil;
-				child.source = nil;
+				child.clearPart;
 			}
 		}
 	},
@@ -298,7 +299,12 @@ TrackTemplateDef(\CustomInstrumentTrack, (
 		WindowDef(\CustomInstrumentTrack_TemplateEditor).front(self)
 	},
 	editInstrument: { arg self;
-		self.trackEditor.front(self);
+		var te = self.trackEditor;
+		if(te.notNil) {
+			te.front(self);
+		} {
+			Log(\Param).info("No GUI (self.trackEditor) for %".format(self));
+		};
 	},
 
 
@@ -504,7 +510,7 @@ TrackTemplateDef(\CustomInstrumentTrackPart, (
 	//////// score
 
 	makeScore: { arg self;
-		Log(\Param).debug("no instrument, can't make score %", self);
+		Log(\Param).debug("no makeScore method implemented in %", self);
 		nil;
 	},
 
@@ -1228,7 +1234,7 @@ WindowDef(\CustomTrackList, (
 				TrackTimeline(model.key, model).edit;
 			}),
 			BasicButton.new.string_("Grid").action_({
-				WindowDef(( \TrackGrid_++model.key ).asSymbol, WindowDef(\customgrid)).front(model);
+				model.editGrid;
 			}),
 		)
 	},
@@ -1246,7 +1252,14 @@ WindowDef(\CustomTrackList, (
 			viewSelector.views = [];
 			view.layout = VLayout (*
 				self.model.existingChildren.collect { arg child, idx;
-					self.makeTrackView(child)
+					try {
+						self.makeTrackView(child)
+					} { arg error;
+						Log(\Param).error("ERROR: in WindowDef(\CustomTrackList).makeTrackView idx=%".format(idx));
+						error.reportError;
+						//error.throw;
+						BasicButton.new.string_("error");
+					}
 				}.as(Array) ++ [nil];
 			);
 			viewSelector.select_item(oldselidx)
@@ -1327,6 +1340,13 @@ WindowDef(\CustomTrackList, (
 								child.editInstrument;
 							}),
 							Param(Message(child), \isMixerEnabled, ParamBoolSpec()).asMenuAction("Enable mixer"),
+							MenuAction.separator,
+							MenuAction("clear score", {
+								cell.clearPart;
+							}).enabled_(cell.isEmpty.not),
+							MenuAction("remove track", {
+								model.removeTrack(childidx);
+							}).enabled_(child.isEmpty.not)
 						).front;
 						//WindowDef(\OverlayMenu).front(but, x, y, { arg def;
 							//VLayout (
@@ -1458,8 +1478,8 @@ WindowDef(\TrackListMixer, { arg def, tracklist;
 		var key = ( \sendbus ++ idx ).asSymbol;
 		mixerTemplate[key] = { arg self; BusDef(key, \audio, 2) }
 	};
-	mixers = tracklist.children.collect { arg track, idx;
-		if(track.isEmpty.not and: { track.isMixerEnabled == true }) {
+	mixers = tracklist.existingChildren.collect { arg track, idx;
+		if(track.isMixerEnabled == true) {
 			var mixer = track.mixer;
 			var boxview = View.new;
 			var delayview;

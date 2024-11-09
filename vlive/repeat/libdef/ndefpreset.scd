@@ -2,13 +2,19 @@
 
 (
 ProtoDef(\NdefParamGroupDef, (
+	// when put in a playergrid, you can define for each cell which preset name from ParamGroup is used
+	// then when you play the cell, the preset is loaded into the Ndef in source
+	// contrary to NdefPreset, the preset is stored in ParamGroupDef instead of the cell itself
+
 	protoClass: \NdefParamGroupDef,
 
-	new: { arg self, ndef;
-		self = self.deepCopy;
+	new: { arg self, ndef, preset_name=\default;
+		var newself = ProtoClass();
+		newself.parent = self;
 	
-		self.source = ndef;
-		self;
+		newself.source = ndef;
+		newself[\preset] = preset_name;
+		newself;
 	},
 
 	load: { arg self, name;
@@ -60,9 +66,11 @@ ProtoDef(\NdefParamGroupDef, (
 			VLayout(
 				HLayout(
 					PlayerWrapper(target).asView,
-					EventClass.presetSelectorView.(pg),
-					BasicButton.new.string_("kkj"),
-					StaticText.new.onChange(\preset, { arg view;
+					WindowDef(\PresetSelectorView).asView(pg),
+					BasicButton.new.string_("save preset").action_({ me.save; }),
+					BasicButton.new.string_("load preset").action_({ me.load; }),
+					Param(Message(me), \preset, TagSpec(me.paramGroup.presets.keys)).asPopUpMenu,
+					StaticText.new.followChange(me, \preset, { arg view;
 						view.string = me.preset;
 					})
 				),
@@ -73,14 +81,25 @@ ProtoDef(\NdefParamGroupDef, (
 
 
 ));
+
 ProtoDef(\NdefPreset, (
+	// When connected, the params come from the Ndef, else they come from the preset
+	// Capture save the ndef params values to the unique preset
+	// Playing the NdefPreset apply the preset to the Ndef
+	// Can be put in a playergrid to store and load different ndef presets
+	// When not connected, you can modify each preset without changing the running sound
+	// The benefit over NdefParamGroupDef is you can still load presets from ParamGroupDef so you can share
+	// but you don't have to store every preset so you don't clutter system presets
+
+
 	protoClass: \NdefPreset,
 
 	new: { arg self, ndef;
-		self = self.deepCopy;
+		var newself = ProtoClass();
+		newself.parent = self;
 	
-		self.source = ndef;
-		self;
+		newself.source = ndef;
+		newself;
 	},
 
 
@@ -183,7 +202,7 @@ ProtoDef(\NdefPreset, (
 				HLayout(
 					PlayerWrapper(me).asView,
 					PlayerWrapper(target).asView,
-					EventClass.presetSelectorView.(me.paramGroup),
+					WindowDef(\PresetSelectorView).asView(me.paramGroup),
 					BasicButton.new.string_("Capture").action_({ me.capture }),
 					Param(Message(me), \connected, XBoolSpec.new).asButton.string_("Connect"),
 				),
@@ -202,6 +221,14 @@ ProtoDef(\NdefPreset, (
 
 // ==================================================
 
+///// demo
+(
+Ndef(\testpre, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.ar(\fmf1.kr(2/1)*~t * ( 1 + ( SinOsc.ar(\fmf2.kr(1/2)*~t) * 1 ))) * 1 )));
+	sig = Pan2.ar(sig, pan, amp);
+});
+);
 (
 TrackDef(\testpre, TrackDef(\playergrid)).source = [
 	//8.collect { arg x; ProtoDef(\myndef+++x, ProtoDef(\NdefParamGroupDef).new(Ndef(\testpre))); },
@@ -212,14 +239,44 @@ TrackDef(\testpre, TrackDef(\playergrid)).source = [
 
 ]
 )
+TrackDef(\testpre).edit;
+
+
+////////////////////////
+
+
+//// test NdefParamGroupDef
+
+ProtoDef(\testme, ProtoDef(\NdefParamGroupDef).new(Ndef(\testpre)))
+ProtoDef(\testme).edit
+ProtoDef(\testme).clear
+ProtoDef(\testme).keys
+ProtoDef(\testme).paramGroup.presets
+Ndef(\testpre).edit
+Ndef(\testpre).clear
+Ndef(\testpre).play
+
+(
+TrackDef(\testprepg, TrackTemplateDef(\playergrid)).source = [
+	//8.collect { arg x; ProtoDef(\myndef+++x, ProtoDef(\NdefParamGroupDef).new(Ndef(\testpre))); },
+	8.collect { arg x; ProtoDef(\myndefpg+++x, ProtoDef(\NdefParamGroupDef).new(Ndef(\testpre))); },
+	[
+		Ndef(\testpre)
+	]
+
+]
+)
+TrackDef(\testprepg).edit;
+
+//////////////////////
+
 ProtoDef(\myndef0).edit
-TrackDef(\testpre).edit
 ParamGrouDef(\)
 ProtoDef(\myndef0).paramGroup.asList
 
 
 
-ProtoDef(\myndef0).clear;
+ProtoDef(\myndef1).clear;
 ProtoDef(\myndef0, ProtoDef(\NdefPreset).new(Ndef(\testpre)));
 ProtoDef(\myndef0).edit;
 ProtoDef(\myndef0).params
@@ -236,20 +293,13 @@ PlayerWrapper(ProtoDef(\myndef0)).wrapper
 PlayerWrapper(ProtoDef(\myndef0)).asCompileString
 
 
-ProtoDef(\myndef0, ProtoDef(\NdefPreset).new(Ndef(\testpre))).edit
+ProtoDef(\myndef0, ProtoDef(\NdefParamGroupDef).new(Ndef(\testpre))).edit
 ProtoDef(\myndef0).preset = \qsd
 ProtoDef(\myndef0).play
-ProtoDef(\myndef1, ProtoDef(\ndefpreset).new(Ndef(\testpre))).edit
+ProtoDef(\myndef1, ProtoDef(\NdefParamGroupDef).new(Ndef(\testpre))).edit
 ProtoDef(\myndef1).preset = \aze
 ProtoDef(\myndef1).play
 
-(
-Ndef(\testpre, { arg freq=200, pan=0, amp=0.1;
-	var sig;
-	sig = SinOsc.ar(freq * ( 1 + ( SinOsc.ar(\fmf1.kr(2/1)*~t * ( 1 + ( SinOsc.ar(\fmf2.kr(1/2)*~t) * 1 ))) * 1 )));
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
 Ndef(\testpre).fadeTime = 1;
 
 (

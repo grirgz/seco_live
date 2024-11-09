@@ -820,7 +820,8 @@ TrackTemplateDef(\playergrid, (
 	},
 
 	isEmpty: { arg self;
-		self.existingChildren.any({ arg x; x.isEmpty.not })
+		// if any children is existing, return false
+		self.children.any({ arg x; x.notNil and: {x.isEmpty.not } }).not
 	},
 
 
@@ -1065,7 +1066,12 @@ TrackTemplateDef(\lineplayer, (
 	},
 
 	children: { arg self;
-		self.parentTrack.children.asArray.collect({ arg x; x.childAt(self.index) });
+		// take also empty children, to stop the track
+		self.parentTrack.children.asArray.collect({ arg x; 
+			if(x.notNil) {
+				x.childAt(self.index) 
+			};
+		});
 	},
 ));
 

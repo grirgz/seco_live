@@ -1,3 +1,4 @@
+// test Pmod class by scztt in param/Classes/experimental/Pmod.sc
 (
 SynthDef(\saw, {
 	var env, sig;

@@ -1,4 +1,9 @@
-// dpends on libdef/track.scd
+// the idea is to name your Pdef(\pdefgrid3_1) then when you open TrackDef(\pdefgrid) it's there in column 3 cell 1
+// you can also define TrackDef(\mykey, TrackTemplateDef(\pdefgrid)) to use Pdef(\mykey3_1)
+
+
+// dpends on libdef/tracks.scd
+FileSystemProject.loadOnce("libdef/tracks.scd");
 
 TrackTemplateDef(\pdefwrapper, ().putAll(TrackTemplateDef(\playerwrapper)).putAll((
 

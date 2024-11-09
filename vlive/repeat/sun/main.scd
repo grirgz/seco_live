@@ -2135,3 +2135,5 @@ a = {|buf|
 }.play(s, args:[\buf, ~bufs[0]]);
 )
 
+SynthDef(\bla)
+SynthDescLib()

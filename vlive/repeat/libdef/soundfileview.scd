@@ -280,9 +280,9 @@ WindowDef(\soundfileview, (
 			cur++(cur[0]+cur[1]) / s.sampleRate,	// seconds
 			cur++(cur[0]+cur[1]) / sf.numFrames,	// normalized
 		];
-		"Current selection is now [start, size, end]:\nframes: %\nseconds: %\nnormalized: %".format(
-			*positions
-		).postln;
+		//"Current selection is now [start, size, end]:\nframes: %\nseconds: %\nnormalized: %".format(
+			//*positions
+		//).postln;
 		self.positions = positions;
 	},
 
@@ -302,10 +302,10 @@ WindowDef(\soundfileview, (
 		var sampleRate = self.sampleRate;
 		var sfview = self.sfview;
 		var clock = self.tempoClock;
-		"0".debug("xxx");
-		[startParam.get].debug("update_selection: start really before");
+		//"0".debug("xxx");
+		//[startParam.get].debug("update_selection: start really before");
 		//[startParam.get, conv.start.get, sfview.selections[sfview.currentSelection]].debug("update_selection: start really before");
-		"0.2".debug("xxx");
+		//"0.2".debug("xxx");
 		if(startParam.notNil) {
 
 			speed = if(speedParam.notNil) {
@@ -317,17 +317,17 @@ WindowDef(\soundfileview, (
 				[conv.sustain.get, clock.tempo, sampleRate].debug("xxx");
 				conv.sustain.get * sampleRate * speed.abs;
 			} {
-				"1".debug("xxx");
+				//"1".debug("xxx");
 				if(endParam.notNil) {
 					endParam.get - conv.start.get * sampleRate;
 				} {
 					1
 				}
 			};
-			"1.2".debug("xxx");
-			[startParam.get, conv.start.get].debug("update_selection: start before");
+			//"1.2".debug("xxx");
+			//[startParam.get, conv.start.get].debug("update_selection: start before");
 			start = conv.start.get * sampleRate;
-			"2".debug("xxx");
+			//"2".debug("xxx");
 			//(
 				//[conv.start.get, conv.sustain.get, conv.start.get + conv.sustain.get] 
 				//++ ( [conv.start.get, conv.sustain.get, conv.start.get + conv.sustain.get] * sampleRate)
@@ -336,7 +336,7 @@ WindowDef(\soundfileview, (
 					//( conv.start.get + conv.sustain.get * sampleRate ) - ( conv.start.get * sampleRate ) / sampleRate, 
 				//])
 			//).debug("start, sus, end, srstart, srsus, srend");
-			"3".debug("xxx");
+			//"3".debug("xxx");
 			sfview.setSelection(sfview.currentSelection, 
 				if(speed < 0) {
 					[start - sustain, sustain]
@@ -376,13 +376,13 @@ WindowDef(\soundfileview, (
 			1
 		};
 		if(startParam.notNil) {
-			[startParam.get, conv.start.get, positions[1][0]].debug("compute_params: start");
+			//[startParam.get, conv.start.get, positions[1][0]].debug("compute_params: start");
 			conv.start.set( if(speed < 0) {
 				positions[1][2]
 			} {
 				positions[1][0];
 			});
-			[startParam.get, conv.start.get, positions[1][0]].debug("compute_params: start after");
+			//[startParam.get, conv.start.get, positions[1][0]].debug("compute_params: start after");
 		};
 		sustain = positions[1][1] / speed.abs;
 		if(sustain == 0) {
@@ -492,9 +492,9 @@ WindowDef(\soundfileview, (
 
 		// SoundFileView selection is in seconds
 		// can't always use param spec because spec range is not same as buffer duration
-		[startParam, sustainParam, endParam, sf, sf.duration, clock, clock.tempo].debug("makeAccessor");
-		[self.startType, self.sustainType, self.endType].debug("makeAccessor: types");
-		self.sustainType.debug("sustainType");
+		//[startParam, sustainParam, endParam, sf, sf.duration, clock, clock.tempo].debug("makeAccessor");
+		//[self.startType, self.sustainType, self.endType].debug("makeAccessor: types");
+		//self.sustainType.debug("sustainType");
 		conv = [self.startType, self.sustainType, self.endType].collect({ arg ptype;
 			{ arg pa;
 				ProtoClass((
@@ -521,8 +521,8 @@ WindowDef(\soundfileview, (
 			sustain: conv[1].(sustainParam),
 			end: conv[2].(endParam),
 		);
-		[conv[0].(startParam), conv[0].(startParam).get].debug("makeAccessor xxxi");
-		[startParam.get].debug("makeAccessor xxx");
+		//[conv[0].(startParam), conv[0].(startParam).get].debug("makeAccessor xxxi");
+		//[startParam.get].debug("makeAccessor xxx");
 		self.accessor = conv;
 	},
 
@@ -564,7 +564,7 @@ WindowDef(\soundfileview, (
 		self.sfview = sfview;
 		self.sf = sf;
 
-		path.debug("soundfileview: file path");
+		//path.debug("soundfileview: file path");
 		self.openFile(file);
 
 		sfview.elasticMode = true;
@@ -574,11 +574,11 @@ WindowDef(\soundfileview, (
 		sfview.drawsWaveForm = true;
 		sfview.gridOn = false;
 		sfview.gridResolution = 1;
-		~sfview = sfview;
+		//~sfview = sfview;
 
 		sfview.action = {
-			"yeahhh".debug;
-			sfview.scrollPos.debug("scrollPos");
+			//"yeahhh".debug;
+			//sfview.scrollPos.debug("scrollPos");
 		};
 
 		sfview.currentSelection = 1;

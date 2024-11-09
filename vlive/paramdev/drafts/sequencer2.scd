@@ -528,6 +528,23 @@ KitTimeline(\help, ~drums);
 KitTimeline(\help).edit
 
 // OK
+
+	(
+	Pbindef(\kick,
+		\instrument, \playersec,
+		//\bufnum, ~buflib.kick[1010].value,
+		\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+		\isRest, Pseq([
+			1,0,0,0, 0,0,0,0,
+		],inf).coin.not,
+		\dur, 1/8,
+		\gain, 0.1,
+	).play;
+	)
+
+	Pdef(\kick).clear
+	Pdef(\snare).clear
+
 (
 ~drums = [
 	Pbindef(\kick,
@@ -552,8 +569,46 @@ KitTimeline(\help).edit
 	),
 ]
 )
-KitTimeline(\help2, ~drums);
-KitTimeline(\help2).edit
+(
+~drums = [
+	Pbind(
+		\instrument, \playersec,
+		\bufnum, ~buflib.kick[1010].value,
+		\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+		\isRest, Pseq([
+			1,0,0,0, 0,0,0,0,
+		],inf).coin.not,
+		\dur, 1/8,
+		\gain, 0.1,
+	),
+	Pbind(
+		\instrument, \playersec,
+		\bufnum, ~buflib.snare[1719].value,
+		\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+		\isRest, Pseq([
+			0,0,0,0, 1,0,0,0,
+		],inf).coin.not,
+		\dur, 1/8,
+		\gain, 0.11,
+	),
+	Pbind(
+		\instrument, \playersec,
+		\bufnum, ~buflib.hat[1064].value,
+		\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+		\isRest, Pseq([
+			1,0,1,0, 1,0,1,0,
+		],inf).coin.not,
+		\dur, 1/8,
+		\gain, 0.11,
+	),
+];
+PatKitDef(\aze5, ~drums)
+)
+Pbindef(\kick).play;
+PatKitDef(\aze5).edit
+PatKitDef(\aze4).targets[0].source.play
+KitTimeline(\help3, ~drums);
+KitTimeline(\help3).edit
 
 			(
 				StepEvent((

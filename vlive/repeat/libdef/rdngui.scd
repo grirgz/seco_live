@@ -328,32 +328,48 @@ WindowDef(\rdngui_overlay, { arg def, model, view, popup, x=0, y=0;
     inview = View.new;
 
 
-    layout = VLayout (
-				BasicButton.new.string_("Rebuild").action_({
-					model.rebuild;
-				}),
-				HLayout (
-					BasicButton.new.string_("Save").action_({
-						WindowDef(\ProtoDef_rdn_savePreset).front(model);
-					}).minWidth_(35),
-					BasicButton.new.string_("Load").action_({
-						popup.refreshChange;
-					
-						if(ProtoTemplateDef(\rdn).presetDictionary.size == 0) {
-							ProtoTemplateDef(\rdn).readPresetLib; 
-						};
-					
-						WindowDef(\ProtoDef_rdn_loadPreset).front(model);
-					}).minWidth_(35),
-				),
+	layout = VLayout (
+		BasicButton.new.string_("Rebuild").action_({
+			model.rebuild;
+		}),
+		HLayout (
+			BasicButton.new.string_("Save").action_({
+				WindowDef(\ProtoDef_rdn_savePreset).front(model);
+			}).minWidth_(35),
+			BasicButton.new.string_("Load").action_({
+				popup.refreshChange;
+
+				if(ProtoTemplateDef(\rdn).presetDictionary.size == 0) {
+					ProtoTemplateDef(\rdn).readPresetLib; 
+				};
+
+				WindowDef(\ProtoDef_rdn_loadPreset).front(model);
+			}).minWidth_(35),
+		),
+		GridLayout.rows(
+			[
+				StaticText.new.string_("fxcode:"),
 				TextField.new.action_({ arg view;
 					model.fxcode = view.value.asString;
 				}).value_(model.fxcode).minWidth_(40),
+			],
+			[
+				StaticText.new.string_("fxkey:"),
 				TextField.new.action_({ arg view;
 					model.fxkey = view.value.asSymbol;
 				}).value_(model.fxkey),
-        nil
-    );
+			],
+			[
+				StaticText.new.string_("quant:"),
+				Param(Message( model.proxy ), \quant, ParamNonFloatSpec()).asTextField,
+			],
+			[
+				StaticText.new.string_("fadeTime:"),
+				Param(Message( model.proxy ), \fadeTime).asTextField,
+			]
+		),
+		nil
+	);
     inview.layout_(layout);
     
 }).border_(false);

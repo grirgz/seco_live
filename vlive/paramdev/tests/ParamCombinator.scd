@@ -1,51 +1,67 @@
 // see  vlive/demo/param/combi1
 // see  vlive/demo/param/disc/modular2
-~pc.rate
-~pc.rate = \kr
 (
-	SynthDef(\saw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
-		var sig, sig1, sig2, sig3;
-		sig = LFSaw.ar(freq * [1.01,1,0.99]);
-		sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
-		sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
-		sig = Splay.ar(sig, spread, amp, pan);
-		Out.ar(out, sig);
-	}).add;
+SynthDef(\saw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = LFSaw.ar(freq * [1.01,1,0.99]);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
 
 
 Spec.add(\lpfr, ControlSpec(0.1,4,\lin));
 
-	~targetp = Param(Pdef(\param), \freq, \freq);
-	//Ndef(\default).clear;
-	//~pc.setBusMode(true);
-	//Ndef(\default).set(\inputs, [0,0,0]);
-	//Ndef(\default).set(\ranges, [0,0,0]);
-	//Ndef(\default).clear;
+~targetp = Param(Pdef(\param), \freq, \freq);
+//Ndef(\default).clear;
+//~pc.setBusMode(true);
+//Ndef(\default).set(\inputs, [0,0,0]);
+//Ndef(\default).set(\ranges, [0,0,0]);
+//Ndef(\default).clear;
 
-	Ndef(\lfo1, { arg freq=2.5; SinOsc.kr(freq).unipolar  });
-	Ndef(\lfo2, { LFPulse.kr(4.5).unipolar  });
-	Ndef(\lfo3, { LFSaw.kr(1.5).unipolar  });
+Ndef(\lfo1, { arg freq=2.5; SinOsc.kr(freq).unipolar  });
+Ndef(\lfo2, { LFPulse.kr(4.5).unipolar  });
+Ndef(\lfo3, { LFSaw.kr(1.5).unipolar  });
 TagSpecDef(\ParamCombinatorInput).addUnique(\lfo1 -> Ndef(\lfo1));
 TagSpecDef(\ParamCombinatorInput).addUnique(\lfo2 -> Ndef(\lfo2));
 TagSpecDef(\ParamCombinatorInput).addUnique(\lfo3 -> Ndef(\lfo3));
 
-	BusDef(\krbus1,\control);
-	BusDef(\krbus2,\control);
-	BusDef(\arbus1,\audio);
-	BusDef(\arbus2,\audio);
+BusDef(\krbus1,\control);
+BusDef(\krbus2,\control);
+BusDef(\arbus1,\audio);
+BusDef(\arbus2,\audio);
 
-	Pdef(\plop,
-		( 
-			Pdef(\param, DebugPbind()) 
-			<> Pbind(
-				\instrument, \saw,
-				\freq, Pseq([500],inf),
-				\dur, 1,
-				\amp, 0.1
-			) 
-		).trace
-	).play;
+Pdef(\plop,
+	( 
+		Pdef(\param, Pbind(\instrument, \saw)) 
+		<> Pbind(
+			\freq, Pseq([500],inf),
+			\dur, 1,
+			\amp, 0.1
+		) 
+	).trace
+).play;
 )
+
+// open editor, right click on param name, click Set Combinator mode
+Pdef(\param).edit
+
+// or manually create a combinator
+~pc = ParamCombinator(Param(Pdef(\param), \lpfr, ControlSpec(0.1,2,\lin)));
+~pc.setBusMode(true); // to use lfo
+WindowDef(\ParamCombinatorEditor).front(~pc)
+
+///////////////////////////////// drafts
+
+~p =Param(Pdef(\param), \lpfr, ControlSpec(0.1,2,\lin))
+~p.combinatorEnabled
+~p.combinator
+~p.getRaw
+~p.target.getHalo(\ParamCombinator_lpfr)
+
+Pdef(\param).clear; Pdef(\param).envir.clear; // reset
+
 Pdef(\param).addHalo(\instrument, \saw)
 	~pc = ParamCombinator(Param(Pdef(\param), \freq, \freq));
 	~pc = ParamCombinator(Param(Pdef(\param), \lpfr, ControlSpec(0.1,2,\lin)));

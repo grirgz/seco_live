@@ -84,45 +84,95 @@ WindowDef(\sampler_new, { arg def, target, show_buttons=true;
 	updatebuffer.();
 	buffer.onChange(updatebuffer, anchor);
 	layout;
-	
 });
 
 WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 	// FIXME: no support for \mbufnum
 	var pkey = \sampler;
 	var anchor;
-	var sndfileview = View.new;
+	var sndfileview;
 	var layout;
 	var updatebuffer;
-	var buffer = Param(target, \bufnum, MenuSpec(
-		BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
-	));
 	var buffer_popup = PopUpMenu.new;
+	var buffer;
 	var oldbuf;
 	var paramgroup;
 	var proxy;
+	var isBufferTarget = true;
+	var pgview;
+	var refresh_pgview;
+	var instrumentParam;
+	var loadbutton;
+	var bufcontroller;
+
 	target.debug("target!!!!!");
-	paramgroup  = ( target.asParamGroup ?? { ParamGroup([]) } )
-		.add(Param(target, \sustain))
-		.add(Param(target, \lag))
-		.asView
-	;
-	proxy = player ?? { if(target.isKindOf(StepEvent)) {
-		EventPatternProxy.new.source(target) // FIXME: not sure if working
-	} {
+
+	proxy = if(target.isKindOf(StepEvent)) {
 		target
-	}};
+	} {
+		target.proxy;
+	};
+
+	player = player ?? { 
+		if(target.isKindOf(StepEvent)) {
+			Pdef(\PatKitDef_test_player, target)
+		} {
+			Pdef(\PatKitDef_test_player, target.asPattern)
+		}
+	};
 	anchor = buffer_popup;
-	buffer_popup.mapParam(buffer);
+
+	sndfileview = View.new;
+	sndfileview.fixedHeight = 100;
+
+	// param group view
+	pgview = View.new;
+	refresh_pgview = {
+		var bufnumname;
+		pgview.removeAll;
+		paramgroup  = ( target.asParamGroup ?? { ParamGroup([]) } )
+		.add(Param(proxy, \sustain))
+		.add(Param(proxy, \lag))
+		;
+
+		paramgroup.do { arg param, idx;
+			if(param.property == \bufnum) {
+				bufnumname = \bufnum;
+			};
+			if(param.property == \mbufnum) {
+				bufnumname = \mbufnum;
+			};
+		};
+		paramgroup = paramgroup.rejectByKey([\out, \bufnum]);
+		pgview.layout = paramgroup.asView;
+
+		if(bufnumname.isNil) {
+			sndfileview.removeAll;
+			buffer_popup.enabled = false;
+			loadbutton.enabled = false;
+		} {
+			buffer = Param(proxy, bufnumname, TagSpec(
+				BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
+			));
+			oldbuf = nil;
+			updatebuffer.();
+			buffer_popup.enabled = true;
+			loadbutton.enabled = true;
+			buffer_popup.mapParam(buffer);
+			bufcontroller.remove;
+			bufcontroller = buffer.onChange(updatebuffer, anchor);
+		};
+	};
+	instrumentParam = Param(proxy, \instrument, TagSpecDef(\SynthDef_keys));
+
+	//
+
 	layout = VLayout (*
 		if(show_buttons == true) {
 			[
 				HLayout (
-					PlayerWrapper(proxy).asView,
-					Param(target, \out, MenuSpec(
-						//[ \default -> nil, \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
-						[ \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
-					)).asPopUpMenu,
+					PlayerWrapper(player).asView,
+					Param(proxy, \out, TagSpecDef(\BusDef_object)).asPopUpMenu,
 				),
 			]
 		} {
@@ -135,9 +185,13 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 				//Param(target, \instrument, MenuSpec(
 				//	~sampler_synthdef_list ? [\playersec]
 				//)).asPopUpMenu,
-				Param(target, \instrument, MenuSpecFuncDef(\patkitdef_synthdefs)).asPopUpMenu,
-				buffer_popup,
-				BasicButton.new.string_("load").action_({ arg view;
+				//Param(proxy, \instrument, TagSpecDef(\patkitdef_synthdefs)).asPopUpMenu,
+				instrumentParam.asPopUpMenu,
+				buffer_popup.addAction({
+					// workaround because proxy doesnt update for buffer
+					player.reset;
+				}),
+				loadbutton = BasicButton.new.string_("load").action_({ arg view;
 					//Dialog.openPanel({ arg file;})
 					WindowDef(\filedialog).front("./", { arg file;
 						BufDef.stereo(file.asSymbol); // autoload it
@@ -147,22 +201,36 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 						//buffer.spec.labelList.debug("labellist");
 						//buffer_popup.items.debug("poplabellist");
 						buffer.set(BufDef.stereo(file.asSymbol));
+						player.reset;
 						//buffer_popup.refreshChange;
 					});
 				})
 			),
-			paramgroup,
+			pgview,
 		]
 	);
 	//anchor.debug("anchor");
 	updatebuffer = {
-		var buf = buffer.get;
+		var buf;
+		if(buffer.isNil) {
+			buf = nil
+		} {
+			buf = buffer.get;
+		};
+		if(buf.isKindOf(Integer)) {
+			var path;
+			path = TagSpecDef(\BufDef).unmapKey(buf);
+			if(path.notNil) {
+				buf = BufDef(path)
+			}
+		};
+		buf.debug("buf");
 		if(buf != 0 and: buf.notNil and: {oldbuf != buf}) {
 			sndfileview.removeAll;
 			sndfileview.layout = VLayout(WindowDef(\soundfileview).asView(
 				buf,
-				Param(target, \pos),
-				Param(target, \sustain),
+				Param(proxy, \pos),
+				Param(proxy, \sustain),
 				nil,
 				nil,
 				\seconds,
@@ -173,9 +241,11 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 		}
 	};
 	updatebuffer.();
-	buffer.onChange(updatebuffer, anchor);
+	instrumentParam.onChange({
+		refresh_pgview.();
+	}, pgview);
+	refresh_pgview.();
 	layout;
-	
 });
 
 WindowDef(\samplekit_monolithic, { arg def, group, selectidx=0;
@@ -645,24 +715,27 @@ WindowDef(\KitTimeline_PatKitDefEditor, (
 ParamProto.init;
 	
 // to be insered in lib
-~parPlayerGroup[\presetCompileString] = { arg self, varname="~ppg";
-	"%.targets = [\n%];".format(
-		varname,
+ProtoTemplateDef(\ParPlayerGroup)[\presetCompileString] = { arg self, varname="~ppg";
+	var str;
+	str = "%.targetsData = [\n%];".format(
+		self.refCompileString,
 		self.targets.collect({ arg target, idx;
-			var xtar = target.copy;
-			var template_key = "Buffer.new";
-			var bufnum_compilestring;
 			var res;
-			res = "\t%,\n".format(target.asCompileString);
+			if(target.isKindOf(StepEvent)) {
+				res = "\t%,\n".format(target.asCompileString);
+			} {
+				res = "\t%,\n".format(target.presetCompileString.stripWhiteSpace)
+			};
 			res;
 		}).join
-	)
+	);
+	str;
 };
-~parPlayerGroup[\asPresetCompileString] = ~parPlayerGroup[\presetCompileString]; // backward compat
-~parPlayerGroup[\edit] = { arg self, idx=0;
+ProtoTemplateDef(\ParPlayerGroup)[\asPresetCompileString] = ~parPlayerGroup[\presetCompileString]; // backward compat
+ProtoTemplateDef(\ParPlayerGroup)[\edit] = { arg self, idx=0;
 	WindowDef(\samplekit_+++self.key, WindowDef(\samplekit)).front(self, idx);
 };
-~parPlayerGroup[\startControl] = { arg self;
+ProtoTemplateDef(\ParPlayerGroup)[\startControl] = { arg self;
 	var count = 0;
 
 	MKtl(\lp, "novation-launchpad-s");

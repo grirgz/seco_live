@@ -1,104 +1,139 @@
 
 // keep this code simple as a demo
 // but more advanced than modular_pat.scd
+
+// FIXME:
+// - mod synthdefs should be mono and modbus should be mono
+//		- or we find a way to make stereo to mono
+//		- or we make modulator input stereo
+//		- or we make all modules mono, then add a stereo at the end
 (
 	s.boot;
+	//ParamProto.init; // to have TagSpecDef base definitions
 
-SynthDef(\osc_sin, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, modfreq=1, modphase=0, scale_modfreq=1, scale_modphase=1;
+SynthDef(\osc_sin, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, scale_modfreq=1, scale_modphase=1;
 	var sig;
-	sig = SinOsc.ar(freq * ( modfreq * scale_modfreq + 1), ( modphase * scale_modphase + 1));
+	sig = SinOsc.ar(freq * ( \modfreq.ar * scale_modfreq + 1), ( \modphase.ar * scale_modphase + 1));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }, metadata:(specs:(
-	modfreq: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
-	modphase: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
+	out: ParamBusSpec(TagSpecDef(\BusDef_audio_stereo)),
+	modfreq: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
+	modphase: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
 ))).add;
 
-SynthDef(\osc_pulse, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, modfreq=1, modphase=0, scale_modfreq=1, scale_modphase=1;
+SynthDef(\osc_pulse, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, scale_modfreq=1, scale_modphase=1;
 	var sig;
-	sig = LFPulse.ar(freq * ( modfreq * scale_modfreq + 1), ( modphase * scale_modphase + 1));
+	sig = LFPulse.ar(freq * ( \modfreq.ar * scale_modfreq + 1), ( \modphase.ar * scale_modphase + 1));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }, metadata:(specs:(
-	modfreq: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
-	modphase: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
+	out: ParamBusSpec(TagSpecDef(\BusDef_audio_stereo)),
+	modfreq: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
+	modphase: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
 ))).add;
 
-SynthDef(\osc_saw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, modfreq=1, scale_modfreq=1;
+SynthDef(\osc_saw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, scale_modfreq=1;
 	var sig;
-	sig = LFSaw.ar(freq * ( modfreq * scale_modfreq + 1 ));
+	sig = LFSaw.ar(freq * ( \modfreq.ar * scale_modfreq + 1 ));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }, metadata:(specs:(
-	modfreq: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
+	out: ParamBusSpec(TagSpecDef(\BusDef_audio_stereo)),
+	modfreq: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
 ))).add;
 
-SynthDef(\fil_rlpf, { arg inbus=0, out=0, gate=1, amp=0.1, pan=0, freq=200, rq=0.5, cutoff=500, modcutoff=1, modrq=1, scale_modcutoff=1, scale_modrq=1;
+SynthDef(\fil_rlpf, { arg inbus=0, out=0, gate=1, gain=1, freq=200, rq=0.5, cutoff=500, scale_modcutoff=1, scale_modrq=1;
 	var sig;
 	//var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	var in = InFeedback.ar(inbus, 2); 
-	sig = RLPF.ar(in, cutoff * ( modcutoff.poll * scale_modcutoff + 1 ), rq * ( modrq * scale_modrq + 1 ));
+	sig = RLPF.ar(in, cutoff * ( \modcutoff.ar * scale_modcutoff + 1 ), rq * ( \modrq.ar * scale_modrq + 1 ));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
+	sig = sig * gain;
 	Out.ar(out, sig);
 }, metadata:(specs:(
-	modcutoff: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
-	modrq: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
+	out: ParamBusSpec(TagSpecDef(\BusDef_audio_stereo)),
+	modcutoff: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
+	modrq: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
+	inbus: ParamBusSpec(TagSpecDef(\BusDef_audio_stereo)),
+))).add;
+
+SynthDef(\fil_rhpf, { arg inbus=0, out=0, gate=1, gain=1, freq=200, rq=0.5, cutoff=500, scale_modcutoff=1, scale_modrq=1;
+	var sig;
+	//var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var in = InFeedback.ar(inbus, 2); 
+	sig = RHPF.ar(in, cutoff * ( \modcutoff.ar * scale_modcutoff + 1 ), rq * ( \modrq.ar * scale_modrq + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}, metadata:(specs:(
+	out: ParamBusSpec(TagSpecDef(\BusDef_audio_stereo)),
+	modcutoff: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
+	modrq: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
+	inbus: ParamBusSpec(TagSpecDef(\BusDef_audio_stereo)),
+))).add;
+
+SynthDef(\fil_bpf, { arg inbus=0, out=0, gate=1, gain=1, freq=200, rq=0.5, cutoff=500, scale_modcutoff=1, scale_modrq=1;
+	var sig;
+	//var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var in = InFeedback.ar(inbus, 2); 
+	sig = BPF.ar(in, cutoff * ( \modcutoff.ar * scale_modcutoff + 1 ), rq * ( \modrq.ar * scale_modrq + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}, metadata:(specs:(
+	out: ParamBusSpec(TagSpecDef(\BusDef_audio_stereo)),
+	modcutoff: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
+	modrq: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
 	inbus: ParamBusSpec(TagSpecDef(\BusDef)),
 ))).add;
 
-SynthDef(\fil_rhpf, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, rq=0.5, cutoff=500, modcutoff=1, modrq=1, scale_modcutoff=1, scale_modrq=1;
+SynthDef(\fil_envgen, { arg inbus=0, out=0, gate=1, gain=1, pan=0;
 	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = RHPF.ar(in, cutoff * ( modcutoff * scale_modcutoff + 1 ), rq * ( modrq * scale_modrq + 1 ));
+	//var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var in = InFeedback.ar(inbus, 2); 
+	sig = in;
+	sig = sig * EnvGen.kr(\iadsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), \igate.kr(0), doneAction:0);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
+	sig = Pan2.ar(sig, pan, 1);
+	sig = Balance2.ar(sig[0],sig[1], pan);
+	sig = sig * gain;
 	Out.ar(out, sig);
 }, metadata:(specs:(
-	modcutoff: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
-	modrq: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
+	out: ParamBusSpec(TagSpecDef(\BusDef_audio_stereo)),
+	iadsr: ParamEnvSpec.adsr,
 	inbus: ParamBusSpec(TagSpecDef(\BusDef)),
+	igate: \unipolar,
 ))).add;
 
-SynthDef(\fil_bpf, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, rq=0.5, cutoff=500, modcutoff=1, modrq=1, scale_modcutoff=1, scale_modrq=1;
+SynthDef(\mod_seq, { arg out=0, gate=1, amp=0.1, pan=0, seqrate=1/4, scale_modseqrate=1;
 	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = BPF.ar(in, cutoff * ( modcutoff * scale_modcutoff + 1 ), rq * ( modrq * scale_modrq + 1 ));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}, metadata:(specs:(
-	modcutoff: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
-	modrq: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
-	inbus: ParamBusSpec(TagSpecDef(\BusDef)),
-))).add;
-
-SynthDef(\mod_seq, { arg out=0, gate=1, amp=0.1, pan=0, seqrate=1/4, modseqrate=1, scale_modseqrate=1;
-	var sig;
-	sig = Duty.ar(( 1/seqrate ) * (modseqrate * scale_modseqrate + 1), 0, Dseq([
+	sig = Duty.ar(( 1/seqrate ) * (\modseqrate.ar * scale_modseqrate + 1), 0, Dseq([
 		Dseq(\seqtab.kr(0!8)),
 	],inf));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }, metadata:(specs:(
-	modseqrate: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
+	out: ParamAudioBusSpec(TagSpecDef(\BusDef_audio_mono)),
+	modseqrate: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
 	seqtab: ParamArraySpec(\unipolar)
 ))).add;
 
-SynthDef(\mod_sin, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, modfreq=1, modphase=0, scale_modfreq=1, scale_modphase=1, ampBias = 0;
+SynthDef(\mod_sin, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, ampBias = 0, scale_modfreq=1, scale_modphase=1;
 	var sig;
-	sig = SinOsc.ar(freq * ( modfreq * scale_modfreq + 1), ( modphase * scale_modphase + 1));
+	//out.poll(label:"mod_sinout");
+	sig = SinOsc.ar(freq * ( \modfreq.ar * scale_modfreq + 1), ( \modphase.ar * scale_modphase + 1));
 	sig = sig + ampBias;
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }, metadata:(specs:(
-	modfreq: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
-	modphase: ParamMappedBusSpec(TagSpecDef(\BusDef_asMap)),
+	out: ParamControlBusSpec(TagSpecDef(\BusDef_audio_mono)),
+	ampBias: ControlSpec(0,10,\lin),
+	modfreq: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
+	modphase: ParamMappedBusSpec(TagSpecDef(\BusDef_audio_mono_asMap)),
 ))).add;
 
 TagSpecDef(\modular_synthdefs, [
@@ -108,11 +143,14 @@ TagSpecDef(\modular_synthdefs, [
 	\fil_rlpf,
 	\fil_rhpf,
 	\fil_bpf,
+	\fil_envgen,
 	\mod_sin,
 	\mod_seq,
 ]);
 
-8.do { arg idx; BusDef("modbus%".format(idx.asString.padLeft(1,"0")).asSymbol.debug("create bus"), \audio, 2) };
+Spec.add(\gain, \unipolar);
+
+8.do { arg idx; BusDef("modbus%".format(idx.asString.padLeft(1,"0")).asSymbol.debug("create bus"), \audio, 1) };
 8.do { arg idx; BusDef("rout%".format(idx.asString.padLeft(1,"0")).asSymbol.debug("create bus"), \audio, 2) };
 );
 
@@ -225,7 +263,7 @@ WindowDef(\module, { arg def, slot, model, idx;
 	paramGroupView.followChange(slot, \instrument, { arg view;
 		view.removeAll;
 		slot.paramGroup.do({ arg param;
-			if(param.type == \scalar) {
+			if(param.type == \scalar and:{ param.spec.isKindOf(ParamMappedBusSpec).not }) {
 				param.inBusMode = true;
 			}
 		});
@@ -255,10 +293,96 @@ WindowDef(\modular_pat, { arg def, model;
 )
 
 ProtoDef(\modular_pat).edit;
+
+
 //////////////////////////////////////////
+// connect to midi
+
+(
+~paramfreq = Param(ProtoDef(\modular_pat).slots[0].proxy, \freq);
+~paramfreq.setBusMode(true);
+MIDIdef.noteOn(\track1, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	~paramfreq.set(noteNum.midicps);
+});
+)
+
+// with envgen module
+
+(
+~paramgate = Param(ProtoDef(\modular_pat).slots[7].proxy, \igate);
+~paramgate.setBusMode(true);
+~paramfreq = Param(ProtoDef(\modular_pat).slots[0].proxy, \freq);
+~paramfreq.setBusMode(true);
+~numnote = 0;
+MIDIdef.noteOn(\track1, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	~paramgate.set(1);
+	~numnote = ~numnote + 1;
+	~paramfreq.set(noteNum.midicps);
+});
+MIDIdef.noteOff(\track1_off, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	~numnote = ~numnote - 1;
+	if(~numnote <= 0) {
+		~paramgate.set(0);
+	}
+});
+)
+
+//////////////////////////////////////////
+// keyboard gui
+(
+WindowDef(\pianokeyboard, { arg def;
+    var kb = MIDIKeyboardView.new;
+	kb.keyDownAction = { arg midinote, old;
+		~paramfreq.set(midinote.midicps)
+	};
+	kb.keyTrackAction = { arg midinote, old;
+		~paramfreq.set(midinote.midicps)
+	};
+
+    def.windowDo { arg win; // special method of WindowDef to manipulate the Window if available
+        win.setInnerExtent(800,120); // set a default size to look nice at first try
+    };
+
+    kb.asView;
+}).front; // GUI is made generic by taking the pattern as argument
+)
+
+//////////////////////////////////////////
+
+ParamAudioBusSpec(TagSpecDef(\BusDef_audio_mono)).tagSpec
+~a = ParamAudioBusSpec(TagSpecDef(\BusDef_audio_mono))
+~a.tagSpec
+~a.tagSpec = TagSpecDef(\BusDef_audio_mono)
+TagSpecDef(\BusDef_audio_mono).list
+TagSpecDef(\BusDef_audio_stereo).list
+TagSpecDef(\BusDef_audio_asMap).list
+TagSpecDef(\BusDef_audio_mono_asMap).list
+TagSpecDef(\BusDef_audio_stereo_asMap).list
+
+ProtoDef(\modular_pat).presetCompileString
 
 //ProtoDef(\modular_pat).slots[0].edit
 //ProtoDef(\modular_pat).slots[0].edit
+Param(ProtoDef(\modular_pat).slots[2].proxy, \modfreq).edit
+Param(ProtoDef(\modular_pat).slots[2].proxy, \modfreq).inBusMode
+Param(ProtoDef(\modular_pat).slots[2].proxy, \modfreq).accessor
+~p = Param(ProtoDef(\modular_pat).slots[0].proxy, \modfreq);
+~p.get.asCompileString
+~p.accessor
+~p.wrapper
+~p.get
+~p.inBusMode
+~p = Param(ProtoDef(\modular_pat).slots[1].proxy, \out);
+~p.spec.tagSpec
+~p.spec
+\out.asSpec
+Param(ProtoDef(\modular_pat).slots[0].proxy, \modfreq).get
+Param(ProtoDef(\modular_pat).slots[2].proxy, \modfreq).set(BusDef(\modbus1).asMap)
+Param(ProtoDef(\modular_pat).slots[2].proxy, \modfreq).type
+Param(ProtoDef(\modular_pat).slots[2].proxy, \modfreq).spec
 Param(ProtoDef(\modular_pat).slots[0].proxy, \freq).asCompileString
 ProtoDef(\modular_pat).slots[0].presetCompileString
 ProtoDef(\modular_pat).slots[0].proxy
