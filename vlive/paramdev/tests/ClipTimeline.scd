@@ -1,10 +1,59 @@
 
 ClipTimeline(\bla).edit
+ClipTimeline(\bla10).edit
+NoteTimeline(\bla3).edit
+NoteTimeline(\bla3).eventList
 NoteTimeline(\bla).edit
 ParamTimeline(\bla).edit
 KitTimeline(\bla).edit
 TrackTimeline(\bla).edit
 ParamTimeline(\bla).isRecording
+
+//////////////// test cliplist
+
+ClipTimeline(\aze1).edit
+ClipTimeline(\aze1).presetCompileString.editorInsert
+TrackDef(\test, \CustomTrackList).edit
+(
+ClipTimeline('aze2').tracks = [ ( 'index': 0, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+{
+ClipTimeline('aze2').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.25, \label: 'start', \playDur: 0.25, \relDur: 0.25, \sustain: 0, \type: 'start', ),
+	PlayerEvent((\absTime: 0.25, \dur: 7.75, \legato: 1, \midinote: 2.0, \playDur: 7.75, \receiver: PlayerWrapper(NoteTimeline('fds')), \relDur: 7.75, \sustain: 5.75, \type: 'player', )),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ }.value;
+
+
+
+
+);
+
+~ev = PlayerEvent((\absTime: 0.25, \dur: 7.75, \legato: 1, \midinote: 2.0, \playDur: 7.75, \receiver: PlayerWrapper(NoteTimeline('fds')), \relDur: 7.75, \sustain: 5.75, \type: 'player', ))
+
+
+
+ClipTimeline(\aze1).clipList.
+ClipTimeline(\aze1).edit
+
+NoteTimeline(\df).isKindOf(ProtoClass)
+NoteTimeline(\df).eventType
+PlayerWrapper(NoteTimeline(\df)).asCompileString
+NoteTimeline(\df).asCompileString
+ClipTimeline(\aze1).clipList.clipList
+ClipTimeline(\aze1).clipList.clipList.last.last.value.edit
+~libid = ClipTimeline(\aze2).clipList.clipList.last
+PlayerWrapper(ClipTimeline(\aze2).clipList.clipList.last.last.value).edit
+TagSpecDef(\TrackListPart).list.first.value.isKindOf(ProtoClass)
+TagSpecDef(\TrackListPart).list.first.value.eventType
+~libid = [\TrackListPart, TagSpecDef(\TrackListPart).list.first]
+~lib.libIdToWrapper(~libid)
+~lib.targetToLibId(TagSpecDef(\TrackListPart).list.first.value)
+~lib = ProtoDef(\GlobalLibrary)
+~lib.clipFactories
+~lib
+~lib.libIdToTarget(~libid)
+~lib.eventToLibId(~ev)
 
 /////////// test preview
 
@@ -155,6 +204,17 @@ Ndef(\zed).quant = 0
 Ndef(\zed).end
 Ndef(\zed).play
 
+/////////////
+
+
+TrackDef(\aa3, \playergrid).edit
+TrackDef(\aa3).eventType
+TrackDef(\aa3).protoClass
+TrackDef(\tt, \CustomTrackList).edit
+TrackDef(\aa2).
+TagSpecDef(\playergrid).list
+ClipTimeline(\aze1).edit
+
 
 /////////////////////////////////////////
 ///// stopping clips when stopping ClipTimeline
@@ -163,6 +223,11 @@ Ndef(\zed).play
 
 /////// test with Pdef
 // no problem because it is a PatternEvent: embeded in stream
+
+(
+FileSystemProject.load("libdef/CustomTrackList.scd");
+FileSystemProject.load("libdef/PbindefEditor.scd");
+)
 
 (
 Pdef(\pdeftester, 

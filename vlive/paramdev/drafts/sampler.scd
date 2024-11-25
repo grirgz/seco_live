@@ -1,3 +1,5 @@
+// deprecated, fresh code is in libdef/soundfileview.scd
+// and libdef/drumkit.scd
 
 (
 SynthDef(\sampler, { arg out=0, gate=1, speed=1, pos=0, trigger=1, loop=0, bufnum;

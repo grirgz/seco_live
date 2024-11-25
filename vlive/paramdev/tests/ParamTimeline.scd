@@ -1,3 +1,29 @@
+
+//// test negative spec
+// bug can't move node under 0
+
+
+ParamTimeline(\testbus, Param(BusDef(\modbus1, \control, 1), \bus, \bipolar)).edit
+ParamTimeline(\testbus).editor.areasize
+~sp = \bipolar.asSpec
+~sp.clipLo
+Spec
+
+///// test bus
+
+ParamTimeline(\testbus, Param(BusDef(\modbus1, \control, 1), \bus, \unipolar)).edit
+ParamTimeline(\testbus).clear
+BusDef(\modbus1).getSynchronous
+BusDef(\modbus1).scope; 
+(
+ParamTimeline(\testbus).play;
+FileSystemProject.loadOnce("libdef/ScopeView.scd");
+// note: control rate scoping does not work well, refresh is too slow
+WindowDef(\ScopeView).front(BusDef(\modbus1));
+)
+
+
+///////////////////////////////
 (
 	s.boot;
 Ndef(\bla, { arg freq=200, pan=0, amp=0.1;

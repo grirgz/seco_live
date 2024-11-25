@@ -1171,3 +1171,26 @@ PbindProxy('instrument', 'zegrainer', 'mbufnum', 5, 'trate', 48.486535844729, 't
 Pbindef('zed')
 );
 
+
+//////////// test PbindefEditorParamView
+
+(
+~t = ~t ?? { ~t = 1; TempoClock.default.tempo = ~t; ~t };
+s.waitForBoot { FileSystemProject.load("sun/lib.scd"); };
+)
+
+~p = Param(Pbindef(\pb), \degree);
+~p = Param(Pbindef(\pb), \degree -> \source);
+~p.edit
+~p.parent
+(
+WindowDef(\win, { arg def;
+	WindowDef(\PbindefEditorParamView).asView(~p)
+}).front;
+)
+valueAction
+
+
+WindowDef(\ParamSpecEditor).front(~p)
+~mp.valueAction = 1
+TextField

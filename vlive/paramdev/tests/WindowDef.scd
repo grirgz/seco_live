@@ -126,3 +126,11 @@ wait
 
 
 
+/////////////// coordinates recall
+
+(
+WindowDef(\rememberme, { arg def;
+	Button.new;
+	
+}).front;
+)

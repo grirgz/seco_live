@@ -1,5 +1,4 @@
 
-
 (
 TrackTemplateDef(\playerwrapper, (
 	// if modeTrigger is true, GUI does not track playing state
@@ -21,6 +20,15 @@ TrackTemplateDef(\playerwrapper, (
 		self.index = index.asInteger;
 		self[\storeOn] = { arg self, str; str << self.refCompileString };
 		self;
+	},
+
+	trackTemplate: { arg self;
+		self.parent;
+	},
+	trackTemplate_: { arg self, val;
+		self[\parent] = val;
+		self.hasTrackTemplate = true;
+		self.updateChildren;
 	},
 
 	makeListener: { arg self, fun;
@@ -473,7 +481,7 @@ TrackTemplateDef(\playertrack, (
 
 	existingChildren: { arg self;
 		self.children.select { arg child, idx;
-			child.notNil and: { child.isEmpty.not }
+			child.notNil and: { child.isEmpty != true }
 		}
 	},
 
@@ -565,6 +573,10 @@ TrackTemplateDef(\playergrid, (
 		array.collect({ arg val, idx;
 			self.childAt(idx).source = val;
 		})
+	},
+
+	initProto: { arg self;
+		TagSpecDef(\playergrid).addUnique(self.key -> self)
 	},
 
 	isActive: true, // compat when grid used as a cell in another grid
@@ -1063,6 +1075,10 @@ TrackTemplateDef(\lineplayer, (
 			));
 		}).repeat(repeatCount ? self.repeatCount);
 		pat;
+	},
+
+	childAt: { arg self, idx;
+		self.parentTrack.childAt(idx, self.index)
 	},
 
 	children: { arg self;

@@ -1,4 +1,7 @@
 
+FileSystemProject.load("libdef/CustomTrackList.scd");
+FileSystemProject.load("libdef/PbindefEditor.scd");
+FileSystemProject.load("libdef/ModulatorRack.scd");
 TrackDef(\bla, \CustomTrackList)
 TrackDef(\bla).edit
 TrackDef(\bla).presetCompileString = 

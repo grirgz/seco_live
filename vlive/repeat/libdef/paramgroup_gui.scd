@@ -17,7 +17,7 @@
 						key -> BufDef(key).bufnum;
 					}));
 					HLayout(
-						p.asStaticTextLabel.fixedWidth_(80).maxHeight_(10).font_(Font.default.size_(11)),
+						p.asStaticTextLabel.fixedWidth_(80).maxHeight_(10).font_(Font.default.size_(11)).attachContextMenu,
 						p.asPopUpMenu.fixedWidth_(260).maxHeight_(20),
 						p.asTextField.fixedWidth_(80).maxHeight_(20).font_(Font.default.size_(11)),
 					).spacing_(0).margins_(0)
@@ -27,7 +27,7 @@
 						\env, {
 							VLayout(
 								HLayout(
-									p.asStaticTextLabel.fixedWidth_(76).maxHeight_(10).font_(Font.default.size_(11)),
+									p.asStaticTextLabel.fixedWidth_(76).maxHeight_(10).font_(Font.default.size_(11)).attachContextMenu,
 									p.asTextField.fixedWidth_(340).maxHeight_(20),
 								).spacing_(0).margins_(0),
 								[p.asEnvelopeView.fixedWidth_(400).maxHeight_(80), align:\right]
@@ -35,7 +35,7 @@
 						},
 						\scalar, {
 							HLayout(
-								p.asStaticTextLabel.fixedWidth_(80).maxHeight_(10).font_(Font.default.size_(11)),
+								p.asStaticTextLabel.fixedWidth_(80).maxHeight_(10).font_(Font.default.size_(11)).attachContextMenu,
 								p.asSlider.fixedWidth_(260).orientation_(\horizontal).maxHeight_(20),
 								p.asTextField.fixedWidth_(80).maxHeight_(20).font_(Font.default.size_(11)),
 							).spacing_(0).margins_(0)

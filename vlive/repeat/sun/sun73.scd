@@ -2161,7 +2161,7 @@ Pdef(\part, Pdef(\drums1,
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
-		//Pdef(\drums1),
+		Pdef(\drums1),
 		
 		Pbind(
 			\instrument, \playersec_hlpf,

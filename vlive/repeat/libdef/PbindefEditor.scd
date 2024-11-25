@@ -147,7 +147,256 @@ WindowDef(\PbindefEditor, (
 		param.get.isKindOf(PstepSeq)
 	},
 
-	showParamOverlayMenu: { arg self, param, editorView, textView, view, x, y;
+	showParamOverlayMenu: { arg self, param, editorView, textView, view;
+		Menu(*
+			WindowDef(\ParamGenericContextMenuEntries).sourceValue(param) ++
+			[
+				MenuAction.separator, /// Pbindef menu
+
+				if(param.parent.type == \scalar) {
+					// can change only scalar parameter
+					var curform = self.getParamForm(param);
+					"hello1.1".debug;
+					Menu(*
+						self.paramForms.collect { arg form, idx;
+							MenuAction(form, {
+								// why unmapping params ?
+								if(textView.notNil) {
+									textView.unmapParam;
+								};
+								Log(\Param).debug("editorView.layout.innerView %", editorView.layout.innerView);
+								if(editorView.layout.innerView.notNil) {
+									editorView.layout.innerView.unmapParam;
+								};
+								self.setParamForm(param, self.paramForms[idx], editorView);
+
+							}).checked_(curform == form)
+						}
+					).title_("Param form")
+				},
+				if(param.spec.isKindOf(ParamBoolSpec)) {
+					// can change only scalar parameter
+					var curform = self.getParamForm(param);
+					var forms = self.paramForms.reject({ arg x;
+						[].includes(x)
+					});
+					"hello1.1".debug;
+					Menu(*
+						self.paramForms.collect { arg form, idx;
+							MenuAction(form, {
+								// why unmapping params ?
+								if(textView.notNil) {
+									textView.unmapParam;
+								};
+								Log(\Param).debug("editorView.layout.innerView %", editorView.layout.innerView);
+								if(editorView.layout.innerView.notNil) {
+									editorView.layout.innerView.unmapParam;
+								};
+								self.setParamForm(param, self.paramForms[idx], editorView);
+
+							}).checked_(curform == form)
+						}
+					).title_("Param form")
+				},
+				if(self.sustainKeys.includes(param.propertyRoot)) {
+					Param(Message(self), \legatoSustainMode, TagSpec(self.sustainKeys)).asMenu("Legeto mode")
+				},
+				if(self.noteKeys.includes(param.propertyRoot)) {
+					Param(Message(self), \noteMode, TagSpec(self.noteKeys)).asMenu("Note mode")
+				},
+
+
+				MenuAction.separator,
+
+				if(param.type == \array or: { param.get.isSequenceableCollection }) {
+					var model;
+					self.arrayControllerDict = self.arrayControllerDict ?? { IdentityDictionary.new };
+					model = self.arrayControllerDict[param.propertyRoot] ?? { ProtoClass((
+						arrayController_: { arg me, con;
+							me[\arrayController] = con;
+							self.setArrayController(param, con)
+						},
+					)) };
+					self.arrayControllerDict[param.propertyRoot] = model;
+
+					Param(
+						Message(model),
+						\arrayController, 
+						ControllerDef.getTagSpec(\knobline)
+					).asMenu.title_("Array controller")
+				},
+			].select(_.notNil)
+		).front
+	},
+
+	showParamOverlayMenu_oldmenu: { arg self, param, editorView, textView, view;
+		Menu(*
+			[
+				MenuAction(param.fullLabel).enabled_(false),
+				MenuAction.separator,
+				Param(Message(param), \inBusMode, ParamBoolSpec()).asMenuAction("Bus mode"),
+				MenuAction("Override pattern", {
+					if(param.target.isKindOf(EventPatternProxy)) {
+						Pbindef(param.target.key, param.propertyRoot, Pkey(param.propertyRoot));
+					} {
+						Log(\Param).info("Can't override, not an EventPatternProxy");
+					}
+				}),
+				MenuAction("Set default", {
+					param.set(param.default)
+				}),
+				MenuAction("Unset", {
+					param.unset;
+				}),
+				Menu(
+					CustomViewAction(
+						param.asTextField.minWidth_(500);
+					)
+				).title_("Edit text"),
+
+				MenuAction.separator, /// Pbindef menu
+
+				if(param.parent.type == \scalar) {
+					// can change only scalar parameter
+					var curform = self.getParamForm(param);
+					"hello1.1".debug;
+					Menu(*
+						self.paramForms.collect { arg form, idx;
+							MenuAction(form, {
+								// why unmapping params ?
+								if(textView.notNil) {
+									textView.unmapParam;
+								};
+								Log(\Param).debug("editorView.layout.innerView %", editorView.layout.innerView);
+								if(editorView.layout.innerView.notNil) {
+									editorView.layout.innerView.unmapParam;
+								};
+								self.setParamForm(param, self.paramForms[idx], editorView);
+
+							}).checked_(curform == form)
+						}
+					).title_("Param form")
+				},
+				if(param.spec.isKindOf(ParamBoolSpec)) {
+					// can change only scalar parameter
+					var curform = self.getParamForm(param);
+					var forms = self.paramForms.reject({ arg x;
+						[].includes(x)
+					});
+					"hello1.1".debug;
+					Menu(*
+						self.paramForms.collect { arg form, idx;
+							MenuAction(form, {
+								// why unmapping params ?
+								if(textView.notNil) {
+									textView.unmapParam;
+								};
+								Log(\Param).debug("editorView.layout.innerView %", editorView.layout.innerView);
+								if(editorView.layout.innerView.notNil) {
+									editorView.layout.innerView.unmapParam;
+								};
+								self.setParamForm(param, self.paramForms[idx], editorView);
+
+							}).checked_(curform == form)
+						}
+					).title_("Param form")
+				},
+				if(self.sustainKeys.includes(param.propertyRoot)) {
+					Param(Message(self), \legatoSustainMode, TagSpec(self.sustainKeys)).asMenu("Legeto mode")
+				},
+				if(self.noteKeys.includes(param.propertyRoot)) {
+					Param(Message(self), \noteMode, TagSpec(self.noteKeys)).asMenu("Note mode")
+				},
+
+
+				MenuAction.separator,
+
+				if(param.type == \array or: { param.get.isSequenceableCollection }) {
+					var model;
+					self.arrayControllerDict = self.arrayControllerDict ?? { IdentityDictionary.new };
+					model = self.arrayControllerDict[param.propertyRoot] ?? { ProtoClass((
+						arrayController_: { arg me, con;
+							me[\arrayController] = con;
+							self.setArrayController(param, con)
+						},
+					)) };
+					self.arrayControllerDict[param.propertyRoot] = model;
+
+					Param(
+						Message(model),
+						\arrayController, 
+						ControllerDef.getTagSpec(\knobline)
+					).asMenu.title_("Array controller")
+				},
+				MenuAction("MIDI CC learn and map", {
+					var midi = param.target.getHalo(\MIDIFunc, param.property);
+					if(midi.notNil) {
+						midi.free;
+						param.target.addHalo(\MIDIFunc, param.property, nil);
+					};
+					midi = MIDIFunc.cc({ arg ... args;
+						//args.debug("MENU MIDI Func");
+						param.normSet(args[0]/127)
+					}).fix.learn;
+					param.target.addHalo(\MIDIFunc, param.property, midi);
+				}),
+				MenuAction(
+					if(param.target.getHalo(\MIDIFunc, param.property).notNil) {
+						"Clear MIDI (%)".format(param.target.getHalo(\MIDIFunc, param.property).msgNum);
+					} {
+						"Clear MIDI (not set)";
+					},
+					{
+						var midi = param.target.getHalo(\MIDIFunc, param.property);
+						if(midi.notNil) {
+							midi.free;
+							param.target.addHalo(\MIDIFunc, param.property, nil);
+						};
+					}
+				),
+
+				MenuAction.separator,
+				if(param.hasCombinator) {
+					Menu(
+						CustomViewAction(
+							View.new.layout_(WindowDef(\ParamCombinatorModulatorEditor).asView(param))
+						)
+					).title_("Modulators")
+				} {
+					MenuAction("Add modulator", {
+						var combi = ParamCombinator(param.parent).setBusMode(true);
+						WindowDef(\ParamCombinatorModulatorEditor).front(param)
+					})
+				},
+				MenuAction("Combinator editor", {
+					var combi;
+					combi = ParamCombinator(param.parent).setBusMode(true);
+					WindowDef(( \ParamCombinator_++param.fullLabel ).asSymbol, WindowDef(\ParamCombinatorEditor)).front(combi);
+					//param.set(param.default)
+				}),
+
+				MenuAction.separator,
+				MenuAction("Edit target", {
+					PlayerWrapper(param.target).edit;
+				}),
+				MenuAction("Scope bus", {
+					var bus = param.get;
+					if(bus.notNil) {
+						WindowDef(\ScopeView).front(bus);
+					} {
+						Log(\Param).debug("bus is nil");
+					}
+				}),
+
+				MenuAction.separator,
+				MenuAction("Spec editor", {
+					WindowDef(\ParamSpecEditor).front(param)
+				})
+			].select(_.notNil)
+		).front
+	},
+
+	showParamOverlayMenu_old: { arg self, param, editorView, textView, view, x, y;
 		WindowDef(\OverlayMenu).front(view, x, y, { arg def;
 			var midiClearButton;
 			var typePopup;
@@ -162,20 +411,29 @@ WindowDef(\PbindefEditor, (
 						//)
 					//},
 					TextField.new.mapParam(param),
+					"hello1".debug;
 					if(param.parent.type == \scalar) {
 						// can change only scalar parameter
+					"hello1.1".debug;
 						typePopup = PopUpMenu.new.items_(self.paramForms).action_({ arg view;
-							textView.unmapParam;
+							// why unmapping params ?
+							if(textView.notNil) {
+								textView.unmapParam;
+							};
 							Log(\Param).debug("editorView.layout.innerView %", editorView.layout.innerView);
-							editorView.layout.innerView.unmapParam;
+							if(editorView.layout.innerView.notNil) {
+								editorView.layout.innerView.unmapParam;
+							};
 							self.setParamForm(param, self.paramForms[view.value], editorView);
 							def.closeWindow;
 						}).value_(self.paramForms.indexOf(self.getParamForm(param)));
+					"hello1.2".debug;
 						HLayout (
 							StaticText.new.string_("Param form"),
 							typePopup,
 						);
 					},
+					"hello2".debug;
 					if(self.sustainKeys.includes(param.propertyRoot)) {
 						HLayout (
 							StaticText.new.string_("Mode:"),
@@ -317,16 +575,28 @@ WindowDef(\PbindefEditor, (
 
 	showCombinatorOverlayMenu: { arg self, param, combi, idx, view, x, y;
 		WindowDef(\OverlayMenu).front(view, x, y, { arg def;
+			//var label = PlayerWrapper(combi.inpu)
 			VLayout (
 				* [
 					combi.rangeParam.at(idx).asView,
-					combi.inputParam.at(idx).spec_(TagSpecDef(\ParamCombinatorInput_asMap)).asPopUpMenu,
+					//combi.inputParam.at(idx).spec_(TagSpecDef(\ParamCombinatorInput_asMap)).asPopUpMenu,
+					HLayout (
+						Param(Message(combi), \inputObjects -> idx, TagSpecDef(\Modulators)).asPopUpMenu.addAction({
+							combi.inputParam.at(idx).setBus(PlayerWrapper(combi.inputObjects[idx]).outBus.asMap);
+						}),
+						combi.inputParam.at(idx).copy.spec_(ParamMappedBusSpec()).asPopUpMenu,
+					),
 					//combi.inputParam.at(1).spec_(TagSpecDef(\ParamCombinatorInput_asMap)).asPopUpMenu,
 					//combi.inputParam.at(2).spec_(TagSpecDef(\ParamCombinatorInput_asMap)).asPopUpMenu,
 					BasicButton.new.string_("Remove").action_({
 						combi.inputParam.at(idx).set(0);
-						param.set(combi.baseParam.get);
+						combi.inputObjects[idx] = nil;
+						//param.set(combi.baseParam.get);
 						self.proxy.changed(\keyForm, param);
+						def.closeWindow;
+					}).onClose_({
+						self.proxy.changed(\keyForm, param);
+						self.updateModulatorView;
 					}),
 				].select(_.notNil) ++ [nil]
 			)
@@ -334,7 +604,74 @@ WindowDef(\PbindefEditor, (
 		
 	},
 
-	showGeneralOverlayMenu: { arg self, view, x, y;
+
+	showGeneralOverlayMenu: { arg self, view;
+		var addParamAction = { arg idx;
+			if(idx == ( self.optionalEventKeys.size - 1 )) {
+				// last value is 'Add custom param'
+				WindowDef(\ListSaveDialog).front(self.optionalEventKeys.drop(-1), { arg selected;
+					self.addParam(selected);
+					self.updateParamGroupView;
+				})
+			} {
+				self.addParam(self.optionalEventKeys[idx]);
+				self.updateParamGroupView;
+			};
+		};
+		Menu(
+			Menu(*
+				self.optionalEventKeys.collect { arg item, idx;
+					MenuAction(item, {
+						addParamAction.(idx)
+					})
+				};
+			).title_("Add param"),
+			Param(Message(self), \showSynthDefParams, ParamBoolSpec()).asMenuAction("Show SynthDef params"),
+			Param(Message(self), \isNoteTimelineModeEnabled, ParamBoolSpec()).asMenuAction("NoteTimeline mode"),
+			MenuAction.separator,
+			MenuAction("Piano keyboard", { 
+				//model.debug("m");
+				//model.target.debug("t");
+				WindowDef(\PdefPostPianoKeyboard).front(
+					//Pbind(\type, \note, \NoteTimeline, 1, \dur, 1) 
+					self.strippedPattern
+				)
+			}),
+			Param(
+				Message(self),
+				\pianoController, 
+				ControllerDef.getTagSpec(\piano)
+			).asMenu("Piano controller"),
+			Param(
+				Message(self),
+				\sliderController, 
+				ControllerDef.getTagSpec(\knobline)
+			).asMenu("Slider controller"),
+
+			MenuAction.separator,
+			MenuAction("Copy compile string", { 
+				self.presetCompileString.pbcopy.postln;
+			}),
+			MenuAction("Refresh", {
+				self.modulators = List.new;
+				self.updateParamGroupView;
+				self.updateModulatorView;
+				self.updateFxView;
+			}),
+			MenuAction("Clear", {
+				WindowDef(\ConfirmDialog).front("Are you sure ? This will erase the Pbindef.", {
+					self.proxy.clear;
+					self.proxy.source = PbindProxy.new;
+					self.updateParamGroupView;
+					self.updateModulatorView;
+					self.updateFxView;
+				})
+			}),
+		).front;
+
+	},
+
+	showGeneralOverlayMenu_old: { arg self, view, x, y;
 		WindowDef(\OverlayMenu).front(view, x, y, { arg def;
 			var addParamPopup = PopUpMenu.new;
 			def.windowDo { arg win;
@@ -444,7 +781,7 @@ WindowDef(\PbindefEditor, (
 			};
 			true;
 		});
-		//Log(\Param).debug("makeParamView: %", param);
+		Log(\Param).debug("makeParamView: %", param);
 		editorView = View.new;
 		editorView.followChange(self.proxy, \keyForm, { arg view, model, msg, cparam ...args;
 			var val;
@@ -576,36 +913,66 @@ WindowDef(\PbindefEditor, (
 						innerView.addUniqueMethod(\unmapParam, {}); // no param to unmap
 						textView.visible = false;
 					},
-					{ val.isKindOf(ParamCombinator) }, {
+					{ param.hasCombinator }, {
 						var mod;
 						var knobs;
+						var layoutList = List.new;
+						var xtextView;
+						var combi = param.getCombinator;
+						[combi, val].debug("makeParamView: ParamCombinator");
 						self.modulators = self.modulators ?? { List.new };
-						val.debug("makeParamView: ParamCombinator");
-						knobs = self.combinatorInputCount(val).collect { arg idx;
+						//[self.combinatorInputCount(combi)].debug("makeParamView: ParamCombinator: count");
+						knobs = combi.size.collect { arg idx;
+							var combiObject;
+							if(combi.inputParam.at(idx).get != 0) {
 
-							self.modulators.debug("WTF modulators");
-							mod = Ndef( TagSpecDef(\ParamCombinatorInput_asMap).unmapKey(
-								val.inputParam.at(idx).get 
-							));
-							mod.debug("mod");
-							if(self.modulators.includes(mod).not) {
-								self.modulators.add(mod);
-							};
+								combiObject = combi.inputObjects[idx];
 
-							val.rangeParam.at(idx).asKnob.maxSize_(20).mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
-								[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
-								if(buttonNumber == 1) {
-									self.showCombinatorOverlayMenu(param, val, idx, view, x, y);
-									false;
-								}
-							})
+								self.modulators.debug("WTF modulators");
+								if(combiObject.isKindOf(ProtoClass) and: { combiObject.eventType == \envTimeline }) {
+									layoutList.add(
+										//innerView = View.new.layout_(VLayout(combiObject.asPreview)).minHeight_(100);
+										combiObject.asPreview
+									);
+								} {
+
+									// commented for debug
+									//mod = Ndef( TagSpecDef(\ParamCombinatorInput_asMap).unmapKey(
+									//val.inputParam.at(idx).get 
+									//));
+									//mod.debug("mod");
+									if(self.modulators.includes(combiObject).not) {
+										self.modulators.add(combiObject);
+									};
+								};
+
+								//maxSize_(20)
+								combi.rangeParam.at(idx).asKnob.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+									[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+									if(buttonNumber == 1) {
+										self.showCombinatorOverlayMenu(param, combi, idx, view, x, y);
+										false;
+									}
+								})
+							}
+						}.select(_.notNil);
+						//xtextView = textView;
+						//textView = nil;
+						knobs.do { arg knob, idx;
+							// if not set, slider is smaller for unknown reason
+							// stretch doesnt do nothing
+							knob.maxSize_(25)
 						};
-						editorView.layout = HLayout(
-							innerView = val.baseParam.asSlider.orientation_(\horizontal),
-							* knobs
-						).margins_(0);
-						textView.mapParam(val.baseParam, 5);
-						//textView.visible = true;
+						layoutList.add(
+							HLayout(
+								innerView = combi.baseParam.asSlider.orientation_(\horizontal),
+								*knobs
+							).margins_(0)
+						);
+						editorView.layout = VLayout(*layoutList).margins_(0);
+						//editorView.layout = VLayout(layoutList[0]).margins_(0).spacing_(0);
+						textView.mapParam(combi.baseParam, 5);
+						//textView.visible = false;
 
 					}, 
 					{ val.isKindOf(Pattern) }, {
@@ -650,17 +1017,28 @@ WindowDef(\PbindefEditor, (
 				if(editorView.layout.notNil) {
 					editorView.layout.addUniqueMethod(\innerView, { innerView });
 				};
+				Log(\Param).debug("editorView: END followChange: %, %", param.property, param.spec);
 			}
 		}, false);
 		self.proxy.changed(\keyForm, param);
 		if(self.hiddenParamList.includes(param.propertyRoot)) {
+			"lay1".debug;
 			HLayout()
 		} {
-			HLayout (
-				labelView,
-				editorView,
-				textView,
-			)	
+			"lay2".debug;
+			if(textView.notNil) {
+				HLayout (
+					labelView,
+					editorView,
+					textView,
+				)	
+			} {
+
+				HLayout (
+					labelView,
+					editorView,
+				)	
+			};
 		}
 	},
 
@@ -697,6 +1075,7 @@ WindowDef(\PbindefEditor, (
 
 	makeModulatorView: { arg self;
 		self.modulatorView = View.new;
+		self.modulatorView.background = Color.grey(0.7);
 		self.updateModulatorView;
 		self.modulatorView;
 	},
@@ -705,27 +1084,50 @@ WindowDef(\PbindefEditor, (
 		if(self.modulatorView.notNil) {
 			self.modulatorView.removeAll;
 			self.modulatorView.layout = VLayout(
-				* self.modulators.collect { arg mod, idx;
+				* self.modulators.reject({ arg mod; mod.isKindOf(Bus) }).collect { arg mod, idx;
+					var pg;
+					var fidx;
+					var mparam;
+					pg = mod.asParamGroup;
+					fidx = pg.detectIndex( { arg x; x.propertyRoot == \freq } );
+					if(fidx.notNil) {
+						mparam = pg[fidx];
+					} {
+						pg = pg.rejectPbindParams.rejectByKey([\out, \gain, \amp]);
+						mparam = pg.first;
+					};
+
 					HLayout (
-						PlayerWrapperView(mod),
+						PlayerWrapperView(mod).view.fixedWidth_(120),
 						BasicButton.new.string_("Edit").action_({
-							WindowDef(\NdefEditor).front(mod);
-						}),
+							PlayerWrapper(mod).edit;
+							//WindowDef(\NdefEditor).front(mod);
+						}).maxWidth_(30),
 						//mod.asParamGroup.first.asSlider.orientation_(\horizontal),
-						mod.asParamGroup.first.asView,
+						mparam.asView,
 					)
 				}
-			).margins_(0)
+			).margins_(5)
 		}
 	},
 
 	makeParamGroupView: { arg self, pgroup;
-		var lay = VLayout(
+		var lay;
+		pgroup.collect { arg param, idx;
+			param.debug("makeParamGroupView: pgroup item: %");
+		};
+		lay	= VLayout(
 			* pgroup.collect { arg param, idx;
-				self.makeParamView(param)
+				var res;
+				Log(\Param).debug("makeParamGroupView % %", param, idx);
+				res = self.makeParamView(param);
+				Log(\Param).debug("makeParamGroupView END % %", param, idx);
+				res;
 			} ++ [nil];
 		);
+		Log(\Param).debug("makeParamGroupView2");
 		self.updateModulatorView;
+		Log(\Param).debug("makeParamGroupView3");
 		lay;
 	},
 
@@ -837,6 +1239,9 @@ WindowDef(\PbindefEditor, (
 		if(self.showSynthDefParams == true) {
 			plist.addAll(self.proxy.asParamGroup(nil, false, [\freq, \gate, \doneAction]).as(Array));
 		};
+		if(self.showOnlySetParams == true) {
+			plist = plist.select({ arg p; p.isSet });
+		};
 		//[ cust ++ plist ].debug("pbjkeys");
 		pbkeys = self.pbindefKeysParamList(cust ++ plist);
 		plist.addAll(pbkeys);
@@ -896,12 +1301,22 @@ WindowDef(\PbindefEditor, (
 		\ctranspose, 
 		'Add custom param'
 	],
-	paramForms: [\scalar, \stepseq, \chord, \text, \timeline, \inlineEnv],
+	paramForms: [\scalar, \stepseq, \chord, \text, \timeline, \modTimeline, \inlineEnv],
 
 	getParamForm: { arg self, param;
+		Log(\Param).debug("getParamForm %", param);
 		case(
 			{ param.parent.at(\source).get.isKindOf(PstepSeq) }, {
 				\stepseq
+			},
+			{ 
+				var val = param.parent.at(\source).getRaw; 
+				val.isKindOf(ParamCombinator) 
+				and: { val.inputObjects[0].notNil }
+				and: { val.inputObjects[0].isKindOf(ProtoClass) }
+				and: { val.inputObjects[0].eventType == \envTimeline } 
+			}, {
+				\modTimeline
 			},
 			{ var val = param.parent.at(\source).getRaw; val.isKindOf(ProtoClass) and: { val.eventType == \envTimeline } }, {
 				\timeline
@@ -970,6 +1385,24 @@ WindowDef(\PbindefEditor, (
 				self.updateParamGroupView; 
 				
 			},
+			\modTimeline, {
+				var pt, busparam;
+				var modkey;
+				var combi;
+				combi = ParamCombinator(param.parent);
+				combi.setBusMode(true);
+				modkey = "Pbindef_mod_%_%".format(self.proxy.key, param.propertyRoot).asSymbol;
+				editorView.removeAll;
+				busparam = Param(BusDef(modkey, \control, 1), \value, \bipolar);
+				//busparam.set(param.get); // to test
+				pt = ParamTimeline(modkey, busparam);
+				combi.inputObjects[0] = pt;
+				combi.inputParam.at(0).set(pt.outBus.asMap);
+				pt.inlineModeEnabled = true;
+				param.parent.at(\source).setRaw( combi );
+				self.updateParamGroupView; 
+				
+			},
 			\inlineEnv, {
 				var pt, busparam;
 				editorView.removeAll;
@@ -983,12 +1416,8 @@ WindowDef(\PbindefEditor, (
 		
 	},
 
-	combinatorInputCount: { arg self, combi;
-		self.combinatorNextInputIndex(combi) ?? combi.size;
-	},
-
 	combinatorNextInputIndex: { arg self, combi;
-		combi.inputParam.as(Array).detectIndex { arg p; p.get == 0 };
+		combi.nextFreeInput
 	},
 
 	/// controllers
@@ -1013,11 +1442,13 @@ WindowDef(\PbindefEditor, (
 
 	showSynthDefParams_: { arg self, val;
 		//self[\showSynthDefParams] = val;
-		~pbindefEditor_showSynthDefParams = val;
+		//~pbindefEditor_showSynthDefParams = val;
+		Pbindef.addHalo(\PbindefEditor_showSynthDefParams, val);
 		self.updateParamGroupView;
 	},
 	showSynthDefParams: {
-		~pbindefEditor_showSynthDefParams ? false
+		//~pbindefEditor_showSynthDefParams ? true
+		Pbindef.getHalo(\PbindefEditor_showSynthDefParams) ? true;
 	},
 
 	isNoteTimelineModeEnabled_: { arg self, val;
@@ -1235,7 +1666,35 @@ WindowDef(\PbindefEditorParams, (
 
 		view.addUniqueMethod(\showGeneralOverlayMenu, { arg mainview, button, x, y;
 			self.showGeneralOverlayMenu(button, x, y);
-		})
+		});
+		view.addUniqueMethod(\proto, { 
+			self
+		});
+		view;
+	},
+
+	
+));
+
+WindowDef(\PbindefEditorParamView, (
+	parent: WindowDef(\PbindefEditor).proto,
+
+	makeParamGroupView: { arg self;
+		var param = self.argParam;
+		param = if(param.at(\source).get.isKindOf(PstepSeq)) {
+			param.at(\stepseq)
+		} {
+			param.at(\source);
+		};
+		self.makeParamView(param);
+	},
+
+	asView: { arg self, def, param;
+		self.paramlistView = View.new;
+		self.argParam = param;
+		self.proxy = param.target;
+		self.updateParamGroupView;
+		self.paramlistView;
 	},
 
 	

@@ -34,9 +34,6 @@ WindowDef(\ParamSelectDialog,{ arg def, selectedHook, okHook, defaultValue;
 			}
 		;
 	};
-	def.windowDo { arg win;
-		win.autoRememberPosition(def.key);
-	};
 
 	localOkHook = {
 		var label;
@@ -50,9 +47,9 @@ WindowDef(\ParamSelectDialog,{ arg def, selectedHook, okHook, defaultValue;
 
 	paramTargetField = TextField.new;
 	paramPropertyField = TextField.new;
-	paramSpecText = StaticText.new;
+	paramSpecText = StaticText.new.fixedSize_(300@20);
 	paramCompileStringField = TextField.new;
-	paramEditView = View.new;
+	paramEditView = View.new.layout_(HLayout(StaticText.new));
 
 	paramList = ListView.new;
 	paramList.selectionAction = { arg view;
@@ -140,7 +137,6 @@ WindowDef(\ParamSelectDialog,{ arg def, selectedHook, okHook, defaultValue;
 
 /////////
 // END
-WindowDef(\ParamSelectDialog).front(nil, { arg param; param.debug("selected param") }, [ 'Ndef', ('bla' -> Ndef('bla'))  ])
 
 
 WindowDef(\ParamSelectDialog).front(nil, { arg param; param.debug("selected param") }, Param(Ndef(\bla), \pan))

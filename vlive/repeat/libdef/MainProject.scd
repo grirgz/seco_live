@@ -33,6 +33,26 @@ FileSystemProjectTemplate('MainProject', (
 		}
 	},
 
+	newProjectDialog: { arg self;
+		WindowDef(\filedialog_project_save).front(nil, { arg path, name;
+			var proj, projlabel;
+			[path, name].debug("new project");
+			proj = FileSystemProject(path +/+ name, ProtoTemplateDef(\MainProject));
+			//proj.projectPath = path +/+ name;
+			FileSystemProject.current = proj;
+			projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
+		}).windowName_("Choose New Project File"); 
+	},
+
+	openProjectDialog: { arg self;
+		WindowDef(\filedialog_project).front(nil, { arg path;
+			var proj, projlabel;
+			[path].debug("open project");
+			proj = ProtoTemplateDef(\MainProject).loadProject(path);
+			projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
+		}).windowName_("Open Project File"); 
+	},
+
 	projectPath: { arg self;
 		self.key.asString;
 	},
@@ -44,6 +64,11 @@ FileSystemProjectTemplate('MainProject', (
 	label: { arg self;
 		FileSystemProject.unresolve(self.key.asString)
 		//self.name;
+	},
+
+	isClockMeterEnabled_: { arg self, val;
+		self[\isClockMeterEnabled] = val;
+		self.changed(\isClockMeterEnabled);
 	},
 
 	presetCompileString: { arg self;
@@ -225,6 +250,11 @@ ProtoTemplateDef(\SimpleProject, ( // this is like having no project
 ));
 FileSystemProject('repeat/simpleProject', ProtoTemplateDef(\SimpleProject)); // FIXME: hardcoded and fail when no directory manually created
 
+
+
+///// GUI
+
+(
 WindowDef(\MainProject, { arg def, proj;
 	var meter = SimpleServerMeterView.new(nil, 0,2);
 	var projlabel = StaticText.new;
@@ -235,9 +265,142 @@ WindowDef(\MainProject, { arg def, proj;
 	proj = proj ?? { FileSystemProject.current ?? { FileSystemProject('repeat/simpleProject') } };
 	projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
 	//var meter = ServerMeterView.new;
-	def.windowDo { arg win;
-		win.autoRememberPosition(\SimpleMainPanel);
-	};
+	proj.playerTracker.addPlayer(*[
+		proj.mainMixer,
+		proj.fxManager,
+		proj.mainTimeline,
+		proj.mainTrackList,
+		proj.mainTrackGrid,
+		Pdef(\main),
+		Pdef(\part),
+		Pdef(\part2),
+		Pdef(\part3),
+		Pdef(\part4),
+	]);
+
+	rdnbuttons = [\rdn, \rdn2, \rdn3, \rdn4].collect({ arg name;
+		var pl = PlayerWrapper(ProtoDef(name));
+		var butlayout = pl.asView;
+		butlayout.button.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+			[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+
+			if(buttonNumber == 1) {
+				pl.edit;
+			}
+		});
+		butlayout;
+	});
+
+	playerViewList = PlayerWrapperView()!6;
+	otherResourcesView = View.new;
+	rdnbuttons[0].button.followChange(FileSystemProject, \project, { arg ...args;
+		var defaultPlayers;
+		Log(\Param).debug("received changed project %", args);
+		if(isRefreshing == false) {
+			isRefreshing = true;
+			proj = FileSystemProject.current ?? { FileSystemProject('repeat/simpleProject') };
+			defaultPlayers = [
+				proj,
+				proj.mainMixer,
+				proj.fxManager,
+				proj.mainTimeline,
+				proj.mainTrackList,
+				proj.mainTrackGrid,
+			];
+			defaultPlayers.collect({ arg player, idx;
+				playerViewList[idx].model = player;
+			});
+			otherResources = proj.resources - IdentitySet.newFrom(defaultPlayers);
+			otherResourcesView.removeAll;
+			otherResourcesView.layout = HLayout (
+				* otherResources.asArray.collect { arg player, idx;
+					PlayerWrapper(player).asView.rightClickEditorEnabled_(true);
+				}
+			).margins_(0).spacing_(0);
+			isRefreshing = false;
+		} {
+			Log(\Param).debug("MainProject: already refreshing project, skipped");
+		}
+	});
+
+
+	HLayout (
+		meter.view.minWidth_(40),
+		//GridLayout.rows (
+			//[
+				//StaticText.new.string_("quant:"),
+				//Param(Message(Pdef), \defaultQuant).asTextField.fixedWidth_(50),
+				//WindowDef(\CircleClockMeter).asView(Param(Message(Pdef), \defaultQuant)),
+			//],
+			//[
+				//StaticText.new.string_("tempo:"),
+				//Param(Message(TempoClock.default), \tempo).asTextField.fixedWidth_(50),
+				//WindowDef(\CircleClockMeter).asView(Param(Message(TempoClock.default), \beatsPerBar)),
+			//]
+		//),
+		[VLayout (
+			HLayout (
+				//projlabel,
+				playerViewList.first,
+				HLayout (
+					StaticText.new.string_("quant:"),
+					Param(Message(Pdef), \defaultQuant).asTextField.fixedWidth_(50),
+					WindowDef(\CircleClockMeter).asView(proj, Param(Message(Pdef), \defaultQuant)),
+					StaticText.new.string_("tempo:"),
+					Param(Message(TempoClock.default), \tempo).asTextField.fixedWidth_(50),
+					WindowDef(\CircleClockMeter).asView(proj, Param(Message(TempoClock.default), \beatsPerBar)),
+				).margins_([30,0]),
+				BasicButton.new.string_("...").mouseUpAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+					[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+					
+					// FIXME: can't put it near button because MainProject is always on top and overlay menu can't be over it for unknown reason
+					//WindowDef(\MainProjectOverlayMenu).front(proj, view, x, y);
+					//WindowDef(\MainProjectOverlayMenu).frontTop(proj, view, x-200, y);
+					WindowDef(\MainProjectContextMenu).sourceValue(proj, view).front;
+				}).maxWidth_(20)
+			),
+			HLayout (
+				HLayout(
+					*playerViewList.drop(1).collect({ arg pwv; 
+						pwv.asView.button.minWidth_(80);
+						pwv.asView.rightClickEditorEnabled_(true)
+					})
+				),
+			),
+			HLayout (
+				//BasicButton.new.string_("Play master").action_({
+					//~master.();
+				//}),
+				PlayerWrapper(Pdef(\main)).asView,
+				PlayerWrapper(Pdef(\part)).asView,
+				PlayerWrapper(Pdef(\part2)).asView,
+				PlayerWrapper(Pdef(\part3)).asView,
+				PlayerWrapper(Pdef(\part4)).asView,
+				nil,
+			),
+
+			HLayout (
+				* rdnbuttons
+				++[BasicButton.new.string_("PANIC").action_({
+					CmdPeriod.run;
+				})],
+			),
+			otherResourcesView,
+		), stretch:2],
+	).margins_(3).spacing_(3);
+});
+);
+
+WindowDef(\MainProject_old, { arg def, proj;
+	var meter = SimpleServerMeterView.new(nil, 0,2);
+	var projlabel = StaticText.new;
+	var rdnbuttons;
+	var playerViewList;
+	var otherResources, otherResourcesView;
+	var isRefreshing = false;
+	proj = proj ?? { FileSystemProject.current ?? { FileSystemProject('repeat/simpleProject') } };
+	projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
+	//var meter = ServerMeterView.new;
 	proj.playerTracker.addPlayer(*[
 		proj.mainMixer,
 		proj.fxManager,
@@ -316,20 +479,10 @@ WindowDef(\MainProject, { arg def, proj;
 				//projlabel,
 				playerViewList.first,
 				BasicButton.new.string_("New Project").action_({
-					WindowDef(\filedialog_project_save).front(nil, { arg path, name;
-						[path, name].debug("new project");
-						proj = FileSystemProject(path +/+ name, ProtoTemplateDef(\MainProject));
-						//proj.projectPath = path +/+ name;
-						FileSystemProject.current = proj;
-						projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
-					}).windowName_("Choose New Project File"); 
+					proj.newProjectDialog
 				}),
 				BasicButton.new.string_("Open Project").action_({
-					WindowDef(\filedialog_project).front(nil, { arg path;
-						[path].debug("open project");
-						proj = ProtoTemplateDef(\MainProject).loadProject(path);
-						projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
-					}).windowName_("Open Project File"); 
+					proj.openProjectDialog
 				}),
 				BasicButton.new.string_("Save Project").action_({
 					proj.saveProject;
@@ -340,7 +493,8 @@ WindowDef(\MainProject, { arg def, proj;
 					
 					// FIXME: can't put it near button because MainProject is always on top and overlay menu can't be over it for unknown reason
 					//WindowDef(\MainProjectOverlayMenu).front(proj, view, x, y);
-					WindowDef(\MainProjectOverlayMenu).frontTop(proj, view, x-200, y);
+					//WindowDef(\MainProjectOverlayMenu).frontTop(proj, view, x-200, y);
+					WindowDef(\MainProjectContextMenu).sourceValue(proj, view).front;
 				}).maxWidth_(30)
 			),
 			HLayout (
@@ -402,6 +556,160 @@ WindowDef(\MainProject, { arg def, proj;
 });
 //WindowDef(\MainProject).front(FileSystemProject('ex6'));
 
+// Menus
+
+(
+WindowDef(\CircleClockMeter, { arg def, proj, totalParam;
+	var canvas = UserView.new;
+	var task;
+	var clockratio = 0;
+	var servertreefun;
+	totalParam = totalParam ?? {Param(Message(Pdef), \defaultQuant)};
+	proj.debug("PROJJJJJJJJJJJJJJJJJ");
+	canvas.drawFunc = {
+		//Pen.strokeColor = Color.blue(1.2);
+		//Pen.fillColor = Color.blue(1.5);
+		Pen.strokeColor = ParamViewToolBox.color_ligth;
+		Pen.fillColor = ParamViewToolBox.color_pale;
+		Pen.addWedge(10@10, 8, 3/4*2pi, ( clockratio )*2pi);
+		//Pen.moveTo(0@0);
+
+		//Pen.stroke;
+		//Pen.fill;
+		Pen.draw(3);
+	};
+	task = Task({
+		var clock = TempoClock.default;
+		inf.do {
+			var total = totalParam.get;
+			if(total < 0.01) {
+				Log(\Param).debug("CircleClockMeter: total too small, changing it %", total);
+				total = 1;
+			};
+			clockratio = clock.beats % total / total;
+			defer {
+				//clockratio.debug("clock");
+				canvas.refresh;
+			};
+			( total/8 ).wait;
+		}
+
+	});
+	servertreefun = {
+		proj.debug("PROJJJJJJJJJJJJJJJJJXXXXXXXXX");
+		if(proj.isClockMeterEnabled == true) {
+			task.play;
+		} {
+			clockratio = 0;
+			canvas.refresh;
+			task.stop;
+		};
+	};
+	ServerTree.add(servertreefun);
+	servertreefun.();
+	canvas.onClose_({
+		task.stop;
+		ServerTree.remove(servertreefun);
+	});
+	canvas.followChange(proj, \isClockMeterEnabled, {
+		servertreefun.();
+	});
+	canvas.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+		[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+		proj.isClockMeterEnabled = ( proj.isClockMeterEnabled ?? { false } ).not;
+	});
+	canvas.fixedSize_(20@20);
+	canvas;
+	//canvas.background_(Color.grey);
+});
+);
+
+WindowDef(\MainProjectContextMenu, { arg def, model, view;
+	Menu(
+
+
+		MenuAction("New project", {
+			model.newProjectDialog
+		}),
+		MenuAction("Open project", {
+			model.openProjectDialog
+		}),
+		MenuAction("Save project", {
+			model.saveProject;
+		}),
+
+		MenuAction.separator,
+		MenuAction("New object", {
+			WindowDef(\MainProject_newObject).front(model);
+		}),
+		MenuAction.separator,
+		MenuAction("MixerPresetGrid", {
+			if(model.mixerPresetGrid.isNil) {
+				model.mixerPresetGrid = TrackDef("%_mixerPresetGrid".format(model.name).asSymbol, TrackTemplateDef(\MixerPresetGrid));
+				model.addResource(model.mixerPresetGrid);
+			};
+			model.mixerPresetGrid.edit;
+		}),
+
+		MenuAction.separator,
+		// misc tools
+		MenuAction("InputManager", {
+			WindowDef(\InputManager).front;
+		}),
+		MenuAction("Workspace", {
+			WindowDef(\WorkspaceView).front;
+		}),
+		MenuAction("Sample Manager", {
+			WindowDef(\SampleTimelineManager).front
+		}),
+
+
+		MenuAction.separator,
+		// access to default objects instead of project's ones
+		MenuAction("mainTimeline", {
+			ClipTimeline(\mainTimeline).edit
+		}),
+		MenuAction("simpleMixer", {
+			ProtoDef(\simpleMixer).edit
+		}),
+		MenuAction("Fx mixer", {
+			ProtoDef(\fxMixer).edit
+		}),
+		MenuAction("Fx manager", {
+			WindowDef(\FxManager).front
+		}),
+		MenuAction("Main window", {
+			WindowDef(\main).front;
+		}),
+
+		MenuAction.separator,
+		// basic tools
+		MenuAction("Scope", {
+			s.scope
+		}),
+		MenuAction("FreqScope", {
+			s.freqscope
+		}),
+		MenuAction("Nodes", {
+			s.plotTree
+		}),
+		MenuAction("Meter", {
+			s.meter
+		}),
+	)
+});
+
+WindowDef(\MainProject_newObject, { arg def, model, view;
+	WindowDef(\ClipList_NewClip).embedView(def, {
+		// selected hook
+
+	}, { arg idef, asso, label;
+		// ok hook
+		var obj = asso.value.value(label);
+		model.addResource(obj);
+		PlayerWrapper(obj).edit;
+	}, TagSpecDef(\MainProject_newObject))
+});
 
 WindowDef(\MainProjectOverlayMenu, { arg def, model, view, x=600, y=600;
 	WindowDef(\OverlayMenu).embedView(def, view, x, y, {

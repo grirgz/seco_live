@@ -1020,9 +1020,6 @@ WindowDef(\TrackList_NewInstrument,{ arg def, selectedHook, okHook;
 		selectedLibId = libid;
 		selectedHook.(libid, strings)
 	};
-	def.windowDo { arg win;
-		win.autoRememberPosition(def.key);
-	};
 	VLayout(
 		View.new.layout_(
 			HLayout(

@@ -3,9 +3,6 @@
 WindowDef(\SimpleMainPanel, { arg def;
 	var meter = SimpleServerMeterView.new(nil, 0,2);
 	//var meter = ServerMeterView.new;
-	def.windowDo { arg win;
-		win.autoRememberPosition(\SimpleMainPanel);
-	};
 	HLayout (
 		meter.view,
 		VLayout (

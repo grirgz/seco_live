@@ -48,4 +48,20 @@ WindowDef(\GlobalLibrary_select).front
 
 TagSpecDef(\SynthDefTags).addUnique(\Pmod_constant_9_kr -> [\system]);
 
-WindowDef(\GlobalLibrary_select).front
+WindowDef(\GlobalLibrary_select).front(nil,nil,\SynthDef)
+
+
+////////// test categories
+
+FileSystemProject.load("capsule/PatKitDef_comkit.scd");
+(
+WindowDef(\GlobalLibrary_select).front(nil, { arg ok;
+	ok.debug("ok");
+}, [ \Kit ]);
+)
+(
+WindowDef(\GlobalLibrary).front(nil, { arg ok;
+	ok.debug("ok");
+});
+)
+ProtoDef(\GlobalLibrary).edit

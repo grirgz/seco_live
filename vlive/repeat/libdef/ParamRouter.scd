@@ -1,7 +1,7 @@
 
 (
 FileSystemProject.loadOnce("libdef/ParamSelectDialog.scd");
-FileSystemProject.loadOnce("libdef/ModulatorRack.scd");
+//FileSystemProject.loadOnce("libdef/ModulatorRack.scd");
 ProtoTemplateDef(\ParamRouter, (
 	//busList: [
 		//BusDef(\zero, \control),
@@ -30,7 +30,7 @@ ProtoTemplateDef(\ParamRouter, (
 		self.busSlots = self.busSlots ?? {List.newFrom(BusDef(\zero, \control)!self.slotCount)};
 		self.paramSlots = self.paramSlots ?? {List.newFrom(Param(Pdef(\zero),\zero)!self.slotCount)};
 		self.rangeSlots = self.rangeSlots ?? {List.newFrom(0!self.slotCount)};
-		self.enabledSlots = self.enabledSlots ?? {List.newFrom(0!self.slotCount)};
+		self.enabledSlots = self.enabledSlots ?? {List.newFrom(true!self.slotCount)};
 	},
 
 	// problem:
@@ -55,12 +55,13 @@ ProtoTemplateDef(\ParamRouter, (
 
 	updateRouting: { arg self;
 		var combisize = 3;
+		// for each param, count the slot where is it used, then set to 0 the remaining
 		self.paramList.do { arg param, idx;
 			if(param != Param(Pdef(\zero), \zero)) {
 				var inputidx = 0;
 				var pc;
-				if(param.combinatorEnabled) {
-					pc = ParamCombinator(param);
+				if(param.hasCombinator) {
+					pc = param.getCombinator;
 				};
 
 				self.paramSlots.do { arg slotparam, slotidx;
@@ -78,8 +79,10 @@ ProtoTemplateDef(\ParamRouter, (
 						inputidx = inputidx + 1;
 					};
 				};
-				if(pc.notNil) {
+				if(pc.notNil) { 
 					(inputidx..combisize-1).do { arg i;
+						[param, inputidx, combisize, i, pc].debug("updateRouting set to 0");
+						pc.inputParam.at(i).get.debug("in get");
 						pc.inputParam.at(i).setBus(0)
 					};
 				};
@@ -116,12 +119,12 @@ ProtoTemplateDef(\ParamRouter, (
 					var layout;
 					layout = HLayout (
 						Button.new.states_([
-							["Enabled"],
-							["Disabled"],
-						]).action_({ arg view;
+							["Off", nil, Color.red],
+							["On"],
+						]).maxWidth_(20).action_({ arg view;
 							self.enabledSlots[idx] = view.value.asBoolean;
 							self.updateRouting;
-						}),
+						}).value_(self.enabledSlots[idx].asInteger),
 						Param(self.busSlots, \list, busspec).at(idx).asPopUpMenu.addAction({
 							self.updateRouting;
 						}),
@@ -172,6 +175,42 @@ ProtoDef(\ParamRouter, ProtoTemplateDef(\ParamRouter)).init;
 ///////////////////////////
 ProtoDef(\ParamRouter).edit; // debug
 Pdef(\bla).addSpec(\seq, \degree)
+~p = Param(Pdef(\bla), \lpfr)
+~pc = ParamCombinator(~p)
+~pc.resultParam
+~pc.inputParam.wrapper
+~pc.inputParam.spec
+~pc.inputParam.target.changed(\set)
+~pc.inputParam.target.dependants.do(_.dumpMethodList)
+~ii = ~pc.inputParam.target.dependants
+~ii.do({ arg x;  ~ii.remove(x)})
+~pc.inputParam.target.dependants.removed = nil
+IdentitySet
+SimpleController
+
+~list = List[1,2,3,4];
+~x = Param(~list, \list, \unipolar)
+~x.at(0).set(0)
+~x.spec
+~x.changed(\set)
+~pc.busMode
+~pc.inputParam.at(0).setBus(0)
+~pc.inputParam.at(0).set(0)
+~pc.inputParam.set([0,1,3])
+~pc.inputParam.at(0).wrapper
+~pc.inputParam.at(0).property
+~pc.inputParam.at(0).accessor
+
+(
+Pdef(\bla, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
 
 ProtoDef(\ParamRouter).paramList = nil
 ProtoDef(\ParamRouter).busList

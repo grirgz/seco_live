@@ -2137,3 +2137,44 @@ a = {|buf|
 
 SynthDef(\bla)
 SynthDescLib()
+
+
+\dur, Pkey(\dur) * (1 + (~swing * Pseq([1,-1],inf))),
+\dur, Pkey(\dur) * (1 + (~swing * Pseq([1,-1],inf))),
+
+Pbind(\callback, { ~id.postln }).play
+Pbind(\callback, { 1/8.wait; Synth.basicNew(\default, s, ~id).set(200); }).play
+Pbind(\callback, { r{1/4.wait; Synth.basicNew(\default, s, ~id).set(800);}.play }).play
+Pbind(\instrument, \saw, \callback, { "a".postln; Task{( 1/8 ).wait;"b".postln; (\type: \set, \id: ~id, \freq: 800).postln.play;}.play }).play
+Pbind(\callback, { Task({ ( 1/8 ).wait; (\type: \set, \id: ~id, \freq: 800).play; }).play; }).play
+Pbind(\callback, { ( 1/8 ).wait; (\type: \set, \id: ~id, \freq: 800).play; }).play
+(
+Pbind(
+	\callback, {
+		{
+			( 1/8 ).wait; 
+			(\type: \set, \id: ~id, \freq: 800).play;
+		}.fork
+	}
+).play
+)
+
+defer
+
+(
+SynthDef(\saw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = LFSaw.ar(freq * [1.01,1,0.99]);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan)/2;
+	Out.ar(out, sig);
+}).add;
+);
+
+~s = Synth(\saw)
+~s.nodeID
+~ss = Synth.basicNew(\saw, s, ~s.nodeID)
+~ss.set(\freq, 200)
+~s.set(\freq, 400)
+(\type: \set, \id: ~s.nodeID, \freq: 800).play

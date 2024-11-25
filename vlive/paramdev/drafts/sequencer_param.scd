@@ -1,5 +1,15 @@
 
 (
+Pbindef(\base, 
+		\instrument, \saw,
+		\degree, Pseq([0,3,2,5],inf),
+		\dur, 1/4,
+		\amp, 0.1,
+);
+);
+~param = Param(Pdef(\base), \lpfr)
+
+(
 Pbindef(\zed, 
 		\type, \paramSet,
 		\val, PstepSeq((0..7),inf),
@@ -37,14 +47,6 @@ Log(\Param).level = \info
 
 ProtoInst(\TrackMixerDef, \track1).edit
 
-(
-Pbindef(\base, 
-		\instrument, \saw,
-		\degree, Pseq([0,3,2,5],inf),
-		\dur, 1/4,
-		\amp, 0.1,
-).play;
-);
 
 
 ///////////////////

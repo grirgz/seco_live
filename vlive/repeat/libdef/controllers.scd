@@ -63,40 +63,6 @@ ControllerDef(\apc40, { arg def, target;
 
 // END
 
-(
-	ProtoDef(\paramRack, (
-		new: { arg self, items;
-			self = self.deepCopy;
-		
-			self.items = items;
-		
-			self;
-		},
-
-		params: { arg self;
-			self.items.select(_.isKindOf(Param));
-		},
-
-		controller_: { arg self, cont;
-			self[\controller] = cont;
-			cont.startControl( (knobs: self.params) );
-		},
-
-		edit: { arg self;
-			WindowDef(\paramRack, { arg def, players, params;
-				VLayout (
-					HLayout (
-						StaticText.new.string_("controller"), 
-						Param(Message(self), \controller, TagSpecDef(\ControllerDef_capabilities_knobs)).asPopUpMenu,
-					),
-					* self.items.collect({ arg item;
-						ParamGroupLayout.formEntry(item)
-					}) ++ [nil]
-				)
-			}).front(self.players, self.params)
-		},
-	));
-);
 
 (
 SynthDef(\saw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, diff=0.001;
