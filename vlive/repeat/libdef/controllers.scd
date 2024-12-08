@@ -59,6 +59,39 @@ ControllerDef(\apc40, { arg def, target;
 	FileSystemProject.loadOnce("libdef/apc.scd");
 	ProtoDef(\apc40).startControl(target);
 }, [ \launchpad ]);
+
+ControllerDef(\piano_generic_drumpad, { arg def, target; 
+	MIDIdef.noteOn(\piano, { arg ... args;
+		var midinote = args[1] - 48 % 48;
+		midinote.debug("generic drumpad on");
+		target.wrapper.elAt(midinote).play;
+	}).fix;
+	MIDIdef.noteOff(\piano_off, { arg ... args;
+		var midinote = args[1] - 48 % 48;
+		midinote.debug("generic drumpad off");
+		target.wrapper.elAt(midinote).stop;
+	}).fix;
+}, [ \drumpad ]);
+
+ControllerDef(\launchpad_drumpad, { arg def, target; 
+	var count = 0;
+	MKtl(\lp, "novation-launchpad-s");
+	MKtl(\lp).elAt(\pad).do({ arg el, i;
+		var idx = count;
+
+		[i, i%8 < 4, idx].debug("i, iii, idx");
+		if(i%8 < 4) {
+
+			el.elAt(0).action = {
+				target.wrapper.elAt(idx).play;
+			};
+			el.elAt(1).action = {
+				target.wrapper.elAt(idx).stop;
+			};
+			count = count + 1;
+		}
+	})
+}, [ \drumpad ]);
 )
 
 // END

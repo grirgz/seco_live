@@ -292,7 +292,7 @@ NoteTimeline('ho').eventList = XEventList.newFrom([
 		);
 		self.clipFactories_timeline_parent = tl;
 
-		[\noteTimeline, \clipTimeline, \envTimeline, \modStepTimeline, \kitTimeline].do { arg key;
+		[\noteTimeline, \clipTimeline, \paramTimeline, \modStepTimeline, \kitTimeline].do { arg key;
 			self.clipFactories[key] = (
 				key: key,
 				parent: tl,
@@ -329,7 +329,7 @@ NoteTimeline('ho').eventList = XEventList.newFrom([
 						clipkey = model.timeline.eventType
 					};
 					//switch(model.timeline.eventType,
-						//\envTimeline, {
+						//\paramTimeline, {
 							//clipkey = 'envTimeline'
 						//},
 						//\clipTimeline, {

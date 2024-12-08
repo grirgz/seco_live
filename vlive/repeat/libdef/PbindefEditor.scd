@@ -132,17 +132,7 @@ ProtoTemplateDef(\PdefEditor_InlineEnv, (
 
 
 (
-WindowDef(\PdefPostPianoKeyboard, { arg def, pdef;
-	var kb = MIDIKeyboardView.new;
-	kb.mapPattern(pdef, \post);
-	def.windowDo { arg win;
-		win.setInnerExtent(800,120)
-	};
-	kb.asView;
-});
-
 WindowDef(\PbindefEditor, (
-
 	isPstepSeqParam: { arg self, param;
 		param.get.isKindOf(PstepSeq)
 	},
@@ -907,7 +897,7 @@ WindowDef(\PbindefEditor, (
 						innerView.addUniqueMethod(\unmapParam, {}); // no param to unmap
 						textView.visible = false;
 					},
-					{ val.value.isKindOf(ProtoClass) and: { val.value.eventType == \envTimeline } }, {
+					{ val.value.isKindOf(ProtoClass) and: { val.value.eventType == \paramTimeline } }, {
 						[val, val.value].debug("makeParamView: ParamTimeline");
 						editorView.layout = HLayout([ innerView = val.value.asPreview, stretch:10 ]).margins_(0).spacing_(0);
 						innerView.addUniqueMethod(\unmapParam, {}); // no param to unmap
@@ -929,7 +919,7 @@ WindowDef(\PbindefEditor, (
 								combiObject = combi.inputObjects[idx];
 
 								self.modulators.debug("WTF modulators");
-								if(combiObject.isKindOf(ProtoClass) and: { combiObject.eventType == \envTimeline }) {
+								if(combiObject.isKindOf(ProtoClass) and: { combiObject.eventType == \paramTimeline }) {
 									layoutList.add(
 										//innerView = View.new.layout_(VLayout(combiObject.asPreview)).minHeight_(100);
 										combiObject.asPreview
@@ -1255,11 +1245,16 @@ WindowDef(\PbindefEditor, (
 		});
 	},
 
-	pbindefKeysParamList: { arg self, exclude;
-		var exkeys = Set.newFrom(exclude.collect(_.propertyRoot)) 
+	pbindefKeysParamList: { arg self, exclude, excludeBaseKeys=true;
+		var exkeys;
+		if(excludeBaseKeys==true) {
+			exkeys = Set.newFrom(exclude.collect(_.propertyRoot)) 
 			++ [\instrument, \NoteTimeline]
 			++ self.noteKeys
 			++ self.sustainKeys;
+		} {
+			exkeys = [];
+		};
 		self.proxy.source.pairs.clump(2).flop.first.reject({ arg k; exkeys.includes(k) }).collect { arg key, idx;
 			Param(self.proxy, key)
 		};
@@ -1314,11 +1309,11 @@ WindowDef(\PbindefEditor, (
 				val.isKindOf(ParamCombinator) 
 				and: { val.inputObjects[0].notNil }
 				and: { val.inputObjects[0].isKindOf(ProtoClass) }
-				and: { val.inputObjects[0].eventType == \envTimeline } 
+				and: { val.inputObjects[0].eventType == \paramTimeline } 
 			}, {
 				\modTimeline
 			},
-			{ var val = param.parent.at(\source).getRaw; val.isKindOf(ProtoClass) and: { val.eventType == \envTimeline } }, {
+			{ var val = param.parent.at(\source).getRaw; val.isKindOf(ProtoClass) and: { val.eventType == \paramTimeline } }, {
 				\timeline
 			},
 			{ var val = param.parent.at(\source).getRaw; val.isKindOf(ProtoClass) and: { val.eventType == \inlineEnv } }, {
@@ -1591,7 +1586,7 @@ WindowDef(\PbindefEditor, (
 
 	presetCompileString: { arg self;
 		var params;
-		params = ( [self.instrumentParam] ++ self.pbindefKeysParamList ).collect { arg param, idx;
+		params = self.pbindefKeysParamList([], false).collect { arg param, idx;
 			// needed because instrumentParam is already a source subparam
 			// and double source in propertyPath return wrong value
 			param = if(
@@ -1633,6 +1628,16 @@ WindowDef(\PbindefEditor, (
 	},
 ));
 
+
+WindowDef(\PdefPostPianoKeyboard, { arg def, pdef;
+	var kb = MIDIKeyboardView.new;
+	kb.mapPattern(pdef, \post);
+	def.windowDo { arg win;
+		win.setInnerExtent(800,120)
+	};
+	kb.asView;
+});
+
 WindowDef(\PbindefEditorParams, (
 	parent: WindowDef(\PbindefEditor).proto,
 
@@ -1672,8 +1677,6 @@ WindowDef(\PbindefEditorParams, (
 		});
 		view;
 	},
-
-	
 ));
 
 WindowDef(\PbindefEditorParamView, (
@@ -1696,8 +1699,6 @@ WindowDef(\PbindefEditorParamView, (
 		self.updateParamGroupView;
 		self.paramlistView;
 	},
-
-	
 ));
 
-)
+);

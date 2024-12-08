@@ -43,6 +43,7 @@ Pdef(\sd_array,
 	)
 ).play;
 );
+Pdef(\sd_array).edit
 Param(Pdef(\sd_array), \freq).type
 Param(Pdef(\sd_array), \freq, \freq).type
 Param(Pdef(\sd_array), \freqtab).edit
@@ -484,3 +485,42 @@ WindowDef(\win, { arg def;
 	
 }).front;
 );
+
+//////////////
+
+
+NoteTimeline(\bla).edit
+
+
+~p = PlayerEvent()
+~p.parent.parent.parent.parent
+~p.parent.parent.parent
+~p.parent.parent.parent.hash // crash
+~p.postln
+~p.hash
+PatternEvent(())
+().hash
+().parent
+().defaultEvent
+Event.default.hash
+Event.default.parent.keys.do(_.postln)
+Event.default.parent.parentTypes.hash
+Event.default.parent.parentTypes.player.parent.parent
+Event.default.parent.parentTypes.player.parent
+(type: \player).hash
+
+
+(
+Event.addEventType(\happyEvent, {
+    "I am so happy to be silent sometimes, says %.\n".postf(~who)
+}, (who: "Alice"))
+)
+
+
+Event.parentTypes.happyEvent.hash
+Event.parentTypes.happyEvent.parent.parentTypes.happyEvent
+Event.parentTypes.hash
+Event.parentTypes.hash
+Main.version
+
+NodeProxy

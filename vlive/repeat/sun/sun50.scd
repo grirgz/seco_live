@@ -2315,6 +2315,203 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+// +2
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sawautof,
+			\note, Pstep(Pseq([
+				[4, 9, 12],
+				[2, 7, 10],
+				[5, 9, 12],
+				[5, 10, 14],
+			],inf),1),
+			\dur, 1/8,
+			\amp, 0.1 * Pseq([
+				1,0.61,1.3,1,
+			],inf).stutter(1)/1.5 * Pseq([
+				Pwhite(0.8,1,1),
+				Pwhite(0.7,1,1),
+			],inf),
+		),
+		Ppar([0,2,5,7].collect { arg item, idx;
+			Pbind(
+				\instrument, \sawautof,
+				\note, item,
+				\note, item + Pseq([Pn(0,10.rand),2,Pn(0,10.rand)],inf),
+				\legato, 0.4,
+				\octave, [4,5,5,6].choose,
+				\dur, Pseq([1,1,1/2,1,1/4,1/4,1].scramble,inf)/2,
+				\isRest, Pseq([
+					1,1,1,1, 0,0,0,0,
+				].scramble,inf).coin.not,
+				\amp, 0.1,
+			)
+		})
+		
+	])
+)).play;
+);
+
+(
+// +3
+// blues
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sawautof,
+			\note, Pstep(Pseq([
+				[4, 9, 12],
+				[2, 7, 10],
+				[5, 9, 12],
+				[5, 10, 14],
+			],inf),1),
+			\dur, 1/8,
+			\amp, 0.1 * Pseq([
+				1,0.61,1.3,1,
+			],inf).stutter(1)/1.5 * Pseq([
+				Pwhite(0.8,1,1),
+				Pwhite(0.7,1,1),
+			],inf),
+		),
+		Ppar([0,2,5,7].collect { arg item, idx;
+			Pbind(
+				\instrument, \sawautof,
+				\note, item,
+				\note, item + Pseq([Pn(0,10.rand),3,Pn(0,10.rand)],inf),
+				\legato, 0.4,
+				\octave, [4,5,5,6].choose,
+				\dur, Pseq([1,1,1/2,1,1/4,1/4,1].scramble,inf)/2,
+				\isRest, Pseq([
+					1,1,1,1, 0,0,0,0,
+				].scramble,inf).coin.not,
+				\amp, 0.1,
+			)
+		})
+		
+	])
+)).play;
+);
+
+(
+// +2
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sawautof,
+			\note, Pstep(Pseq([
+				[4, 9, 12],
+				[2, 7, 10],
+				[5, 9, 12],
+				[5, 10, 14],
+			],inf),1),
+			\dur, 1/8,
+			\amp, 0.1 * Pseq([
+				1,0.61,1.3,1,
+			],inf).stutter(1)/1.5 * Pseq([
+				Pwhite(0.8,1,1),
+				Pwhite(0.7,1,1),
+			],inf),
+		),
+		Ppar([0,2,5,7].collect { arg item, idx;
+			Pbind(
+				\instrument, \sawautof,
+				\note, item,
+				\note, item + Pseq([Pn(0,10.rand),[4,5,4,-2][idx],Pn(0,10.rand)],inf),
+				\note, item + Pseq([Pn(0,10.rand),[2,-2,2,-2][idx],Pn(0,10.rand),3],inf),
+				\legato, 0.4,
+				\octave, [4,5,5,6].choose,
+				\dur, Pseq([1,1,1/2,1,1/4,1/4,1].scramble,inf)/2,
+				\isRest, Pseq([
+					1,1,1,1, 0,0,0,0,
+				].scramble,inf).coin.not,
+				\amp, 0.1,
+			)
+		})
+		
+	])
+)).play;
+);
+
+(
+// bof
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sawautof,
+			\note, Pstep(Pseq([
+				[4, 9, 12],
+				[2, 7, 10],
+				[5, 9, 12],
+				[5, 10, 14],
+			],inf),1),
+			\dur, 1/8,
+			\amp, 0.1 * Pseq([
+				1,0.61,1.3,1,
+			],inf).stutter(1)/1.5,
+		),
+		Pseq([0,2,3].collect { arg decal, idx;
+			Pfindur(8,Ppar([0,2,5,7].collect { arg item, idx;
+				Pbind(
+					\instrument, \sawautof,
+					//\note, item + Pseq([Pn(0,10.rand),1,Pn(0,10.rand),[-1,1].choose],inf),
+					\note, item,
+					\note, item + Pseq([Pn(0,10.rand),decal,Pn(0,10.rand)],inf),
+					\legato, 0.4,
+					\octave, [4,5,5,6].choose,
+					\dur, Pseq([1,1,1/2,1,1/4,1/4,1].scramble,inf)/2,
+					\isRest, Pseq([
+						1,1,1,1, 0,0,0,0,
+					].scramble,inf).coin.not,
+					\amp, 0.1,
+				)
+			}))
+			
+		});
+		
+	])
+)).play;
+);
+
+(
+// bof
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sawautof,
+			\note, Pstep(Pseq([
+				[4, 9, 12],
+				[2, 7, 10],
+				[5, 9, 12],
+				[5, 10, 14],
+			],inf),1),
+			\dur, 1/8,
+			\amp, 0.1 * Pseq([
+				1,0.61,1.3,1,
+			],inf).stutter(1)/1.5,
+		),
+		Ppar([0,2,5,7].collect { arg item, idx;
+			Pbind(
+				\instrument, \sawautof,
+				//\note, item + Pseq([Pn(0,10.rand),1,Pn(0,10.rand),[-1,1].choose],inf),
+				\note, item,
+				\decal, Pstep(Pseq([0,2,3],inf),8),
+				\note, item + Pseq([Pn(0,10.rand),Pkey(\decal),Pn(0,10.rand)],inf),
+				\legato, 0.4,
+				\octave, [4,5,5,6].choose,
+				\dur, Pseq([1,1,1/2,1,1/4,1/4,1].scramble,inf)/2,
+				\isRest, Pseq([
+					1,1,1,1, 0,0,0,0,
+				].scramble,inf).coin.not,
+				\amp, 0.1,
+			)
+		})
+
+	])
+)).play;
+);
+
+(
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(

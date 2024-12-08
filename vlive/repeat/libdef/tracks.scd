@@ -133,7 +133,7 @@ TrackTemplateDef(\playerwrapper, (
 		WindowDef(\GlobalLibrary_select).front(default, { arg player;
 			//~child = child;
 			self.source = player.last.value;
-		}, [\Clip])
+		}, [\Player])
 	},
 
 	stopInternal: { arg self;
@@ -547,6 +547,14 @@ TrackTemplateDef(\playertrack, (
 					self.mixer_obj[\soloModeHook] = { arg mself, val;
 						// track is soloed, should mute all other tracks
 						// val is true or false
+						var someSolo;
+						someSolo = self.parentTrack.existingChildren.any({ arg child, idx;
+							child.mixer.notNil and: { child.mixer.soloMode }
+						});
+						if(val == false) {
+							// if current track is unsoloed, should still solo it if someSolo
+							self.mixer.muteBySolo(someSolo);
+						};
 						self.parentTrack.existingChildren.collect { arg child, idx;
 							if(child !== self and: { child.mixer.notNil}) {
 								child.mixer.muteBySolo(val);

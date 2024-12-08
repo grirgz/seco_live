@@ -1,5 +1,6 @@
 
 (
+this.executeFile( ( "~/code/sc/seco/vlive/repeat/libdef/Graphical_Module/GM_main.scd" ).standardizePath );
 // make GM widgets aware of Param
 
 ~addParamMethods = { arg mview, param;
@@ -86,3 +87,24 @@ WindowDef(\gmdemo).front( Param(Pbindef(\zed2), \degree -> \source, ControlSpec(
 
 ~synth = Synth(\sine);
 ~synth.play
+
+
+///////////////////////////////
+
+(
+WindowDef(\gmdemo, { arg def;
+	VLayout (
+		~gm.at(\closeButton).value.bindFunction({ "j".postln }),
+		~gm.at(\feedbackButton).value.bindFunction({ "j".postln }),
+		~gm.at(\multiButton).value.bindFunction({ "j".postln }),
+		~gm.at(\switch).value.bindFunction({ "j".postln }),
+
+		~gm.at(\multiSlider).value.bindFunction({ "j".postln }),
+		~gm.at(\simpleTracker).value.bindFunction({ "j".postln }),
+		~gm.at(\spaceMultiSlider).value.bindFunction({ "j".postln }),
+		~gm.at(\duoTracker).value.bindFunction({ "j".postln }),
+		~gm.at(\diamondChaosPad).value.bindFunction({ "j".postln }),
+	)
+	
+}).front;
+)

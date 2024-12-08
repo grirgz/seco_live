@@ -2,18 +2,44 @@ FileSystemProject.load("libdef/drumkit.scd");
 FileSystemProject.load("libdef/synthplayrec.scd");
 FileSystemProject.load("sndlib/buflib.scd");
 ParamProto.init;
-PatKitDef(\bla).edit
-PatKitDef(\bla2).edit
+PatKitDef(\bla4).edit
+PatKitDef(\bla4).childAt(0).targetData.envir
+SynthDesc(\playersec)
+Pdef(\xx4, Pbind()).get(\instrument)
+Pdef(\xx4, Pbind()).envir[\instrument]
+Pdef(\xx4, Pbind()).envir
+Pdef(\xx4).envir
+Pdef(\xx4).set(\bla, 1)
+~p = Param(Pdef(\xx2), \instrument)
+~p.default
+~p = Param(PatKitDef(\bla2).childAt(10).targetData, \instrument, TagSpecDef(\SynthDef_keys))
+~p.default = \playersec
+~p.default
+~p.getRaw
+PatKitDef(\bla2).childAt(10).targetData.envir
+TagSpecDef(\SynthDef_keys).default
+PatKitDef(\bla).childAt(0).targetData.envir.size
+EventPatternProxy.new.envir.size
 PatKitDef(\bla3).edit
+PatKitDef(\bla10).edit
+PatKitDef(\bla9).childAt(40).targetData
+PatKitDef(\bla9).childAt(40).target
+PatKitDef(\bla9).childAt(40).pattern
+PatKitDef(\bla9).childAt(40).isEmpty
+PatKitDef(\bla9).childAt(40).addHalo(\bla, 3)
+PatKitDef(\bla3).childAt(0).targetData.source.
+PatKitDef(\bla8).edit
 TagSpecDef(\BusDef_object).labelList
 
 
 (
-PatKitDef(\testme3).targets = [
+PatKitDef(\testme6).targets = [
 	Pbind(
 		\instrument, \saw,
 		\freq, 200,
 		\dur, 1,
+		\rq, 0.9,
+		\lpfr, 3,
 		\amp, 0.1,
 	),
 	Pbind(
@@ -23,8 +49,16 @@ PatKitDef(\testme3).targets = [
 		\amp, 0.1,
 	),
 ];
-PatKitDef(\testme3).edit;
+PatKitDef(\testme6).edit;
 )
+PatKitDef(\testme5).childAt(0).target.source.pairs
+PatKitDef(\testme5).targets[0].pairs
+
+Pbind(\bla, 1).pairs
+
+PatKitDef(\testme)
+
+
 PatKitDef(\testme1).presetCompileString.editorInsert
 (
 PatKitDef('testme3').targetsData = [
@@ -212,8 +246,38 @@ PatKitDef(\barrykit7, 32.collect { arg idx;
 		\bufnum, BufDef.stereo('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'),
 		\legato, 1,
 		\st, 85/2/60,
-		\pos, idx/8+0.6/Pkey(\st),
+		\pos, idx/8+0.61/Pkey(\st),
 		\maxsustain, 0.2,
+		\dur, 1/8,
+		\gain, 1/4,
+	)
+});
+)
+
+(
+PatKitDef(\barrykit7, 32.collect { arg idx;
+	Pbind(
+		\instrument, \playersecmax,
+		\bufnum, BufDef.stereo('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'),
+		\legato, 1,
+		\st, 85/2/60,
+		\pos, idx/4+0.61/Pkey(\st),
+		\maxsustain, 0.2,
+		\dur, 1/8,
+		\gain, 1/4,
+	)
+});
+)
+(
+PatKitDef(\moetenkit, 32.collect { arg idx;
+	Pbind(
+		\instrument, \playersecmax,
+		//\bufnum, BufDef.stereo('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'),
+		\bufnum, BufDef.stereo(\moeten, "voices/02_moeten.flac"),
+		\legato, 1,
+		\st, 85/2/60,
+		\maxsustain, 1/4/Pkey(\st),
+		\pos, Pkey(\maxsustain)*idx,
 		\dur, 1/8,
 		\gain, 1/4,
 	)
@@ -224,4 +288,334 @@ PatKitDef.protoClass
 PatKitDef(\barrykit).elAt(0).play
 PatKitDef(\barrykit7).edit
 PatKitDef(\barrykit7).presetCompileString
-KitTimeline(\kit1, PatKitDef(\barrykit)).edit
+PatKitDef(\barrykit7).patterns
+PatKitDef(\barrykit7).asPattern(KitTimeline(\kit1).eventList.asPattern).play
+PatKitDef(\moetenkit).edit
+KitTimeline(\kit1, PatKitDef(\barrykit7)).edit
+KitTimeline(\kit1).eventList[1].kitIndex = 0
+KitTimeline(\kit2).eventList
+KitTimeline(\kit1).kit
+KitTimeline(\kit1).wrapper.preChain
+KitTimeline(\kit1).preChain
+KitTimeline(\kit1).postChain
+KitTimeline(\kit1).composeParamPattern
+KitTimeline(\kit1)[\asPattern].asCompileString
+KitTimeline(\kit1).composeParamPattern
+KitTimeline(\kit1).kit
+~s = KitTimeline(\kit1).kit[0].asStream
+~s = PatKitDef(\barrykit7).childAt(0).pattern.asStream
+~s = PatKitDef(\barrykit7).childAt(0).target.asStream
+PatKitDef(\barrykit7).childAt(0).target
+KitTimeline(\kit1).play
+~pat.play
+~pat.streamDict
+~pat.dictNext(0)
+~s = ~pat.dictStream(0)
+~s = ~pat.asStream
+~s = KitTimeline(\kit1).asPattern.asStream
+~s.next(())
+KitTimeline(\kit2, PatKitDef(\moetenkit)).edit
+~t = 185/2/60; TempoClock.default.tempo = ~t;
+PdrumStep
+(KitTimeline(\kit1).postChain <> PdrumStep(KitTimeline(\kit1).kit, KitTimeline(\kit1).eventList.asPattern, 1, key:\kitIndex)).play
+~p = PdrumStep(KitTimeline(\kit1).kit, KitTimeline(\kit1).eventList.asPattern, 1, key:\kitIndex)
+~p.dictNext(0)
+
+
+(
+	Pdef(\zed, 
+		PdrumStep([
+			Pbind(
+				\instrument, \saw,
+				\freq, 200,
+				\dur, 1,
+				\rq, 0.9,
+				\lpfr, 3,
+				\amp, 0.1,
+			),
+			Pbind(
+				\instrument, \default,
+				\freq, Pseq([500,400],inf),
+				\dur, 1,
+				\amp, 0.1,
+			),
+		], Pbind(
+			\kitIndex, Pseq([1,0],inf),
+			\dur, 1,
+			\amp, 0.1,
+		), key:\kitIndex)
+	).play;
+)
+
+
+/////////////////////
+
+
+(
+FileSystemProject.load("libdef/drumkit.scd");
+FileSystemProject.load("libdef/synthplayrec.scd");
+PatKitDef(\barrykit7, 32.collect { arg idx;
+	Pbind(
+		\instrument, \playersecmax,
+		\bufnum, BufDef.stereo('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'),
+		\legato, 1,
+		\st, 85/2/60,
+		\pos, idx/4+0.61/Pkey(\st),
+		\maxsustain, 0.2,
+		\dur, 1/8,
+		\gain, 1/4,
+	)
+});
+
+KitTimeline('kit1').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	(\absTime: 0.0, \dur: 0.125, \kitIndex: 0.0, \midinote: 0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 0.125, \dur: 0.25, \kitIndex: 0.0, \midinote: 0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.1, ),
+	(\absTime: 0.375, \dur: 0.25, \kitIndex: 0.0, \midinote: 0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.125, ),
+	(\absTime: 0.625, \dur: 0.375, \kitIndex: 0.0, \midinote: 0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.1, ),
+	(\absTime: 1.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+KitTimeline(\kit1, PatKitDef(\barrykit7));
+)
+
+KitTimeline(\kit1).edit
+KitTimeline(\kit1).play
+KitTimeline(\kit1).composeParamPattern
+
+~s = ~pat.dict[0].asStream
+~s = ~pat.asStream
+~s = ~pat.dictStream(0).asStream
+~pat.dictStream(0).next(())
+~s.next(())
+~pat.streamDict
+~pat.dictNext(0)
+
+~pat.
+
+
+KitTimeline(\bla).edit
+KitTimeline(\bla).wrapper.presetCompileString.editorInsert
+
+maxIndex
+PatKitDef(\aze2).edit
+PatKitDef(\aze2).childAt(0).targetData
+PatKitDef(\aze2).childAt(0).targetDataProxy
+PatKitDef(\aze2).getTargetDataProxy(0)
+PatKitDef(\aze2).childAt(3).isEmpty
+PatKitDef(\aze2).childAt(3).target.source.patternpairs
+PatKitDef(\aze2).childAt(3).target.envir
+PatKitDef(\aze2).childAt(3).pattern.stop
+PatKitDef(\aze2).childAt(3).play
+PatKitDef(\aze3).edit
+PatKitDef(\aze3).targetData
+PatKitDef(\aze2).patterns[3] = nil
+PatKitDef(\aze2).childAt(3).targetData.envir
+PatKitDef(\aze2).childAt(3).targetData.source.patternpairs
+FileSystemProject.load("repeat/capsule/PatKitDef_rim.scd")
+FileSystemProject.load("repeat/capsule/PatKitDef_ksh.scd")
+PatKitDef(\aze2).presetCompileString.editorInsert
+(
+PatKitDef('aze2').targetsData = [
+	('gain': 0.29546471291645, 'pos': 0.88786848072562, 'speed': 0.60838154979432, 'instrument': 'playersec', 'bufnum': BufDef('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'), 'sustain': 0.12950113378685),
+	('gain': 0.29546471291645, 'pos': 3.5588662131519, 'speed': 1.2083815497943, 'instrument': 'playersec', 'bufnum': BufDef('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'), 'sustain': 0.066530612244898),
+];
+);
+
+(
+);
+
+PatKitDef(\aze1).getTargetData(0)
+PatKitDef(\aze1).presetCompileString
+(
+PatKitDef('aze1').targetsData = [
+	('gain': 0.29546471291645, 'pos': 3.5588662131519, 'speed': nil, 'instrument': 'playersec', 'bufnum': 0, 'sustain': 0.8),
+	('gain': 0.29546471291645, 'pos': 3.5588662131519, 'speed': nil, 'instrument': 'playersec', 'bufnum': 0, 'sustain': 0.8),
+];
+);
+
+PatKitDef(\aze1).childAt(0).play
+PatKitDef(\aze1).childAt(0).stop
+PatKitDef(\aze1).clearChild(0)
+PatKitDef(\aze1).setTargetData(0, ())
+PatKitDef(\aze1).getTargetData(0)
+PatKitDef(\aze1).edit
+
+PatKitDef(\aze2).clearChild(1)
+PatKitDef(\aze2).childAt(1).pattern.play
+PatKitDef(\aze2).childAt(1).play
+PatKitDef(\aze2).childAt(1).stream.nextN(5,())
+PatKitDef(\aze2).childAt(1)[\play].asCompileString
+PatKitDef(\aze2).childAt(1).reboot
+~pat.source
+~pat.play
+PatKitDef(\aze2).childAt(1).stream
+PatKitDef(\aze2).childAt(1).preChain
+PatKitDef(\aze2).children[1] = nil
+PatKitDef(\aze2).getTargetData(1)
+PatKitDef(\aze2).getTarget(1).patternpairs
+PatKitDef(\aze2).getPattern(1).source.patterns.first.source.patternpairs
+PatKitDef(\aze2).getPattern(1).source.patterns.last.envir
+
+PatKitDef(\aze3).targets = [Pbind()]
+PatKitDef(\aze3).targetsData = [(\instrument: \saw)]
+PatKitDef(\aze3).lastChildIndex
+
+
+PatKitDef(\aze4).childAt(0).play;
+
+
+PatKitDef(\aze4).edit
+PatKitDef(\aze4).setTarget(0, PatKitDef(\aze1).childAt(0).target.copy)
+PatKitDef(\aze4).setTargetData(0, PatKitDef(\aze1).childAt(0).targetData.copy)
+PatKitDef(\aze4).getPattern(0)
+PatKitDef(\aze4).pasteChild(0, PatKitDef(\aze1).childAt(1))
+PatKitDef(\aze4).loadFrom(PatKitDef(\aze1))
+PatKitDef(\aze4).childAt(0).reboot
+PatKitDef(\aze4).childAt(0).pattern.source.patterns.first.dump
+PatKitDef(\aze4).childAt(0).targetDataProxy.dump
+PatKitDef(\aze4).childAt(0).play
+PatKitDef(\aze4).childAt(0).stream.next(Event.default)
+
+PatKitDef(\aze4).getPattern(0).play
+PatKitDef(\aze4).setTargetData(0, (instrument:\saw))
+PatKitDef(\azek).setTarget(0, Pbind(\instrument, \saw, \freq,Pseq([300,400],inf)))
+PatKitDef(\aze2).setTargetData(0, ())
+PatKitDef(\aze2).getTargetData(0)
+PatKitDef(\aze2).clearChild(0)
+PatKitDef(\aze1).edit
+PatKitDef(\aze8).edit
+
+~p = PatKitDef(\aze17)
+~p.edit
+~p.childAt(0).play
+~p.getPattern(0)
+~p.targetDataProxyList
+~p.getTargetDataProxy(0).dump
+~p.childAt(0).targetDataProxy.envir.clear
+~p.updatePattern(0)
+~p.childAt(0).targetDataProxy.envir = ()
+~p.childAt(0).targetDataProxy.envir
+~p.childAt(0).targetDataProxy.set(\instrument, \playersec)
+~p.childAt(0).targetData
+~p.setTargetData(0, ~p.defaultTargetDataProxy.envir) // no
+~p.setTargetData(0, EventPatternProxy(Pbind()).set(\instrument, \playersec).envir.copy) // no
+~p.setTargetData(0, EventPatternProxy(Pbind()).set(\speed, 1).envir.copy) // yes
+~p.setTargetData(0, EventPatternProxy(Pbind()).set(\bla, 1).envir.copy) // yes
+~p.setTargetData(0, (\bla: 1)) // yes
+~p.setTargetData(0, ()) // no
+~p.setTargetData(0, (\instrument: \playersec)) // no
+~p.setTargetData(0, (\instrument: \saw)) // yes
+~p.setTargetData(0, EventPatternProxy(Pbind()).set(\instrument, \playersec, \bufnum, 1).envir.copy) // yes
+~p.setTargetData(0, EventPatternProxy(Pbind()).set(\instrument, \playersec, \speed, 1).envir.copy) // yes
+~p.setTarget(0, PatKitDef(\or1).childAt(0).target.copy) // no
+~p.setTargetData(0, PatKitDef(\or1).childAt(0).targetData.copy) // yes
+~p.loadFrom(PatKitDef(\or2))
+~p.loadFrom(PatKitDef(\or1))
+
+PatKitDef(\or1).childAt(0).targetData.parent
+().parent
+
+//bug: first play the child, then loadFrom: play does not update
+// if setTargetData or loadFrom before getPattern, then loadFrom work
+
+// if i setTargetData(0,()) then play then loadFrom, it is locked
+// if i setTargetData(0,()) then play then setTargetData(0,child...) then loadFrom, it is NOT locked
+
+// so if child.isEmpty after setTargetData, then bug, else not bug
+// when we create the pattern, the child should not be isEmpty
+
+PatKitDef(\aze7).childAt(0).targetDataProxy.dump
+PatKitDef(\aze1).presetCompileString.editorInsert
+PatKitDef(\or2).edit
+PatKitDef(\or2).presetCompileString.editorInsert
+
+
+~a = EventPatternProxy(Pbind(\bla, Pseq([1,2],inf)))
+~a.source = Pbind(\bla, Pseq([10,20],inf))
+~s = ~a.asStream;
+~s.next(())
+
+(
+FileSystemProject.loadOnce("libdef/drumkit.scd");
+FileSystemProject.loadOnce("libdef/synthplayrec.scd");
+BufDef(\metal, "vipere/metal.flac");
+BufDef(\bomb, "vipere/bomb.flac");
+PatKitDef('or1').targetsData = [
+	('gain': 0.29546471291645, 'pos': 0.88786848072562, 'speed': 0.60838154979432, 'instrument': 'playersec', 'bufnum': BufDef('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'), 'sustain': 0.12950113378685),
+	('gain': 0.29546471291645, 'pos': 3.5588662131519, 'speed': 1.2083815497943, 'instrument': 'playersec', 'bufnum': BufDef('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'), 'sustain': 0.066530612244898),
+	('gain': 0.29546471291645, 'pos': 6.7844897959184, 'speed': 1.2083815497943, 'instrument': 'playersec', 'bufnum': BufDef('metal'), 'sustain': 0.25671201814059),
+];
+PatKitDef('or2').targetsData = [
+	('gain': 0.1542418580916, 'instrument': 'playersec', 'bufnum': BufDef('bomb')),
+	('gain': 0.20590666945949, 'pos': 0.43419501133787, 'speed': 1.346522113859, 'instrument': 'playersec', 'bufnum': BufDef('bomb'), 'sustain': 0.41716553287982),
+];
+PatKitDef(\barrykit7, 32.collect { arg idx;
+	Pbind(
+		\instrument, \playersecmax,
+		\bufnum, BufDef.stereo('vbreaks/Barry White I\'m Gonna Love You Just A Little Bit More Baby.wav'),
+		\legato, 1,
+		\st, 85/2/60,
+		\pos, idx/4+0.61/Pkey(\st),
+		\maxsustain, 0.2,
+		\dur, 1/8,
+		\gain, 1/4,
+	)
+});
+);
+
+
+PatKitDef(\aze1).childAt(0).isEmpty
+PatKitDef(\barrykit7).presetCompileString
+~a = PatKitDef(\aze1).targetsData.as(Array)
+
+PatKitDef(\aze1).keys
+PatKitDef(\aze1).childAt(0).pattern.play
+PatKitDef(\aze1).parent[\presetCompileString].asCompileString
+PatKitDef(\aze1).parent[\presetCompileString].asCompileString
+PatKitDef(\ParPlayerGroup)[\presetCompileString].asCompileString
+PatKitDef(\aze).childAt(0).targetData.presetCompileString("kj")
+PatKitDef(\aze).childAt(0).targetData.envir
+PatKitDef(\aze).childAt(0).targetData.envir.bufnum.asBufDef
+PatKitDef(\aze).childAt(0).targetData.envir.bufnum.as(BufDef)
+ParamGroup.getPbindefCompileString(PatKitDef(\aze).childAt(0).targetData)
+
+ProtoClassDef(\bla, (hoho:2)).dump
+ProtoTemplateDef(\bla, (hoho:2)).dump
+ProtoClassDef(\bla).hash
+~p = ProtoClass((parent: { ProtoClassDef(\bla) }))
+~p.hoho
+~p.parent
+
+
+KitTimeline(\bla, PatKitDef(\aze1))
+KitTimeline(\bla).edit
+
+PatKitDef(\aze1).edit
+
+KitTimeline(\bla1).edit
+NoteTimeline(\bla2).edit
+ClipTimeline(\bla).edit
+SampleTimeline(\bla).edit
+ParamTimeline(\bla).edit
+TrackTimeline(\bla2, TrackDef(\myc)).edit
+TrackDef(\myc, \CustomTrackList).edit
+FileSystemProject.load("libdef/CustomTrackList.scd")
+
+KitTimeline(\bla1, PatKitDef(\or2)).edit
+KitTimeline(\bla1).wrapper = PatKitDef(\or1)
+KitTimeline(\bla1).wrapper = PatKitDef(\or2)
+KitTimeline(\bla1).play
+KitTimeline(\bla1).editor.refresh
+KitTimeline(\bla3).edit
+ControllerDef.getTagSpec(\drumpad).list
+
+
+(
+WindowDef(\win, { arg def;
+
+		def.windowName = "kkkk";
+		Button.new;
+	
+}).front;
+)
+Window

@@ -10,14 +10,18 @@ FileSystemProject.loadOnce("libdef/tracklist_buildertrack.scd");
 FileSystemProject.loadOnce("libdef/default_specs.scd");
 
 // cell API
-// - proxy: object that is played
-// - source: object that can be set, by default put in a PlayerWrapper then in .proxy
+// - proxy: object that is played, generic name for Pdef, Pbindef, Ndef, etc
+// - source: the raw content, user set object, which will be wrapped under the hood and put in .proxy
+// - score: same as source, but for CustomInstrumentTrackPart, the content according to track instrument
+// - pchain
+// - base
 
 
 
 /// base class
 
 (
+// TODO: should be named TrackList
 TrackTemplateDef(\CustomTrackList, (
 	parent: TrackTemplateDef(\playergrid),
 
@@ -223,6 +227,7 @@ TrackTemplateDef(\CustomTrackList, (
 	loadedFromPath: nil,
 ));
 
+// TODO: should be named CustomTrack
 TrackTemplateDef(\CustomInstrumentTrack, (
 	parent: TrackTemplateDef(\playertrack),
 	eventType: \instrumenttrack,
@@ -405,6 +410,26 @@ TrackTemplateDef(\CustomInstrumentTrack, (
 					var mix;
 					ParamProto.init;
 					self.mixer_obj = ProtoClassDef(\TrackMixerDef).new(self.parentTrack.key+++"."+++self.index);
+					self.mixer_obj[\soloModeHook] = { arg mself, val;
+						// track is soloed, should mute all other tracks
+						// val is true if current track is soloed, else false
+						var someSolo;
+						//self.parentTrack.existingChildren.debug("soloModeHook");
+						someSolo = self.parentTrack.existingChildren.any({ arg child, idx;
+							child.mixer.notNil and: { child.mixer.soloMode }
+						});
+						if(val == false) {
+							// if current track is unsoloed, should still solo it if someSolo
+							self.mixer.muteBySolo(someSolo);
+						};
+						self.parentTrack.existingChildren.do { arg child, idx;
+							//[ child, child.mixer, val, child !== self, someSolo ].debug("muteBySolo");
+							if(child !== self and: { child.mixer.notNil}) {
+								child.mixer.muteBySolo(someSolo);
+							}
+						};
+					};
+
 					self.mixer_obj.define_mixer;
 
 					mix = self.mixer_obj;
@@ -433,6 +458,7 @@ TrackTemplateDef(\CustomInstrumentTrack, (
 	},
 ));
 
+// TODO: should be named CustomTrackScore
 TrackTemplateDef(\CustomInstrumentTrackPart, (
 	parent: TrackTemplateDef(\playerwrapper),
 	eventType: \instrumenttrackpart,
@@ -659,7 +685,7 @@ TrackTemplateDef(\CustomInstrumentTrackPart, (
 	},
 ));
 
-// TODO: should be named CustomTrackListSection
+// TODO: should be named TrackListSection
 TrackTemplateDef(\CustomTrackListPart, (
 	parent: TrackTemplateDef(\lineplayer),
 	eventType: \tracklistpart,
@@ -681,55 +707,8 @@ TrackTemplateDef(\CustomTrackListPart, (
 
 //// GUI
 
-(
-WindowDef(\sampleEditor, { arg def, param;
-	var popup;
-	var spec;
-	var curval, editcurval;
-	var target = param.target;
-	curval = StaticText.new.minWidth_(80).align_(\right);
-	editcurval = TextField.new;
-	spec = ParamAudioBufferSpec(2)
-		.startParamName_(\pos)
-		.sustainParamName_(\sustain)
-		.speedParamName_(\speed)
-		;
-	param.spec = spec;
 
-	curval.followChange(Param, \lastTweaked, { arg view; 
-		//"there is a change! %: %".format(Param.lastTweaked.asLabel, Param.lastTweaked.stringGet).postln;
-
-		// map the last changed Param to the StaticText and TextField
-		curval.mapParamLabel(Param.lastTweaked);
-		editcurval.mapParam(Param.lastTweaked);
-	});
-
-	VLayout (
-		HLayout (
-			PlayerWrapper(target),
-			curval, 
-			editcurval,
-		),
-		HLayout (
-			WindowDef(\ParamAsSoundFileView).asView(param),
-			VLayout(
-				* [
-					Param(target, \pos, \unipolar),
-					Param(target, \sustain, ControlSpec(0,10,\lin)),
-					Param(target, \speed, ControlSpec(-2,2,\lin,0,1)),
-				].collect({ arg pa;
-					ParamGroupLayout.knobView(pa);
-				}) ++ [nil]
-			),
-		),
-		param.asView,
-		Param(target, \gain, \unipolar).asView,
-		Param(target, \dur, ControlSpec(0.1,8,\exp)).asView,
-		Param(target, \adsr ).asView,
-	)
-});
-);
-
+// grid
 (
 WindowDef(\customgrid, (
 	trackCount: 9,
@@ -1347,6 +1326,7 @@ WindowDef(\CustomInstrumentTrack_TemplateEditor, { arg def, track;
 );
 
 
+// tracklist
 (
 WindowDef(\CustomTrackList, (
 	asView: { arg self, wdef, model;
@@ -1374,10 +1354,17 @@ WindowDef(\CustomTrackList, (
 		HLayout (
 			playButton.view,
 			BasicButton.new.string_("Add").action_({
-				WindowDef(\CustomTrackList_NewInstrument).front({ arg trackTemplate, label;
-					//Log(\Param).debug("OK! template %, label %", trackTemplate, label);
-					model.addTrack(trackTemplate, label);
-				})
+				Menu(
+					* TagSpecDef(\CustomTrackTemplate).list.collect { arg asso, idx;
+						MenuAction(asso.key, {
+							model.addTrack(asso.value);
+						})
+					};
+				).front;
+				//WindowDef(\CustomTrackList_NewInstrument).front({ arg trackTemplate, label;
+					////Log(\Param).debug("OK! template %, label %", trackTemplate, label);
+					//model.addTrack(trackTemplate, label);
+				//})
 			}),
 			HLayout (
 				StaticText.new.string_("Part:"),
@@ -1399,7 +1386,33 @@ WindowDef(\CustomTrackList, (
 			BasicButton.new.string_("Properties").action_({
 				model.editProperties;
 			}),
+			BasicButton.new.string_("...").fixedWidth_(20).action_({
+				self.showGeneralOverlayMenu;
+			}),
 		)
+	},
+
+	showGeneralOverlayMenu: { arg self, view, x, y;
+		Menu(
+			MenuAction("Save", {
+				self.model.savePresetCompileStringDialog;
+			}),
+			MenuAction("Load", {
+				self.model.loadPresetCompileStringDialog;
+			}),
+			MenuAction("Copy refString to clipboard", { 
+				self.model.refCompileString.pbcopy;
+			}),
+			MenuAction.separator,
+			//Param(Message(self.model), \showMixerView, ParamBoolSpec()).asMenuAction,
+			//Param(Message(self.model), \enableAutoSetOutbus, ParamBoolSpec()).asMenuAction,
+			Param(
+				Message(self.model),
+				\controller, 
+				ControllerDef.getTagSpec(\launchpad)
+			).asMenu( "Grid controller" ),
+		).front
+		
 	},
 
 	makeTrackList: { arg self;
@@ -1430,6 +1443,65 @@ WindowDef(\CustomTrackList, (
 		view;
 	},
 
+	makeTrackMenu: { arg self, child, cell;
+		
+		Menu(
+			CustomViewAction(
+				View.new.layout_(HLayout (
+					StaticText.new.string_("label:"),
+					Param( Message(child), \label, ParamStringSpec()).asTextField(action:{ arg view;
+						self.model.changed(\tracklist);
+
+					}),
+				)),
+			),
+			if(cell.isEmpty) {
+				MenuAction("Create and edit score", {
+					cell.makeScore;
+					self.model.changed(\tracklist); // overkill refresh
+					cell.edit;
+				})
+			} {
+				MenuAction("Edit score", {
+					cell.edit;
+				})
+			},
+			MenuAction("Edit instrument", {
+				child.editInstrument;
+			}),
+			Param(Message(child), \isMixerEnabled, ParamBoolSpec()).asMenuAction("Enable mixer"),
+			MenuAction.separator,
+			MenuAction("clear score", {
+				cell.clearPart;
+			}).enabled_(cell.isEmpty.not),
+			MenuAction("remove track", {
+				self.model.removeTrack(child.index);
+			}).enabled_(child.isEmpty.not)
+		).front;
+
+		//WindowDef(\OverlayMenu).front(but, x, y, { arg def;
+		//VLayout (
+		//HLayout (
+		//StaticText.new.string_("label:"),
+		//Param( Message(child), \label, ParamStringSpec()).asTextField,
+		//),
+		//BasicButton.new.string_("Edit instrument").action_({
+		//child.editInstrument;
+		//def.closeWindow;
+		//}),
+		//BasicButton.new.string_("Edit track part").action_({
+		//child.edit;
+		//def.closeWindow;
+		//}),
+		//BasicButton.new.string_("Remove track").action_({
+		//model.removeTrack(childidx);
+		//def.closeWindow;
+		//}),
+		//Param(Message(child), \isMixerEnabled, ParamBoolSpec()).asButton("Enable mixer"),
+		//)
+		//})
+	},
+
 	makeTrackView: { arg self, child;
 		var rowHeight = 80;
 		var rowHeight_inset = rowHeight - 5;
@@ -1444,113 +1516,73 @@ WindowDef(\CustomTrackList, (
 		var variableView;
 		var viewSelector = self.trackButtonSelector;
 		var childidx = child.index;
+		var tracknamebut; 
 
+		tracknamebut = BasicButton.new
+			.string_("%: %".format(child.index, child.label))
+			.action_({
+				//Log(\Param).debug("edit: idx%, instr %", childidx, child.instrument.asCompileString);
+				child.editInstrument;
+			})
+			.maxWidth_(200)
+			.mouseDownAction_({ arg but, x, y, modifiers, buttonNumber, clickCount;
+				//[but, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+		
+				if(buttonNumber == 1) { // if right-click
+					self.makeTrackMenu(child, cell);
+				}
+			})
+		;
+  
 		variableView = View.new.followChange(child, \mixer, { arg view;
 			view.removeAll;
 			//Log(\Param).debug("mixer variableView: %, %, %", child.label, child.isMixerEnabled, child.mixer);
 			if(child.isMixerEnabled) {
-				view.layout = StackLayout(
-					child.mixer.asParam(\postfader).asSlider.orientation_(\horizontal).background_(Color.clear),
-					CompactServerMeterView(nil, 0,2, child.mixer.recbus).orientation_(\horizontal),
-				).mode_(\stackAll);
+				view.layout = HLayout (
+					Param(Message(child.mixer), \muteMode, ParamBoolSpec()).asButton.string_("M").fixedSize_(Point(15,15)),
+					Param(Message(child.mixer), \soloMode, ParamBoolSpec()).asButton.string_("S").fixedSize_(Point(15,15)),
+					StackLayout(
+						child.mixer.asParam(\postfader).asSlider.orientation_(\horizontal).background_(Color.clear),
+						CompactServerMeterView(nil, 0,2, child.mixer.recbus).orientation_(\horizontal),
+					).mode_(\stackAll);
+				).spacing_(0).margins_(0)
 			}
 		});
 
 		//playbut.debug("i");
-		playbut.button.maxWidth_(30);
+		playbut.button.fixedWidth_(30);
 		//playbut.parentView.states = [
 		//[""],
 		//["", Color.black,ParamViewToolBox.color_ligth],
 		//];
 		//playbut.parentView.update;
 		lay = HLayout (
-			playbut,
 			VLayout (
-				BasicButton.new
-				.string_("%: %".format(child.index, child.label))
-				.action_({
-					//Log(\Param).debug("edit: idx%, instr %", childidx, child.instrument.asCompileString);
-					child.editInstrument;
-				})
-				.maxWidth_(200)
-				.mouseDownAction_({ arg but, x, y, modifiers, buttonNumber, clickCount;
-					//[but, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
-
-					if(buttonNumber == 1) { // if right-click
-
-						Menu(
-							CustomViewAction(
-								View.new.layout_(HLayout (
-									StaticText.new.string_("label:"),
-									Param( Message(child), \label, ParamStringSpec()).asTextField(action:{ arg view;
-										self.model.changed(\tracklist);
-
-									}),
-								)),
-							),
-							if(cell.isEmpty) {
-								MenuAction("Create and edit score", {
-									cell.makeScore;
-									self.model.changed(\tracklist); // overkill refresh
-									cell.edit;
-								})
-							} {
-								MenuAction("Edit score", {
-									cell.edit;
-								})
-							},
-							MenuAction("Edit instrument", {
-								child.editInstrument;
-							}),
-							Param(Message(child), \isMixerEnabled, ParamBoolSpec()).asMenuAction("Enable mixer"),
-							MenuAction.separator,
-							MenuAction("clear score", {
-								cell.clearPart;
-							}).enabled_(cell.isEmpty.not),
-							MenuAction("remove track", {
-								model.removeTrack(childidx);
-							}).enabled_(child.isEmpty.not)
-						).front;
-						//WindowDef(\OverlayMenu).front(but, x, y, { arg def;
-							//VLayout (
-								//HLayout (
-									//StaticText.new.string_("label:"),
-									//Param( Message(child), \label, ParamStringSpec()).asTextField,
-								//),
-								//BasicButton.new.string_("Edit instrument").action_({
-									//child.editInstrument;
-									//def.closeWindow;
-								//}),
-								//BasicButton.new.string_("Edit track part").action_({
-									//child.edit;
-									//def.closeWindow;
-								//}),
-								//BasicButton.new.string_("Remove track").action_({
-									//model.removeTrack(childidx);
-									//def.closeWindow;
-								//}),
-								//Param(Message(child), \isMixerEnabled, ParamBoolSpec()).asButton("Enable mixer"),
-							//)
-						//})
-
-					}
-				})
-				,
 				HLayout (
-					Param(
-						Message(child),
-						\outBus, 
-						TagSpec({[\default -> nil, \0->0] ++ TagSpecDef(\BusDef_object).list})
-					).asPopUpMenu.maxWidth_(100),
-					Param(
-						Message(cell),
-						\outBus, 
-						TagSpec({[\default -> nil, \0->0] ++ TagSpecDef(\BusDef_object).list})
-					).asPopUpMenu.maxWidth_(100),
-					nil,
+					VLayout (
+						playbut,
+						Param(Message(child), \recordArmed, ParamBoolSpec()).asButton("●").fixedWidth_(30),
+						nil,
+					),
+					VLayout (
+						tracknamebut,
+						HLayout (
+							Param(
+								Message(child),
+								\outBus, 
+								TagSpec({[\default -> nil, \0->0] ++ TagSpecDef(\BusDef_object).list})
+							).asPopUpMenu.maxWidth_(100),
+							Param(
+								Message(cell),
+								\outBus, 
+								TagSpec({[\default -> nil, \0->0] ++ TagSpecDef(\BusDef_object).list})
+							).asPopUpMenu.maxWidth_(100),
+							nil,
+						),
+						nil
+					),
 				),
 				variableView,
-				nil
 			),
 			[{
 				if(cell.isEmpty) {
@@ -1815,6 +1847,53 @@ WindowDef(\PdefInstrumentEditor, { arg def, instr;
 		paramView,
 	);
 });
+
+WindowDef(\sampleEditor, { arg def, param;
+	var popup;
+	var spec;
+	var curval, editcurval;
+	var target = param.target;
+	curval = StaticText.new.minWidth_(80).align_(\right);
+	editcurval = TextField.new;
+	spec = ParamAudioBufferSpec(2)
+		.startParamName_(\pos)
+		.sustainParamName_(\sustain)
+		.speedParamName_(\speed)
+		;
+	param.spec = spec;
+
+	curval.followChange(Param, \lastTweaked, { arg view; 
+		//"there is a change! %: %".format(Param.lastTweaked.asLabel, Param.lastTweaked.stringGet).postln;
+
+		// map the last changed Param to the StaticText and TextField
+		curval.mapParamLabel(Param.lastTweaked);
+		editcurval.mapParam(Param.lastTweaked);
+	});
+
+	VLayout (
+		HLayout (
+			PlayerWrapper(target),
+			curval, 
+			editcurval,
+		),
+		HLayout (
+			WindowDef(\ParamAsSoundFileView).asView(param),
+			VLayout(
+				* [
+					Param(target, \pos, \unipolar),
+					Param(target, \sustain, ControlSpec(0,10,\lin)),
+					Param(target, \speed, ControlSpec(-2,2,\lin,0,1)),
+				].collect({ arg pa;
+					ParamGroupLayout.knobView(pa);
+				}) ++ [nil]
+			),
+		),
+		param.asView,
+		Param(target, \gain, \unipolar).asView,
+		Param(target, \dur, ControlSpec(0.1,8,\exp)).asView,
+		Param(target, \adsr ).asView,
+	)
+});
 );
 
 ////////////////////
@@ -1857,6 +1936,13 @@ TrackTemplateDef(\PlayerWrapperTrackPart, (
 		
 	},
 
+	scorePresetCompileString: { arg self;
+		var str;
+		str = List.new;
+		str.add( "%.source = %;".format(self.refCompileString, PlayerWrapper(self.source).presetCompileString));
+		str.join($\n);
+	},
+
 ));
 
 TagSpecDef(\CustomTrackTemplate).addUnique(\PlayerWrapperTrack -> TrackTemplateDef(\PlayerWrapperTrack));
@@ -1869,14 +1955,46 @@ TagSpecDef(\CustomTrackTemplate).addUnique(\PlayerWrapperTrack -> TrackTemplateD
 TrackTemplateDef(\PbindefTrack, (
 	parent: TrackTemplateDef(\CustomInstrumentTrack),
 	childClass: { TrackTemplateDef(\PbindefTrackPart) },
+	trackEditor: { arg self;
+		WindowDef(\PbindefEditor);
+	},
+	editInstrument: { arg self;
+		WindowDef(\PbindefEditor).front(self.score);
+	},
+	scorePresetCompileString: { arg self;
+		var str;
+		str = List.new;
+		str.add( "%.score = %".format(self.refCompileString, ParamGroup.getPbindefCompileString(self.score)) );
+		str.join($\n);
+	},
+	outBus_: { arg self, outBus;
+		self[\outBus] = outBus;
+		Param(self.score, \out -> \source).set(outBus);
+		self.changed(\outBus);
+	},
 	makeScore: { arg self;
+		self[\score] = Pbindef(self.trackKey, \instrument, \default);
 		//self.isEmpty = false;
 	},
 ));
 TrackTemplateDef(\PbindefTrackPart, (
 	parent: TrackTemplateDef(\CustomInstrumentTrackPart),
+	scorePresetCompileString: { arg self;
+		var str;
+		str = List.new;
+		str.add( "%.score = %".format(self.refCompileString, ParamGroup.getPbindefCompileString(self.score)) );
+		str.join($\n);
+	},
+	edit: { arg self;
+		WindowDef(\PbindefEditor).front(self.score);
+	},
+	score_: { arg self, val;
+		self[\score] = val;
+		self[\pchain] = Pdef( (self.trackKey++\_chain).asSymbol, self.score <> self.parentTrack.score );
+		self[\proxy] = PlayerWrapper(self.pchain);
+	},
 	makeScore: { arg self;
-		self.source = Pbindef(self.trackKey, \instrument, \default);
+		self.score = Pbindef(self.trackKey).source_(PbindProxy());
 		//self.proxy.debug("makeScore proxy end");
 	},
 	selectSourceDialog: { arg self;
@@ -1920,7 +2038,6 @@ TrackTemplateDef(\NoteTimelineTrack, (
 		str.join($\n);
 	},
 
-	playerSynthDef: \SampleTimeline_player,
 
 	playerSynthDef_: { arg self, instr;
 		// TagSpecDef(\SynthDef) values are SynthDesc, not SynthDef key
@@ -1932,6 +2049,7 @@ TrackTemplateDef(\NoteTimelineTrack, (
 	},
 	makeScore: { arg self;
 		self[\source] = Pdef("%.%.instr".format(self.key, self.index).asSymbol, Pbind());
+		self.playerSynthDef = \default;
 		//self.isEmpty = false;
 	},
 ));
@@ -2008,6 +2126,85 @@ TrackTemplateDef(\NoteTimelineTrackPart, (
 TagSpecDef(\CustomTrackTemplate).addUnique(\NoteTimelineTrack -> TrackTemplateDef(\NoteTimelineTrack));
 );
 
+//////// KitTimeline
+(
+TrackTemplateDef(\KitTimelineTrack, (
+	parent: TrackTemplateDef(\NoteTimelineTrack),
+	childClass: { TrackTemplateDef(\KitTimelineTrackPart) },
+
+	asParamGroup: { arg self;
+		self.source.asParamGroup;
+	},
+
+	editInstrument: { arg self;
+		self.kit.edit;
+	},
+
+	trackEditor: { arg self;
+		//WindowDef(\PdefInstrumentEditor);
+		WindowDef(\KitTimelineTrackEditor, { arg def;
+			VLayout (
+				//HLayout (
+					//Param(Message(self), \kit, ParamNonFloatSpec()).asTextField,
+					//BasicButton.new.string_("Select kit"),
+				//),
+				//BasicButton.new.string_("gtg kit"),
+				nil
+			);
+		});
+	},
+
+	recorderView: { arg self;
+		HLayout (
+			Param(Message(self), \recordArmed, ParamBoolSpec()).asButton("●").maxWidth_(20),
+			Param(Message(self), \inputController, ControllerDef.getTagSpec(\drumpad)).asPopUpMenu.minWidth_(5),
+		).margins_(0).spacing_(0)
+	},
+
+	makeScore: { arg self;
+		self.kit = PatKitDef(( self.trackKey++\_kit ).asSymbol);
+		//self[\source] = Pdef("%.%.instr".format(self.key, self.index).asSymbol, Pbind());
+	},
+));
+
+TrackTemplateDef(\KitTimelineTrackPart, (
+	parent: TrackTemplateDef(\NoteTimelineTrackPart),
+
+	cloneScore: { arg self;
+		var newscore;
+		newscore = KitTimeline(self.name+++\score, self.parentTrack.kit);
+		newscore.eventList = self.score.eventList.clone;
+		newscore.buffer = self.score.buffer;
+		newscore.outBus = self.parentTrack.outBus;
+		newscore.recorder.recBus = self[\score].recorder.recBus;
+		newscore;
+	},
+
+	score_: { arg self, score;
+		self[\score] = score;
+		self.score.outBus = self.parentTrack.outBus; // does it override when loading ?
+		self.score.recorder.recBus = self.parentTrack.recBus ?? { self[\score].recorder.recBus  };
+		self.proxy = PlayerWrapper(self.score);
+		//self.proxy.debug("makeScore proxy end");
+	},
+
+
+	makeScore: { arg self;
+		self.score = KitTimeline(self.name+++\score);
+	},
+
+	scorePresetCompileString: { arg self;
+		var str;
+		str = List.new;
+		str.add( "%.score = %;".format(self.refCompileString, self.score.refCompileString));
+		str.add( self.score.presetCompileString );
+		str.join($\n);
+	},
+));
+
+TagSpecDef(\CustomTrackTemplate).addUnique(\KitTimelineTrack -> TrackTemplateDef(\KitTimelineTrack));
+);
+
 //////// SampleTimeline
 (
 TrackTemplateDef(\SampleTimelineTrack, (
@@ -2025,6 +2222,8 @@ TrackTemplateDef(\SampleTimelineTrack, (
 			}
 		};
 	},
+
+	playerSynthDef: \SampleTimeline_player,
 
 	scorePresetCompileString: { arg self;
 		if(self.recBus.notNil) {
@@ -2053,7 +2252,7 @@ TrackTemplateDef(\SampleTimelineTrack, (
 
 	makeScore: { arg self;
 		//self[\source] = Pdef("%.%.instr".format(self.key, self.index).asSymbol, Pbind());
-		self.isEmpty = false;
+		//self.isEmpty = false;
 	},
 ));
 
@@ -2106,9 +2305,8 @@ TrackTemplateDef(\ParamTimelineTrack, (
 	},
 
 	scorePresetCompileString: { arg self;
-		if(self.score.notNil) {
-			self.score.presetCompileString;
-			// todo
+		if(self.targetParam.notNil) {
+			"%.targetParam = %;".format(self.refCompileString, self.targetParam.asCompileString)
 		} {
 			""
 		}
@@ -2182,7 +2380,7 @@ TagSpecDef(\CustomTrackTemplate).addUnique(\ParamTimelineTrack -> TrackTemplateD
 //////// ClipTimeline
 (
 TrackTemplateDef(\ClipTimelineTrack, (
-	parent: TrackTemplateDef(\CustomInstrumentTrack),
+	parent: TrackTemplateDef(\NoteTimelineTrack),
 	childClass: { TrackTemplateDef(\ClipTimelineTrackPart) },
 
 	asParamGroup: { arg self;
@@ -2214,7 +2412,7 @@ TrackTemplateDef(\ClipTimelineTrack, (
 	},
 ));
 TrackTemplateDef(\ClipTimelineTrackPart, (
-	parent: TrackTemplateDef(\CustomInstrumentTrackPart),
+	parent: TrackTemplateDef(\NoteTimelineTrackPart),
 	edit: { arg self;
 		self.score.edit;
 	},
@@ -2259,14 +2457,16 @@ TrackTemplateDef(\ClipTimelineTrackPart, (
 		tlpreview;
 	},
 
-
-	makeScore: { arg self;
-		//self.proxy.debug("makeScore proxy start");
-		self[\score] = ClipTimeline(self.name+++\score);
+	score_: { arg self, val;
+		self[\score] = val;
 		self.score.controller = self.parentTrack.inputController;
 		self.score.outBus = self.parentTrack.outBus;
 		self.proxy = PlayerWrapper(self.score);
-		//self.proxy.debug("makeScore proxy end");
+	},
+
+	makeScore: { arg self;
+		//self.proxy.debug("makeScore proxy start");
+		self.score = ClipTimeline(self.name+++\score);
 	}
 ));
 

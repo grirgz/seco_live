@@ -7,6 +7,12 @@ FileSystemProject.load("libdef/PbindefEditor.scd")
 
 Pbindef(\bla, \instrument, \default)
 Pbindef(\bla).edit
+Pbindef(\bla).presetCompileString
+~self.presetCompileString
+~self.paramList
+~self.pbindefKeysParamList
+~self.instrumentParam
+WindowDef(\PbindefEditor).proto.presetCompileString
 FileSystemProject.load("lib/synth.scd")
 
 Pbindef(\tapme).presetCompileString
@@ -14,6 +20,21 @@ Pbindef(\tapme).asParamGroup.presetCompileString
 Pbindef(\tapme).set(\rq, 1)
 PlayerWrapper(Pbindef(\tapme)).getPbindCompileString
 Pbindef(\tapme).getPbindCompileString
+
+(
+WindowDef(\win, { arg def;
+	Button.new
+}).front;
+)
+WindowDef(\win).window.alwaysOnTop = true
+~win.alwaysOnTop
+WindowDef.useWindowViewRecallQuark = false
+
+
+~w = Window.new
+~w.front
+~w.onClose_({ ~w.alwaysOnTop.debug("aot") })
+~w.alwaysOnTop
 
 
 ///// test Pbindef array control
@@ -33,6 +54,7 @@ SynthDef(\testme_array, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 // test defined OK
 Pbindef(\testar, \instrument, \testme_array, \freqtab, [[1,2,3]])
 Pbindef(\testar).play
+Pbindef(\testar).edit
 
 Param(Pbindef(\testar), \freqtab -> \source).get; // should be unnested: ok
 Param(Pbindef(\testar), \freqtab -> \source).edit
@@ -77,6 +99,22 @@ Pbindef(\yeah).source.at(\adsr).source
 Pdef(\yeah).source
 
 Pdef(\ye)
+
+(
+SynthDef(\testmear, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq * EnvGen.kr(\env1.kr(Env([0,1,0],[0.1,0.1]))));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+Pbindef(\ttt, \instrument, \testmear);
+Pbindef(\ttt).edit
+onSet
+Param(Pdef(\ttt), \env1).get.asEnv
+[1,2,3,4,5,6,7,8].asEnv
 
 
 ////////// test bus mode

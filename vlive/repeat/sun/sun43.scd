@@ -227,6 +227,7 @@ Pdef(\part, Pdef(\zedpart,
 
 
 (
+	~swing = 0.1;
 	ProtoDef(\FxManager).play;
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([

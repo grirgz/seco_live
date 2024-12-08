@@ -3,6 +3,7 @@ this.executeFile( ( "~/code/sc/seco/vlive/repeat/libdef/Graphical_Module/GM_main
 
 ~gmo
 ~gm.at( \simpleButton )
+~gm.keys
 (
 WindowDef(\win, { arg def;
 	var my_button = ~gm.at( \simpleButton ).value ; 
@@ -22,7 +23,6 @@ WindowDef(\win, { arg def;
 		minVal: 55,
 		value: 110,
 		maxVal: 880,
-		setGrowthType: \exp
 	);
 	VLayout (
 		my_button,

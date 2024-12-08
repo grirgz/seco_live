@@ -6,87 +6,7 @@ FileSystemProject.load("libdef/filedialog.scd");
 // ~sampler_synthdef_list = [\playersec, \playerbeat] // define custom sampler synthdefs
 Spec.add(\adsr, XEnvSpec.adsr);
 
-WindowDef(\sampler_new, { arg def, target, show_buttons=true;
-	// new version not working so not used for the moment
-	var pkey = \sampler;
-	var anchor;
-	var sndfileview = View.new;
-	var layout;
-	var updatebuffer;
-	var buffer = Param(target, \bufnum, MenuSpec(
-		BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
-	));
-	var buffer_popup = PopUpMenu.new;
-	var oldbuf;
-	anchor = buffer_popup;
-	buffer_popup.mapParam(buffer);
-	layout = VLayout (*
-		if(show_buttons == true) {
-			[
-				HLayout (
-					PlayerWrapper(target).asView,
-					Param(target, \out, MenuSpec(
-						//[ \default -> nil, \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
-						[ \0 -> 0 ] ++ BusDef.all.keys.as(Array).sort.collect({ arg x; x -> BusDef(x) })
-					)).asPopUpMenu,
-				),
-			]
-		} {
-			[]
-		}
-		++
-		[
-			sndfileview,
-			HLayout (
-				//Param(target, \instrument, MenuSpec(
-				//	~sampler_synthdef_list ? [\playersec]
-				//)).asPopUpMenu,
-				Param(target, \instrument, MenuSpecFuncDef(\patkitdef_synthdefs)).asPopUpMenu,
-				buffer_popup,
-				BasicButton.new.string_("load").action_({ arg view;
-					//Dialog.openPanel({ arg file;})
-					WindowDef(\filedialog).front(nil, { arg file;
-						BufDef(file.asSymbol); // autoload it
-						buffer.spec = MenuSpec(
-							BufDef.all.keys.as(Array).sort.collect({ arg x; x -> BufDef(x) })
-						);
-						buffer.spec.labelList.debug("labellist");
-						buffer_popup.items.debug("poplabellist");
-						buffer.set(BufDef(file.asSymbol));
-						//buffer_popup.refreshChange;
-					});
-				})
-			),
-			target.asParamGroup
-				.add(Param(target, \sustain))
-				.add(Param(target, \lag))
-				.asView
-		]
-	);
-	anchor.debug("anchor");
-	updatebuffer = {
-		var buf = buffer.get;
-		if(buf != 0 and: buf.notNil and: {oldbuf != buf}) {
-			sndfileview.removeAll;
-			sndfileview.layout = VLayout(WindowDef(\soundfileview).asView(
-				buf,
-				Param(target, \pos),
-				Param(target, \sustain),
-				nil,
-				nil,
-				\seconds,
-				\seconds,
-				\seconds,
-			));
-			oldbuf = buf;
-		}
-	};
-	updatebuffer.();
-	buffer.onChange(updatebuffer, anchor);
-	layout;
-});
-
-WindowDef(\sampler, { arg def, target, show_buttons=true, player;
+WindowDef(\sampler, { arg def, child, show_buttons=true, player;
 	// FIXME: no support for \mbufnum
 	var pkey = \sampler;
 	var anchor;
@@ -105,21 +25,18 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 	var loadbutton;
 	var bufcontroller;
 
-	target.debug("target!!!!!");
+	child.targetData.debug("targetData!!!!!");
 
-	proxy = if(target.isKindOf(StepEvent)) {
-		target
-	} {
-		target.proxy;
+	if(child.isEmpty) {
+		//child.targetData.addHalo(\instrument, \playersec);
 	};
+
+	proxy = child.targetDataProxy;
 
 	player = player ?? { 
-		if(target.isKindOf(StepEvent)) {
-			Pdef(\PatKitDef_test_player, target)
-		} {
-			Pdef(\PatKitDef_test_player, target.asPattern)
-		}
+		Pdef(\PatKitDef_test_player, child.pattern)
 	};
+
 	anchor = buffer_popup;
 
 	sndfileview = View.new;
@@ -130,7 +47,7 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 	refresh_pgview = {
 		var bufnumname;
 		pgview.removeAll;
-		paramgroup  = ( target.asParamGroup ?? { ParamGroup([]) } )
+		paramgroup  = ( child.asParamGroup ?? { ParamGroup([]) } )
 		.add(Param(proxy, \sustain))
 		.add(Param(proxy, \lag))
 		;
@@ -163,7 +80,7 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 			bufcontroller = buffer.onChange(updatebuffer, anchor);
 		};
 	};
-	instrumentParam = Param(proxy, \instrument, TagSpecDef(\SynthDef_keys));
+	instrumentParam = Param(Message(child), \instrument, TagSpecDef(\SynthDef_keys));
 
 	//
 
@@ -191,7 +108,7 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 					// workaround because proxy doesnt update for buffer
 					player.reset;
 				}),
-				loadbutton = BasicButton.new.string_("load").action_({ arg view;
+				loadbutton = BasicButton.new.string_("load").fixedWidth_(50).action_({ arg view;
 					//Dialog.openPanel({ arg file;})
 					WindowDef(\filedialog).front("./", { arg file;
 						BufDef.stereo(file.asSymbol); // autoload it
@@ -248,7 +165,377 @@ WindowDef(\sampler, { arg def, target, show_buttons=true, player;
 	layout;
 });
 
-WindowDef(\samplekit_monolithic, { arg def, group, selectidx=0;
+WindowDef(\PatKitDefEditor, (
+	asView: { arg self, def, group, selectidx=0;
+		var size = self.kitsize;
+		var layout;
+		var selector = List.new;
+		var select, deselect;
+
+		//"3".debug;
+		self.def = def;
+		self.pgroup = group;
+		self.selector = List.new;
+		//group.defaultTarget = self.default_stepevent;
+		self.editlayout = View.new;
+		self.makeKitLayout;
+		//"4".debug;
+		self.editCell(selectidx);
+		self.defineBindings;
+
+		def.windowName = "%: %".format("PatKitDefEditor", self.pgroup.key);
+
+		//"6".debug;
+		layout = HLayout (
+			[VLayout (
+				HLayout(
+					self.make_saveas_button,
+					self.make_loadfrom_button,
+					self.make_main_menu_button,
+				),
+				self.kitlayout,
+			), stretch:0],
+			[self.editlayout, stretch:10],
+			nil,
+		);
+
+		layout;
+	},
+
+	make_saveas_button: { arg self, def;
+		var model = self.pgroup;
+		BasicButton.new.fixedWidth_(100)
+		.action_({ arg me;
+			if(model.presetCompileStringSavePath.notNil) {
+				var dialog;
+				dialog = Window.new("Save").layout_(
+					VLayout(
+						StaticText.new.string_("Save this object to the file % ?".format(model.presetCompileStringSavePath.asCompileString)),
+						HLayout(
+							nil,
+							BasicButton.new.string_("OK").action_({ 
+								model.savePresetCompileString;
+								me.refreshChange;
+								dialog.close;
+							}),
+							BasicButton.new.string_("Cancel").action_({
+								dialog.close;
+							}),
+						)
+					)
+				).setInnerExtent(600,140).front;
+			} {
+				model.savePresetCompileStringDialog(nil, {
+					me.refreshChange;
+				}, false);
+			};
+		})
+		.mouseUpAction_({ arg me, x, y, mod, but;
+			//[a,b,c,but].debug("but");
+			if(but == 1) { // right click to force save as
+				model.savePresetCompileStringDialog(nil, {
+					me.refreshChange;
+				}, true)
+			}
+		})
+		.refreshChangeAction_({ arg me;
+			if(model.presetCompileStringSavePath.notNil) {
+				me.string = "Save"
+			} {
+				me.string = "Save as"
+			};
+		})
+		.refreshChange
+		;
+	},
+
+	make_loadfrom_button: { arg self;
+		BasicButton.new.string_("Load preset").action_({
+			WindowDef(\GlobalLibrary_select).front(nil, { arg libid;
+				self.pgroup.loadFrom(libid.last.value);
+				self.refreshCells;
+			}, \Kit)
+		})
+		
+	},
+
+	make_main_menu_button: { arg self;
+		BasicButton.new.string_("...").fixedWidth_(20).action_({
+			Menu(
+				MenuAction("Clear preset", {
+					self.pgroup.clearChildren;
+				}),
+				MenuAction("Basic Recorder", {
+					FileSystemProject.loadOnce("libdef/basicrecorder.scd");
+					ProtoDef(\basicrecorder).edit;
+				}),
+				MenuAction("Record factory", {
+					FileSystemProject.loadOnce("libdef/wip/RecordFactory.scd");
+					ProtoDef(\RecordFactory).edit;
+				}),
+				//MenuAction("Recorder", {
+					//ProtoDef(\recorder).edit // seems broken, in ex2/recordgui.scd
+				//}),
+			).front
+		})
+		
+	},
+
+	defineBindings: { arg self;
+		var padkeys;
+		var keyDownAction, keyUpAction;
+		var def = self.def;
+		padkeys = "&X\"'azerqsdfwxcv(-X_tyuighjkbn,;".as(Array);
+		padkeys[1] = -23.asAscii;
+		padkeys[1+16] = -24.asAscii;
+
+		keyDownAction = { arg me, key, modifiers, unicode, keycode;
+			var group = self.pgroup;
+			var selected = self.selected;
+			[me, key.asCompileString, modifiers, unicode, keycode].debug("samplekit keyDownAction");
+			case
+			{ modifiers.isCtrl and: { keycode == 99 } } { // ^c
+				"copy!".debug;
+				ParamViewToolBox.clipboard.windowdef_samplekit = group.elAt(selected).copy;
+			}
+			{ modifiers.isCtrl and: { keycode == 118 } } { // ^v
+				"paste!".debug;
+				if(ParamViewToolBox.clipboard.windowdef_samplekit.notNil) {
+					group.pasteChild(selected, ParamViewToolBox.clipboard.windowdef_samplekit);
+					//group.reboot;
+					self.editCell(selected);
+				};
+			}
+			{ modifiers == 0 and:{ padkeys.includes(key) }} {
+				var idx = padkeys.indexOf(key);
+				"play!".debug(idx);
+				group.elAt(idx).play;
+			}
+			;
+		};
+		keyUpAction = { arg me, key, modifiers, unicode, keycode;
+			var group = self.pgroup;
+			[me, key.asCompileString, modifiers, unicode, keycode].debug("samplekit keyUpAction");
+			case
+			{ modifiers == 0 and:{ padkeys.includes(key) }} {
+				var idx = padkeys.indexOf(key);
+				"stop!".debug(idx);
+				group.elAt(idx).stop;
+			}
+			;
+
+		};
+
+		if(self.def.window.notNil) {
+			def.window.view.keyDownAction = keyDownAction;
+			def.window.view.keyUpAction = keyUpAction;
+		};
+		
+	},
+
+	editCell: { arg self, idx;
+		var drum = self.pgroup.elAt(idx);
+		"ed1".debug;
+		self.selectCell(idx);
+		"ed2".debug;
+		self.editlayout.removeAll;
+		self.editlayout.layout = VLayout(
+			//WindowDef(\vertical_paramgroup).asView(drum.target.asParamGroup)
+			WindowDef(\sampler).asView(drum)
+		);
+
+	},
+
+	refreshCells: { arg self;
+		self.selector.do { arg cell, idx;
+			if(self.selected == idx) {
+				self.selectCell(idx)
+			} {
+				self.deselectCell(idx)
+			};
+		};
+		
+	},
+
+	selectCell: { arg self, x;
+		self.deselectCell(self.selected);
+		self.selected = x;
+		self.selector[x].background_(ParamViewToolBox.color_dark);
+		//self.pgroup.reboot;
+	},
+
+	deselectCell: { arg self, x;
+		var tar;
+		//"x1".debug;
+		//tar = group.elAt(x).target;
+		//"x2".debug;
+		self.selector[x].background = if(self.pgroup.elAt(x).isEmpty) {
+			Color.white
+		} {
+			ParamViewToolBox.color_ligth;
+		};
+		//"x3".debug;
+	},
+
+	//default_stepevent: { StepEvent.newFrom((instrument: \playersec)) },
+	selected: 0,
+	kitsize: Point(4,8),
+
+	makeKitLayout: { arg self;
+		self.kitlayout = VLayout (*
+			self.kitsize.y.collect({ arg y;
+				HLayout(*
+					self.kitsize.x.collect({ arg x;
+						var idx = y*self.kitsize.x+x;
+						var button;
+						//"2.3".debug;
+						button = BasicButton.new.string_(idx).fixedSize_(50@50)
+						.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+							[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+							//"3".debug;
+							if(buttonNumber == 0) {
+								self.pgroup.elAt(idx).play;
+							};
+							if(buttonNumber == 1) {
+								self.editCell(idx);
+							};
+						})
+						//.keyDownAction_(keyDownAction)
+						.action_({
+							self.pgroup.elAt(idx).stop;
+						});
+						//"2.5".debug;
+						self.selector.add(button);
+						self.deselectCell(idx);
+						//"2.6".debug;
+						button;
+					})
+					++ [ nil ]
+				)
+			})
+			++ [ nil ]
+		);
+		
+	},
+
+));
+WindowDef(\samplekit, WindowDef(\PatKitDefEditor));
+
+// add popup menu to choose patkitdef
+// used in KitTimeline
+// deprecated: drumkit can load preset, and menu allow to change source
+WindowDef(\KitTimeline_PatKitDefEditor, (
+	parent: WindowDef(\samplekit).proto,
+	makeFollower: { arg self;
+		Log(\Param).debug("timeline: %", self.timeline);
+		self.editlayout.followChange(self.timeline, \wrapper, {
+			Log(\Param).debug("KitTimeline_PatKitDefEditor: wrapper");
+			//self.pgroup.defaultTarget = self.default_stepevent;
+			self.selector.do { arg item, idx;
+				self.deselectCell(idx);
+			};
+		});
+	},
+	pgroup: { arg self;
+		self.timeline.wrapper;
+	},
+	asView: { arg self, def, timeline, selectidx=0;
+		var size = self.kitsize;
+		var layout;
+		var selector = List.new;
+		var select, deselect;
+		var group = timeline.wrapper;
+
+		self.timeline = timeline;
+		"3".debug;
+		self.def = def;
+		//self.pgroup = group;
+		self.selector = List.new;
+		self.editlayout = View.new;
+		self.makeFollower;
+		"3.5".debug;
+		self.makeKitLayout;
+		"4".debug;
+		self.editCell(selectidx);
+		self.defineBindings;
+
+		"6".debug;
+		layout = VLayout (
+			HLayout(
+				Param(Message(self.timeline), \wrapper, TagSpecDef(\PatKitDef)).asPopUpMenu,
+				BasicButton.new.string_("Recorder").action_({ ProtoDef(\recorder).edit }),
+				self.make_saveas_button,
+			),
+			HLayout (
+				self.kitlayout,
+				self.editlayout,
+			),
+			nil,
+		);
+
+		layout;
+	},
+));
+
+ParamProto.init;
+	
+// to be insered in lib
+//ProtoTemplateDef(\ParPlayerGroup)[\presetCompileString] = { arg self, varname="~ppg";
+	//var str;
+	//str = "%.targetsData = [\n%];".format(
+		//self.refCompileString,
+		//self.targets.collect({ arg target, idx;
+			//var res;
+			//if(target.isKindOf(StepEvent)) {
+				//res = "\t%,\n".format(target.asCompileString);
+			//} {
+				//res = "\t%,\n".format(target.presetCompileString.stripWhiteSpace)
+			//};
+			//res;
+		//}).join
+	//);
+	//str;
+//};
+//ProtoTemplateDef(\ParPlayerGroup)[\asPresetCompileString] = ~parPlayerGroup[\presetCompileString]; // backward compat
+ProtoTemplateDef(\ParPlayerGroup)[\edit] = { arg self, idx=0;
+	WindowDef(\samplekit_+++self.key, WindowDef(\samplekit)).front(self, idx);
+};
+ProtoTemplateDef(\ParPlayerGroup)[\startControl] = { arg self;
+	var count = 0;
+
+	MKtl(\lp, "novation-launchpad-s");
+	MKtl(\lp).elAt(\pad).do({ arg el, i;
+		var idx = count;
+
+		[i, i%8 < 4, idx].debug("i, iii, idx");
+		if(i%8 < 4) {
+
+			el.elAt(0).action = {
+				self.elAt(idx).play;
+			};
+			el.elAt(1).action = {
+				self.elAt(idx).stop;
+			};
+			count = count + 1;
+		}
+	})
+};
+
+// update existing instances
+//PatKitDef.all.do({ arg inst;
+	//inst[\presetCompileString] = ~parPlayerGroup[\presetCompileString];
+	//inst[\asPresetCompileString] = ~parPlayerGroup[\asPresetCompileString];
+	//inst[\edit] = ~parPlayerGroup[\edit];
+	//inst[\startControl] = ~parPlayerGroup[\startControl];
+//});
+
+);
+
+
+// END
+
+
+WindowDef(\samplekit_monolithic, { arg def, group, selectidx=0; // deprecated, broken
 	var size = Point(4,8);
 	var edit;
 	var layout;
@@ -443,332 +730,6 @@ WindowDef(\samplekit_monolithic, { arg def, group, selectidx=0;
 
 	layout;
 });
-
-// same but object design
-WindowDef(\samplekit, (
-	make_saveas_button: { arg self, def;
-		var model = self.pgroup;
-		BasicButton.new
-		.action_({ arg me;
-			if(model.presetCompileStringSavePath.notNil) {
-				var dialog;
-				dialog = Window.new("Save").layout_(
-					VLayout(
-						StaticText.new.string_("Save this object to the file % ?".format(model.presetCompileStringSavePath.asCompileString)),
-						HLayout(
-							nil,
-							BasicButton.new.string_("OK").action_({ 
-								model.savePresetCompileString;
-								me.refreshChange;
-								dialog.close;
-							}),
-							BasicButton.new.string_("Cancel").action_({
-								dialog.close;
-							}),
-						)
-					)
-				).setInnerExtent(600,140).front;
-			} {
-				model.savePresetCompileStringDialog(nil, {
-					me.refreshChange;
-				}, false);
-			};
-		})
-		.mouseUpAction_({ arg me, x, y, mod, but;
-			//[a,b,c,but].debug("but");
-			if(but == 1) { // right click to force save as
-				model.savePresetCompileStringDialog(nil, {
-					me.refreshChange;
-				}, true)
-			}
-		})
-		.refreshChangeAction_({ arg me;
-			if(model.presetCompileStringSavePath.notNil) {
-				me.string = "Save"
-			} {
-				me.string = "Save as"
-			};
-		})
-		.refreshChange
-		;
-	},
-
-	defineBindings: { arg self;
-		var padkeys;
-		var keyDownAction, keyUpAction;
-		var def = self.def;
-		padkeys = "&X\"'azerqsdfwxcv(-X_tyuighjkbn,;".as(Array);
-		padkeys[1] = -23.asAscii;
-		padkeys[1+16] = -24.asAscii;
-
-		keyDownAction = { arg me, key, modifiers, unicode, keycode;
-			var group = self.pgroup;
-			var selected = self.selected;
-			[me, key.asCompileString, modifiers, unicode, keycode].debug("samplekit keyDownAction");
-			case
-			{ modifiers.isCtrl and: { keycode == 99 } } { // ^c
-				"copy!".debug;
-				~windowdef_samplekit_clipboard = group.elAt(selected).target.copy;
-			}
-			{ modifiers.isCtrl and: { keycode == 118 } } { // ^v
-				"paste!".debug;
-				if(~windowdef_samplekit_clipboard.notNil) {
-					group.elAt(selected).target = ~windowdef_samplekit_clipboard.copy;
-					group.reboot;
-					self.editCell(selected);
-				};
-			}
-			{ modifiers == 0 and:{ padkeys.includes(key) }} {
-				var idx = padkeys.indexOf(key);
-				"play!".debug(idx);
-				group.elAt(idx).play;
-			}
-			;
-		};
-		keyUpAction = { arg me, key, modifiers, unicode, keycode;
-			var group = self.pgroup;
-			[me, key.asCompileString, modifiers, unicode, keycode].debug("samplekit keyUpAction");
-			case
-			{ modifiers == 0 and:{ padkeys.includes(key) }} {
-				var idx = padkeys.indexOf(key);
-				"stop!".debug(idx);
-				group.elAt(idx).stop;
-			}
-			;
-
-		};
-
-		if(self.def.window.notNil) {
-			def.window.view.keyDownAction = keyDownAction;
-			def.window.view.keyUpAction = keyUpAction;
-		};
-		
-	},
-
-	editCell: { arg self, idx;
-		var drum = self.pgroup.elAt(idx);
-		if(drum.target.isNil) {
-			drum.target = self.default_stepevent;
-		};
-		"ed1".debug;
-		self.selectCell(idx);
-		"ed2".debug;
-		self.editlayout.removeAll;
-		self.editlayout.layout = VLayout(
-			//WindowDef(\vertical_paramgroup).asView(drum.target.asParamGroup)
-			WindowDef(\sampler).asView(drum.target)
-		);
-
-	},
-
-	selectCell: { arg self, x;
-		self.deselectCell(self.selected);
-		self.selected = x;
-		self.selector[x].background_(ParamViewToolBox.color_dark);
-		self.pgroup.reboot;
-	},
-
-	deselectCell: { arg self, x;
-		var tar;
-		//"x1".debug;
-		//tar = group.elAt(x).target;
-		//"x2".debug;
-		self.selector[x].background = if(self.pgroup.elAt(x).isEmpty) {
-			Color.white
-		} {
-			ParamViewToolBox.color_ligth;
-		};
-		"x3".debug;
-	},
-
-	default_stepevent: { StepEvent.newFrom((instrument: \playersec)) },
-	selected: 0,
-	kitsize: Point(4,8),
-
-	makeKitLayout: { arg self;
-		self.kitlayout = VLayout (*
-			self.kitsize.y.collect({ arg y;
-				HLayout(*
-					self.kitsize.x.collect({ arg x;
-						var idx = y*self.kitsize.x+x;
-						var button;
-						"2.3".debug;
-						button = BasicButton.new.string_(idx).fixedSize_(50@50)
-						.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
-							[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
-							"3".debug;
-							if(buttonNumber == 0) {
-								self.pgroup.elAt(idx).play;
-							};
-							if(buttonNumber == 1) {
-								self.editCell(idx);
-							};
-						})
-						//.keyDownAction_(keyDownAction)
-						.action_({
-							self.pgroup.elAt(idx).stop;
-						});
-						"2.5".debug;
-						self.selector.add(button);
-						self.deselectCell(idx);
-						"2.6".debug;
-						button;
-					})
-					++ [ nil ]
-				)
-			})
-			++ [ nil ]
-		);
-		
-	},
-
-	asView: { arg self, def, group, selectidx=0;
-		var size = self.kitsize;
-		var layout;
-		var selector = List.new;
-		var select, deselect;
-
-		"3".debug;
-		self.def = def;
-		self.pgroup = group;
-		self.selector = List.new;
-		group.defaultTarget = self.default_stepevent;
-		self.editlayout = View.new;
-		self.makeKitLayout;
-		"4".debug;
-		self.editCell(selectidx);
-		self.defineBindings;
-
-		"6".debug;
-		layout = HLayout (
-			VLayout (
-				HLayout(
-					BasicButton.new.string_("Recorder").action_({ ProtoDef(\recorder).edit }),
-					self.make_saveas_button,
-				),
-				self.kitlayout,
-			),
-			self.editlayout,
-			nil,
-		);
-
-		layout;
-	},
-));
-
-// add popup menu to choose patkitdef
-// used in KitTimeline
-// FIXME: should move it
-WindowDef(\KitTimeline_PatKitDefEditor, (
-	parent: WindowDef(\samplekit).proto,
-	makeFollower: { arg self;
-		Log(\Param).debug("timeline: %", self.timeline);
-		self.editlayout.followChange(self.timeline, \wrapper, {
-			Log(\Param).debug("KitTimeline_PatKitDefEditor: wrapper");
-			self.pgroup.defaultTarget = self.default_stepevent;
-			self.selector.do { arg item, idx;
-				self.deselectCell(idx);
-			};
-		});
-	},
-	pgroup: { arg self;
-		self.timeline.wrapper;
-	},
-	asView: { arg self, def, timeline, selectidx=0;
-		var size = self.kitsize;
-		var layout;
-		var selector = List.new;
-		var select, deselect;
-		var group = timeline.wrapper;
-
-		self.timeline = timeline;
-		"3".debug;
-		self.def = def;
-		//self.pgroup = group;
-		self.selector = List.new;
-		self.editlayout = View.new;
-		self.makeFollower;
-		"3.5".debug;
-		self.makeKitLayout;
-		"4".debug;
-		self.editCell(selectidx);
-		self.defineBindings;
-
-		"6".debug;
-		layout = VLayout (
-			HLayout(
-				Param(Message(self.timeline), \wrapper, TagSpecDef(\PatKitDef)).asPopUpMenu,
-				BasicButton.new.string_("Recorder").action_({ ProtoDef(\recorder).edit }),
-				self.make_saveas_button,
-			),
-			HLayout (
-				self.kitlayout,
-				self.editlayout,
-			),
-			nil,
-		);
-
-		layout;
-	},
-));
-
-ParamProto.init;
-	
-// to be insered in lib
-ProtoTemplateDef(\ParPlayerGroup)[\presetCompileString] = { arg self, varname="~ppg";
-	var str;
-	str = "%.targetsData = [\n%];".format(
-		self.refCompileString,
-		self.targets.collect({ arg target, idx;
-			var res;
-			if(target.isKindOf(StepEvent)) {
-				res = "\t%,\n".format(target.asCompileString);
-			} {
-				res = "\t%,\n".format(target.presetCompileString.stripWhiteSpace)
-			};
-			res;
-		}).join
-	);
-	str;
-};
-ProtoTemplateDef(\ParPlayerGroup)[\asPresetCompileString] = ~parPlayerGroup[\presetCompileString]; // backward compat
-ProtoTemplateDef(\ParPlayerGroup)[\edit] = { arg self, idx=0;
-	WindowDef(\samplekit_+++self.key, WindowDef(\samplekit)).front(self, idx);
-};
-ProtoTemplateDef(\ParPlayerGroup)[\startControl] = { arg self;
-	var count = 0;
-
-	MKtl(\lp, "novation-launchpad-s");
-	MKtl(\lp).elAt(\pad).do({ arg el, i;
-		var idx = count;
-
-		[i, i%8 < 4, idx].debug("i, iii, idx");
-		if(i%8 < 4) {
-
-			el.elAt(0).action = {
-				self.elAt(idx).play;
-			};
-			el.elAt(1).action = {
-				self.elAt(idx).stop;
-			};
-			count = count + 1;
-		}
-	})
-};
-
-// update existing instances
-PatKitDef.all.do({ arg inst;
-	inst[\presetCompileString] = ~parPlayerGroup[\presetCompileString];
-	inst[\asPresetCompileString] = ~parPlayerGroup[\asPresetCompileString];
-	inst[\edit] = ~parPlayerGroup[\edit];
-	inst[\startControl] = ~parPlayerGroup[\startControl];
-});
-
-);
-
-
-// END
-
 
 
 ParamProto.init(true);

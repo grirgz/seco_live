@@ -270,7 +270,9 @@ WindowDef(\rdngui, { arg def, model;
 					//me.value(model.code)
 				}),
 				currentCodeText = StaticText.new.string_(model.code).followChange(model, \refresh, { arg me;
-					me.string_(model.code)
+					defer {
+						me.string_(model.code)
+					}
 				}).font_(Font.default.size_(10)).minWidth_(65).mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 					[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
 					if(clickCount == 2) {

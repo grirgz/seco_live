@@ -70,6 +70,19 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+// finite pattern with infinite pmodenv : BUG !
+(
+Pdef(\part, Pdef(\zedpart, 
+	Pseq([
+		Pbind(
+			\instrument, \default,
+			\freq, PmodEnv(Pseq([100,200,1000,400],inf), 2),
+			\dur, Pn(1,2),
+			\amp, 0.1,
+		),
+	],100)
+)).play;
+);
 
 /////////////////////// test dur argument
 

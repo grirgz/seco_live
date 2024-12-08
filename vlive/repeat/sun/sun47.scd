@@ -1248,3 +1248,128 @@ Pdef(\part, Pdef(\xdemo,
 	])
 )).play;
 )
+
+(
+Pdef(\part, Pdef(\xdemo, 
+	Ppar([
+		Pbind(
+			\instrument, \basicpadfm,
+			//\det, ~pmodenv.(Pseq([0.00001,0.02,0.0001,0.04],inf), 8),
+			\note, Pseq([
+				[5,8,13,15,17],
+				[7,10,13,15,17],
+			],inf),
+			\lpf, 1000,
+			\octave, 4,
+			\dur, 4,
+			\strum, 0.2,
+			\strum, Pseq([
+				0.2,0,
+			],inf).stutter(4),
+			'lpenv', Env([ 0.29126321695058, 1.6966857859051, 0.6628703096844 ], [ 0.32311338926905, 0.76231450831602 ], [ 0.0, 0.0 ]),
+			'fmenv', Env([ 1.5085906198661, 0.80941798435932, 0.66287044614763 ], [ 0.0926509675801, 0.9802363177649 ], [ 0.0, 0.0 ]),
+			'det', 0.0038771869866968,
+			'det2', 0.02522980393744,
+			'sawenv', Env([ 0.02105529060162, 0.92105532333279, 0.84834296477586 ], [ 0.10449275499315, 0.97870122524122 ], [ 0.0, 0.0 ]),
+			'lpf', 4828.420835145,
+			'oscmix', 0.1,
+			\legato, 0.8,
+			\oscmix, ~pmodenv.(Pseq([0,0,1,0.51,0.74],inf), 8),
+
+			\amp, 0.1/2,
+		),
+		PmonoArtic( \noisybass,
+			\note, Pstep(Pseq([
+				1,5,3,13,
+				7,10,10,3,
+			],inf),1)-12,
+			\octave, 3,
+			\legato, Pseg(Pseq([0.1,0.5,0.1,1,1.1],inf),1.1),
+			\legato, Prand([1,0.1,0.4],inf),
+			\legato, 1,
+			\trigx, Pseq([0,0,1,0, 0,1,0,1],inf),
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+				1,0,0,0, 1,0,0,1,
+				1,1,1,0, 1,0,1,1,
+				1,0,1,1, 1,0,1,1,
+			],inf).coin.not,
+			\amp, 0.1 * Pseq([1,0.5,0.5,0.5],inf),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('vfoley/box1.flac'),
+			\pos, 0.54 + Pseq([0.1,0],inf) + 0.03,
+			\speed, Pwhite(0.9,1,inf),
+			\legato, 0.23*8,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.01) ],
+			],inf),
+			\dur, 1,
+			\gain, 1/8,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\isRest, true,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('vfoley/box1.flac'),
+			\pos, 0.04,
+			\legato, 0.3,
+			\speed, 2,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.01) ],
+			],inf),
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 1 * Ppatlace([
+				1,Pwhite(0.1,0.7,1),
+			],inf),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[919].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.2 * Pseq([
+				1,1,
+				Pwhite(0.2,1,1),1,
+			],inf),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[276].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+				1,0,1,0, 0,0,1,0,
+				1,0,1,1, 1,0,0,0,
+				0,0,0,0, 1,1,1,1,
+				0,1,0,1, 1,0,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.21,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[747].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,0,1,0, 0,0,1,0,
+				0,0,1,1, 0,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		
+	])
+)).play;
+)

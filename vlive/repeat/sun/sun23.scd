@@ -246,7 +246,7 @@ Pdef(\part, Pdef(\zedpart,
 				[ Env.adsr(0.01,0.1,0.8,0.1) ],
 			],inf),
 			\dur, 1/8,
-			\gain, 0.5,
+			\gain, 0.9,
 		),
 		Pbind(
 			\instrument, \playersec,
@@ -267,7 +267,7 @@ Pdef(\part, Pdef(\zedpart,
 				],1)/16,
 			],inf) / Pkey(\st),
 			\dur, 1/8,
-			\gain, 1/8,
+			\gain, 1/5,
 		),
 		Pbind(
 			\instrument, \playersec,
@@ -290,7 +290,7 @@ Pdef(\part, Pdef(\zedpart,
 				],24)/8,
 			],inf)/ Pkey(\st),
 			\dur, 1/12,
-			\gain, 1/13,
+			\gain, 1/8,
 		),
 		
 	])
@@ -1420,7 +1420,7 @@ Pdef(\part, Pdef(\zedpart,
 		),
 		Pmono(
 			\playersec,
-			\bufnum, BufDef('vipere/petanque.flac'),
+			\bufnum, BufDef.stereo('vipere/petanque.flac'),
 			\speed, 0.25,
 			\dur, Pn(1/2,2*2),
 			\gain, 1/4,
@@ -3209,6 +3209,16 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+(
+SynthDef(\kipik, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFPulse.ar(freq * ( SinOsc.ar(freq*\fmfr.kr(2)) * \fma.kr(1) + 1 ));
+	sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -3332,16 +3342,6 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-(
-SynthDef(\kipik, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = LFPulse.ar(freq * ( SinOsc.ar(freq*\fmfr.kr(2)) * \fma.kr(1) + 1 ));
-	sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq ).clip(20,20000), \rq.kr(0.5));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -3844,7 +3844,7 @@ Pdef(\part, Pdef(\zedpart,
 			],inf),
 			\ctranspose, Pstep(Pseq([
 				0,5,-1,-2
-			],inf),8),
+			],inf),4),
 			\lpfenv, Prand([
 				[ Env([1,4,1/4],[0.01,0.1]) ],
 				[ Env([4,1/2,1],[0.01,0.1]) ],
@@ -5294,7 +5294,7 @@ Pdef(\part, Pdef(\zedpart,
 				1,2,1,1,
 			],inf).stutter(2),
 			\gain, 0.07,
-			\isRest, true,
+			//\isRest, true,
 		),
 		Pbind(
 			\instrument, \playersec,
