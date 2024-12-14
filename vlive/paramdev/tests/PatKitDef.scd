@@ -591,24 +591,38 @@ KitTimeline(\bla, PatKitDef(\aze1))
 KitTimeline(\bla).edit
 
 PatKitDef(\aze1).edit
+PatKitDef(\aze1).controller.key
+PatKitDef(\aze1).startControl
 
 KitTimeline(\bla1).edit
+KitTimeline(\bla1).eventList.print
 NoteTimeline(\bla2).edit
 ClipTimeline(\bla).edit
 SampleTimeline(\bla).edit
-ParamTimeline(\bla).edit
+ParamTimeline(\bla2, Param(Pdef(\hoho), \freq)).edit
 TrackTimeline(\bla2, TrackDef(\myc)).edit
 TrackDef(\myc, \CustomTrackList).edit
 FileSystemProject.load("libdef/CustomTrackList.scd")
+(
+Pdef(\hoho, 
+	Pbind(
+		\instrument, \default,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
 
 KitTimeline(\bla1, PatKitDef(\or2)).edit
 KitTimeline(\bla1).wrapper = PatKitDef(\or1)
 KitTimeline(\bla1).wrapper = PatKitDef(\or2)
 KitTimeline(\bla1).play
 KitTimeline(\bla1).editor.refresh
-KitTimeline(\bla3).edit
+KitTimeline(\bla4).edit
 ControllerDef.getTagSpec(\drumpad).list
 
+KitTimeline(\hoho, [ Pbind(\note,0), Pbind(\note,1), Pbind(\note, 2)]).edit;
+KitTimeline(\aaa).edit
 
 (
 WindowDef(\win, { arg def;
@@ -619,3 +633,415 @@ WindowDef(\win, { arg def;
 }).front;
 )
 Window
+
+
+(
+SynthDef.new(\sine3, {
+    arg freq=440, atk=0.005, rel=0.3, pan=0, amp=1;
+    var sig, env;
+    
+    sig = SinOsc.ar(Saw.ar(freq).exprange(freq, freq*2));
+    env = EnvGen.kr(Env.new([0,1,0],[atk,rel],[1,-1]),doneAction:2);
+    sig = Pan2.ar(sig, pan, amp);
+
+    // reverb
+    sig = FreeVerb.ar(sig, 0.6, 0.9, 0.9);
+
+    sig = sig * env;
+    Out.ar(0, sig);
+}).add;
+)
+
+//2. load/start tempo
+
+t = TempoClock.new(60/60).permanent_(true).schedAbs(0, {t.beatsPerBar_(4) });
+
+//3. start pbind
+(
+p =  Pbind(
+    \instrument, \sine3,
+    \dur, 1.0,
+    \degree, Pseq([0, 1, 3, 4, 5, 7, 9], inf).trace,
+	//\degree, 0,
+    \atk, Pwhite(1.0, 2.0, inf)*0.1,
+    \rel, Pwhite(3.0, 6.0, inf),
+    \pan, Pwhite(-0.8, 0.8, inf),
+);
+z = p.play(t, quant: 0);
+)
+
+
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+Pdef(\zed).condition = { arg ...args; args.postln; false }
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([1],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+x= TaskProxy.new;
+
+~cond = Condition.new;
+(
+x.source = {
+	var s, bpm, beat, tatum;
+	bpm = 190;
+	beat = 60 / bpm;
+	tatum = beat / 4;
+
+	~cond.test.debug("start");
+	loop {
+		"0123450123450123".do { |i|
+			var synth;
+			~cond.test.debug("cond0");
+			~cond.test = false;
+			~cond.test.debug("cond1");
+			synth = Synth(\saw, [\freq, rrand(100,200.0), \lpfr, 1]);
+			~cond.test.debug("cond2");
+			2.wait;
+			~cond.test.debug("cond3");
+			synth.debug("synth");
+			synth.set(\gate, 0);
+			~cond.test.debug("cond4");
+			~cond.test = true;
+			~cond.test.debug("cond5");
+			0.wait;
+			0.wait;
+			~cond.test.debug("cond6");
+
+		};
+	}
+};
+)
+x.condition = { arg ...args; args.debug("args");~cond.test.debug("cond test") };
+x.play
+~cond.test
+
+(
+x.source = {
+	var s, bpm, beat, tatum;
+	bpm = 190;
+	beat = 60 / bpm;
+	tatum = beat / 4;
+
+	loop {
+		"0123450123450123".do { |i|
+			var synth;
+			x.condition = false;
+			synth = Synth(\saw, [\freq, rrand(100,200.0), \lpfr, 2]);
+			2.wait;
+			synth.set(\gate, 0);
+			x.condition = true;
+			0.wait;
+
+		};
+	}
+};
+)
+
+x.condition = true
+x.condition 
+
+
+Pdef(\bla).edit
+
+(
+Pdef(\aze, 
+	Pbind(
+		\instrument, \saw,
+		\degree, Pseq([0,5,2,7],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+Pdef(\aze2, 
+	Pbind(
+		\instrument, \saw,
+		\degree, Pseq([0,5,2,7],inf)+3,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+Pdef(\aze).edit
+Param(Pdef(\aze), \adsr).isSet
+
+Pdef
+ParamGroupDef(\aze).presets[\preset3]
+
+
+(
+SynthDef(\ringfx, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = sig * SinOsc.ar(\ringfreq.kr(200));
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+);
+(
+Pdef(\ringfx, 
+	Pmono(\ringfx,
+		\addAction, \addToTail,
+		\ringfreq, PnoteEnv([0.1,0.2,2,2,0.1]*700+100,[0.2,0.2,0.2]),
+		\lag, 0.0009,
+		\dur, 1,
+	),
+).play;
+);
+BusDef(\fx1, \audio, 2)
+Pdef(\ringfx).set(\inbus, BusDef(\fx1))
+Pdef(\aze).set(\out, BusDef(\fx1))
+Pdef(\aze1).set(\out, BusDef(\fx1))
+
+WindowDef(\win, { arg def;
+	VLayout (
+		PlayerWrapperGroup([Pdef(\aze), Pdef(\ringfx)]).asView,
+			HLayout (
+				Pdef(\aze).asParamGroup.asView, Pdef(\ringfx).asParamGroup.asView,
+			)
+	)
+}).front;
+
+
+
+(
+Pdef(\ringfx, 
+	Pmono(\ringfx,
+		\addAction, \addToTail,
+		\ringfreq, PnoteEnv([0.1,0.2,2,2,0.1]*1700+400,[0.2,0.2,0.2]/4),
+		//\mix, PmodEnv(Pseq([0,1,0.4],1), 8).loop,
+		\mix, PnoteEnv([0.1,1,0],[0.1,0.2]),
+		\lag, 0.0009,
+		\dur, 1,
+	),
+).play;
+);
+Pdef(\aze).play
+(
+Pdef(\ringfx, 
+	Pmono(\ringfx,
+		\addAction, \addToTail,
+		\ringfreq, PmodEnv(Pseq([0.1,0.2,2,2,0.1]*170+40,1),1).loop,
+		\mix, PmodEnv(Pseq([0,0.8,0.1],1),1).loop,
+		//\mix, PmodEnv(Pseq([0,1,0.4],1), 8).loop,
+		//\mix, PnoteEnv([0.1,1,0],[0.1,0.2]),
+		\lag, 0.0009,
+		\dur, 1,
+	),
+).play;
+);
+(
+Pdef(\ringfx, 
+	Pmono(\ringfx,
+		\addAction, \addToTail,
+		//\mix, PmodEnv(Pseq([0,0.8,0.1],1),1).loop,
+		//\mix, PmodEnv(Pseq([0,1,0.4],1), 8).loop,
+		\ringfreq, PmodEnv(Pseq([0.1,0.2,2,2,0.1]*170+40,1),1).loop,
+		\mix, PnoteEnv([0.1,1,1,0],[0.1,1/2,0.2]),
+		\lag, 0.0009,
+		\stretch, 1/2,
+		\dur, 1,
+		\bla, Pfunc({ arg ev; ev.use { currentEnvironment.postln; ~delta.value.postln }; 1 }),
+	),
+).play;
+);
+
+(
+~t = 185/2/60; TempoClock.default.tempo = ~t;
+Pdef(\zed, 
+	Pbind(
+		\instrument, \saw,
+		\degree, Pseq([0,-2,-4,2],inf),
+		\legato, 1,
+		\dur, 1,
+		\amp, 0.1,
+		\octave, 4,
+		//\bla, Pfunc({ arg ev; currentEnvironment.postln; ev.delta.value.postln; 1 }),
+		//\lpfr, PmodEnv(( Pseq([1,3,1,7]-0.5,inf) * Pseq((1..64*8*4)/64*8*4*1,1).trace ), 1/8, Pseq([5,-5],inf)),
+		//\lpfr, PmodEnv(Pseq([1,2,1,4]+2,1), 8).loop,
+		\lpfr, PmodEnv(( Pseq([1,3,1,7]-0.5,inf) * Pseg(Pseq([0.5,4],1),8) ), 1/8, Pseq([5,-5],inf)).loop.trace,
+		//\lpfr, PmodEnv(Pseq([1,3,1,7]-0.5,20), 1/8, Pseq([5,-5],inf)).loop,
+		//\rq, PmodEnv(Pseq([1,0.1,1,0.1,0.1],1), 2, Pseq([5,-5],inf)).loop.trace,
+	)
+).play;
+);
+Pdef(\zed).stop
+Pkey
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0],inf),
+		\stretch, 2,
+		\dur, Pseq([1,1/2,1/2],inf),
+		\amp, 0.1,
+		\lvl, Pseq([100,4400,300],inf),
+		//\bla, Pfunc({ arg ev; currentEnvironment.postln; ev.delta.value.postln; 1 }),
+		\freq, PmodEnv(Pkey(\lvl), \dur).loop,
+	)
+).play;
+);
+
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\awa,Pbind(
+			\instrument, \saw,
+			//\freq, PmodEnv(Prand([0,12,23].midiratio*100,100), Pwhite(0.02,0.2)).loop,
+			\note, Pstep(Pseq([
+				[ 0,4,7 ],
+				[ 0,4,7 ]+4,
+				[ 0,4,7 ]+5,
+				[ 0,4,7 ]+7,
+			],inf),4) + Ptuple(Prand([0,12],inf)!3),
+			\octave, 4,
+			\lpfr, PmodEnv(Pseq([1,4,7,4],100), Pwhite(0.01,0.4)).loop,
+			\rq, PnoteEnv([1,0.3],[1/4]),
+			\adsr, Pseq([
+				PpatEnv.adsr(Pwhite(0.01,0.41),0.1,0.8,0.1)
+			],inf),
+			\dur, Pwhite(0.1,1),
+			\amp, 0.1,
+		)),
+		
+	])
+)).play;
+);
+
+Pdef(\awa).edit
+
+(
+Pdef(\exxx, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+Pdef(\exxx).edit
+
+
+
+// simple example when slider control main volume and meter listen to bus 0 (SC audio out)
+(
+Pdef(\help, Pbind(\pan, Pwhite(-1,1)*0.4)).play; // simple sound
+WindowDef(\help, { arg def;
+	VLayout (
+		StackLayout(
+			Param(Server.default.volume, \volume).asSlider.orientation_(\horizontal).background_(Color.clear),
+			CompactServerMeterView(nil, 0,2, 0).orientation_(\vertical)
+		).mode_(\stackAll),
+		StackLayout(
+			Param(Server.default.volume, \volume).asSlider.orientation_(\horizontal).background_(Color.clear),
+			CompactServerMeterView(nil, 0,2, 0).orientation_(\horizontal)
+		).mode_(\stackAll),
+		StackLayout(
+			Param(Server.default.volume, \volume).asSlider.orientation_(\horizontal).background_(Color.clear),
+			CompactServerMeterView(nil, 0,2, 0)
+		).mode_(\stackAll),
+
+		CompactServerMeterView(nil, 0,2, 0).orientation_(\vertical),
+		CompactServerMeterView(nil, 0,2, 0).orientation_(\horizontal),
+		CompactServerMeterView(nil, 0,2, 0),
+	)
+}).front
+)
+
+(
+WindowDef(\help, { arg def;
+	VLayout (
+	)
+}).front
+)
+
+(
+// something to meter
+s.waitForBoot({
+b = Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
+
+    x = {
+        var colum, noise, imp, delimp, mul = 1;
+    imp = Impulse.kr(10);
+    delimp = Delay1.kr(imp);
+    colum = PlayBuf.ar(1, b, BufRateScale.kr(b), loop: 1) * mul;
+    // measure rms and Peak
+    SendReply.kr(imp, '/levels', [Amplitude.kr(colum), K2A.ar(Peak.ar(colum, delimp).lag(0, 3))]);
+    colum;
+}.play;
+
+    a = LevelIndicator(bounds:Rect(100, 100, 400, 100)).front;
+    a.onClose_({ x.free; o.free; });
+o = OSCFunc({arg msg;
+    {
+        a.value = msg[3].ampdb.linlin(-40, 0, 0, 1);
+        a.peakLevel = msg[4].ampdb.linlin(-40, 0, 0, 1);
+    }.defer;
+}, '/levels', s.addr);
+})
+)
+
+(
+a.warning = -6.dbamp;
+a.critical = -3.dbamp;
+)
+// optionally show peak level
+a.drawsPeak = true;
+
+(
+a.style = \led;
+a.stepWidth = 3;
+)
+
+// different colors
+(
+a.meterColor = Color.blue(0.9);
+a.warningColor = Color.blue(0.8);
+a.criticalColor = Color.blue(0.6);
+)
+// all styles can have ticks
+(
+a.background = Color.clear;
+a.numTicks = 11; // includes 0;
+)
+
+// Single blinking square level indicator
+(
+a.style = \led;
+a.numTicks = 0;
+a.drawsPeak = false;
+a.bounds = a.bounds.resizeTo(90, 90);
+a.numSteps = 1;
+)
+
+TrackDef(\bla, \CustomTrackList).edit
+TrackDef(\pp, \playergrid).edit
+
+ClipTimeline(\bla).edit

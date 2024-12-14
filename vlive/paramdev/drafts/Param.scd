@@ -201,3 +201,31 @@ Pbindef(\sampler).source.at(\bufnum).clear
 
 
 	
+
+//////////// bus mode in Ndef ?
+
+
+(
+Ndef(\test, { arg freq=200, freq2=100, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig + SinOsc.ar(freq2);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+WindowDef(\win, { arg def;
+	
+	ParamGroupLayout.formEntry(Param(Ndef(\test), \freq))
+}).front;
+)
+
+Param(Ndef(\test), \freq).getRaw
+Param(Ndef(\test), \freq).edit
+Param(Ndef(\test), \freq).accessor
+Ndef(\test).setVal
+Param(Ndef(\test), \freq2).edit
+Param(Ndef(\test), \freq).get
+Param(Ndef(\test), \freq).set(100)
+Param.trace = true

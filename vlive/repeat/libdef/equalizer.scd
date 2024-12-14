@@ -27,109 +27,109 @@ SynthDesc(\ifx_equi).addHalo(\edit, { arg model; "edit!!".debug; WindowDef(\Equi
 
 
 (
-	ProtoTemplateDef(\Equi, (
-		asPattern: { arg self;
-			self.proxy;
-		},
-		proxyKey: { arg self;
-			\equi_ +++ self.key;
-		},
-		inbus: BusDef(\equi, \audio, 2),
+ProtoTemplateDef(\Equi, (
+	asPattern: { arg self;
+		self.proxy;
+	},
+	proxyKey: { arg self;
+		\equi_ +++ self.key;
+	},
+	inbus: BusDef(\equi, \audio, 2),
 
-		proxy: { arg self;
-			Pdef(self.proxyKey, 
-				Pmono(\fx_equi,
-					\inbus, Plazy({ Pkeyd(\inbus, self.inbus).keep(1) }).loop,
-					\dur, 1,
-				).trace
-			);
-			Pdef(self.proxyKey).addHalo(\edit, { self.edit; });
-			Pdef(self.proxyKey);
+	proxy: { arg self;
+		Pdef(self.proxyKey, 
+			Pmono(\fx_equi,
+				\inbus, Plazy({ Pkeyd(\inbus, self.inbus).keep(1) }).loop,
+				\dur, 1,
+			).trace
+		);
+		Pdef(self.proxyKey).addHalo(\edit, { self.edit; });
+		Pdef(self.proxyKey);
 
-		},
-		edit: { arg self;
-			WindowDef(\equi_ +++ self.key, WindowDef(\Equi)).front(self.proxy, self.inbus);
-		},	
+	},
+	edit: { arg self;
+		WindowDef(\equi_ +++ self.key, WindowDef(\Equi)).front(self.proxy, self.inbus);
+	},	
 
-	));
+));
 
-			WindowDef(\Equi, { arg def, model, inbus, paramdict;
-				var equi, equiparams;
-				var scope = FreqScopeView(nil, Rect(0,0,100,100))
-								.freqMode_(1)
-								.active_(true);
-				if(paramdict.isNil) {
-					paramdict = Dictionary.newFrom([
-						inbus: Param(model, \inbus),
-						mix: Param(model, \mix),
-						gain: Param(model, \gain),
-						out: Param(model, \out),
-					]);
-				};
-				if(inbus.notNil) {
-					scope.inBus = inbus;
-				};
-				scope.onClose = {
-					scope.kill;
-				};
-				scope.followChange(model, \set, {
-					scope.inBus = paramdict[\inbus].get;
-				});
-				
-				//equiparams = EQuiParams.new(
-					//* #[
-						//loShelfFreq,
-						//loShelfGain,
-						//loShelfRs,
-						//loPeakFreq,
-						//loPeakGain,
-						//loPeakRq,
-						//midPeakFreq,
-						//midPeakGain,
-						//midPeakRq,
-						//hiPeakFreq,
-						//hiPeakGain,
-						//hiPeakRq,
-						//hiShelfFreq,
-						//hiShelfGain,
-						//hiShelfRs
-					//].collect({ arg key;
-						////key -> model.get(key)
-						//model.get(key)
-					//})
-				//);
-				equi = EQui(nil,nil,model);
-				equi.sync;
-				VLayout (
-					View.new.layout_(
-						VLayout(
-							HLayout (
-								PlayerWrapper(model).asView,
-								BasicButton.new.string_("edit").action_({ 
-									WindowDef(\PdefEditor).front(model)
-								}),
-								BasicButton.new.string_("reset").action_({ 
-									equi.value = EQuiParams.new;
-								}),
-							),
-							ParamGroupLayout.two_panes(
-								ParamGroup ([
-									paramdict[\mix],
-									paramdict[\gain],
-									paramdict[\inbus],
-									paramdict[\out],
-								])
-							)
-						)
-					).maxHeight_(150),
-					View.new.layout_(
-						VLayout (
-							equi
-						)
-					).minHeight_(300),
-					scope,
+WindowDef(\Equi, { arg def, model, inbus, paramdict;
+	var equi, equiparams;
+	var scope = FreqScopeView(nil, Rect(0,0,100,100))
+	.freqMode_(1)
+	.active_(true);
+	if(paramdict.isNil) {
+		paramdict = Dictionary.newFrom([
+			inbus: Param(model, \inbus),
+			mix: Param(model, \mix),
+			gain: Param(model, \gain),
+			out: Param(model, \out),
+		]);
+	};
+	if(inbus.notNil) {
+		scope.inBus = inbus;
+	};
+	scope.onClose = {
+		scope.kill;
+	};
+	scope.followChange(model, \set, {
+		scope.inBus = paramdict[\inbus].get;
+	});
+
+	//equiparams = EQuiParams.new(
+	//* #[
+	//loShelfFreq,
+	//loShelfGain,
+	//loShelfRs,
+	//loPeakFreq,
+	//loPeakGain,
+	//loPeakRq,
+	//midPeakFreq,
+	//midPeakGain,
+	//midPeakRq,
+	//hiPeakFreq,
+	//hiPeakGain,
+	//hiPeakRq,
+	//hiShelfFreq,
+	//hiShelfGain,
+	//hiShelfRs
+	//].collect({ arg key;
+	////key -> model.get(key)
+	//model.get(key)
+	//})
+	//);
+	equi = EQui(nil,nil,model);
+	equi.sync;
+	VLayout (
+		View.new.layout_(
+			VLayout(
+				HLayout (
+					PlayerWrapper(model).asView,
+					BasicButton.new.string_("edit").action_({ 
+						WindowDef(\PdefEditor).front(model)
+					}),
+					BasicButton.new.string_("reset").action_({ 
+						equi.value = EQuiParams.new;
+					}),
+				),
+				ParamGroupLayout.two_panes(
+					ParamGroup ([
+						paramdict[\mix],
+						paramdict[\gain],
+						paramdict[\inbus],
+						paramdict[\out],
+					])
 				)
-			});
+			)
+		).maxHeight_(150),
+		View.new.layout_(
+			VLayout (
+				equi
+			)
+		).minHeight_(300),
+		scope,
+	)
+});
 ProtoDef(\equi, ProtoTemplateDef(\Equi));
 //ProtoDef(\equi).edit;
 

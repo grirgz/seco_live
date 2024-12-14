@@ -524,3 +524,67 @@ Event.parentTypes.hash
 Main.version
 
 NodeProxy
+
+s.waitForBoot { FileSystemProject.load("sun/lib.scd"); };
+ParamTimeline(\aze).edit
+ParamProto.init(true)
+NoteTimeline(\bla2).edit
+NoteTimeline(\bla3).edit
+NoteTimeline(\bla4).edit
+ParamTimeline(\he4).edit
+ParamTimeline(\he).eventList = ~ev1
+ParamTimeline(\he).clear
+ParamTimeline(\he)
+ParamTimeline(\he).presetCompileString.editorInsert
+(
+ParamTimeline('he').param = Param(Message(( 'empty': 'c0' )), 'empty', 'unipolar');
+ParamTimeline('he').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 3.375, \label: 'start', \playDur: 3.375, \relDur: 3.375, \sustain: 0, \type: 'start', ),
+	(\absTime: 3.375, \dur: 4.625, \legato: 1, \level: 0.69178082191781, \midinote: 0, \playDur: 4.625, \relDur: 4.625, \sustain: 1, ),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+);
+
+ParamTimeline
+~s=ParamTimeline(\he4).asPattern.asStream
+~s.next(())
+~s=~pat.asStream
+ParamTimeline(\he).eventList.totalDur
+~s=ParamTimeline(\he).eventList.asPattern.asStream
+ParamTimeline(\he).eventList.isEmpty
+ParamTimeline(\he).eventList.hasContent
+~ev1 = ParamTimeline(\he).eventList.clone // marche pas
+~ev2 = ParamTimeline(\he).eventList.clone // marche
+~ev1.print
+~ev2.print
+~ev1 == ~ev2
+~ev1.endTime
+~ev2.endTime
+~ev1
+(
+~ev1[1].keys.do { arg key, idx;
+	( ~ev1[1][key] == ~ev2[1][key] ).debug("key % isequal".format(key))
+};
+)
+~ev1[1] == ~ev2[1]
+ParamTimeline(\he).play
+~s.next(())
+NoteTimeline(\bla2).eventList.print
+NoteTimeline(\bla).eventList
+
+(
+Pdef(\grax, 
+	Pbind(
+		\instrument, \default,
+	)
+);
+);
+
+Ndef(\bla)
+
+
+ParamTimeline(\zzz).edit
+ParamTimeline(\zzz).play
+
+WindowDef(\ScopeView).front(ParamTimeline(\zzz).outBus)
+ParamTimeline(\zzz).outBus.rate

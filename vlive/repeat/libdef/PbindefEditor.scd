@@ -639,6 +639,19 @@ WindowDef(\PbindefEditor, (
 			).asMenu("Slider controller"),
 
 			MenuAction.separator,
+			MenuAction("Load from Pdef", {
+				WindowDef(\GlobalLibrary_select).front(nil, { arg libid;
+					var pdef = libid.last.value;
+					self.proxy.source = pdef.source.copy;
+					self.proxy.envir = pdef.envir.copy;
+					self.proxy.convertToPbindef;
+					self.updateParamGroupView;
+					self.updateModulatorView;
+					self.updateFxView;
+				}, \Pdef)
+			}),
+
+			MenuAction.separator,
 			MenuAction("Copy compile string", { 
 				self.presetCompileString.pbcopy.postln;
 			}),

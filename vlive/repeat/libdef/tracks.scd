@@ -25,6 +25,7 @@ TrackTemplateDef(\playerwrapper, (
 	trackTemplate: { arg self;
 		self.parent;
 	},
+
 	trackTemplate_: { arg self, val;
 		self[\parent] = val;
 		self.hasTrackTemplate = true;
@@ -52,7 +53,7 @@ TrackTemplateDef(\playerwrapper, (
 
 	asPlayerEvent: { arg self;
 		PlayerEvent((
-			midinote: self.parentTrack.index,
+			midinote: self.parentIndex,
 			receiver: "{ % }".format(self.refCompileString).interpret
 		))
 	},
@@ -65,10 +66,9 @@ TrackTemplateDef(\playerwrapper, (
 		self.proxy = nil;
 	},
 
-
 	source_: { arg self, val;
 		self.proxy = PlayerWrapper(val);
-		if(self.mixer.notNil and: { self.parentTrack.enableAutoSetOutbus == true }) {
+		if(self.mixer.notNil and: { self.enableAutoSetOutbus == true }) {
 			self.proxy.outBus = self.mixer.inbus;
 		}
 	},
@@ -78,7 +78,11 @@ TrackTemplateDef(\playerwrapper, (
 	},
 
 	refCompileString: { arg self;
-		"%.childAt(%)".format(self.parentTrack.refCompileString, self.index);
+		if(self.parentTrack.notNil) {
+			"%.childAt(%)".format(self.parentTrack.refCompileString, self.index);
+		} {
+			"TrackDef(%)".format(self.trackKey)
+		}
 	},
 
 	proxy: { arg self;
@@ -146,25 +150,25 @@ TrackTemplateDef(\playerwrapper, (
 	play: { arg self;
 		var stopchild;
 		if(self.isEmpty == true) {
-			if(self.parentTrack.recordArmed == true) {
+			if(self.recordArmed == true) {
 				self.startRecordingNewScore;
 			} {
-				self.parentTrack.stop;
+				self.parentStop;
 			}
 		} {
-			if(self.parentTrack.activeIndex != self.index) {
-				stopchild = self.parentTrack.activeChild;
+			if(self.parentActiveIndex != self.index) {
+				stopchild = self.parentActiveChild;
 			};
-			self.parentTrack.activeIndex = self.index;
+			self.parentActiveIndex = self.index;
 			if(stopchild.notNil) { stopchild.stopInternal }; // changed message but arrive after deselect
 			self.proxy.play;
 			self.playHook;
-			self.parentTrack.childPlayed;
+			self.parentChildPlayed;
 			self.changed(\play, self.quant);
 			self.changed(\PlayerWrapper, \userPlayed); // the view put directly the ProtoDef so need to simulate PlayerWrapper
 			self.proxy.doWithQuant {
 				self.changed(\PlayerWrapper, \playing); // the view put directly the ProtoDef so need to simulate PlayerWrapper
-				self.parentTrack.childPlayed({ arg me;
+				self.parentChildPlayed({ arg me;
 					me.changed(\PlayerWrapper, \playing); 
 				});
 
@@ -176,12 +180,12 @@ TrackTemplateDef(\playerwrapper, (
 	resetPlay: { arg self;
 		var stopchild;
 		if(self.isEmpty == true) {
-			self.parentTrack.stop;
+			self.parentStop;
 		} {
-			if(self.parentTrack.activeIndex != self.index) {
-				stopchild = self.parentTrack.activeChild;
+			if(self.parentActiveIndex != self.index) {
+				stopchild = self.parentActiveChild;
 			};
-			self.parentTrack.activeIndex = self.index;
+			self.parentActiveIndex = self.index;
 			if(stopchild.notNil) { stopchild.stop }; // changed message but arrive after deselect
 			// TODO: make it in PlayerWrapper
 			if(self.proxy.target.isKindOf(EventPatternProxy)) {
@@ -192,7 +196,7 @@ TrackTemplateDef(\playerwrapper, (
 				self.proxy.play;
 			};
 			self.resetPlayHook;
-			self.parentTrack.childPlayed;
+			self.parentChildPlayed;
 			self.changed(\play, self.quant);
 			self.changed(\PlayerWrapper, \playing); 
 		}
@@ -202,12 +206,12 @@ TrackTemplateDef(\playerwrapper, (
 	playNow: { arg self;
 		var stopchild;
 		if(self.isEmpty == true) {
-			self.parentTrack.stop;
+			self.parentStop;
 		} {
-			self.parentTrack.activeIndex = self.index;
+			self.parentActiveIndex = self.index;
 			self.proxy.playNow;
 			self.playNowHook;
-			self.parentTrack.childPlayed;
+			self.parentChildPlayed;
 			self.changed(\play, self.quant);
 			self.changed(\PlayerWrapper, \playing); 
 		}
@@ -217,15 +221,15 @@ TrackTemplateDef(\playerwrapper, (
 		if(self.isEmpty.not) {
 			self.proxy.stop;
 			self.stopHook;
-			if(self.parentTrack.recordArmed == true) {
+			if(self.recordArmed == true) {
 				self.stopRecording;
 			};
-			self.parentTrack.childStopped;
+			self.parentChildStopped;
 			self.changed(\stop, self.quant);
 			self.changed(\PlayerWrapper, \userStopped); 
 			self.proxy.doWithQuant {
 				self.changed(\PlayerWrapper, \stopped); 
-				self.parentTrack.childStopped({ arg me; me.changed(\PlayerWrapper, \stopped) });
+				self.parentChildStopped({ arg me; me.changed(\PlayerWrapper, \stopped) });
 			}
 		} 
 	},
@@ -233,7 +237,7 @@ TrackTemplateDef(\playerwrapper, (
 	stopNow: { arg self;
 		self.proxy.stopNow;
 		self.stopNowHook;
-		self.parentTrack.childStopped;
+		self.parentChildStopped;
 		self.changed(\stop, self.quant);
 		self.changed(\PlayerWrapper, \stopped); 
 	},
@@ -253,11 +257,19 @@ TrackTemplateDef(\playerwrapper, (
 	},
 
 	isActive: { arg self;
-		self.parentTrack.activeIndex == self.index;
+		if(self.parentTrack.notNil) {
+			self.parentTrack.activeIndex == self.index;
+		} {
+			true
+		};
 	},
 
 	mixer: { arg self;
-		self.parentTrack.mixer;
+		if(self.parentTrack.notNil) {
+			self.parentTrack.mixer;
+		} {
+			nil
+		}
 	},
 
 	savePresetCompileString: { arg self;
@@ -301,6 +313,81 @@ TrackTemplateDef(\playerwrapper, (
 		}
 	
 	},
+
+	//// parent methods
+	// allow standalone
+	parentIndex: { arg self;
+		if(self.parentTrack.notNil) {
+			self.parentTrack.index;
+		} {
+			0
+		}
+	},
+
+	enableAutoSetOutbus: { arg self;
+		if(self.parentTrack.notNil) {
+			self.parentTrack.enableAutoSetOutbus;
+		} {
+			false
+		}
+	},
+
+	recordArmed: { arg self;
+		if(self.parentTrack.notNil) {
+			self.parentTrack.recordArmed;
+		} {
+			false
+		}
+	},
+
+	parentActiveIndex: { arg self;
+		if(self.parentTrack.notNil) {
+			self.parentTrack.activeIndex;
+		} {
+			0
+		}
+	},
+
+	parentActiveIndex_: { arg self, val;
+		if(self.parentTrack.notNil) {
+			self.parentTrack.activeIndex = val;
+		} {
+			// NOOP
+		}
+	},
+
+	parentActiveChild: { arg self;
+		if(self.parentTrack.notNil) {
+			self.parentTrack.activeChild;
+		} {
+			self
+		}
+	},
+
+	parentStop: { arg self;
+		if(self.parentTrack.notNil) {
+			self.parentTrack.stop;
+		} {
+			// NOOP
+		}
+	},
+
+	parentChildPlayed: { arg self, fun;
+		if(self.parentTrack.notNil) {
+			self.parentTrack.childPlayed(fun);
+		} {
+			// NOOP
+		}
+	},
+
+	parentChildStopped: { arg self, fun;
+		if(self.parentTrack.notNil) {
+			self.parentTrack.childStopped(fun);
+		} {
+			// NOOP
+		}
+	},
+
 ));
 TrackTemplateDef(\playertrack, (
 	childClass: { TrackTemplateDef(\playerwrapper) },

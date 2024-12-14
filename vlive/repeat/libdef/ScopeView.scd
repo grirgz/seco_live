@@ -92,9 +92,16 @@ WindowDef(\ScopeView, { arg def, bus;
 			).play;
 
 			{ 
+				scope.setProperty(\updateInterval, 10);
 				scope.bufnum = bufnum.bufnum; 
 				scope.start; 
 			}.defer;
+			//1000.do { arg idx;
+				////defer {
+					////scope.invokeMethod(\updateScope);
+				////};
+				//1.wait;
+			//};
 		}).play;
 	};
 	runtask.(bus);

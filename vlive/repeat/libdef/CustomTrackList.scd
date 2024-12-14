@@ -458,7 +458,7 @@ TrackTemplateDef(\CustomInstrumentTrack, (
 	},
 ));
 
-// TODO: should be named CustomTrackScore
+// TODO: should be named CustomTrackScore or CustomTrackPart
 TrackTemplateDef(\CustomInstrumentTrackPart, (
 	parent: TrackTemplateDef(\playerwrapper),
 	eventType: \instrumenttrackpart,
@@ -493,7 +493,11 @@ TrackTemplateDef(\CustomInstrumentTrackPart, (
 	},
 
 	trackKey: { arg self;
-		"%.%".format(self.parentTrack.trackKey, self.index.asInteger).asSymbol;
+		if(self.parentTrack.notNil) {
+			"%.%".format(self.parentTrack.trackKey, self.index.asInteger).asSymbol;
+		} {
+			"%".format(self.key).asSymbol;
+		};
 	},
 
 	outBus: { arg self;

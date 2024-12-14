@@ -262,7 +262,7 @@ WindowDef(\PatKitDefEditor, (
 	make_main_menu_button: { arg self;
 		BasicButton.new.string_("...").fixedWidth_(20).action_({
 			Menu(
-				MenuAction("Clear preset", {
+				MenuAction("Clear all cells", {
 					self.pgroup.clearChildren;
 				}),
 				MenuAction("Basic Recorder", {
@@ -273,6 +273,12 @@ WindowDef(\PatKitDefEditor, (
 					FileSystemProject.loadOnce("libdef/wip/RecordFactory.scd");
 					ProtoDef(\RecordFactory).edit;
 				}),
+				Param(
+					Message(self.pgroup),
+					\controller, 
+					ControllerDef.getTagSpec(\drumpad),
+					//TagSpecDef(\NoteTimeline_controller),
+				).asMenu("Controller"),
 				//MenuAction("Recorder", {
 					//ProtoDef(\recorder).edit // seems broken, in ex2/recordgui.scd
 				//}),
@@ -497,29 +503,29 @@ ParamProto.init;
 	//str;
 //};
 //ProtoTemplateDef(\ParPlayerGroup)[\asPresetCompileString] = ~parPlayerGroup[\presetCompileString]; // backward compat
-ProtoTemplateDef(\ParPlayerGroup)[\edit] = { arg self, idx=0;
-	WindowDef(\samplekit_+++self.key, WindowDef(\samplekit)).front(self, idx);
-};
-ProtoTemplateDef(\ParPlayerGroup)[\startControl] = { arg self;
-	var count = 0;
+//ProtoTemplateDef(\ParPlayerGroup)[\edit] = { arg self, idx=0;
+	//WindowDef(\samplekit_+++self.key, WindowDef(\samplekit)).front(self, idx);
+//};
+//ProtoTemplateDef(\ParPlayerGroup)[\startControl] = { arg self;
+	//var count = 0;
 
-	MKtl(\lp, "novation-launchpad-s");
-	MKtl(\lp).elAt(\pad).do({ arg el, i;
-		var idx = count;
+	//MKtl(\lp, "novation-launchpad-s");
+	//MKtl(\lp).elAt(\pad).do({ arg el, i;
+		//var idx = count;
 
-		[i, i%8 < 4, idx].debug("i, iii, idx");
-		if(i%8 < 4) {
+		//[i, i%8 < 4, idx].debug("i, iii, idx");
+		//if(i%8 < 4) {
 
-			el.elAt(0).action = {
-				self.elAt(idx).play;
-			};
-			el.elAt(1).action = {
-				self.elAt(idx).stop;
-			};
-			count = count + 1;
-		}
-	})
-};
+			//el.elAt(0).action = {
+				//self.elAt(idx).play;
+			//};
+			//el.elAt(1).action = {
+				//self.elAt(idx).stop;
+			//};
+			//count = count + 1;
+		//}
+	//})
+//};
 
 // update existing instances
 //PatKitDef.all.do({ arg inst;
