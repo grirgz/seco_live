@@ -156,16 +156,25 @@ TrackTemplateDef(\playerwrapper, (
 				self.parentStop;
 			}
 		} {
+			//"xx1".debug;
 			if(self.parentActiveIndex != self.index) {
 				stopchild = self.parentActiveChild;
 			};
+			//"xx2".debug;
 			self.parentActiveIndex = self.index;
+			//"xx3".debug;
 			if(stopchild.notNil) { stopchild.stopInternal }; // changed message but arrive after deselect
+			//"xx4".debug;
 			self.proxy.play;
+			//"xx5".debug;
 			self.playHook;
+			//"xx6".debug;
 			self.parentChildPlayed;
+			//"xx9".debug;
 			self.changed(\play, self.quant);
+			//"xx10".debug;
 			self.changed(\PlayerWrapper, \userPlayed); // the view put directly the ProtoDef so need to simulate PlayerWrapper
+			//"xx11".debug;
 			self.proxy.doWithQuant {
 				self.changed(\PlayerWrapper, \playing); // the view put directly the ProtoDef so need to simulate PlayerWrapper
 				self.parentChildPlayed({ arg me;
@@ -173,6 +182,7 @@ TrackTemplateDef(\playerwrapper, (
 				});
 
 			};
+			//"xx12".debug;
 			// it's not a good design this mean i should do it on every ProtoDef!
 		}
 	},
@@ -1188,6 +1198,10 @@ TrackTemplateDef(\lineplayer, (
 
 
 // backward compat 
+TrackTemplateDef(\playerwrapper, TrackTemplateDef(\PlayerPart));
+TrackTemplateDef(\playertrack, TrackTemplateDef(\PlayerTrack));
+TrackTemplateDef(\playergrid, TrackTemplateDef(\PlayerGrid));
+TrackTemplateDef(\lineplayer, TrackTemplateDef(\PlayerSection));
 TrackDef(\playerwrapper, TrackTemplateDef(\playerwrapper));
 TrackDef(\playertrack, TrackTemplateDef(\playertrack));
 TrackDef(\playergrid, TrackTemplateDef(\playergrid));

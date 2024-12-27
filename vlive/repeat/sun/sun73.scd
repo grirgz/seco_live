@@ -1,5 +1,6 @@
 
 ~t = 121/2/60; TempoClock.default.tempo = ~t;
+TempoClock.default.setMeterAtBeat(8, TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant));
 
 FileSystemProject.load("holis/synthdef.scd")
 FileSystemProject.load("sun/fmgen.scd")
@@ -2240,4 +2241,268 @@ Pdef(\part, Pdef(\zedpart,
 		),
 	])
 )).play;
+);
+
+
+(
+SynthDef(\sh101fx, { arg out=0, gate=1, crusher=0, reverb=0, delay=0;
+	var sig, sig2;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = Decimator.ar(sig, crusher.linexp(0,1,Server.default.sampleRate,100), crusher.linlin(0,1,24,2));
+	sig = SelectX.ar(crusher, [in, sig]);
+	sig = FreeVerb2.ar(sig[0],sig[1], reverb.linlin(0,1,0,0.5), reverb.linlin(0,1,0.2,1), \damp.kr(0.1));
+	//sig = DelayL.ar(sig, 1.0,\delay.kr(0.1),1) * \delayamp.kr(0) + sig;
+	sig = CombL.ar(sig, 1, \delaytime.kr(0.1).lag(0.4), delay.lincurve(0,1,0,4,-2)) * delay + sig;
+	sig = SelectX.ar(\mix.kr(1), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}, metadata:(specs:(
+	crusher: \unipolar,
+	reverb: \unipolar,
+	delay: \unipolar,
+	delaytime: ControlSpec(0.001,1,\exp),
+))).add;
+)
+(
+// add fx
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \basicbass,
+			\note, Pseq([
+				0,
+			],inf),
+			\octave, 3,
+			\legato, 0.67,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[908].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\lag, -0.04,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		
+		Pmono(
+			{ arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+				var sig;
+				var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+				lfo2 = Line.kr(0.01,1,16/~t);
+				lfo1 = ( SinOsc.kr(6*~t * [1,1.001]) * lfo2 + 1 );
+				lfo3 = XLine.kr(1,0.001,16/~t);
+				lfo4 = XLine.kr(0.001,1,16/~t);
+				lfo5 = SinOsc.kr(0.12*~t).range(0.2,1.3);
+				sig = LFPulse.ar(freq * [1,1.001]* ( LFSaw.kr(8*~t) * 0.1 + 1 ));
+				sig = sig + LFPulse.ar(freq*2 * [1,1.001]* ( LFSaw.kr(2*~t) * lfo4 + 1 ),mul:lfo2);
+				sig = sig + LFPulse.ar(freq/2 * [1,1.001]* ( LFSaw.kr(4*~t) * lfo3 + 1 ),mul:lfo2);
+				sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq * lfo1 ).clip(20,20000), \rq.kr(0.5) * lfo5);
+				sig = HPF.ar(sig,70);
+				sig = DelayL.ar(sig, 1/2, 0.1 * lfo3 * LFNoise1.kr(0.1!2,mul:0.1,add:1).unipolar) + sig / 2;
+				sig = DelayL.ar(sig, 1/2, 0.1 * LFNoise1.kr(0.1!2).unipolar) + sig / 2;
+				sig = sig * EnvGen.kr(Env([0,1,0],[0.1,0.8]), Impulse.kr(1/2*~t));
+				sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+				//sig = Pan2.ar(sig, pan, amp);
+				sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+				Out.ar(out, sig);
+			}.asDefName,
+			\note, Pstep(Pseq([
+				0,3,7,3,
+			],inf),4),
+			\octave, 5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec_hlpf,
+			\lpf, 4000 * Pseg(Pseq([1/2,3],1),16).loop,
+			\hpf, 100 * Pseg(Pseq([10,5],5),6).loop,
+			\hpmix, 0,
+			\lpmix, 0,
+			//\bufnum, ~buflib.foley1[~buflib.foley1.size.rand.debug("f")].value,
+			\bufnum, ~buflib.foley1[247].value,
+			\speed, 1,
+			\pos,Pseq([0.0,0],inf).stutter(2),
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+				0,0,0,0, 1,1,1,1,
+				0,0,0,0, 0,0,0,0,
+				1,1,1,1, 0,0,0,0,
+				1,0,1,0, 1,0,1,0, 
+				1,1,1,1, 0,0,1,0,
+				0,0,1,1, 0,0,0,0,
+				0,0,0,0, 1,1,1,1,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.2) ],
+			],inf).stutter(4*8),
+			\legato, 1,
+			\dur, 1/8,
+			\gain, 1/7 * Pseq([
+				Pwhite(0.81,0.02,2),
+				Pwhite(1,0.5,2),
+			],inf),
+		),
+		Pbind(
+			\instrument, \playersec_hlpf,
+			\lpf, 4000 * Pseg(Pseq([1/2,3],1),16).loop,
+			\hpf, 100 * Pseg(Pseq([1,50],1),16).loop,
+			\hpmix, 1,
+			\lpmix, 1,
+			//\bufnum, ~buflib.foley1[~buflib.foley1.size.rand.debug("f")].value,
+			\bufnum, ~buflib.foley1[307].value,
+			\speed, 1/2,
+			\pos,Pseq([0.05,0],inf).stutter(2)+0.081,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				1,1,1,1, 1,1,1,1,
+				0,0,0,0, 1,1,1,1,
+				0,0,0,0, 0,0,0,0,
+				1,1,1,1, 0,0,0,0,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.2) ],
+			],inf).stutter(4*8),
+			\legato, 1,
+			\dur, 1/8,
+			\gain, 1/14 * Pseq([
+				Pwhite(0.81,0.02,2),
+				Pwhite(1,0.5,2),
+			],inf),
+		),
+		Pbind(
+			\instrument, ~fmgen_short.(23946,10),
+			\note, Pseq([
+				[0,12,12+7,11],
+				[0,12,12+3,9]+4,
+			],inf).stutter(16*2),
+			\timeScale, 6,
+			\adsr, Pseq([
+				[ Env.adsr(0.21,0.1,0.8,0.4) ],
+				[ Env.adsr(0.02,0.1,0.8,0.4) ],
+			],inf).stutter(8),
+			\lpfr, ~pmodenv.(Pseq([2,4,1/2,5],1), 4).loop,
+			\octave, 5,
+			\legato, Pseq([
+				8,0,0,0, 0,0,0,0,
+				1,1,1,1, 1,1,1,1,
+				8,0,0,0, 0,0,0,0,
+				1,1,1,1, 1,1,1,1,
+				8,0,0,0, 0,0,0,0,
+				1,0,1,0, 1,0,1,0,
+				8,0,0,0, 0,0,0,0,
+				1,1,1,1, 1,1,1,1,
+				8,0,0,0, 0,0,0,0,
+				1,1,1,0, 4,0,0,0,
+			].rotate(4),inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\amp, 0.1/2 * Pseg(Pseq([0,0.2,1,Pn(1,inf)],1),4).loop,
+			//\amp, 0.1/4,
+			\out, BusDef(\sh101fx, \audio),
+		),
+		Pmono(\sh101fx,
+			\inbus, BusDef(\sh101fx, \audio),
+			\addAction, \addToTail,
+			\delay, 0.8,
+			\reverb, 0.8,
+			\lag, 0.0009,
+			\gain, 1,
+			\dur, 1,
+			\out, BusDef(\hpf, \audio),
+		),
+		Pmono(\fx_hpf,
+			\inbus, BusDef(\hpf, \audio),
+			\hpf, 100,
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+
+/////////////////
+
+(
+Pdef(\sh, 
+	Pbind(
+		\instrument, \sh101,
+		\degree, Pseq([0,2,1,-3, 0,2,1,4],inf),
+		\dur, 1/4,
+		\amp, 0.1,
+	)
+).play;
+);
+Pdef(\zed).clear
+
+
+Pdef(\sh).edit
+
+(
+// unison of pulse modulated by pulse width
+SynthDef(\superpw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var num=8;
+	var lpenv;
+	sig = LFPulse.ar(freq, 0, LFNoise1.kr(1.1!num, mul:1, add:0).unipolar);
+	sig = sig + LFPulse.ar(freq*2, 0, LFNoise1.kr(1.1, mul:1, add:0).unipolar, mul:0.2);
+	//lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.04,0.4,0.2,4.1,4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.perc(1.6,0.4,curve:4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	sig = RLPF.ar(sig, \lpf.kr(400) * lpenv.poll, \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+Pdef(\zed).reset;
+);
+
+(
+Pdef(\zed, 
+	Pmono(
+		 \superpw,
+		\degree, Pseq([0,-5,3,2],inf),
+		\itrig, 1,
+		\lpenvamt, 1,
+		\lpf, PmodEnv(Pseq([100,200,4000],1), 8).loop,
+		\octave, 3,
+		\dur, 2,
+		\amp, 0.1,
+	)
+).play;
 );

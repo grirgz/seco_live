@@ -109,7 +109,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 			).play;
 		};
 
-		if(ev[\finish].isKindOf(Function)) {
+		if(ev[\finish].isKindOf(AbstractFunction)) {
 			var oldfun = ev[\finish];
 			ev[\finish] = { finish_fun.value; oldfun.value };
 		} {

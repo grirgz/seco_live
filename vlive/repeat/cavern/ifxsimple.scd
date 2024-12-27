@@ -86,4 +86,34 @@ SynthDef(\ifx_fb, { arg out=0, gate=1;
 	fbbus: ParamBusSpec(),
 ))).add;
 TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_fb);
+
+SynthDef(\ifx_stutter, { arg out = 0, time= 0.1, mix=0, rate=1;
+	var stutter = { arg sig, reset, time, rate = 1.0, maxdelay = 10;
+		var phase, fragment, del;
+		phase = Sweep.ar(reset);
+		fragment = { |ph| (ph - Delay1.ar(ph)) < 0 + Impulse.ar(0) }.value(phase / time % 1);
+		del = Latch.ar(phase, fragment) + ((time - Sweep.ar(fragment)) * (rate - 1));
+		DelayC.ar(sig, maxdelay, del);
+	};
+	var sig;
+	var in = In.ar(out, 2); 
+	var reset;
+	reset = Changed.kr(mix);
+	sig = in;
+	sig = sig * SinOsc.ar(200);
+	sig = stutter.(sig, reset, time, rate, \maxdelay.ir(10));
+	sig = SelectX.ar(mix, [in, sig]);
+	sig = sig * \gain.kr(1);
+	XOut.ar(out, \wet.kr(0), sig);
+}).add;
+TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_stutter);
+
+SynthDef(\ifx_out, { arg out = 0, inbus;
+	var sig;
+	var in = In.ar(inbus, 2); 
+	sig = in;
+	sig = sig * \gain.kr(1);
+	XOut.ar(out, \wet.kr(1), sig);
+}).add;
+TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_out);
 )

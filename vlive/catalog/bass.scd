@@ -1116,6 +1116,76 @@ Pdef(\demo, Pdef(\demomo,
 )).play;
 )
 
+(
+SynthDef(\rawbassfil, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var fenv;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var fenvm;
+	var menv;
+	var spread = ((0..7)/7 - 0.5 * \fspread.kr(0.1) + 1);
+	sig2 = SinOsc.ar(freq *[1,2]* ( SinOsc.ar(freq * ( 3/2 )) * 1 + 1 )).sum;
+	sig1 = LFPulse.ar(freq*[1,2]).sum;
+	sig3 = LFSaw.ar(freq *1* ( SinOsc.ar(freq * ( 6/4 )) * 1 + 1 ));
+	sig = LocalIn.ar(8) * \fb.kr(0.7);
+	sig = SelectX.ar(sig.range(0,2) * \selectffac.kr(1) * spread, [sig1, sig2, sig3]) + sig /2;
+	LocalOut.ar(sig);
+
+	fenv = EnvGen.kr(Env([0,1,0],[0.1,0.1]), \itrig.tr(1));
+	fenvm = fenv * \fenvamt.kr(1) + 1;
+	//sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq * fenv ).clip(20,20000), \rq.kr(0.5));
+	sig1 = MoogFF.ar(sig, ( \lpfr.kr(1.1) * freq * fenvm ).clip(20,20000), 1/\rq.kr(0.5))*2;
+	menv = EnvGen.kr(Env([0,1,0],[0.8,0.1]), \itrig2.tr(1));
+	sig = SelectX.ar(menv, [sig1, sig]);
+	//sig = BPeakEQ.ar(sig,( \lpfr.kr(1.1) * freq * fenv ).clip(20,20000), 1/\rq.kr(0.5), -8 );
+
+	sig = sig * EnvGen.ar(\iadsr.kr(Env.adsr(0.01,0.1,0.2,0.4)),\itrig.tr(1),doneAction:0);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+
+
+	pan = pan + LFNoise1.kr((1..8)/45);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+Pdef(\demo).reset;
+);
+
+(
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		Pmono(\rawbassfil,
+			\note, Pstep(Pseq([
+				0,3,2,1,
+			],inf),1/1),
+			\octave, 3,
+			\itrig, 1,
+			\itrig2, Pseq([1,0,0,0, 0,0,0,0],inf),
+			\dur, 1/8,
+			\iadsr, PpatEnv.adsr(0.01,0.1,0.9, Pseg(Pseq([0.3,2.1,0.4,0.8,0.5],1),8).loop),
+			\fenvamt, PmodEnv(Pseq([1,18,1,4],1), 8).loop,
+			\rq, Pseg(Pseq([0.4,1],inf),16),
+			\fb, Pseq([
+				1,0.9, 1,0.5,
+				1,1.1, 0.51,0.5,
+			],inf),
+			\fspread, ~pmodenv.(Pseq([0.000001,2,1/21,4],inf), 1),
+			\selectffac, ~pmodenv.(Pseq([1,2,1,4,0.1],inf), 1/2),
+			\selectffac, Pseq([
+				1,2,2,2,
+				1,1,1,2,
+				1,2,2,2,
+				5,45,4,5,
+			],inf),
+			\fspread, Pseq([
+				1/11112,
+				1/21112,
+			],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+)
+
 ///////////////////////////////////:
 (
 SynthDef(\basscorde, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fspread=0.01, spread=1;
@@ -1190,9 +1260,10 @@ SynthDef(\somebass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 Pdef(\zed, 
 	Pbind(
 		\instrument, \somebass,
-		\degree, Pseq([0],inf),
+		\degree, Pseq([0,4,4],inf),
+		\mtranspose, Pseq([0,2,-3,1],inf).stutter(3),
 		\octave, 3,
-		\dur, 1,
+		\dur, PdurStutter(Pseq([1,2],inf), 1),
 		\amp, 0.1,
 	)
 ).play;
@@ -1202,13 +1273,14 @@ Pdef(\zed,
 ///////// fm bass
 
 (
-SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+SynthDef(\fmtribass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
 	sig1 = SinOsc.ar(SinOsc.ar(freq + [0,0.07]) * freq * LFNoise1.kr(0.21).range(1,30) + LFNoise1.kr(0.2).exprange(0.01,2) );
 	sig2 = SinOsc.ar(SinOsc.ar(freq*2 + [0,0.27]) * freq*2  * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.012).exprange(0.01,2) );
 	sig3 = SinOsc.ar(SinOsc.ar(freq*3 + [0,1.27]) * freq*3  * LFNoise1.kr(0.21).range(1,10) + LFNoise1.kr(0.012).exprange(0.01,2) );
 	sig = sig1 + sig2 + sig3;
+	sig = sig / 2;
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
 	Out.ar(out, sig);
@@ -1218,7 +1290,7 @@ SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 (
 Pdef(\zed, 
 	Pmono(
-		 \zed,
+		 \fmtribass,
 		\degree, Pseq([0,2,-1,3],inf),
 		\octave, Prand([2,2,2,3],inf),
 		\dur, 1,
@@ -1699,4 +1771,38 @@ Pdef(\part, Pdef(\zedpart,
 		
 	])
 )).play;
+);
+
+/////////
+(
+// unison of pulse modulated by pulse width
+SynthDef(\superpw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var num=8;
+	var lpenv;
+	sig = LFPulse.ar(freq, 0, LFNoise1.kr(1.1!num, mul:1, add:0).unipolar);
+	sig = sig + LFPulse.ar(freq*2, 0, LFNoise1.kr(1.1, mul:1, add:0).unipolar, mul:0.2);
+	//lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.04,0.4,0.2,4.1,4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.perc(1.6,0.4,curve:4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	sig = RLPF.ar(sig, \lpf.kr(400) * lpenv, \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+Pdef(\demo).reset;
+);
+
+(
+Pdef(\demo, 
+	Pmono(
+		 \superpw,
+		\degree, Pseq([0,-5,3,2],inf),
+		\itrig, 1,
+		\lpenvamt, 1,
+		\lpf, PmodEnv(Pseq([100,200,4000],1), 8).loop,
+		\octave, 3,
+		\dur, 2,
+		\amp, 0.1,
+	)
+).play;
 );

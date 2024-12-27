@@ -87,3 +87,24 @@ NoteTimeline(\mynotes2).edit
 		128 // maximum number of notes, required else infinite pattern will hang forever (default: FIXME)
 	);
 )
+
+
+
+NoteTimeline(\mynotes).edit;
+NoteTimeline(\mynotes).edit;
+NoteTimeline(\mynotes).eventList
+ClipTimeline(\bb).edit
+NoteTimeline(\xx).edit;
+NoteTimeline(\xx2).edit;
+NoteTimeline(\xx).editor.isParamAutomated(\velocity)
+
+(
+Pdef(\sawtest, 
+	Pbind(
+		\instrument, \saw,
+		\amp, 0.1,
+	)
+).play;
+);
+
+NoteTimeline(\sawtest3, Pdef(\sawtest)).edit

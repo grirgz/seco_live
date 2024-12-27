@@ -41,7 +41,7 @@ ProtoTemplateDef(\Equi, (
 			Pmono(\fx_equi,
 				\inbus, Plazy({ Pkeyd(\inbus, self.inbus).keep(1) }).loop,
 				\dur, 1,
-			).trace
+			)
 		);
 		Pdef(self.proxyKey).addHalo(\edit, { self.edit; });
 		Pdef(self.proxyKey);
@@ -55,9 +55,14 @@ ProtoTemplateDef(\Equi, (
 
 WindowDef(\Equi, { arg def, model, inbus, paramdict;
 	var equi, equiparams;
-	var scope = FreqScopeView(nil, Rect(0,0,100,100))
-	.freqMode_(1)
-	.active_(true);
+	var equiparent;
+	var scope;
+
+	scope = FreqScopeView(nil, Rect(0,0,100,100))
+		.freqMode_(1)
+		.active_(true)
+	;
+
 	if(paramdict.isNil) {
 		paramdict = Dictionary.newFrom([
 			inbus: Param(model, \inbus),
@@ -98,7 +103,8 @@ WindowDef(\Equi, { arg def, model, inbus, paramdict;
 	//model.get(key)
 	//})
 	//);
-	equi = EQui(nil,nil,model);
+	equiparent = View.new;
+	equi = EQui(equiparent,nil,model);
 	equi.sync;
 	VLayout (
 		View.new.layout_(
@@ -122,7 +128,7 @@ WindowDef(\Equi, { arg def, model, inbus, paramdict;
 				)
 			)
 		).maxHeight_(150),
-		View.new.layout_(
+		equiparent.layout_(
 			VLayout (
 				equi
 			)

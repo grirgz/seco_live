@@ -2293,3 +2293,70 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+/////////////////
+// dnb
+
+~t = 170/2/60; TempoClock.default.tempo = ~t;
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\bufnum, ~buflib.kick[879].value,
+			\score, Pseq([
+				1,0,0,0, 0,0,0,0,
+				0,0,0.5,0.5, 0,0,0,0,
+			],inf),
+			\isRest, Pkey(\score).coin.not,
+			\dur, 1/8,
+			\gain, 0.1 * Pkey(\score),
+		),
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[771].value,
+			\score, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf),
+			\isRest, Pkey(\score).coin.not,
+			\dur, 1/8,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\gain, 0.11 * Pkey(\score),
+		),
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[771].value,
+			\score, Pseq([
+				1,0,0,0, 0,0,0,1,
+				0,1,0,0, 0,0,0,1,
+			],inf),
+			\isRest, Pkey(\score).coin.not,
+			\sustain, 0.1/2,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.05) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11/2 * Pkey(\score),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1090].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\score, Pseq([
+				0,0,1,0, 0,0,1,0,
+				0,0,0,0, 0,0,1,0,
+			],inf),
+			\isRest, Pkey(\score).coin.not,
+			\dur, 1/8,
+			\gain, 0.11 * Pkey(\score),
+		),
+		
+	])
+)).play;
+);

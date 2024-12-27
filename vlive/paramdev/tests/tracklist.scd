@@ -132,6 +132,7 @@ WindowDef(\win, { arg def;
 FileSystemProject.load("libdef/CustomTrackList.scd");
 TrackDef(\bla, TrackTemplateDef(\CustomTrackList));
 TrackDef(\bla).edit
+FileSystemProject.load("~/tmp/bla/TrackDef_bla.scd")
 TrackDef(\bla).clear
 TrackDef(\bla).presetCompileString
 TrackDef(\bla).linePlayers = nil
@@ -235,3 +236,10 @@ OSCdef(\bla, { arg ...args; args.debug("osc:") })
 
 
 
+PatKitDef(\ha).edit
+
+TrackDef(\aze, \CustomTrackList).edit
+FileSystemProject.load("libdef/CustomTrackList.scd")
+Param
+
+PlayerEvent

@@ -2180,3 +2180,15 @@ SynthDef(\saw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneA
 (\type: \set, \id: ~s.nodeID, \freq: 800).play
 
 Buffer.read(s, "~/tmp/attrition.wav".standardizePath)
+
+
+/////////
+a = (-1000,-999.99..1000).collect{|item| item.cylBesselJ(1000)};
+b = Buffer.loadCollection(s, a);
+a.size
+
+{(PlayBuf.ar(1,b, 0.2, 1, 0)*5).softclip.dup*Env.perc(0.001, 3).kr(2)}.play;
+
+
+{ true.postln } || {false.postln}
+(Constraint({ true.postln }) or: Constraint({false.postln})).value

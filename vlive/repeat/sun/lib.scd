@@ -23,6 +23,7 @@ FileSystemProject.load("libdef/bufEditor.scd");
 FileSystemProject.load("libdef/PbindefEditor.scd"); 
 FileSystemProject.load("libdef/ModulatorRack.scd"); 
 FileSystemProject.load("libdef/ParamTimelineRack.scd"); 
+FileSystemProject.load("libdef/WorkspaceView.scd"); 
 
 // controller
 

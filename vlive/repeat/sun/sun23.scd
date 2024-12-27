@@ -458,7 +458,7 @@ Pdef(\part, Pdef(\zedpart,
 			],inf),
 			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
 			\dur, 1/8,
-			\amp, 0.1,
+			\amp, 0.07,
 		),
 		Pbind(
 			\instrument, \playersec,
@@ -574,7 +574,7 @@ Pdef(\part, Pdef(\zedpart,
 			],inf),
 			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
 			\dur, 1/8,
-			\amp, 0.1,
+			\amp, 0.071,
 		),
 		Pbind(
 			\instrument, \playersec,
@@ -1865,7 +1865,7 @@ Pdef(\part, Pdef(\zedpart,
 			\adsr, Pseq([
 				[ Env.adsr(0.01,0.1,0.8,1.1) ],
 			],inf),
-			\octave, 7,
+			\octave, 5,
 			\legato, Pseq([
 				1,1,1,1,0.6,0.3,0.2,0.5,
 			],inf),
@@ -4202,6 +4202,48 @@ Pdef(\part, Pdef(\zedpart,
 				[ Env.adsr(0.01,0.1,0.8,0.1) ],
 			],inf),
 			\dur, 2,
+			\gain, 3,
+		)
+		
+	])
+)).play;
+);
+
+(
+// noise call snare
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \gregrain_chaos,
+			\mbufnum, BufDef.mono('vfoley/box1.flac'),
+			\legato, 1.01,
+			\gdur, 0.01,
+			\freq, 514,
+			\pitch_stretch, 1,
+			\pitchrandamt, 0.01,
+			\pos, Pseq([
+				0.0,
+				0.1,
+				0.3,
+				0.4,
+				0.65,
+			],inf),
+			\isRest, Pseq([
+				1,
+			],inf).coin.not,
+			\legato, Pseq([
+				0,0,0,0, 0,1,0,0,
+				0,0,0,0, 2,0,0,0,
+				0,0,0,0, 0,1,0,0,
+				0,0,4,0, 0,0,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\posrandamt, 0.03,
+			\phasoramt, 0.1,
+			\adsr, Pseq([
+				[ Env.adsr(0.5,0.1,0.8,0.01,1,-1) ],
+			],inf),
 			\gain, 3,
 		)
 		

@@ -563,6 +563,7 @@ WindowDef(\CircleClockMeter, { arg def, proj, totalParam;
 	var canvas = UserView.new;
 	var task;
 	var clockratio = 0;
+	//var clockratio_long = 0;
 	var servertreefun;
 	totalParam = totalParam ?? {Param(Message(Pdef), \defaultQuant)};
 	proj.debug("PROJJJJJJJJJJJJJJJJJ");
@@ -572,6 +573,10 @@ WindowDef(\CircleClockMeter, { arg def, proj, totalParam;
 		Pen.strokeColor = ParamViewToolBox.color_ligth;
 		Pen.fillColor = ParamViewToolBox.color_pale;
 		Pen.addWedge(10@10, 8, 3/4*2pi, ( clockratio )*2pi);
+		Pen.draw(3);
+		//Pen.strokeColor = ParamViewToolBox.color_dark;
+		//Pen.fillColor = ParamViewToolBox.color_dark;
+		//Pen.addWedge(10@10, 3, 3/4*2pi, ( clockratio_long )*2pi);
 		//Pen.moveTo(0@0);
 
 		//Pen.stroke;
@@ -587,6 +592,7 @@ WindowDef(\CircleClockMeter, { arg def, proj, totalParam;
 				total = 1;
 			};
 			clockratio = clock.beats % total / total;
+			//clockratio_long = ( clock.beats % ( total * 4 ) / ( total * 4 ) ).trunc(1/4);
 			defer {
 				//clockratio.debug("clock");
 				canvas.refresh;
@@ -601,6 +607,7 @@ WindowDef(\CircleClockMeter, { arg def, proj, totalParam;
 			task.play;
 		} {
 			clockratio = 0;
+			//clockratio_long = 0;
 			canvas.refresh;
 			task.stop;
 		};
