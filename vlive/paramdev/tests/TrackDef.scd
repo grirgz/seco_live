@@ -1,11 +1,34 @@
 
 FileSystemProject.load("libdef/CustomTrackList.scd");
-TrackDef(\bla, \CustomTrackList)
+ParamProto.init(true)
+ParamProto.init
+TrackDef(\bla3, \TrackList)
+TrackDef(\bla3).editGrid
+TrackDef(\bla3).edit
 TrackDef(\bla).presetCompileStringSavePath = "~/tmp/bla".standardizePath
 TrackDef(\bla).loadPresetCompileString
-TrackDef(\bla).edit
+WindowDef.trace = true
+~playerviews.first.first.model.parentTrack
 
+WindowDef(\bla)
+(
+WindowDef(\win, { arg def;
+	SampleChooserView.new.view
+}).front;
+)
+NoteTimeline(\ba).edit
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
 
+Pdef(\zed).edit
 FileSystemProject.load("libdef/PbindefEditor.scd");
 FileSystemProject.load("libdef/ModulatorRack.scd");
 ParamViewToolBox.color_TextField_disabled = Color.grey(0.5)
@@ -115,3 +138,11 @@ Pchain
 Param(~p.patterns.first, \lpfr).edit
 
 
+FileSystemProject.loadOnce("libdef/tracks.scd");
+FileSystemProject.loadOnce("libdef/drumkit.scd");
+FileSystemProject.loadOnce("libdef/synthplayrec.scd");
+FileSystemProject.loadOnce("libdef/MainProject.scd");
+
+FileSystemProject.loadOnce("libdef/soundfileview.scd");
+FileSystemProject.loadOnce("libdef/tracklist_buildertrack.scd");
+FileSystemProject.loadOnce("libdef/default_specs.scd");

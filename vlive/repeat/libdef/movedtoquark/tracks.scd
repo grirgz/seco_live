@@ -1,6 +1,7 @@
+// moved to param quark
 
 (
-TrackTemplateDef(\playerwrapper, (
+TrackTemplateDef(\PlayerTrackPart, (
 	// if modeTrigger is true, GUI does not track playing state
 	// not implemented here, see mixerPreset
 	// should emit changed(\PlayerWrapper, \stopped) in play method to prevent PlayerWrapper from
@@ -399,7 +400,7 @@ TrackTemplateDef(\playerwrapper, (
 	},
 
 ));
-TrackTemplateDef(\playertrack, (
+TrackTemplateDef(\PlayerTrack, (
 	childClass: { TrackTemplateDef(\playerwrapper) },
 	label: { arg self; 
 		"%: playertrack".format(self.index)
@@ -668,11 +669,12 @@ TrackTemplateDef(\playertrack, (
 		}
 	},
 ));
-TrackTemplateDef(\playergrid, (
+TrackTemplateDef(\PlayerGrid, (
 	label: { arg self; "%".format(self.key) },
 	protoClass: \playergrid,
 	childClass: { TrackTemplateDef(\playertrack) },
-	lineClass: { TrackTemplateDef(\lineplayer) },
+	sectionClass: { TrackTemplateDef(\PlayerGridSection) },
+	lineClass: { arg self; self.sectionClass },
 
 	source_: { arg self, array;
 		array.collect({ arg val, idx;
@@ -901,7 +903,7 @@ TrackTemplateDef(\playergrid, (
 
 	linePlayerAt: { arg self, idx;
 		if(self.linePlayers[idx].isNil) {
-			self.linePlayers[idx] = self.lineClass.new(self, idx);
+			self.linePlayers[idx] = self.sectionClass.new(self, idx);
 		}; 
 		self.linePlayers[idx];
 	},
@@ -951,7 +953,7 @@ TrackTemplateDef(\playergrid, (
 
 ));
 
-TrackTemplateDef(\lineplayer, (
+TrackTemplateDef(\PlayerSection, (
 	new: { arg self, parent, idx; 
 		self = self.deepCopy;
 	
@@ -1198,7 +1200,7 @@ TrackTemplateDef(\lineplayer, (
 
 
 // backward compat 
-TrackTemplateDef(\playerwrapper, TrackTemplateDef(\PlayerPart));
+TrackTemplateDef(\playerwrapper, TrackTemplateDef(\PlayerTrackPart));
 TrackTemplateDef(\playertrack, TrackTemplateDef(\PlayerTrack));
 TrackTemplateDef(\playergrid, TrackTemplateDef(\PlayerGrid));
 TrackTemplateDef(\lineplayer, TrackTemplateDef(\PlayerSection));
