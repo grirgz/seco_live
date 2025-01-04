@@ -334,3 +334,13 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+
+(
+	Pbind(
+		\degree, Pseq([1, 2, 3, [4,4]], inf),
+		\strum, 0.5,
+		\dur, 1,
+	).play; 
+)

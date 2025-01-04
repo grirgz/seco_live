@@ -9,108 +9,393 @@
 // - TODO: modify virtualkeyboard to hold notes while in arp mode
 
 (
-FileSystemProject.load("paramdev/drafts/arpegiator.scd");
+
+//// lib
+
+//FileSystemProject.load("paramdev/drafts/arpegiator.scd");
+FileSystemProject.load("paramdev/drafts/FxRack.scd");
+FileSystemProject.load("paramdev/drafts/SynthDefPreset.scd");
 FileSystemProject.loadOnce("libdef/ModulatorRack.scd");
+
+Spec.add(\velocity, ControlSpec(0,127,\lin));
+
+~initialize_jack.();
+
+WindowDef(\FormEntryMod, { arg def, param;
+	var slider;
+	var midview = View.new;
+	var paramsrc;
+	var updateMidView;
+	updateMidView = {
+		if(param.target.source.isKindOf(PbindProxy)) {
+			paramsrc = param.at(\source);
+		} {
+			if(param.hasCombinator) {
+				paramsrc = param
+			} {
+				//param.debug("paramsrc not used");
+				// not used
+			};
+		};
+
+		if(param.hasCombinator) {
+			var combi = param.getCombinator;
+			[param, paramsrc, param.hasCombinator, param.getCombinator, combi].debug("paramsrc combi");
+			[param.getCombinator.existingInputRanges ].debug("has combi");
+			//slider = paramsrc.asSlider.orientation_(\horizontal);
+			slider = param.asSlider.orientation_(\horizontal);
+
+			midview.removeAll;
+			midview.layout = HLayout (
+				//paramsrc.getCombinator.baseParam.asSlider.orientation_(\horizontal),
+				slider,
+				* combi.existingInputRanges.collect { arg subp, idx;
+					var modlabel;
+					var obj;
+					var knob;
+					obj = combi.inputObjects[idx];
+					modlabel = try {obj.label} ?? { obj.asCompileString };
+					knob = subp.asKnob.fixedSize_(25@25).toolTip_(modlabel);
+					knob.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+						[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+						if(buttonNumber == 1) {
+							Menu(
+								MenuAction("Remove modulation", {
+									combi.clearInput(subp.subIndex);
+									updateMidView.();
+								}),
+								MenuAction("Reset value", {
+									subp.set(0);
+								}),
+							).front;
+							false;
+						};
+					})
+				}
+			).spacing_(4).margins_(0);
+		} {
+			slider = param.asSlider.orientation_(\horizontal);
+			midview.layout = HLayout(slider).margins_(0).spacing_(0);
+		};
+		slider.canReceiveDragHandler = {
+			true
+		};
+		slider.receiveDragHandler = { arg view, x, y;
+			var pc;
+			var obj;
+			[View.currentDrag, view, x, y].debug("receiveDragHandler");
+			obj = View.currentDrag;
+			[param.get, param.getRaw].debug("receiveDragHandler: before combi");
+			pc = ParamCombinator(param);
+			[param.get, param.getRaw].debug("receiveDragHandler: after combi");
+			pc.mapObjectToInput(obj);
+			[param.get, param.getRaw].debug("receiveDragHandler: after combi2");
+			//updateMidView.();
+		};
+		slider.followChange(param.target, \combinator, { arg view, obj, msg, prop;
+			if(prop == param.propertyRoot) {
+				updateMidView.();
+			};
+	   
+		})
+	};
+	updateMidView.();
+	if(param.type == \scalar) {
+		HLayout (
+			param.asStaticTextLabel.fixedWidth_(80).attachContextMenu,
+			midview,
+			param.asTextField.fixedWidth_(60),
+		)
+
+	} {
+		param.asView
+	};
+});
+
+WindowDef(\ModulatorPanel, (
+	asView: { arg self, def, modlist;
+		// modlist is list of name -> object
+		var modlistview, modEditView, modviews;
+		var selector = ProtoTemplateDef(\ViewSelector).new;
+		self.modulatorList = modlist;
+		self.selector = selector;
+		selector[\visible_] = { arg sel, val; sel[\visible_val] = val; self.modEditView.visible = val;  };
+		selector[\visible] = { arg sel, val; sel[\visible_val] ?? { self.modEditView.visible }};
+		modlistview = View.new;
+		modEditView = View.new;
+		modEditView.background = Color.white;
+		//modEditView.visible = false;
+		self.modEditView = modEditView;
+		modviews = modlist.collect { arg asso, idx;
+			var obj, view;
+			obj = asso.value;
+			view = self.makeModView(idx, asso);
+			selector.add_view(view);
+			asso.key -> view;
+		};
+		self.selector.select_item(0);
+		modlistview.layout = HLayout (
+			BasicButton.new.string_(">").action_({
+				self.selector.visible = self.selector.visible.not;
+				[ self.selector.visible, self.modEditView.visible ].debug("**** set visible");
+				self.selector.changed(\selected_index);
+			}).fixedWidth_(20),
+			HLayout (
+				DragSource.new.object_(\freq).string_("↭ freq").background_(ParamViewToolBox.color_pale).maxWidth_(60),
+				DragSource.new.object_(\velocity).string_("↭ velocity").background_(ParamViewToolBox.color_pale).maxWidth_(60),
+			),
+			* modviews.collect(_.value)
+		).margins_(0).spacing_(5);
+
+		VLayout (
+			[modlistview, stretch:0],
+			[modEditView, stretch:0],
+		).spacing_(0)
+		
+	},
+
+	makeModView: { arg self, idx, asso;
+		var proxy = asso.value;
+		var key = asso.key;
+		var showEditor;
+		var idxlabel = idx+1;
+		var modview;
+		showEditor = {
+			idx.debug("showEditor");
+			self.modEditView.removeAll;
+
+			self.modEditView.layout = proxy.asView;
+			//self.modEditView.layout = VLayout (
+				//Param(proxy, \shape, \unipolar).asView,
+				//Param(proxy, \freq, \lofreq).asView,
+			//);
+		};
+
+		modview = View.new.layout_(
+			VLayout (
+				HLayout (
+					StaticText.new.string_(key.asString.toUpper),
+					DragSource.new.object_(proxy).string_("↭").fixedSize_(25@25).align_(\center).background_(ParamViewToolBox.color_pale),
+				).margins_([5,0,0,0]),
+			).margins_(0)
+		).background_(ParamViewToolBox.color_ligth).mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+			[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+			self.selector.visible = true;
+			[ self.selector.visible, self.modEditView.visible ].debug("**** set visible");
+			defer {
+				self.selector.select_item(idx);
+			}
+		}).addUniqueMethod(\showEditor, { arg me; showEditor.(); me });
+
+		modview.followChange(self.selector, \selected_index, { arg view, selector, msg;
+			[ view, selector, msg, selector.selected_index, selector.old_selected_index, idx ].debug("selected_index");
+			[self.selector.visible, self.modEditView.visible].debug("is visible ?");
+			if(self.selector.visible.not) {
+				idx.debug("not visible, disable");
+				modview.background = ParamViewToolBox.color_ligth;
+			} {
+				if(idx == selector.selected_index) {
+					idx.debug("visible, selected, enable");
+					modview.background = Color.white;
+					showEditor.();
+				} {
+					idx.debug("visible, not selected, disable");
+					//if(idx == selector.old_selected_index) {
+						modview.background = ParamViewToolBox.color_ligth;
+					//};
+				};
+			};
+		}, false);
+
+		modview;
+	},
+));
+
+
+//// PianoCenter
+
 ProtoTemplateDef(\PianoCenter, (
-	controller_: { arg self, val;
-		self[\controller] = val;
-		self.startControl;
-		self.changed(\controller);
-	},
-
-	startControl: { arg self;
-		if(self.controller.notNil) {
-			self.controller.startControl(self.playerGroup);
-		}
-	},
-
 	proxy: { arg self;
 		Pbindef(\PianoCenter, \initialized, true)
+		//Pbindef(\PianoCenter, \instrument, \saw)
 	},
 
 	playerGroup: { arg self;
 		if(self[\playerGroup_obj].isNil) {
-			self[\playerGroup_obj] = ProtoTemplateDef(\SeqPlayerGroup).new(self.proxy).muted_(self.inArpMode)
+			self[\playerGroup_obj] = ProtoTemplateDef(\SeqPlayerGroup).new(self.proxy);
 		};
 		self[\playerGroup_obj];
 	},
 
-	inArpMode: { arg self;
-		self.arpPreset != \disabled
+	arp: { arg self;
+		self.playerGroup.arp;
 	},
 
-	arpProxy: { arg self;
-		Pdef(\PianoCenter_arp);
+	modRack: { arg self;
+		TrackDef(\PianoCenter_mod, \ModulatorRack);
 	},
 
-	arpPreset: { arg self;
-		\disabled
-	},
+	modulatorDict: { arg self;
+		if(self[\modDict_obj].isNil) {
+			TrackDef(\PianoCenter_mod, \ModulatorRack);
+			TrackDef(\PianoCenter_mod).addModulator(Ndef(\lfo1));
+			TrackDef(\PianoCenter_mod).addModulator(Ndef(\lfo2));
+			TrackDef(\PianoCenter_mod).addModulator(TrackTemplateDef(\StepSeqModulator));
+			TrackDef(\PianoCenter_mod).addModulator(TrackTemplateDef(\StepSeqModulator));
 
-	addArpListener: { arg self;
-		~currentNotes = nil!128;
-		if(self.arpListener.notNil) {
-			self.arpListener.remove;
+			self[\modDict_obj] = (
+				lfo1: TrackDef(\PianoCenter_mod).childAt(0),
+				lfo2: TrackDef(\PianoCenter_mod).childAt(1),
+				step1: TrackDef(\PianoCenter_mod).childAt(2),
+				step2: TrackDef(\PianoCenter_mod).childAt(3),
+				//env1: Ndef(\env1),
+				//env2: Ndef(\env2),
+				
+			);
 		};
-		self.arpListener = self.playerGroup.makeListener({ arg child, msg, idx;
-			//args.debug("args");
-			[msg, idx].debug("arp note");
-			if(msg == \play) {
-				~currentNotes[idx] = (midinote:idx);
-			} {
-				~currentNotes[idx] = nil;
-			}
-		});
-		self.playerGroup.muted = true;
+		self[\modDict_obj];
 	},
 
-	removeArpListener: { arg self;
-		if(self.arpListener.notNil) {
-			self.arpListener.remove;
+	recorder: { arg self;
+		self.recorderTimeline.recorder;
+	},
+
+	recorderTimeline: { arg self;
+		if(self[\recorderTimeline_obj].isNil) {
+			self[\recorderTimeline_obj] = NoteTimeline(\PianoCenter_recorderTimeline, self.proxy);
+			self[\recorderTimeline_obj].playerGroup = self.playerGroup;
+			self[\recorderTimeline_obj][\startControl] = { arg sub; self.startControl };
+			self.arp.recorder = self[\recorderTimeline_obj].recorder;
 		};
-		self.playerGroup.muted = false;
+		self[\recorderTimeline_obj]
 	},
 
-	arpPreset_: { arg self, val;
-		self[\arpPreset] = val;
-		if(val != \disabled) {
-			self.arpProxy.source = ProtoTemplateDef(\Arp).arperlive({ ~currentNotes }, self.proxy, Pdef(val));
-			self.addArpListener;
-			self.arpProxy.play;
-		} {
-			self.removeArpListener;
-			self.arpProxy.stop;
+	fxRack: { arg self;
+		ProtoDef(\PianoCenter_FxRack, \InsertFxRack);
+		ProtoDef(\PianoCenter_FxRack).fxBus; // generate fx bus to be available in gui
+		ProtoDef(\PianoCenter_FxRack);
+	},
+
+	clear: { arg self;
+		self[\arp_recorder_obj] = nil;
+		self[\normal_recorder_obj] = nil;
+		self[\modDict_obj] = nil;
+		self[\playerGroup_obj] = nil;
+	},
+
+	presetBank: { arg self;
+		if(self[\presetBank_obj].isNil) {
+			self[\presetBank_obj] = IdentityDictionary.new;
 		};
-		self.startControl;
-		self.changed(\arpPreset);
+		self[\presetBank_obj];
 	},
 
+	savePreset: { arg self;
+		var preset = IdentityDictionary.new;
+		var pg = [self.proxy.asParamGroup, self.modRack.asParamGroup, self.fxRack.asParamGroup].flatten;
+		pg.debug("pg");
+	},
+
+	//savePreset: { arg self, key;
+		//var preset = IdentityDictionary.new;
+		//preset[\synth] = ProtoTemplateDef(\SynthDefPresetBank).new(self.proxy).buildPreset;
+		//preset[\mod] = self.modRack.presetCompileString;
+		//preset[\fx] = self.fxRack.presetCompileString;
+
+		//preset[\combi] = self.proxy.asParamGroup.getCombinatorList.collect({ arg asso;
+			//asso.key -> asso.value.presetCompileString;
+		//});
+		//self.presetBank[key] = preset;
+	//},
+
+	//loadPreset: { arg self, key;
+		//var preset = self.presetBank[key];
+		//if(preset.isNil) {
+			//"No preset named %".format(key).error;
+		//} {
+			//ProtoTemplateDef(\SynthDefPresetBank).new(self.proxy).loadPresetFromObject(preset[\synth]);
+			//preset[\mod].interpret;
+			//preset[\fx].interpret;
+			//self.proxy.asParamGroup.do { arg param, idx;
+				//var item = preset[\combi].detect { arg x; x.key == param };
+				//if(item.notNil) {
+					//item.value.debug("Enable combi");
+					//item.value.interpret
+				//} {
+					//param.debug("Clear combi");
+					//param.clearCombinator(false);
+				//};
+			//};
+		//};
+	//},
+
+	presetDict: { arg self;
+		self.presetBank
+	},
+
+	getCombinatorCompileString: { arg self;
+		self.proxy.asParamGroup.getCombinatorCompileString;
+	},
+	edit: { arg self;
+		WindowDef(\PianoCenter).front(self)
+	},
 ));
-TagSpecDef(\ArpPreset).addUnique(\disabled);
-WindowDef(\PianoCenter, { arg def, model;
-	var pgView = View.new;
-	var updateView = {
-		pgView.removeAll;
-		pgView.layout = model.proxy.asParamGroup.asView;
-	};
-	pgView.followChange(model.proxy, \set, { arg view, obj, msg ...args;
-		//[view, obj, msg, args].debug("vom");
-		if(args.first == \instrument) {
-			updateView.();
-		};
-	});
-	updateView.();
-	VLayout (
+
+WindowDef(\PianoCenter, (
+	asView: { arg self, def, model;
+		var pgView = View.new;
+		var toolbar;
+		var modview;
+		var fxview = model.fxRack.asView;
+		// View.visible seems to be lagging, this is a workaround
+		self.paramGroupView = pgView;
+		self.model = model;
+
+		pgView.followChange(model.proxy, \set, { arg view, obj, msg ...args;
+			//[view, obj, msg, args].debug("vom");
+			if(args.first == \instrument) {
+				self.updateView;
+			};
+		});
+
+		self.updateView;
+
+		toolbar = self.makeToolbar;
+
+		modview = WindowDef(\ModulatorPanel).asView( 
+			[\lfo1, \lfo2, \step1, \step2].collect { arg key, idx;
+				key -> model.modulatorDict[key]
+			};
+		);
+
+		HLayout (
+			VLayout (
+				toolbar,
+				VLayout (
+					[pgView, stretch:10],
+					modview,
+				),
+				WindowDef(\TimelinePianoKeyboard).embedView(def, model.playerGroup).minHeight_(50)
+			),
+			fxview,
+		)
+	},
+
+	makeToolbar: { arg self;
+		var model = self.model;
+		var hasControl = Param(Message(model.playerGroup), \hasControl, ParamBoolSpec());
+		
 		HLayout (
 			HLayout (
 				StaticText.new.string_("Controller:"),
+				hasControl.asLED.fixedSize_(10@10).font_(Font.default.size_(9)),
 				Param(
-					Message(model),
+					Message(model.playerGroup),
 					\controller, 
 					ControllerDef.getTagSpec(\piano),
 				).asPopUpMenu,
 				nil,
-			),
+			).spacing_(5),
 			HLayout (
 				StaticText.new.string_("Instr:"),
 				Param(
@@ -119,40 +404,72 @@ WindowDef(\PianoCenter, { arg def, model;
 					TagSpecDef(\SynthDef_keys),
 				).asPopUpMenu,
 				nil,
-			),
+			).spacing_(5),
+			//Param(Message(model), \currentPreset, self.presetBank.keys).asPopUpMenu,
+
+			WindowDef(\PresetSelectorView).asView(model),
 			HLayout (
 				StaticText.new.string_("Arp:"),
 				HLayout (
 					Param(
-						Message(model),
+						Message(model.arp),
 						\arpPreset, 
 						TagSpecDef(\ArpPreset),
 					).asPopUpMenu,
-					PlayerWrapper(model.arpProxy).asView.fixedWidth_(20).label_(""),
+					PlayerWrapper(model.arp.arpProxy).asView.fixedWidth_(20).label_(""),
 				).margins_(0).spacing_(0),
 				nil,
-			),
-			nil
-		).margins_(0).spacing_(10),
-		pgView,
-		WindowDef(\TimelinePianoKeyboard).embedView(def, model.playerGroup).minHeight_(50)
-	)
-}).front(ProtoTemplateDef(\PianoCenter));
-)
-TagSpecDef(\ArpPreset).valueList
-ProtoTemplateDef(\PianoCenter).proxy.play
-ProtoTemplateDef(\PianoCenter).controller
-ProtoTemplateDef(\PianoCenter).inArpMode
-ProtoTemplateDef(\PianoCenter).arpPreset
-ProtoTemplateDef(\PianoCenter).arpProxy.source
-ProtoTemplateDef(\PianoCenter).arpProxy.play
-~currentNotes.select(_.notNil)
+			).spacing_(5),
+			HLayout (
+				StaticText.new.string_("Tempo:"),
+				Param(
+					Message(TempoClock.default),
+					\tempo, 
+				).asTextField,
+				nil
+			).spacing_(5),
+			HLayout (
+				BasicButton.new.string_("Timeline").action_({
+					model.recorderTimeline.edit;
+				}),
+				RecordButton.new(model, \recorder, "Rec").view.fixedWidth_(40),
+			).spacing_(0)
+		).margins_(0).spacing_(10);
+	},
 
-~pg = ProtoTemplateDef(\SeqPlayerGroup).new(Pbindef(\PianoCenter))
-~pg.elAt(60).play
-Param(Message(ProtoTemplateDef(\PianoCenter)), \arpPreset, TagSpecDef(\ArpPreset))
+	updateView: { arg self;
+		var pgView = self.paramGroupView;
+		var model = self.model;
+		pgView.removeAll;
+		//pgView.layout = model.proxy.asParamGroup.asView;
+		pgView.layout = VLayout(
+			* model.proxy.asParamGroup.rejectByProperty([\dur,\legato,\freq]).collect { arg param, idx;
+				WindowDef(\FormEntryMod).asView(param);
+			};
+		)
+	},
+));
 
-(
+
+////
+
+ProtoTemplateDef(\PianoCenter).proxy.source.set(\instrument, \saw);
+//ProtoTemplateDef(\PianoCenter).edit;
+Ndef(\lfo1, { arg freq=1, gain=1; 
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig1 = SinOsc.kr(freq);
+	sig2 = LFTri.kr(freq);
+	sig3 = LFSaw.kr(freq);
+	sig4 = LFPulse.kr(freq);
+	sig = SelectX.kr(\shape.kr(0)*3, [sig1, sig2, sig3, sig4]);
+	sig = sig *gain;
+	sig;
+});
+Ndef(\lfo1).addSpec(\freq, \lofreq).addSpec(\shape, \unipolar);
+Ndef(\lfo2).source = Ndef(\lfo1).source;
+Ndef(\lfo2).addSpec(\freq, \lofreq).addSpec(\shape, \unipolar);
+
 Pdef(\basearp,
 	Pbind(
 		\dur, 1/8,
@@ -161,7 +478,194 @@ Pdef(\basearp,
 		//\octaveshift, Pseq([0,0,-1,0,0,1],inf),
 	)
 );
-TagSpecDef(\ArpPreset).addUnique(\basearp);
+Pdef(\slowarp,
+	Pbind(
+		\dur, 1/4,
+		\legato, 0.8,
+		\amp, 0.1,
+		\idx, Pseq((0..3),inf),
+		//\octaveshift, Pseq([0,0,-1,0,0,1],inf),
+	)
+);
+TagSpecDef(\ArpPreset).addUnique(\basearp).addUnique(\slowarp);
+s.boot;
+)
+
+// END
+///////////////////////
+
+// TODO
+// - now save all mod and fx and not use compilestring
+// - all in bus mode ?
+
+ProtoTemplateDef(\PianoCenter).modRack.presetCompileString
+ProtoTemplateDef(\PianoCenter).fxRack.presetCompileString.editorInsert
+ProtoTemplateDef(\PianoCenter).fxRack.asParamGroup.do({ arg x; x.debug("--") })
+ProtoTemplateDef(\PianoCenter).fxRack.fxList[0].asCompileString
+
+Message
+
+Dictionary
+ProtoTemplateDef(\PianoCenter).presetBank[\aa][\combi].asCompileString
+~p = Param(Pbindef(\PianoCenter), \lpfr)
+~p.set(2)
+~p.wrapper.accessor
+~p.isSet
+~p.target.envir
+~p2 = Param(Pbindef(\PianoCenter), \lpfr)
+~p == ~p2
+~p.identityHash
+~p2.identityHash
+~p.hash
+~p2.hash
+ProtoTemplateDef(\PianoCenter).presetBank[\aa][\combi][Param(Pbindef(\PianoCenter), \lpfr)]
+ProtoTemplateDef(\PianoCenter).presetBank[\aa][\combi][~p]
+ProtoTemplateDef(\PianoCenter).presetBank[\aa][\combi][~p2]
+ProtoTemplateDef(\PianoCenter).presetBank[\bb][\combi].asAssociations.first.value.interpret
+ProtoTemplateDef(\PianoCenter).presetBank[\bb][\combi].asAssociations
+ProtoTemplateDef(\PianoCenter).presetBank[\zzz][\combi]
+Knob.background
+
+ProtoTemplateDef(\PianoCenter).modDict_obj = nil
+ProtoTemplateDef(\PianoCenter).clear
+ProtoTemplateDef(\PianoCenter).proxy.asParamGroup.asPropertyDict[\lpfr].getCombinator.inputObjects[0].param
+ProtoTemplateDef(\PianoCenter).proxy.asParamGroup.asPropertyDict[\lpfr].getCombinator.inputObjects[0].presetCompileString
+ProtoTemplateDef(\PianoCenter).proxy.asParamGroup.asPropertyDict[\lpfr].getCombinator.targetParam
+ProtoTemplateDef(\PianoCenter).proxy.asParamGroup.asPropertyDict[\lpfr].getCombinator.existingInputObjects
+ProtoTemplateDef(\PianoCenter).getCombinatorCompileString.editorInsert
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(Ndef('lfo1'), range: 0.4);
+
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(Ndef(\lfo1), range: 0.4);
+
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(1), range: -1.0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput('freq', range: 1.0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput('velocity', range: 1.0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput('freq', range: -0.66869897645844);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(0), range: 0.51647461527232);
+
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(1), range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput('freq', range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput('velocity', range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput('freq', range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(0), range: 0);
+
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput('velocity', range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput('freq', range: 0);
+
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(0), range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput('freq', range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput('freq', range: 0);
+
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(0), range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput('velocity', range: 0);
+
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(0), range: 0);
+
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(1), range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput('freq', range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput('freq', range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(1), range: 0);
+
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(1), range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput('freq', range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput('freq', range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(1), range: 0);
+
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(1), range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(freq, range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(freq, range: 0);
+ParamCombinator(Param(Pbindef('PianoCenter'), 'spread')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(1), range: 0);
+
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(1), range: 0);ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(1), range: 0);
+);
+(
+ParamCombinator(Param(Pbindef('PianoCenter'), 'lpfr')).mapObjectToInput(TrackDef('PianoCenter_mod').childAt(0), range: 0.133220710146);
+);
+~pr = ProtoTemplateDef(\PianoCenter).proxy
+~pr.asParamGroup.getParamCompileString
+ParamGroup
+PlayerWrapper(~pr).getPbindCompileString
+TrackDef(\PianoCenter_mod).edit
+TrackDef(\PianoCenter_mod).childAt(0).source
+
+ParamProto.init(true)
+
+NoteTimeline(\bla).edit
+ControllerDef
+~t = 185/2/60; TempoClock.default.tempo = ~t;
+~install.()
+~pc.edit
+
+~p = Param(ProtoTemplateDef(\PianoCenter).proxy, \lpfr)
+~p.hasCombinator
+~p.get
+~p.getRaw
+~pc = ~p.getCombinator
+~pc = ~param.getCombinator
+~pc.edit
+~pc.nextFreeInput
+~pc.proxy.get(\inputs)
+~pc.mapNodeProxyToInput(Ndef(\lfo2))
+~pc.inputObjects
+Ndef(\lfo1).asMap
+~param.at(\source).getRaw.inputParam.get
+~param.at(\source).getRaw.asMap
+~param.at(\source).spec
+~param.getCombinator.targetParam.spec
+~pc.proxy.get(\out)
+~pc.proxy.asMap
+~pc.targetParam.getRaw
+~pc.inputObjects.first.label
+~pc.inputObjects.first.label
+~pc.inputObjects.first.proxy.source
+~pc.inputObjects.first.proxy.play
+~pc.inputObjects.first.isPlaying
+~pc.inputObjects.first.proxy.source.isPlaying
+~param
+
+ScrollView
+TagSpecDef(\ArpPreset).valueList
+ProtoTemplateDef(\PianoCenter).proxy.play
+ProtoTemplateDef(\PianoCenter).controller
+ProtoTemplateDef(\PianoCenter).arp.inArpMode
+ProtoTemplateDef(\PianoCenter).recorder.inArpMode
+ProtoTemplateDef(\PianoCenter).recorder.inArpMode
+ProtoTemplateDef(\PianoCenter).arpPreset
+ProtoTemplateDef(\PianoCenter).arpProxy.source
+ProtoTemplateDef(\PianoCenter).arpProxy.play
+ProtoTemplateDef(\PianoCenter).arpProxy.play
+ProtoTemplateDef(\PianoCenter).playerGroup_obj = nil
+~currentNotes.select(_.notNil)
+
+
+~pg = ProtoTemplateDef(\SeqPlayerGroup).new(Pbindef(\PianoCenter))
+~pg.elAt(60).play
+Param(Message(ProtoTemplateDef(\PianoCenter)), \arpPreset, TagSpecDef(\ArpPreset))
+
+(
 )
 
 
@@ -181,15 +685,10 @@ ProtoTemplateDef(\PianoCombinator, (
 	install: { arg self;
 		self.combiList.do { arg item, idx;
 			if(item.source.notNil and: { item.target.notNil }) {
-				item.target.setRaw(Pfunc({ arg ev; 
-					var sourceval = ev.use { currentEnvironment[item.source].value };
-					var sourcespec = Param(self.proxy, item.source).spec;
-					var targetspec = item.target.spec;
-
-
-
-				}));
-
+				var pc = ParamCombinator(item.target);
+				var pcidx;
+				pcidx = pc.mapPatternKeyToInput(item.source);
+				[pc, pcidx, item.source].debug("installed");
 			};
 			
 		};
@@ -202,12 +701,13 @@ ProtoTemplateDef(\PianoCombinator, (
 
 ));
 WindowDef(\PianoCombinator, { arg def, model;
+	var routerlayout;
 	var sources = [
 		nil,
 		\freq,
 		\velocity,
 	];
-	VLayout (
+	routerlayout = VLayout (
 		* model.combiList.collect { arg item, idx;
 			HLayout (
 				Param(item, \source, TagSpec(sources)).asPopUpMenu,
@@ -216,8 +716,571 @@ WindowDef(\PianoCombinator, { arg def, model;
 			)
 		} ++ [nil];
 		
+	);
+	VLayout (
+		BasicButton.new.string_("Install").action_({
+			model.install;
+		}),
+		routerlayout,
 	)
 	
 }).front(ProtoTemplateDef(\PianoCombinator));
 
 )
+
+
+
+///////////////// test velocity combinator
+
+
+(
+Spec.add(\velocity, ControlSpec(0,127,\lin));
+Pbindef(\testcombi, 
+		\instrument, \saw,
+		\degree, Pseq([0,Pwhite(0,7,1)],inf),
+		\velocity, Pseq([1,60, 100],inf),
+		\dur, 1,
+		\amp, 0.1,
+);
+);
+Pbindef(\testcombi).play
+
+~p = Param(Pdef(\testcombi), \lpfr -> \source)
+~p.set(2)
+~pc = ParamCombinator(~p)
+~pc.mapPatternKeyToInput(\velocity)
+~pc.edit
+~pv = Param(Pdef(\testcombi), \velocity).edit
+
+Param(Ndef(\lfo1), \shape).isSynthDefParameter
+Param(Ndef(\lfo1), \shape).instrument
+
+Ndef(\lfo1).wakeUp
+/////////////////////kkkkkkk
+
+
+////////////////// pattern recorder
+
+(
+	ProtoTemplateDef(\PatternRecorder, (
+		new: { arg self, pat;
+			
+		},
+
+		signalPattern: { arg self;
+			Pbind(
+				\callback, { arg ev;
+					self.asPlayerEvent = ev;
+					self.changed(\play);
+					thisThread.clock.sched(ev.use { ~sustain.value }, { self.changed(\stop) })
+				}
+			);
+		},
+
+		//asPlayerEvent: { arg self;
+			//self.recordedEvent;
+		//},
+
+		makeListener: { arg self, fun;
+			self.controller.remove;
+			self.controller = SimpleController(self).put(\play, {
+				debug("play ev");
+				fun.(self, \play);
+			}).put(\stop, {
+				debug("stop ev");
+				fun.(self, \stop);
+			});
+			self.controller;
+		},
+
+	));
+ParamProto.init;
+)
+
+(
+Pdef(\torec, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0,2,4,1],inf),
+		\dur, 1/2,
+		\amp, 0.1,
+	)
+	<>
+	ProtoTemplateDef(\PatternRecorder).signalPattern
+).play;
+);
+
+~rec= ProtoTemplateDef(\PlayerGroupRecorder).new(ProtoTemplateDef(\PatternRecorder))
+~rec.eventList
+~rec.startRecording
+~rec.stopRecording
+
+ProtoTemplateDef(\PatternRecorder).makeListener({ arg ...args; args.debug("args") })
+
+(
+)
+ProtoTemplateDef(\PianoCenter).recorderTimeline.eventList.collect({ arg x; x.type })
+ProtoTemplateDef(\PianoCenter).recorderTimeline.eventList[1]
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+ControllerDef
+
+
+(
+	WindowDef(\ArpNoteTimeline, { arg def, noteTimeline;
+		var arpView;
+		noteTimeline = noteTimeline ?? { NoteTimeline(\testarp) };
+
+		VLayout (
+			arpView,
+			NoteTimeline(\hoho).asView
+		)
+		
+	}).front;
+)
+
+(
+	FileSystemProject.load("paramdev/drafts/arpegiator.scd");
+s.boot;
+~initialize_jack.();
+	ProtoTemplateDef(\ArpPat, (
+		proxy: { arg self;
+			Pdef(\defpat, Pbind(\instrument, \saw))
+		},
+
+		//// controller
+
+		playerGroup: { arg self;
+			if(self[\playerGroup_obj].isNil) {
+				self[\playerGroup_obj] = ProtoTemplateDef(\SeqPlayerGroup).new(self.proxy)
+			};
+			self[\playerGroup_obj];
+		},
+
+		//// arp
+
+		arp: { arg self;
+			if(self[\arp_obj].isNil) {
+				self[\arp_obj] = ProtoTemplateDef(\Arpegiator).new(self.playerGroup);
+			};
+			self[\arp_obj]
+		},
+
+	));
+	WindowDef(\ArpPat, { arg def, model;
+
+		HLayout (
+			PlayerWrapper(model.proxy),
+			HLayout (
+				StaticText.new.string_("Controller:"),
+				//hasControl.asButton("X"),
+				Param(
+					Message(model.playerGroup),
+					\controller, 
+					ControllerDef.getTagSpec(\piano),
+				).asPopUpMenu,
+				nil,
+			).spacing_(5),
+			HLayout (
+				StaticText.new.string_("Arp:"),
+				model.arp.asArpButton,
+				nil,
+			).spacing_(5),
+			HLayout (
+				StaticText.new.string_("Tempo:"),
+				Param(
+					Message(TempoClock.default),
+					\tempo, 
+				).asTextField,
+				nil
+			).spacing_(5),
+		).margins_(10).spacing_(10);
+		
+	}).front(ProtoTemplateDef(\ArpPat));
+
+Pdef(\basearp,
+	Pbind(
+		\dur, 1/8,
+		\amp, 0.1,
+		\idx, Pseq((0..3),inf),
+		//\octaveshift, Pseq([0,0,-1,0,0,1],inf),
+	)
+);
+Pdef(\slowarp,
+	Pbind(
+		\dur, 1/4,
+		\legato, 0.8,
+		\amp, 0.1,
+		\idx, Pseq((0..3),inf),
+		//\octaveshift, Pseq([0,0,-1,0,0,1],inf),
+	)
+);
+TagSpecDef(\ArpPreset).addUnique(\basearp).addUnique(\slowarp);
+)
+
+
+(
+	WindowDef(\LED, { arg param;
+
+		StaticText.new.string_("◉").stringColor_(Color.green)
+	}).front
+)
+
+(
+	~model = (isActive:true);
+	WindowDef(\win, { arg def;
+		//Param(~model, \isActive, ParamBoolSpec()).asLED.fixedSize_(8@8).font_(Font.default.size_(8))
+		Param(~model, \isActive, ParamBoolSpec()).asLED
+	}).front;
+)
+
+
+///////////
+
+~protordn_to_fbstring.(ProtoDef(\rdn)).editorInsert
+(
+
+SynthDef(\rdn_terrorbass, { arg out=0, gate=1;
+	// code: 5-AC2A-D7LV
+	var si, env = ();
+	var in = InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio)), 2); 
+	var code, rdnkey;
+
+	var sig;
+	var sigin;
+	var del, shi;
+	var del2, shi2;
+	var distamp;
+	var hasFreq, afreq;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var pitchlag;
+	var pitchmix;
+	var fb, fb1, fb2;
+	var gain;
+	var mix;
+	var indelay;
+	//"default_make_graph".debug("!!!");
+	rdnkey = rdnkey ? \default;
+	code = code ? "4--";
+	sig = in;
+	mix = \mix.kr(0.5);
+	gain = \gain.kr(1);
+	fb = \fb.kr(0.001);
+	del = \delay.kr(0.001,0.1);
+	del2 = \delay2.kr(0.001,0.1);
+	shi = \shift.kr(0);
+	shi2 = \shift2.kr(0);
+	distamp = \distamp.kr(1);
+	pitchlag = \pitchlag.kr(1/8) / TempoClock.default.tempo;
+	pitchmix = \pitchmix.kr(0);
+
+	sig = LPF.ar(sig, \prelpf.kr(17000));
+	sig = HPF.ar(sig, \prehpf.kr(17));
+
+	sig = sig + (LocalIn.ar(2) * fb);
+
+	sig = LPF.ar(sig, \lpf.kr(17000));
+	sig = HPF.ar(sig, \hpf.kr(17));
+	thisThread.randSeed = 433855.0;
+	si = sig;
+	sig = { arg si, env;
+		si = (si * 10.rand * \distamp.kr).tanh / 2;
+		si = FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift.kr) + si / 1.2;
+		si = FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift2.kr) + si / 1.2;
+		si = BPF.ar(si, exprand(100,10000), 0.5.rand + 0.01) + ( si / 4 );
+		si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * SinOsc.kr(0.5.rand).range(1,1.1) * \delay2.kr) + si;
+		si = BRF.ar(si, exprand(100,10000), 0.5.rand + 0.01) + ( si / 4 );
+		si = FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift2.kr) + si / 1.2;
+		si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+		si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+		si = [
+			{ arg si, env;
+				si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+				si = BPF.ar(si, exprand(100,10000), 0.5.rand + 0.01) + ( si / 4 );
+				si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+				si = [
+					{ arg si, env;
+						si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+					}.value(si, env);
+					,
+					{ arg si, env;
+						si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+					}.value(si, env);
+
+				].mean;
+				si = (si * 10.rand * \distamp.kr).tanh / 2;
+				si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+			}.value(si, env);
+			,
+			{ arg si, env;
+				si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+				si = FreqShift.ar(si, 1.0.rand * [1,-1].choose * \shift2.kr) + si / 1.2;
+				si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+				si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+				si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay2.kr) + si;
+				si = [
+					{ arg si, env;
+						si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+					}.value(si, env);
+					,
+					{ arg si, env;
+						si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+					}.value(si, env);
+					,
+					{ arg si, env;
+						si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+					}.value(si, env);
+					,
+					{ arg si, env;
+						si = DelayL.ar(si, 0.8, rrand(0.01,0.8) * [1, 1+0.01.rand] * \delay.kr) + si;
+					}.value(si, env);
+
+				].mean;
+			}.value(si, env);
+
+		].mean;
+	}.value(si, env);
+
+
+	sig1 = sig.tanh * \fbdistamp.kr(1/2);
+	sig = SelectX.ar(\fbdistmix.kr(1), [sig, sig1]);
+
+	sig = Limiter.ar(sig);
+
+	sig1 = sig;
+	#afreq, hasFreq = Pitch.kr(sig1).flop;
+	sig1 = BRF.ar(sig1, afreq.lag(pitchlag));
+	#afreq, hasFreq = Pitch.kr(sig1).flop;
+	sig1 = BRF.ar(sig1, afreq.lag(pitchlag));
+	sig = SelectX.ar(pitchmix, [sig, sig1]);
+
+	LocalOut.ar(sig);
+	sig = LPF.ar(sig, \postlpf.kr(17000));
+	sig = HPF.ar(sig, \posthpf.kr(17));
+	sig = Limiter.ar(sig);
+	sig = sig * \wetamp.kr(1);
+
+	indelay = \indelay.kr(0);
+	sigin = DelayL.ar(in, 0.2, indelay);
+	sig = SelectX.ar(mix, [sigin, sig]);
+	sig = sig * gain;
+	//sig.debug("end sig");
+	sig;
+
+
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.001,0,1,0.001)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
+
+		
+Pbind(
+	'wet10', 1.0,
+	'mix', 0.52521008403361,
+	'gain', 0.43697478991597,
+	'fb', 0.0001,
+	'delay', 0.55962764453196,
+	'delay2', 0.0001,
+	'shift', 0.0,
+	'shift2', 0.12605042016807,
+	'distamp', 57.610839222447,
+	'pitchlag', 1.0,
+	'pitchmix', 0.0,
+	'prelpf', 17000,
+	'prehpf', 17,
+	'lpf', 17000,
+	'hpf', 17,
+	'fbdistamp', 0.47619047619048,
+	'fbdistmix', 0.91176470588235,
+	'postlpf', 17000,
+	'posthpf', 17,
+	'wetamp', 0.46579739809918,
+	'indelay', 0.04,
+	'wet20', 1.0,
+	'mamp', 1,
+)
+
+		
+);
+
+(
+Pdef(\part2, Pdef(\zedpart2, 
+	Ppar([
+		Pbind(
+			\instrument, \saw,
+			\note, Pseq([
+				0,5,3,-3,
+			],inf),
+			\lpfr, 5,
+			\legato, 0.8,
+			\octave, 3,
+			\dur, 4,
+			\amp, 0.1,
+			\out, BusDef(\pfx1, \audio),
+		),
+		Pmono(\rdn_terrorbass,
+			\inbus, BusDef(\pfx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\dur, 1,
+		) <> 
+Pbind(
+	'wet10', 1.0,
+	'mix', 0.52521008403361,
+	'gain', 0.13697478991597,
+	'fb', 0.0001,
+	'delay', 0.50002764453196,
+	'delay2', 0.1001,
+	'shift', 0.1,
+	'shift2', 0.02605042016807,
+	'distamp', 57.610839222447,
+	'pitchlag', 1.0,
+	'pitchmix', 0.0,
+	'prelpf', 17000,
+	'prehpf', 17,
+	'lpf', 17000,
+	'hpf', 17,
+	'fbdistamp', 0.47619047619048,
+	'fbdistmix', 0.91176470588235,
+	'postlpf', 17000,
+	'posthpf', 17,
+	'wetamp', 0.46579739809918,
+	'indelay', 0.04,
+	'wet20', 1.0,
+	'mamp', 1,
+)
+		
+	])
+)).play;
+);
+
+
+
+~t = 150/2/60; TempoClock.default.tempo = ~t;
+(
+// galope
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[688].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\out, BusDef(\pifx1, \audio),
+		),
+		Pmono(\fx_echo,
+			\inbus, BusDef(\pifx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\decay, 2,
+			\mix, 0.2,
+			\delay, 3/8/~t,
+			\dur, 1,
+		),
+		
+		Pbind(
+			\instrument, \saw,
+			\note, Pseq([
+				0,5,3,-3,
+			],inf),
+			\lpfr, 5,
+			\legato, 0.8,
+			\octave, 3,
+			\dur, 2,
+			\amp, 0.2,
+			\out, BusDef(\pfx1, \audio),
+		),
+		Pmono(\rdn_terrorbass,
+			\inbus, BusDef(\pfx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\dur, 1,
+		) <> 
+Pbind(
+	'wet10', 1.0,
+	'mix', 0.52521008403361,
+	'gain', 0.43697478991597,
+	'fb', 0.0001,
+	'delay', 0.50002764453196,
+	'delay2', 0.1001,
+	'shift', 0.1,
+	'shift2', 0.02605042016807,
+	'distamp', 57.610839222447,
+	'pitchlag', 1.0,
+	'pitchmix', 0.0,
+	'prelpf', 17000,
+	'prehpf', 17,
+	'lpf', 17000,
+	'hpf', 17,
+	'fbdistamp', 0.47619047619048,
+	'fbdistmix', 0.91176470588235,
+	'postlpf', 17000,
+	'posthpf', 17,
+	'wetamp', 0.46579739809918,
+	'indelay', 0.04,
+	'wet20', 1.0,
+	'mamp', 1,
+)
+	])
+)).play;
+);
+
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+	])
+)).play;
+);
+
+(
+Pdef(\zert, 
+	Pbind(
+		\instrument, \saw,
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+Pdef(\zert).edit
+
+(
+Pdef(\huhu, 
+	Pbind(
+		\instrument, \saw,
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+Pdef(\huhu).edit
+
+ParamGroupDef(\SynthDef_saw).presets.keys
+ParamGroupDef(\SynthDef_saw).do(_.postln)

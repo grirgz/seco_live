@@ -4,7 +4,7 @@
 // - stepseq modulator but with slopes
 
 (
-FileSystemProject.loadOnce("libdef/CustomTrackList.scd");
+//FileSystemProject.loadOnce("libdef/CustomTrackList.scd");
 FileSystemProject.loadOnce("libdef/ScopeView.scd");
 FileSystemProject.loadOnce("libdef/ParamRouter.scd");
 
@@ -30,9 +30,9 @@ SynthDef(\modsaw, { arg out=0, gate=1, gain=1, freq=2;
 	freq: \lofreq,
 ))).add;
 
-SynthDef(\modconst, { arg out=0, gate=1, gain=1, bias=0;
+SynthDef(\modconst, { arg out=0, gate=1, gain=1, bias=0, lag=0;
 	var sig;
-	sig = K2A.ar(bias);
+	sig = K2A.ar(bias).lag(lag);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = sig * gain;
 	Out.ar(out, sig);
@@ -60,7 +60,19 @@ TrackTemplateDef(\ModulatorRack, (
 	addModulator: { arg self, trackTemplate;
 		var idx = self.nextFreeIndex;
 		if(trackTemplate.notNil) {
-			self.childAt(idx).trackTemplate = trackTemplate;
+			if(trackTemplate.isKindOf(TrackTemplateDef)) {
+				self.childAt(idx).trackTemplate = trackTemplate;
+			};
+			if(trackTemplate.isKindOf(Symbol)) {
+				trackTemplate = TrackTemplateDef(trackTemplate);
+				self.childAt(idx).trackTemplate = trackTemplate;
+			};
+			if(trackTemplate.isKindOf(NodeProxy)) {
+				var proxy = trackTemplate;
+				trackTemplate = TrackTemplateDef(\NodeProxyModulator);
+				self.childAt(idx).trackTemplate = trackTemplate;
+				self.childAt(idx).source = proxy;
+			};
 		};
 		self.childAt(idx).makeScore;
 		self.childAt(idx).outBus = BusDef((\amodbus++idx).asSymbol, \audio, 1);
@@ -72,9 +84,21 @@ TrackTemplateDef(\ModulatorRack, (
 		self.childAt(idx).clearPart;
 		self.changed(\children)
 	}, 
+
+	presetCompileString: { arg self;
+		var str = List[];
+
+		str.add("%.trackTemplate = %;".format(self.refCompileString, self.trackTemplate.asCompileString));
+		str.add("%.label = %;".format(self.refCompileString, self.label.asCompileString));
+		self.existingChildren.do { arg child, idx;
+			str.add("");
+			str.add(child.presetCompileString);
+		};
+		str.join("\n");
+	},
 ));
 
-TrackTemplateDef(\ModulatorRackPart, (
+TrackTemplateDef(\ModulatorRackPart, ( // synthdef
 	parent: TrackTemplateDef(\CustomInstrumentTrackPart),
 
 	modulatorType: \SynthDef,
@@ -121,6 +145,26 @@ TrackTemplateDef(\ModulatorRackPart, (
 		//self.stop;
 		
 	},
+
+	scorePresetCompileString: { arg self;
+		var str = "%.source = %;\n".format(self.refCompileString, self.source.asCompileString);
+		str = str ++ self.source.asParamGroup.getSetCompileString;
+		str;
+	},
+
+	presetCompileString: { arg self;
+		// FIXME: need to clarify the difference between source and score
+		if(self.isEmpty) {
+			nil
+		} {
+			var str = List[];
+
+			//str.add("%.score = %;".format(self.refCompileString, self.score.asCompileString));
+			str.add("%.trackTemplate = %;".format(self.refCompileString, self.trackTemplate.asCompileString));
+			str.add("%".format(self.scorePresetCompileString ?? { "" }));
+			str.join($\n)
+		}
+	},
 ));
 TagSpecDef(\ModulatorTemplate).addUnique(\SynthDef -> TrackTemplateDef(\ModulatorRackPart));
 
@@ -156,6 +200,12 @@ TrackTemplateDef(\ParamTimelineModulator, (
 		} {
 			StaticText.new.string_("Empty")
 		}
+	},
+
+	scorePresetCompileString: { arg self;
+		var str = "%.source = %;\n".format(self.refCompileString, self.source.asCompileString);
+		str = str ++ self.source.presetCompileString;
+		str;
 	},
 
 ));
@@ -209,21 +259,83 @@ TrackTemplateDef(\StepSeqModulator, (
 		};
 	},
 
+	asView: { arg self;
+		self.asPreview
+	},
 
 	asPreview: { arg self;
 		if(self.stepseqParam.notNil) {
+			var pview = self.stepseqParam.asView;
+			pview.slider.maxHeight_(100);
 			VLayout (
-				self.stepseqParam.asView,
+				pview,
 				Param(self.baseProxy, \dur -> \source).asView,
+				Param(self.baseProxy, \lag -> \source).asView,
 			)
 		} {
 			StaticText.new.string_("Empty")
 		}
 	},
 
+	scorePresetCompileString: { arg self;
+		var str = str ++ "%.makeScore;\n".format(self.refCompileString);
+		str = str ++ "%.stepseqParam.set(%);\n".format(self.refCompileString, self.stepseqParam.get);
+		str;
+	},
+
 ));
 TagSpecDef(\ModulatorTemplate).addUnique(\StepSeq -> TrackTemplateDef(\StepSeqModulator));
 
+TrackTemplateDef(\NodeProxyModulator, (
+	parent: TrackTemplateDef(\ModulatorRackPart),
+
+	modulatorType: \NodeProxy,
+
+
+	outBus: { arg self;
+		//if(self.source.notNil) { Param(self.source, \out).get } ?? { self.parentTrack.outBus };
+		PlayerWrapper(self.source).outBus;
+	},
+
+	outBus_: { arg self, val;
+		PlayerWrapper(self.source).outBus = val;
+	},
+
+	//source_: { arg self, val;
+		//self[\source] = val;
+		//self[\proxy] = PlayerWrapper(self.source)
+	//},
+
+	makeScore: { arg self;
+		self.source = self.source ?? { Ndef(\NodeProxyModulator_default) };
+	},
+
+	asPreview: { arg self;
+		if(self.source.notNil) {
+			self.source.asParamGroup.selectSynthDefParams.rejectByKey([\out,\adsr]).asView;
+		} {
+			StaticText.new.string_("Empty")
+		}
+	},
+
+	asView: { arg self;
+		self.asPreview;
+	},
+
+	stopInternal: { arg self;
+		// this is called when another child start playing
+		// can be overridden when parentTrack.proxy should not be stopped, like in FileCodeTrack
+		//self.stop;
+		
+	},
+
+	scorePresetCompileString: { arg self;
+		var str = "%.source = %;\n".format(self.refCompileString, self.source.asCompileString);
+		str = str ++ self.source.asParamGroup.getSetCompileString;
+		str;
+	},
+));
+TagSpecDef(\ModulatorTemplate).addUnique(\NodeProxy -> TrackTemplateDef(\NodeProxyModulator));
 
 // gui
 
@@ -334,6 +446,7 @@ TrackDef(\ModulatorRack, TrackTemplateDef(\ModulatorRack));
 //////////////////////////////////////////
 
 TrackDef(\ModulatorRack).edit;
+TrackDef(\ModulatorRack).presetCompileString
 TrackDef(\ModulatorRack).existingChildren
 TrackDef(\ModulatorRack).childAt(0).asPreview
 TrackDef(\ModulatorRack).childAt(0).clear
@@ -597,3 +710,33 @@ WindowDef(\win, { arg def;
 	
 }).front;
 )
+
+////////
+
+TrackDef(\nod, \NodeProxyModulator)
+TrackDef(\nod).source_(Ndef(\lfo1))
+TrackDef(\nod).source
+TrackDef(\nod).proxy
+
+TrackDef(\mymod, \StepSeqModulator)
+TrackDef(\mymod).edit
+TrackDef(\mymod).keys
+TrackDef(\mymod).makeScore
+~pp = ProtoClass((parent: TrackTemplateDef(\StepSeqModulator)))
+~pp.makeScore
+
+(
+WindowDef(\win, { arg def;
+	
+	//TrackDef(\mymod).asPreview
+	//~pp.asPreview
+	VLayout (
+		PlayerWrapper(TrackDef(\PianoCenter_mod_step1)).asView,
+			TrackDef(\PianoCenter_mod_step1).asView
+	)
+}).front;
+)
+		TrackDef(\PianoCenter_mod_step1).outBus
+	TrackDef(\PianoCenter_mod_lfo1).keys
+	TrackDef(\PianoCenter_mod_lfo1).proxy
+	TrackDef(\PianoCenter_mod_lfo1).source
