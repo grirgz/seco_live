@@ -415,6 +415,7 @@ WindowDef(\ModulatorStrip, (
 		var ev;
 		var idx;
 		var key = self.selectedParam.propertyRoot;
+		var direction = 1;
 
 		#ev, idx = self.getEventIdxAtPos(pxpos);
 
@@ -445,9 +446,12 @@ WindowDef(\ModulatorStrip, (
 			idx	= xrel / self.cellWidth;
 			idx = idx.asInteger;
 			[ self.createdEventAbsTime, ev.absTime, idx, self.cellWidth, self.createdEventAbsTime + (idx * self.cellWidth) ].debug("first abstime, ev abstime, idx, cellwidth, result");
-			if(idx < 0) {
-				ev.absTime = ev.absTime + (idx * self.cellWidth);
-				ev.sustain = max(ev.sustain, ev.sustain + ( ( idx.abs ) * self.cellWidth ));
+			if(idx <= 0) {
+				ev.absTime = ev.absTime + (idx-1 * self.cellWidth);
+				ev.sustain = max(ev.sustain, ev.sustain + ( ( ( idx+1 ).abs ) * self.cellWidth ));
+				direction = -1;
+				// TODO: should shift the current sequences to the left
+				// insert0 instead of adding ?
 			} {
 				ev.sustain = max(ev.sustain, ( idx.abs+1 ) * self.cellWidth);
 			};
@@ -495,7 +499,12 @@ WindowDef(\ModulatorStrip, (
 				};
 				if(idx >= ev.localSeq[key].size) {
 					var more = idx - ( ev.localSeq[key].size-1 );
-					ev.localSeq[key] = List.newFrom(ev.localSeq[key] ++ ( self.selectedTrackParam.get!num ));
+					if(direction == 1) {
+						ev.localSeq[key] = List.newFrom(ev.localSeq[key] ++ ( self.selectedTrackParam.get!num ));
+					} {
+						ev.localSeq[key] = List.newFrom(( self.selectedTrackParam.get!num ) ++ ev.localSeq[key]);
+						
+					};
 				};
 				ev.localSeq[key][idx] = val;
 			};
