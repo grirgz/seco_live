@@ -215,8 +215,22 @@ WindowDef(\ModulatorStrip, (
 
 	},
 
+	selectEventInTimeline: { arg self, ev;
+		var node = self.model.masterTimeline.nodes.detect { arg x; x.model == ev };
+		self.model.masterTimeline.deselectAllNodes;
+		self.model.masterTimeline.selectNode(node);
+	},
+
+	createEventInTimeline: { arg self, pxpos;
+		var gypos = self.model.fxTimelinePanel.selectedFxIndex;
+		var gxpos = self.model.masterTimeline.pixelPointToGridPoint(Point(pxpos, 0)).x.trunc(self.cellWidth);
+		var ev = self.model.masterTimeline.eventFactory(Point(gxpos,gypos), self.cellWidth);
+		self.model.fxTimelinePanel.eventList.addEvent( ev );
+		ev;
+	},
 
 	refresh: { arg self;
+		self.installVisibleListeners;
 		self.view.refresh;
 	},
 
@@ -231,6 +245,53 @@ WindowDef(\ModulatorStrip, (
 		self.view.followChange(self.model.fxTimelinePanel, \selectedParam, {
 			self.refresh;
 		});
+		
+	},
+
+	installVisibleListeners: { arg self, evlist;
+		var key;
+		var modtype;
+		//"installVisibleListeners".debug;
+		evlist = evlist ?? {self.getLineEvents};
+		if(self.visibleListeners.notNil) {
+			self.visibleListeners.do { arg item, idx;
+				item.remove;
+			};
+		};
+		self.visibleListeners = List.new;
+		if(self.selectedParam.notNil) {
+			key = self.selectedParam.propertyRoot;
+			//[key].debug("listener for key");
+			evlist.do { arg ev, idx;
+				if(ev.modulatorType.notNil) {
+					modtype = ev.modulatorType[key];
+				};
+				modtype = modtype ?? { self.selectedModulatorType };
+				//[modtype, ev].debug("listener for ev");
+				if(modtype == \raw) {
+					var con;
+					if(ev.localValues.isNil) {
+						ev.localValues = ();
+					};
+					//[ key, ev ].debug("installing raw listener");
+					con = SimpleController(ev.localValues).put(\set, { arg obj, msg, prop;
+						//[obj, msg, prop, key, prop == key].debug("listener got");
+						if(self.view.isClosed) {
+							con.remove;
+						} {
+							if(prop == key) {
+								self.view.refresh;
+							};
+						};
+					});
+					self.visibleListeners.add(con);
+				} {
+					if(modtype == \step) {
+
+					};
+				};
+			};
+		};
 		
 	},
 
@@ -252,183 +313,430 @@ WindowDef(\ModulatorStrip, (
 		self.model.fxTimelinePanel.selectedParam;
 	},
 
+	selectedTrackParam: { arg self;
+		self.model.fxTimelinePanel.selectedTrackParam;
+	},
+
 	xkey: \absTime,
 	xlenkey: \sustain,
 
 	colors: (
 		//empty: ParamViewToolBox.color_pale(0.7),
-		disabled: ParamViewToolBox.color_pale.copy.alpha_(0.5),
+		disabled: ParamViewToolBox.color_pale.copy.divide(Color.white, 0.5),
 		empty: ParamViewToolBox.color_pale,
-		eventBox: ParamViewToolBox.color_dark,
+		selected: ParamViewToolBox.color_light.complementary,
+		//eventBox: ParamViewToolBox.color_dark.divide(Color.white,0.8),
+		eventBox: Color.black,
 		barBox: ParamViewToolBox.color_ligth,
 		full: ParamViewToolBox.color_ligth,
 		unset: ParamViewToolBox.color_ligth.copy.alpha_(0.6),
 	),
 
-	drawEventContent: { arg self, ev, rect;
-		var key = self.selectedParam.propertyRoot;
-		var len = ev[self.xlenkey];
-		var xkey = self.xkey;
-		var num;
-		var sliderwidth = self.cellWidth;
-		var maxlevel = 1;
-		var penOffset = 0; // compensate don't know what
-		var seqev, seq;
-		var isSet = true;
-		num = ( len / self.cellWidth ).asInteger;
-		if(ev.localSeq.isNil) { // do not create if not existing
-			seqev = ();
-			isSet = false;
-		} {
-			seqev = ev.localSeq;
-		};
-		if(seqev[key].isNil) {
-			seq = List.newFrom( self.selectedParam.get !num);
-			isSet = false;
-		} {
-			seq = seqev[key];
-		};
-		Pen.width = 1;
+	selectedModulatorType: { arg self;
+		self.model.fxTimelinePanel.selectedModulatorType ? \raw
+	},
 
-		num.do { arg idx;
-			var gposx = sliderwidth * idx;
-			var gxoffset = ev[xkey];
-			var curlevel = seq[idx];
-			var rect;
-			var fullrect;
-			curlevel = self.selectedParam.spec.unmap(curlevel);
-			rect = self.gridRectToPixelRect(Rect(gposx+gxoffset,0, sliderwidth, maxlevel * curlevel));
-			//rect.debug("rect");
-			rect.left = rect.left + penOffset;
-			rect.bottom = rect.bottom - 4;
-			rect.width = rect.width - 1;
-			fullrect = rect.copy;
-			//fullrect.top = self.virtualBounds.height;
-			//fullrect.height = self.virtualBounds.height.neg * 0.5;
-			fullrect = Rect(rect.origin.x, 6, rect.width, self.virtualBounds.height);
-			//fullrect.debug("FULLRECT");
-			Pen.addRect( fullrect );
-			Pen.color = self.colors.empty;
-			Pen.fill;
-
-			Pen.addRect( rect );
-			if(isSet) {
-				Pen.color = self.colors.full;
-			} {
-				Pen.color = self.colors.unset;
+	selectedModulatorTypeAction: { arg self, ev;
+		ev.debug("selectedModulatorTypeAction");
+		if(ev.notNil and: { self.selectedParam.notNil }) {
+			if(ev.modulatorType.isNil) {
+				ev.modulatorType = ();
 			};
-			//Pen.color = self.colors.barBox;
-			Pen.stroke;
-			Pen.addRect( rect );
-			Pen.fill;
+			ev.modulatorType[self.selectedParam.propertyRoot] = self.selectedModulatorType;
 		};
 	},
 
-	setCellAtPos: { arg self, pxpos, val;
-		var ev, node;
-		var pypos;
-		var gxpos, gypos;
+	drawEventContent: { arg self, ev;
+		var key = self.selectedParam.propertyRoot;
+		var len = ev[self.xlenkey];
+		var num;
+		var sliderwidth = self.cellWidth;
+		var seqev, seq;
+		var isSet = true;
+		var xkey = self.xkey;
+		var color;
+		var modtype;
+		var default = ( ev.localValues[key] ?? { self.selectedTrackParam.get } );
+		num = ( len / self.cellWidth ).asInteger;
+		Pen.width = 1;
+
+		if(ev.modulatorType.notNil and: { ev.modulatorType[key].notNil }) {
+			modtype = ev.modulatorType[key];
+		};
+		modtype = modtype ?? { self.selectedModulatorType };
+		if(modtype == \raw) {
+			var curlevel;
+			if(ev[\localValues].isNil or: { ev[\localValues][key].isNil }) {
+				isSet = false;
+				[default, self.selectedTrackParam, self.selectedTrackParam.get, ev].debug("set default raw");
+				curlevel = default;
+			} {
+				curlevel = ev.localValues[key];
+			};
+			curlevel = self.selectedParam.spec.unmap(curlevel);
+			if(isSet) {
+				color = self.colors.full;
+			} {
+				color = self.colors.unset;
+			};
+			num.do { arg idx;
+				self.drawBar(ev[xkey], idx, curlevel, color);
+			};
+		} {
+			if(modtype == \step) {
+				if(ev.localSeq.isNil) { // do not create if not existing
+					seqev = ();
+					isSet = false;
+				} {
+					seqev = ev.localSeq;
+				};
+				if(seqev[key].isNil) {
+					seq = List.newFrom( default !num);
+					isSet = false;
+				} {
+					seq = seqev[key];
+				};
+				if(isSet) {
+					color = self.colors.full;
+				} {
+					color = self.colors.unset;
+				};
+				num.do { arg idx;
+					var curlevel = seq[idx] ? default;
+					curlevel = self.selectedParam.spec.unmap(curlevel);
+					self.drawBar(ev[xkey], idx, curlevel, color);
+				};
+			};
+		};
+
+	},
+
+	setCellAtPos: { arg self, pxpos, val, mouseActionType;
+		var ev;
 		var idx;
 		var key = self.selectedParam.propertyRoot;
+
+		#ev, idx = self.getEventIdxAtPos(pxpos);
+
+		if(ev.isNil and: { mouseActionType == \down }) {
+			// event creation on mouse down
+			ev = self.createEventInTimeline(pxpos);
+			if(ev.localValues.isNil) {
+				ev.localValues = ();
+			};
+			ev.localValues[key] = val; // localValues is the ref for keys
+			self.createdEvent = ev;
+			self.createdEventPxpos = pxpos;
+			self.createdEventAbsTime = ev[self.xkey];
+			ev.sustain = self.cellWidth;
+			idx = 0;
+		};
+		if(ev.notNil and: {mouseActionType == \move} and: { ev != self.createdEvent }) {
+			// when encountering another event, stop event resize
+			self.createdEvent = nil;
+		};
+		if(ev.isNil and: { mouseActionType == \move } and: { self.createdEvent.notNil }) {
+			// event resize on mouse move
+			var xrel;
+			var gxpos;
+			ev = self.createdEvent;
+			gxpos = self.pixelPointToGridPoint(Point(pxpos, 0)).x;
+			xrel = gxpos - ev[self.xkey]; // relative to event start
+			idx	= xrel / self.cellWidth;
+			idx = idx.asInteger;
+			[ self.createdEventAbsTime, ev.absTime, idx, self.cellWidth, self.createdEventAbsTime + (idx * self.cellWidth) ].debug("first abstime, ev abstime, idx, cellwidth, result");
+			if(idx < 0) {
+				ev.absTime = ev.absTime + (idx * self.cellWidth);
+				ev.sustain = max(ev.sustain, ev.sustain + ( ( idx.abs ) * self.cellWidth ));
+			} {
+				ev.sustain = max(ev.sustain, ( idx.abs+1 ) * self.cellWidth);
+			};
+			ev.changed(\refresh);
+			ev.changed(\refraw);
+			self.model.masterTimeline.refresh;
+			[idx, xrel, self.cellWidth, ev.sustain].debug("setCellAtPos: move: created event");
+		};
+		if(ev.isNil) {
+			//"Can't find the event".error.throw;
+			"Can't find the event".error;
+		} {
+
+			if(mouseActionType == \down) {
+				self.selectEventInTimeline(ev);
+			};
+			val = self.selectedParam.spec.map(val);
+			//ev.debug("setCellAtPos: ev");
+			//self.selectedModulatorTypeAction(ev);
+
+			if(self.selectedParam.notNil) {
+				if(ev.modulatorType.isNil) {
+					// set only if nil contrary to selectedModulatorType which always set
+					ev.modulatorType = ();
+					ev.modulatorType[self.selectedParam.propertyRoot] = self.selectedModulatorType;
+				};
+			};
+
+			if(ev.modulatorType[key] == \raw) {
+				if(ev.localValues.isNil) {
+					ev.localValues = ();
+				};
+				ev.localValues[key] = val;
+				//[self.selectedParam, ev].debug("selp");
+				ev.localValues.changed(\set, key);
+			} {
+				var num = ev[self.xlenkey] / self.cellWidth;
+
+				if(ev.localSeq.isNil) {
+					ev.localSeq = ();
+				};
+				if(ev.localSeq[key].isNil) {
+					[self.selectedTrackParam, self.selectedTrackParam.get, num, key].debug("create seq");
+					ev.localSeq[key] = List.newFrom( self.selectedTrackParam.get!num );
+				};
+				if(idx >= ev.localSeq[key].size) {
+					var more = idx - ( ev.localSeq[key].size-1 );
+					ev.localSeq[key] = List.newFrom(ev.localSeq[key] ++ ( self.selectedTrackParam.get!num ));
+				};
+				ev.localSeq[key][idx] = val;
+			};
+			//ev[self.xlenkey] 
+			self.refresh;
+		};
+	},
+
+	getEventAtPos: { arg self, pxpos;
+		var gxpos, gypos, pypos;
+		var node;
 		pypos = self.gridPointToPixelPoint(Point(0,self.model.fxTimelinePanel.selectedFxIndex)).y + 1;
 		gypos = self.model.fxTimelinePanel.selectedFxIndex + 0.1;
 		gxpos = self.pixelPointToGridPoint(Point(pxpos, 0)).x;
 
 		node = self.model.masterTimeline.findNode(gxpos, gypos);
+		
 		if(node.notNil) {
-			var xrel; // relative to event start
-			val = self.selectedParam.spec.map(val);
-			ev = node.model;
-			ev.debug("setCellAtPos: ev");
-			xrel = gxpos - ev[self.xkey]; // relative to event start
-			idx	= xrel / self.cellWidth;
-			if(ev.localSeq.isNil) {
-				ev.localSeq = ();
-			};
-			if(ev.localSeq[key].isNil) {
-				ev.localSeq[key] = List.newFrom( self.selectedParam.get!( ev[self.xlenkey] / self.cellWidth ) );
-			};
-			ev.localSeq[key][idx] = val;
-			//ev[self.xlenkey] 
+			node.model;
 		} {
-			
+			nil
 		};
-		self.refresh;
 	},
 
-	asView: { arg self, def, model;
-		var view = UserView.new;
-		var sliderwidth; // in grid unit
-		var tl;
-		self.view = view;
-		self.model = model;
-		sliderwidth = self.cellWidth;
-		//self.timeline = TimelineView.new; // for conversions
-		self.mimicTimeline(model.masterTimeline, \horizontal);
-		//tl = self.timeline;
-		self.installListeners;
+	getEventIdxAtPos: { arg self, pxpos;
+		var gxpos, gypos, pypos;
+		var ev;
+		var node;
+		pypos = self.gridPointToPixelPoint(Point(0,self.model.fxTimelinePanel.selectedFxIndex)).y + 1;
+		gypos = self.model.fxTimelinePanel.selectedFxIndex + 0.1;
+		gxpos = self.pixelPointToGridPoint(Point(pxpos, 0)).x;
 
-		view.drawFunc = {
+		node = self.model.masterTimeline.findNode(gxpos, gypos);
+		
+		if(node.notNil) {
+			ev = node.model;
+			if(ev.notNil) {
+				var xrel, idx;
+				xrel = gxpos - ev[self.xkey]; // relative to event start
+				idx	= ( xrel / self.cellWidth ).asInteger;
+				[ev, idx];
+			} {
+				[ nil, nil ]
+			};
+		} {
+			[ nil, nil ]
+		};
+	},
+
+	drawRoundBox: { arg self, rect, smooth=1, width=1;
+		var radius = smooth;
+		var inradius = radius - ( width/10 );
+		Pen.moveTo(Point(rect.left, rect.bottom - radius));
+		Pen.lineTo(Point(rect.left, rect.top + radius));
+		Pen.addAnnularWedge(Point(rect.left, rect.top)+radius, inradius,radius, 2pi/2, pi/2);
+		Pen.moveTo(Point(rect.left + radius, rect.top));
+		Pen.lineTo(Point(rect.right - radius, rect.top));
+		Pen.addAnnularWedge(Point(rect.right - radius, rect.top + radius), inradius,radius, 3pi/2, pi/2);
+		Pen.moveTo(Point(rect.right, rect.top + radius));
+		Pen.lineTo(Point(rect.right, rect.bottom - radius));
+		Pen.addAnnularWedge(Point(rect.right, rect.bottom) - radius, inradius,radius, 4pi/2, pi/2);
+		Pen.moveTo(Point(rect.right - radius, rect.bottom ));
+		Pen.lineTo(Point(rect.left + radius, rect.bottom));
+		Pen.addAnnularWedge(Point(rect.left + radius, rect.bottom - radius), inradius,radius, pi/2, pi/2);
+	},
+
+	drawEventBox: { arg self, gxpos, len, selected=false;
+		//var penOffset = 0; // compensate width
+		//var maxlevel = 1;
+		//var rect = self.gridRectToPixelRect(Rect(gxpos, 0, len, maxlevel));
+		//rect.left = rect.left + penOffset;
+		//rect.bottom = rect.bottom - 4;
+		//if(selected) {
+			//Pen.width = 8;
+			//Pen.color = self.colors.selected;
+		//} {
+			//Pen.width = 4;
+			//Pen.color = self.colors.eventBox;
+		//};
+		//Pen.addRect( rect.insetBy(1) );
+		//Pen.stroke;
+
+		//Pen.width = 1;
+		//Pen.addRect( rect.insetBy(0) );
+		//Pen.color = Color.white;
+		//Pen.fill;
+
+
+		var maxlevel = 1;
+		var rect = self.gridRectToPixelRect(Rect(gxpos, 0, len, maxlevel));
+		//Pen.capStyle = 2;
+		rect.bottom = rect.bottom - 4;
+		if(selected) {
+			Pen.width = 2;
+			Pen.color = self.colors.selected;
+		} {
+			Pen.width = 1.5;
+			//Pen.color = self.colors.eventBox;
+			Pen.color = ParamViewToolBox.color_ligth;
+		};
+		self.drawRoundBox(rect.insetBy(1), 3);
+		//Pen.addRect( rect.insetBy(1) );
+		Pen.stroke;
+
+	},
+
+	drawBar: { arg self, gxoffset, idx, level, color, colorEmpty;
+		var maxlevel = 1;
+		var penOffset = 0; // compensate don't know what
+		var sliderwidth = self.cellWidth;
+		var gposx = sliderwidth * idx;
+		var rect;
+		var fullrect;
+		rect = self.gridRectToPixelRect(Rect(gposx+gxoffset,0, sliderwidth, maxlevel * level));
+		//rect.debug("rect");
+		rect.left = rect.left + penOffset;
+		rect.bottom = rect.bottom - 4;
+		rect.width = rect.width - 1;
+		//fullrect.top = self.virtualBounds.height;
+		//fullrect.height = self.virtualBounds.height.neg * 0.5;
+		fullrect = Rect(rect.origin.x, 6, rect.width, self.virtualBounds.height);
+		//fullrect.debug("FULLRECT");
+
+		//Pen.color = colorEmpty ?? { self.colors.empty };
+		//Pen.width = 1;
+		//Pen.addRect( fullrect.insetBy(1) );
+		//Pen.stroke;
+
+		//Pen.width = 1;
+		//Pen.addRect( fullrect.insetBy(1) );
+		////Pen.color = colorEmpty ?? { self.colors.empty };
+		//Pen.fill;
+
+		Pen.color = colorEmpty ?? { self.colors.empty };
+		Pen.width = 4;
+		Pen.addRect( fullrect.insetBy(2) );
+		Pen.stroke;
+		Pen.addRect( fullrect.insetBy(2) );
+		Pen.fill;
+
+		if(color.notNil) {
+
+			Pen.color = color;
+			Pen.width = 1;
+			Pen.addRect( rect.insetBy(1) );
+			Pen.stroke;
+			Pen.addRect( rect.insetBy(0) );
+			Pen.fill;
+		};
+	},
+
+	drawFunc: { arg self;
+		{
 			var bounds = self.virtualBounds;
 			var num;
+			var sliderwidth; // in grid unit
 			var maxlevel = 1;
-			var xkey = \absTime;
-			var xlenkey = \sustain;
-			var penOffset = -0; // compensate width
+			var xkey = self.xkey;
+			var xlenkey = self.xlenkey;
+			var gxoffset = self.pixelPointToGridPoint(Point(5,0)).x;
+			gxoffset = gxoffset.trunc(self.cellWidth);
+			sliderwidth = self.cellWidth;
 			//"draw".debug;
 			//[bounds, self.areasize, self.pixelRectToGridRect(bounds).width].debug("width");
-			num = ( self.pixelRectToGridRect(bounds).width / sliderwidth ).trunc.asInteger + 1;
+			num = ( self.pixelRectToGridRect(bounds).width / sliderwidth ).trunc.asInteger + 2;
 			//num.debug("ModulatorStrip: num");
 			self.getLineEvents.debug("line events");
 			//Pen.scale(1,0.90);
 			Pen.translate(0,5);
 			num.do { arg idx;
-				var gposx = sliderwidth * idx;
-				var rect;
-				var fullrect;
-				rect = self.gridRectToPixelRect(Rect(gposx,0, sliderwidth, 1));
-				//rect.debug("rect");
-				rect.left = rect.left + penOffset;
-				fullrect = rect.copy;
-				//fullrect.top = self.virtualBounds.height;
-				//fullrect.height = self.virtualBounds.height.neg * 0.5;
-				fullrect = Rect(rect.origin.x, 6, rect.width-1, self.virtualBounds.height);
-				//fullrect.debug("FULLRECT");
-				Pen.addRect( fullrect );
-				Pen.color = self.colors.disabled;
-				Pen.fill;
+				//gxoffset.debug("gxoffset");
+				self.drawBar(gxoffset, idx, 1, nil, self.colors.disabled);
 			};
 
 			self.getLineEvents.do { arg ev, idx;
-				
-				var curlevel = 1;
-				var rect = self.gridRectToPixelRect(Rect(ev[xkey], 0, ev[xlenkey], maxlevel * curlevel));
-				rect.left = rect.left + penOffset;
-				rect.bottom = rect.bottom - 4;
-				Pen.width = 4;
-				Pen.addRect( rect );
-				Pen.color = self.colors.eventBox;
-				Pen.stroke;
-				self.drawEventContent(ev, rect);
-				
+				self.drawEventContent(ev);
+				self.drawEventBox(ev[xkey], ev[xlenkey], ev === self.model.fxTimelinePanel.selectedEvent);
 			};
-		};
+		}
+	},
+
+	asView: { arg self, def, model;
+		var view = UserView.new;
+		var tl;
+		self.view = view;
+		self.model = model;
+		//self.timeline = TimelineView.new; // for conversions
+		self.mimicTimeline(model.masterTimeline, \horizontal);
+		//tl = self.timeline;
+		self.installListeners;
+
+		view.drawFunc = self.drawFunc;
 		view.background_(Color.white);
 
 		view.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 			var idx;
+			var offset = -13;
 			[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
-			self.setCellAtPos(x, 1 - ( y/self.virtualBounds.height ));
+			if(buttonNumber == 1) {
+				self.showContextMenu(x);
+			} {
+				self.setCellAtPos(x, 1 - ( ( y + offset )/self.virtualBounds.height ), \down);
+			};
 		});
 		view.mouseMoveAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 			var idx;
+			var offset = -13;
 			//[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseMoveAction");
-			self.setCellAtPos(x, 1 - ( y/self.virtualBounds.height ));
+			self.setCellAtPos(x, 1 - ( ( y + offset )/self.virtualBounds.height ), \move);
 
 		});
+		view.addUniqueMethod(\proto, { self });
 		view;
 	},
 
+	unsetEventSeq: { arg self, ev, key;
+		if(ev.localSeq.notNil) {
+			ev.localSeq[key] = nil;
+			self.changed(\refresh);
+		};
+	},
+
+	clearAllEventData: { arg self, ev;
+		ev[\localSeq] = nil;
+		ev[\localValues] = nil;
+		self.changed(\refresh);
+	},
+
+	showContextMenu: { arg self, pxpos;
+		var ev, key;
+		ev = self.getEventAtPos(pxpos);
+		Menu(
+			MenuAction("Unset", {
+				key = self.selectedParam.propertyRoot;
+				self.unsetEventSeq(ev, key);
+			}).enabled_(ev.notNil),
+			MenuAction("Clear all event data", {
+				self.clearAllEventData(ev)
+			}).enabled_(ev.notNil),
+		).front
+	},
 
 	findCellIndex: { arg self, x;
 		self.pixelPointToGridPoint(Point(x, 0)).x / self.cellWidth;
@@ -531,19 +839,45 @@ ProtoClassDef(\FxTimeline, ProtoClass(( // can't use ProtoTemplateDef, clash wit
 						var fxidx;
 						if(ev.isRest.not) {
 							var pat;
+							var modev = ();
+							var modtype;
 							fxidx = ev.use { ~midinote.value };
 							fxidx.debug("fxidx");
 							pat = self.fxRack.childAt(fxidx).asPattern;
 							if(ev[\localValues].notNil) {
-								pat = Pn(ev[\localValues],inf) <> pat;
-							};
-							if(ev[\localSeq].notNil) {
+								ev.localValues.keys.do { arg key, idx;
+									if(ev.modulatorType.notNil and: { ev.modulatorType[key].notNil }) {
+										modtype = ev.modulatorType[key];
+									};
+									modtype = modtype ? \raw;
+									if(modtype == \raw) {
+										modev[key] = ev.localValues[key];
+									} {
+										if(modtype == \step) {
+											if(ev[\localSeq].notNil and: { ev[\localSeq][key].notNil }) {
+												modev[key] = PstepSeq(ev[\localSeq][key]);
+											} {
+												modev[key] = ev.localValues[key];
+											};
+										};
+									};
+								};
 								pat = Pbind(
-									* ev[\localSeq].keys.asArray.collect { arg key, idx;
-										[key, PstepSeq(ev[\localSeq][key])]
+									* modev.keys.asArray.collect { arg key, idx;
+										[key, modev[key]]
 									}.flatten ++ [\dur, self.cellWidth];
 								) <> pat;
 							};
+							//if(ev[\localValues].notNil) {
+								//pat = Pn(ev[\localValues],inf) <> pat;
+							//};
+							//if(ev[\localSeq].notNil) {
+								//pat = Pbind(
+									//* ev[\localSeq].keys.asArray.collect { arg key, idx;
+										//[key, PstepSeq(ev[\localSeq][key])]
+									//}.flatten ++ [\dur, self.cellWidth];
+								//) <> pat;
+							//};
 							ev = pat.yield;
 						};
 					}
@@ -666,7 +1000,9 @@ ProtoClassDef(\FxTimeline, ProtoClass(( // can't use ProtoTemplateDef, clash wit
 	add_track: { arg self, fx;
 		
 		self.fxRack.addFx(fx);
-		self.areasize = Point(self.areasize.x, self.tracks.size ); // areasize is deprecated, use track_count
+		self.fxRack.fxList.last.proxy.set(\wet, 1);
+		self.editor.areasize = Point(self.editor.areasize.x, self.tracks.size ); // track_count is self.tracks.size
+		self.changed(\tracks);
 	},
 )));
 
@@ -678,11 +1014,14 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 	parent: ProtoTemplateDef(\ClipTimelinePanelView),
 
 	makeFxParamView: { arg self;
-		var strip;
-		strip = ProtoTemplateDef(\ModulatorStrip).new(self).asView;
+		var strip, stripview;
+		strip = ProtoTemplateDef(\ModulatorStrip).new(self);
+		stripview = strip.asView;
 		
 		//self.bottomPanelView.layout = self.selectedFx.asParamGroup.asView;
-		self.bottomPanelView.layout = VLayout(strip).margins_([0,0,0,0]).spacing_(0)
+		self.modulatorStrip = strip;
+		self.modulatorStripView = stripview;
+		self.bottomPanelView.layout = VLayout(stripview).margins_([0,0,0,0]).spacing_(0)
 	},
 
 	selectedFx: { arg self;
@@ -691,6 +1030,13 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 
 	selectedFxIndex: { arg self;
 		self.trackSelector.selectedIndex;
+	},
+
+	selectedModulatorType_: { arg self, val;
+		self[\selectedModulatorType] = val;
+		self.changed(\selectedModulatorType);
+		self.modulatorStripView.proto.selectedModulatorTypeAction(self.selectedEvent); // ugly
+		self.modulatorStripView.refresh;
 	},
 
 	selectedParam_: { arg self, param;
@@ -708,7 +1054,7 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 		//self.bottomPanelView.fixedHeight_(100);
 		self.makeFxParamView;
 		self.bottomPanelHeaderView = View.new;
-		//self.bottomPanelHeaderView.fixedHeight_(100);
+		self.bottomPanelHeaderView.fixedSize_(self.trackHeaderWidth@100);
 		self.bottomPanelVerticalScroller = TimelineScroller.new;
 		self.bottomPanelVerticalScroller.fixedHeight_(100);
 		self.bottomPanelVerticalScroller.orientation = \vertical;
@@ -780,7 +1126,25 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 					self.bottomPanelHeaderView.removeAll;
 					self.bottomPanelHeaderView.layout_(
 						VLayout (
-							StaticText.new.string_(self.selectedParam.fullLabel)
+							HLayout (
+								StaticText.new.string_(self.selectedParam.fullLabel),
+								//BasicButton.new,
+								Param(Message(self), \selectedModulatorType, TagSpec([
+									\raw,
+									\step,
+								])).asPopUpMenu,
+							),
+							//HLayout (
+								//* 4.collect { arg item, idx;
+									
+								//VLayout (
+									//StaticText.new.string_("slope").font_(Font.default.size_(10)).align_(\center),
+									//Knob.new,
+									////StaticText.new.string_("0.4234"),
+								//).margins_(0).spacing_(5)
+								//},
+							//).margins_(0).spacing_(0),
+							nil
 						)
 					);
 
@@ -801,28 +1165,7 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			self.updateFxEditorView;
 		}, false);
 		self.fxEditorView.followChange(self.timeline, \selectedNodes, {
-			var note;
-			self.timeline.selectedNodes.debug("selectedNodes");
-			if(self.timeline.selectedNodes.size > 0) {
-				var trackidx;
-				note = self.timeline.selectedNodes.asArray.first.model;
-				note.midinote.debug("selectedNodes midinote");
-				trackidx = note.midinote;
-				self.selectedFx = self.timeline_model.tracks[trackidx];
-				if(note[\localValues].isNil) {
-					note[\localValues] = ();
-				};
-				self.selectedEvent = note;
-				self.trackSelector.selectIndex(trackidx); // should be before setting selectedFxParamGroup
-				//self.changed(\selectedFx);
-			} {
-				self.selectedEvent = nil;
-				if(self.trackSelector.notNil) {
-					self.trackSelector.selectedIndex.debug("selectedNodes follower");
-					self.trackSelector.selectIndex(self.trackSelector.selectedIndex);
-				};
-				nil
-			};
+			self.selectedNodesAction;
 		});
 	},
 
@@ -963,6 +1306,35 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 		;
 	},
 
+	selectedNodesAction: { arg self;
+		var note;
+		self.timeline.selectedNodes.debug("selectedNodes");
+		if(self.timeline.selectedNodes.size > 0) {
+			var trackidx;
+			var key = self.selectedParam.propertyRoot;
+			note = self.timeline.selectedNodes.asArray.first.model;
+			note.midinote.debug("selectedNodes midinote");
+			trackidx = note.midinote;
+			self.selectedFx = self.timeline_model.tracks[trackidx];
+			if(note[\localValues].isNil) {
+				note[\localValues] = ();
+			};
+			self.selectedEvent = note;
+			self.trackSelector.selectIndex(trackidx); // should be before setting selectedFxParamGroup
+			if(self.selectedEvent.modulatorType.notNil and: { self.selectedEvent.modulatorType[key].notNil }) {
+				self.selectedModulatorType = self.selectedEvent.modulatorType[key];
+			};
+			//self.changed(\selectedFx);
+		} {
+			self.selectedEvent = nil;
+			if(self.trackSelector.notNil) {
+				self.trackSelector.selectedIndex.debug("selectedNodes follower");
+				self.trackSelector.selectIndex(self.trackSelector.selectedIndex);
+			};
+			nil
+		};
+	},
+
 	selectTrackAction: { arg self;
 		var color_selected = self.colors.selected;
 		var color_deselected = self.colors.deselected;
@@ -970,17 +1342,15 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			var view;
 			var ridx = self.timeline_model.tracks.size - 1 - idx;
 			var pg;
-			[idx, ridx].debug("what");
 			view = subself.views[ridx]; // view are reversed
-			[view].debug("what2");
 			view.background_(color_selected);
-			"2what".debug;
-			[ color_selected, view.background ].debug("2what");
 			// views are reversed but view 0 at bottom still mean fx 0
 			self.selectedFx = self.timeline_model.tracks[idx]; 
 
 			pg = self.selectedFx.asParamGroup.rejectByProperty([\out, \adsr, \legato, \dur]);
 			if(self.selectedEvent.notNil) {
+				// change param to main (track) or event depending on selection
+				// selectedTrackParam is always the main one
 				self.selectedFxParamGroup = ParamGroup(pg.collect { arg param, idx;
 					Param(self.selectedEvent.localValues, param.property, param.spec).default_(param.get)
 				});
@@ -989,18 +1359,16 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			};
 
 			if(self.selectedFx.selectedParam.notNil) {
-				// change param to main or event depending on selection
 				self.selectedParam = self.selectedFxParamGroup
-				.asPropertyDict[self.selectedFx.selectedParam.propertyRoot];
+					.asPropertyDict[self.selectedFx.selectedParam.propertyRoot];
+				self.selectedTrackParam = Param(self.selectedFx.proxy, self.selectedFx.selectedParam.propertyRoot);
 			} {
 				self.selectedParam = self.selectedFxParamGroup.first;
-
+				self.selectedTrackParam = pg.first;
 			};
 
 
-			"3what".debug;
 			self.changed(\selectedFx);
-			"4what".debug;
 		};
 	},
 
@@ -1017,10 +1385,12 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 	},
 
 	colors: (
-		selected: ParamViewToolBox.color_pale,
+		selected: ParamViewToolBox.color_ligth,
 		deselected: Color.gray(0.7),
 		
 	),
+
+	trackHeaderWidth: 200,
 
 	update_track_header: { arg self;
 		var track_count = self.timeline_model.track_count;
@@ -1029,7 +1399,6 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 		var track_header_block = { arg x;
 			var idx = x; // index is already reversed
 			var res;
-			debug("updb 1");
 			res = View.new.layout_(
 				//VLayout(
 					HLayout(
@@ -1054,7 +1423,7 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 								self.timeline_model.computeSoloMute;
 							}),
 						).spacing_(0)
-					).spacing_(5).margins_([5,0,0,0]),
+					).spacing_(5).margins_([5,0,5,0]),
 				//).spacing_(0).margins_(0)
 			);
 			res.mouseDownAction_({ arg view, px, py, modifiers, buttonNumber, clickCount;
@@ -1064,9 +1433,7 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			});
 			self.trackSelector.addView(res);
 
-			debug("updb 3");
 			res.background_(color_deselected);
-			debug("updb 4");
 			res;
 		};
 
@@ -1082,7 +1449,6 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			VLayout(*
 				// first view is at bottom, reverse index
 				(0..track_count-1).reverse.collect { arg x;
-					x.debug("xx");
 					[
 						track_header_block.(x),
 						//align: \left,
@@ -1090,21 +1456,18 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 						stretch:10,
 					]
 				}
-			).spacing_(5).margins_(0)
+			).spacing_(5).margins_([0,5,0,5])
 		);
 		self.trackSelector.selectIndex(0);
-		track_count.debug("update 3.5");
 		self.track_header.removeAll;
 		self.track_header.canvas_( // why does this make freeze gui when changed(\tracks) ?
 			self.track_header_view
-		).maxWidth_(200);
-		debug("update 4");
+		).maxWidth_(self.trackHeaderWidth);
 		self.update_track_header_size;
 		self.track_header.onResize = { self.update_track_header_size };
 		if(self.track_header_controller.notNil) {
 			self.track_header_controller.remove;
 		};
-		debug("update 5");
 		self.track_header_controller = SimpleController(self.timeline)
 		.put(\viewport, {
 			//"update_track_header_size: viewport".debug;
@@ -1126,10 +1489,11 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			//self.update_track_header;
 		})
 		;
-		debug("update 6");
 	},
 
 ));
+Spec.add(\time, ControlSpec(0.01,1,\exp));
+Spec.add(\dry, \unipolar);
 ProtoInst(\FxTimeline, \bla1).edit;
 
 FileSystemProject.load("libdef/synthplayrec.scd");
@@ -1182,6 +1546,9 @@ Pdef(\zed,
 
 Pn
 TimelineEventList
+ProtoInst(\FxTimeline, \bla1).editor.areasize
+ProtoInst(\FxTimeline, \bla1).editor.timeline.areasize
+ProtoInst(\FxTimeline, \bla1).areasize
 ~s = ProtoInst(\FxTimeline, \bla1).asPattern.asStream
 ~s.next(())
 ProtoDef(\bla, ProtoClassDef(\FxTimeline).new)
@@ -1399,4 +1766,323 @@ WindowDef(\win, { arg def;
 	Param(Pdef(\bla),\lpfr).asKnob
 	
 }).front;
+)
+
+
+~ev = ()
+~ev = nil
+(
+WindowDef(\win, { arg def;
+	VLayout (
+		Param(~ev, \bla).asView,
+		Param(~ev, \rah).asView,
+		Param(~ev, \bla).asView,
+		Param(~ev, \rah).asView,
+	)
+
+
+	
+}).front;
+)
+Param(~ev, \bla).wrapper
+
+(
+	WindowDef(\farfalle, {
+		var canvas = UserView.new;
+		canvas.drawFunc = {
+			var rect = Rect(40,40,80,40);
+			var rect2 = Rect(180,80,80,40);
+			var rect3 = Rect(280,80,80,40);
+			Pen.strokeColor = Color.blue;
+			Pen.fillColor = Color.blue;
+
+			Pen.width = 4;
+			Pen.addRect(rect.insetBy(4));
+			Pen.stroke;
+
+			Pen.width = 4;
+			Pen.addRect(rect.insetBy(5));
+			Pen.strokeColor = Color.green;
+			Pen.stroke;
+
+			//Pen.width = 1;
+			//Pen.addRect(rect.insetBy(6));
+			//Pen.fillColor = Color.green;
+			//Pen.fill;
+
+			// rect 2
+			Pen.addRect(rect2);
+			Pen.width = 1;
+			Pen.strokeColor = Color.black;
+			Pen.stroke;
+
+			Pen.width = 2;
+			Pen.addRect(rect2);
+			Pen.fillColor = ParamViewToolBox.color_ligth;
+			Pen.fill;
+
+			// rect 3
+			Pen.addRect(rect3);
+			Pen.width = 1;
+			Pen.draw(3);
+
+
+		};
+		canvas.background_(Color.grey);
+	}).front;
+)
+
+
+(
+~drawDebug = { arg thi, myrect;
+			Pen.addRect(myrect.insetBy(2));
+			Pen.width = 4;
+			Pen.color = thi.outlineColor;
+			Pen.stroke;
+
+			Pen.addRect(myrect.insetBy(2));
+			Pen.width = 3;
+			Pen.color = thi.color;
+			Pen.stroke;
+
+			Pen.width = 1;
+			Pen.addRect(myrect.insetBy(2));
+			Pen.color = thi.color;
+			Pen.fill;
+};
+ClipTimeline(\bla).edit
+)
+
+ClipTimeline(\bla).edit
+ClipTimeline(\bla).presetCompileString.editorInsert
+~colorDebug = ParamViewToolBox.color_ligth.complementary
+Color
+(
+ClipTimeline('bla').tracks = [ ( 'index': 0, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'muted': false, 'recordBus': 0, 'index': 4, 'recordArmed': false, 
+  'solo': false ), ( 'muted': false, 'recordBus': 0, 'index': 5, 'recordArmed': false, 
+  'solo': false ) ];
+{
+ClipTimeline('bla').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.625, \label: 'start', \playDur: 0.625, \relDur: 0.625, \sustain: 0, \type: 'start', ),
+	(\absTime: 0.625, \dur: 0.75, \legato: 1, \midinote: 3.0, \playDur: 0.75, \relDur: 0.75, \sustain: 0.875, ),
+	(\absTime: 1.375, \dur: 0.625, \legato: 1, \midinote: 4.0, \playDur: 0.625, \relDur: 0.625, \sustain: 2.0, ),
+	(\absTime: 2.0, \dur: 0.125, \legato: 1, \midinote: 0.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 2.125, \dur: 0.125, \legato: 1, \midinote: 2.0, \playDur: 0.125, \relDur: 0.125, \sustain: 3.375, ),
+	(\absTime: 2.25, \dur: 0.0, \legato: 1, \midinote: 1.0, \playDur: 0.0, \relDur: 0.0, \sustain: 3.75, ),
+	(\absTime: 2.25, \dur: 0.625, \legato: 1, \midinote: 0.0, \playDur: 0.625, \relDur: 0.625, \sustain: 0.1, ),
+	(\absTime: 2.875, \dur: 0.125, \legato: 1, \midinote: 0.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.1, ),
+	(\absTime: 3.0, \dur: 1.125, \legato: 1, \midinote: 5.0, \playDur: 1.125, \relDur: 1.125, \sustain: 2.25, ),
+	(\absTime: 4.125, \dur: 0.25, \legato: 1, \midinote: 0.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.125, ),
+	(\absTime: 4.375, \dur: 1.125, \legato: 1, \midinote: 3.0, \playDur: 1.125, \relDur: 1.125, \sustain: 2.25, ),
+	(\absTime: 5.5, \dur: 0.75, \legato: 1, \midinote: 2.0, \playDur: 0.75, \relDur: 0.75, \sustain: 2.5, ),
+	(\absTime: 6.25, \dur: 1.75, \legato: 1, \midinote: 0.0, \playDur: 1.75, \relDur: 1.75, \sustain: 1.625, ),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ }.value;
+
+
+
+
+);
+
+NoteTimeline(\aze).presetCompileString.editorInsert
+(
+NoteTimeline('aze').param = Param(Pdef('NoteTimeline_default'), 'midinote');
+NoteTimeline('aze').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 1.125, \label: 'start', \playDur: 1.125, \relDur: 1.125, \sustain: 0, \type: 'start', ),
+	(\absTime: 1.125, \dur: 0.125, \midinote: 67.0, \playDur: 0.125, \relDur: 0.125, \sustain: 1.625, ),
+	(\absTime: 1.25, \dur: 0.5, \midinote: 62.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.75, ),
+	(\absTime: 1.75, \dur: 0.375, \midinote: 51.0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.625, ),
+	(\absTime: 2.125, \dur: 0.25, \midinote: 45.0, \playDur: 0.25, \relDur: 0.25, \sustain: 1.125, ),
+	(\absTime: 2.375, \dur: 0.25, \midinote: 78.0, \playDur: 0.25, \relDur: 0.25, \sustain: 1.875, ),
+	(\absTime: 2.625, \dur: 0.625, \midinote: 51.0, \playDur: 0.625, \relDur: 0.625, \sustain: 1.25, ),
+	(\absTime: 3.25, \dur: 0.25, \midinote: 69.0, \playDur: 0.25, \relDur: 0.25, \sustain: 1.625, ),
+	(\absTime: 3.5, \dur: 1.0, \midinote: 59.0, \playDur: 1.0, \relDur: 1.0, \sustain: 1.125, ),
+	(\absTime: 4.5, \dur: 0.125, \midinote: 63.0, \playDur: 0.125, \relDur: 0.125, \sustain: 1.5, ),
+	(\absTime: 4.625, \dur: 1.375, \midinote: 65.0, \playDur: 1.375, \relDur: 1.375, \sustain: 1.375, ),
+	(\absTime: 6.0, \dur: 0.0, \midinote: 68.0, \playDur: 0.0, \relDur: 0.0, \sustain: 0.5, ),
+	(\absTime: 6.0, \dur: 0.25, \midinote: 73.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.25, ),
+	(\absTime: 6.25, \dur: 0.25, \midinote: 73.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.25, ),
+	(\absTime: 6.5, \dur: 0.0, \midinote: 67.0, \playDur: 0.0, \relDur: 0.0, \sustain: 0.5, ),
+	(\absTime: 6.5, \dur: 0.25, \midinote: 73.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.25, ),
+	(\absTime: 6.75, \dur: 0.25, \midinote: 73.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.25, ),
+	(\absTime: 7.0, \dur: 0.25, \midinote: 73.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.25, ),
+	(\absTime: 7.25, \dur: 0.75, \midinote: 73.0, \playDur: 0.75, \relDur: 0.75, \sustain: 0.25, ),
+	(\absTime: 8.0, \dur: 0.0, \midinote: 67.0, \playDur: 0.0, \relDur: 0.0, \sustain: 0.5, ),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+NoteTimeline(\aze).edit
+);
+
+
+
+(
+	~drawDebug = { arg thi;
+
+		var startOffset = 0;
+		var labelheight = 20;
+		var label = thi.label;
+		var myrect;
+
+		var rect;
+		var pos;
+		var previewrect;
+		var labelrect;
+		//var preview_background = Color.new255(101, 166, 62);
+		//var label_background = Color.new255(130, 173, 105);
+		var preview_background = ParamViewToolBox.color_pale;
+		var label_background = ParamViewToolBox.color_ligth;
+		var font = Font.default.copy;
+
+
+		//if(thi.parent.parentTimeline.notNil) {
+			//// we are drawing a node preview inside a node preview
+			//labelheight = thi.parent.gridRectToPixelRect(thi.rect).height;
+			//label_background = Color.white.lighten(ParamViewToolBox.color_pale, 0.2);
+			//font.size = 9;
+		//};
+
+		//thi.enablePreview = false;
+		pos = thi.origin;
+
+		rect = thi.parent.gridRectToPixelRect(thi.rect);
+		rect = rect.insetAll(0,0,1,1); // cleaner drawing
+		// now rect is in screen coordinates
+		previewrect = rect.insetAll(0,labelheight,0,0);
+		labelrect = rect.insetAll(0,0,0,rect.height-labelheight); // should be same as handleRect but in pixel
+		//Log(\Param).debug("label px rect:%", labelrect);
+
+		//labelrect.debug("labelrect");
+		//previewrect.debug("previewrect");
+		//rect.debug("rect");
+
+		//[spritenum, rect].debug("draw");
+
+
+		//Pen.color = Color.red;
+		//Pen.fillRect(labelrect);
+
+		// outline
+
+		//Pen.color = thi.outlineColor;
+		//Pen.strokeRect(rect);
+
+		//// top left triangle
+		//if(startOffset.notNil and: { startOffset > 0 }) {
+			//Pen.color = thi.outlineColor;
+		//} {
+			//Pen.color = Color.white;
+		//};
+
+		//thi.drawRectTriangle(
+			//Rect(labelrect.origin.x, labelrect.origin.y, labelheight/4, labelheight/4),
+			//'leftTop'
+		//);
+		//Pen.fill;
+
+		//thi.drawRectDiagonal(
+			//Rect(labelrect.origin.x, labelrect.origin.y, labelheight/4, labelheight/4),
+			//'leftTop'
+		//);
+		//Pen.color = thi.outlineColor;
+		//Pen.stroke;
+
+		//// top right triangle
+		//Pen.color = Color.white;
+
+		//thi.drawRectTriangle(
+			//Rect(labelrect.rightTop.x, labelrect.rightTop.y, labelheight.neg/4, labelheight/4),
+			//'leftTop'
+		//);
+		//Pen.fill;
+
+		//thi.drawRectDiagonal(
+			//Rect(labelrect.rightTop.x, labelrect.rightTop.y, labelheight.neg/4, labelheight/4),
+			//'leftTop'
+		//);
+		//Pen.color = thi.outlineColor;
+		//Pen.stroke;
+
+		// label
+
+		// preview
+
+		if(thi.enablePreview) {
+			thi.initPreview;
+			thi.drawPreview(previewrect);
+		};
+		myrect = rect;
+
+			Pen.addRect(myrect.insetBy(4));
+			Pen.width = 8;
+			Pen.color = thi.outlineColor;
+			Pen.stroke;
+
+			Pen.addRect(myrect.insetBy(3));
+			Pen.width = 3;
+			Pen.color = thi.color;
+			Pen.stroke;
+
+			Pen.width = 1;
+			Pen.addRect(myrect.insetBy(4));
+			Pen.color = thi.color;
+			Pen.fill;
+
+		if(thi.selected) {
+			Pen.color = label_background.complementary;
+		} {
+			Pen.color = label_background;
+		};
+		Pen.fillRect(rect.insetBy(4));
+		Pen.color = preview_background;
+		Pen.fillRect(previewrect.insetBy(4));
+
+		Pen.color = Color.black;
+		Pen.stringLeftJustIn(" "++label, labelrect.insetBy(4).moveBy(0,3), font);
+	}
+)
+
+
+
+(
+	WindowDef(\farfalle, {
+		var canvas = UserView.new;
+		~draw_round_box = { arg rect, smooth=1, width=1;
+			var radius = smooth;
+			var inradius = radius - ( width/10 );
+			Pen.moveTo(Point(rect.left, rect.bottom - radius));
+			Pen.lineTo(Point(rect.left, rect.top + radius));
+			Pen.addAnnularWedge(Point(rect.left, rect.top)+radius, inradius,radius, 2pi/2, pi/2);
+			Pen.moveTo(Point(rect.left + radius, rect.top));
+			Pen.lineTo(Point(rect.right - radius, rect.top));
+			Pen.addAnnularWedge(Point(rect.right - radius, rect.top + radius), inradius,radius, 3pi/2, pi/2);
+			Pen.moveTo(Point(rect.right, rect.top + radius));
+			Pen.lineTo(Point(rect.right, rect.bottom - radius));
+			Pen.addAnnularWedge(Point(rect.right, rect.bottom) - radius, inradius,radius, 4pi/2, pi/2);
+			Pen.moveTo(Point(rect.right - radius, rect.bottom ));
+			Pen.lineTo(Point(rect.left + radius, rect.bottom));
+			Pen.addAnnularWedge(Point(rect.left + radius, rect.bottom - radius), inradius,radius, pi/2, pi/2);
+		};
+		canvas.drawFunc = {
+			var rect = Rect(40,40,180,140);
+			var rect2 = Rect(40,40,180,140).moveBy(200,100);
+			var pwidth = 10;
+			Pen.strokeColor = Color.black;
+			Pen.fillColor = ParamViewToolBox.color_light;
+			Pen.moveTo(200@100);
+
+			//Pen.addAnnularWedge(100@100, 9,10, 0, pi/2);
+			//Pen.addRect(rect);
+			//Pen.draw(3);
+
+			Pen.color = Color.red;
+			~draw_round_box.(rect.scale(4),80, pwidth);
+			Pen.width = pwidth;
+			//Pen.addRect(rect2);
+			Pen.draw(3);
+			//Pen.stroke;
+			//Pen.fill;
+		};
+		canvas.background_(Color.grey);
+	}).front;
 )

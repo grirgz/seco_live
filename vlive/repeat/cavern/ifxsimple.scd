@@ -12,6 +12,7 @@ SynthDef(\ifx_greyhole, { arg out=0, gate=1;
 	sig = sig * \ingain.kr(1);
 	sig = Greyhole.ar(sig, \delay.kr(2), \damp.kr(0), \size.kr(1), \diff.kr(0.707), \fb.kr(0.9), \modDepth.kr(0.1), \modFreq.kr(2));
 	env = EnvGen.ar(\adsr.kr( Env.adsr(0.1, 0, 1, 0.1) ), gate, doneAction:2);
+	sig = sig + (in * \dry.kr(1));
 	sig = sig * env;
 	//sig = sig * \gain.kr(1);
 	XOut.ar(out, \wet.kr(0) * env, sig* \gain.kr(1));
@@ -21,6 +22,26 @@ SynthDef(\ifx_greyhole, { arg out=0, gate=1;
 ))).add;
 TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_greyhole);
 
+SynthDef(\ifx_greyhole_tail, { arg out=0, gate=1;
+	var sig;
+	var in = In.ar(out, 2); 
+	var env, envtail;
+	sig = in;
+	sig = sig * \ingain.kr(1);
+	env = EnvGen.ar(\adsr.kr( Env.adsr(0.1, 0, 1, 0.1) ), gate, doneAction:0);
+	sig = sig * env;
+	sig = Greyhole.ar(sig, \delay.kr(2), \damp.kr(0), \size.kr(1), \diff.kr(0.707), \fb.kr(0.9), \modDepth.kr(0.1), \modFreq.kr(2));
+	DetectSilence.ar(sig, 0.005, doneAction:2);
+	envtail = EnvGen.ar(Env([0,1],[\attack.kr(0.1)]), gate, doneAction:0);
+	sig = sig + (in * \dry.kr(1));
+	//sig = sig * \gain.kr(1);
+	XOut.ar(out, \wet.kr(0) * envtail, sig* \gain.kr(1));
+	//XOut.ar(out, \wet.kr(0), [in,sig]);
+}, metadata:(specs:(
+	ingain: \unipolar.asSpec,
+))).add;
+TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_greyhole_tail);
+
 SynthDef(\ifx_freeverb2, { arg out=0, gate=1;
 	var sig;
 	var in = In.ar(out, 2); 
@@ -28,11 +49,27 @@ SynthDef(\ifx_freeverb2, { arg out=0, gate=1;
 	sig = in;
 	sig = FreeVerb2.ar(sig[0], sig[1], \mix.kr(0.5), \room.kr(1), \damp.kr(0.4));
 	env = EnvGen.ar(\adsr.kr( Env.adsr(0.1, 0, 1, 0.1) ), gate, doneAction:2);
+	sig = sig + (in * \dry.kr(1));
 	sig = sig * env;
 	//sig = sig * \gain.kr(1);
 	XOut.ar(out, \wet.kr(0) * env, sig* \gain.kr(1));
 }).add;
 TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_freeverb2);
+
+SynthDef(\ifx_freeverb2_tail, { arg out=0, gate=1;
+	var sig;
+	var in = In.ar(out, 2); 
+	var env;
+	sig = in;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:0);
+	sig = FreeVerb2.ar(sig[0], sig[1], \mix.kr(0.5), \room.kr(1), \damp.kr(0.4));
+	env = EnvGen.ar(Env([0,1],[\attack.kr(0.1)]), gate, doneAction:0);
+	DetectSilence.ar(sig, 0.005, doneAction:2);
+	sig = sig + (in * \dry.kr(1));
+	//sig = sig * \gain.kr(1);
+	XOut.ar(out, \wet.kr(0) * env, sig* \gain.kr(1));
+}).add;
+TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_freeverb2_tail);
 
 SynthDef(\ifx_limiter, { arg out=0, gate=1;
 	var sig;
@@ -165,4 +202,48 @@ SynthDef(\ifx_rlpf, { arg out=0, gate=1;
 	XOut.ar(out, \wet.kr(0) * env, sig);
 }).add;
 TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_rlpf);
+
+SynthDef(\ifx_echo, { arg out=0, gate=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env;
+	var in = In.ar(out, 2); 
+	sig = in;
+	sig = CombC.ar(sig, 1, \delay.kr(1),\decay.kr(1));
+	sig1 = sig;
+	sig1 = LPF.ar(sig1, \lpf.kr(19000));
+	sig1 = HPF.ar(sig1, \hpf.kr(50));
+	sig = SelectX.ar(\filtermix.kr(0.5), [sig, sig1]);
+	sig = sig + (in * \dry.kr(1));
+	sig = sig * \gain.kr(1);
+	env = EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
+	sig = sig * env;
+	XOut.ar(out, \wet.kr(0) * env, sig);
+}).add;
+TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_echo);
+
+SynthDef(\ifx_echo_tail, { arg out=0, gate=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env, envtail;
+	var in = In.ar(out, 2); 
+	sig = in;
+	sig = sig * \ingain.kr(1);
+	env = EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:0);
+	sig = sig * env;
+	sig = CombC.ar(sig, 1, \delay.kr(1),\decay.kr(1));
+	sig1 = sig;
+	sig1 = LPF.ar(sig1, \lpf.kr(19000));
+	sig1 = HPF.ar(sig1, \hpf.kr(50));
+	sig = SelectX.ar(\filtermix.kr(0.5), [sig, sig1]);
+	DetectSilence.ar(sig, 0.005, doneAction:2);
+	envtail = EnvGen.ar(Env([0,1],[\attack.kr(0.1)]), gate, doneAction:0);
+	sig = sig + (in * \dry.kr(1));
+	sig = sig * envtail;
+	sig = sig * \gain.kr(1);
+	XOut.ar(out, \wet.kr(0) * envtail, sig);
+}, metadata:(specs:(
+	ingain: \unipolar,
+))).add;
+TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_echo_tail);
 )
