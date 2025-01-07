@@ -34,6 +34,613 @@ ProtoTemplateDef(\ModulatorStrip, (
 
 ));
 
+ProtoTemplateDef(\ModulatorStripEventModel, (
+	new: { arg self, strip;
+		self = ProtoClass((parent:self));
+	
+		self.strip = strip;
+		
+		self.wrapperDict = (
+			raw: ProtoTemplateDef(\ModulatorStripEventModel_raw).newMode(strip),
+			step: ProtoTemplateDef(\ModulatorStripEventModel_step).newMode(strip),
+			modenv: ProtoTemplateDef(\ModulatorStripEventModel_modenv).newMode(strip),
+			lfosin: ProtoTemplateDef(\ModulatorStripEventModel_lfosin).newMode(strip),
+		);
+	
+		self;
+	},
+
+	newMode: { arg self, strip;
+		self = ProtoClass((parent:self));
+	
+		self.strip = strip;
+		
+	
+		self;
+	},
+
+	wrapperFor: { arg self, ev;
+		var modtype;
+		var key = self.selectedParam.propertyRoot;
+		//if(ev.modulatorType.notNil and: { ev.modulatorType[key].notNil }) {
+			//modtype = ev.modulatorType[key];
+		//};
+		modtype = self.getModulatorType(ev, key);
+		//modtype = modtype ?? { self.strip.selectedModulatorType };
+		[modtype].debug("wrapperFor: modtype");
+		[ self.wrapperDict.keys].debug("wrapperFor: keys");
+		self.wrapperDict[modtype];
+	},
+
+	drawEventContent: { arg self, ev;
+		self.wrapperFor(ev).drawEventContent(ev)
+	},
+
+	drawBar: { arg self ...args;
+		self.strip.drawBar(*args)
+	},
+
+	colors: { arg self;
+		self.strip.colors;
+	},
+	xlenkey: \sustain,
+	xkey: \absTime,
+	cellWidth: 1/8,
+
+	selectedParam: { arg self;
+		self.strip.selectedParam
+	},
+
+	selectedTrackParam: { arg self;
+		self.strip.selectedTrackParam
+	},
+
+	selectedModulatorType: { arg self;
+		self.strip.selectedModulatorType;
+	},
+
+	view: { arg self;
+		self.strip.view;
+	},
+
+	setEventContent: { arg self, ev, idx, val, direction=1, pxpos;
+		// val is already full spec
+
+		self.wrapperFor(ev).setEventContent(ev, idx, val, direction, pxpos);
+
+	},
+
+	getModulatorType: { arg self, ev, key;
+		if(ev.localMod.notNil and: {ev.localMod[key].notNil} and: {ev.localMod[key].modulatorType.notNil}) {
+			ev.localMod[key].modulatorType;
+		} {
+			\raw
+		};
+	},
+
+	setModulatorType: { arg self, ev, key, val;
+		if(ev.localMod.isNil) {
+			ev.localMod = ();
+		};
+		if(ev.localMod[key].isNil) {
+			ev.localMod[key] = ();
+		};
+		ev.localMod[key].modulatorType = val;
+	},
+
+	getModulatorData: { arg self, ev, key, modtype, defaultFun;
+		self.getModulatorDataAndIsSet(ev, key, modtype, defaultFun).first;
+	},
+
+	isModulatorDefined: { arg self, ev, key, modtype;
+		modtype = modtype ?? { self.modulatorType };
+		ev.localMod.notNil and: {ev.localMod[key].notNil and: {ev.localMod[key][modtype].notNil}}
+	},
+
+	getModulatorDataAndIsSet: { arg self, ev, key, modtype, defaultFun;
+		var mod, seq, isSet = true;
+		modtype = modtype ?? { self.modulatorType };
+		defaultFun = defaultFun ?? { { self.defaultData } };
+		if(ev.localMod.isNil) { // do not create if not existing
+			mod = ();
+			isSet = false;
+		} {
+			mod = ev.localMod;
+		};
+		if(mod[key].isNil) { // do not create if not existing
+			mod[key] = ();
+			isSet = false;
+		};
+		if(mod[key][modtype].isNil) { // do not create if not existing
+			[mod, key, modtype].debug("running defaultFun").debug;
+			[ ev].debug("running defaultFun ev").debug;
+			seq = defaultFun.value;
+			isSet = false;
+		} {
+			seq = mod[key][modtype];
+		};
+		[seq, isSet];
+	},
+
+	installEventListeners: { arg self, evlist;
+		var key;
+		var modtype;
+		//"installVisibleListeners".debug;
+		//evlist = evlist ?? {self.getLineEvents};
+		if(self.visibleListeners.notNil) {
+			self.visibleListeners.do { arg item, idx;
+				item.remove;
+			};
+		};
+		self.visibleListeners = List.new;
+		if(self.selectedParam.notNil) {
+			key = self.selectedParam.propertyRoot;
+			//[key].debug("listener for key");
+			evlist.do { arg ev, idx;
+				var con;
+				"make listener".debug;
+				con = self.wrapperFor(ev, key).makeEventListener(ev, key);
+				if(con.notNil) {
+					self.visibleListeners.add(con);
+				};
+			};
+		};
+		
+	},
+
+	asPattern: { arg self, ev;
+		// asPattern have no access to self.strip
+		// because eventModel is in the strip gui and not the model
+		var modev = ();
+		var modtype;
+		if(ev[\localValues].notNil) {
+			var mod = ev.localMod ?? { () };
+			( ev.localValues.keys ++ mod.keys ).do { arg key, idx;
+				//if(ev.modulatorType.notNil and: { ev.modulatorType[key].notNil }) {
+				//modtype = ev.modulatorType[key];
+				//};
+				if(mod[key].notNil) {
+					modtype = mod[key][\modulatorType];
+				};
+				modtype = modtype ? \raw;
+				[key, idx, modtype].debug("asPattern: modtype");
+
+				modev[key] = ProtoTemplateDef("ModulatorStripEventModel_%".format(modtype).asSymbol).modulatorPattern(ev, key);
+				modev[key].debug("asPattern: result");
+				//if(modtype == \raw) {
+				//modev[key] = ev.localValues[key];
+				//} {
+				//if(modtype == \step) {
+				//if(ev[\localSeq].notNil and: { ev[\localSeq][key].notNil }) {
+				//modev[key] = PstepSeq(ev[\localSeq][key]);
+				//} {
+				//modev[key] = ev.localValues[key];
+				//};
+				//};
+				//};
+			};
+			Pbind(
+				* modev.keys.asArray.collect { arg key, idx;
+					[key, modev[key]]
+				}.flatten ++ [\dur, self.cellWidth];
+			);
+		};
+		
+	},
+
+	modulatorParamGroup: { arg self, ev, key;
+
+	},
+
+	asParamGroup: { arg self, ev, key;
+		var ret;
+		[ev, key].debug("asParamGroup");
+		ret = if(ev.notNil) {
+			var wr = self.wrapperFor(ev, key);
+			wr.keys.debug("wrapper");
+			wr.modulatorParamGroup(ev, key)
+		} ?? { ParamGroup([]) };
+		ret.debug("asParamGroup: ret");
+		ret
+	},
+));
+
+ProtoTemplateDef(\ModulatorStripEventModel_raw, (
+	parent: ProtoTemplateDef(\ModulatorStripEventModel),
+	modulatorType: \raw,
+
+	setEventContent: { arg self, ev, idx, val, direction=1;
+		var key = self.selectedParam.propertyRoot;
+		if(ev.localValues.isNil) {
+			ev.localValues = ();
+		};
+		ev.localValues[key] = val;
+		self.setModulatorType(ev, key, \raw);
+		//[self.selectedParam, ev].debug("selp");
+		ev.localValues.changed(\set, key);
+	},
+		
+	drawEventContent: { arg self, ev;
+		var key = self.selectedParam.propertyRoot;
+		var len = ev[self.xlenkey];
+		var num;
+		var sliderwidth = self.cellWidth;
+		var seqev, seq;
+		var isSet = true;
+		var xkey = self.xkey;
+		var color;
+		var modtype;
+		var default = ( ev.localValues[key] ?? { self.selectedTrackParam.get } );
+		var res;
+		var curlevel;
+		num = ( len / self.cellWidth ).asInteger;
+		if(ev[\localValues].isNil or: { ev[\localValues][key].isNil }) {
+			isSet = false;
+			[default, self.selectedTrackParam, self.selectedTrackParam.get, ev].debug("set default raw");
+			curlevel = default;
+		} {
+			curlevel = ev.localValues[key];
+		};
+		curlevel = self.selectedParam.spec.unmap(curlevel);
+		if(isSet) {
+			color = self.colors.full;
+		} {
+			color = self.colors.unset;
+		};
+		num.do { arg idx;
+			self.drawBar(ev[xkey], idx, curlevel, color);
+		};
+	},
+	
+	modulatorPattern: { arg self, ev, key;
+		if(ev.localValues.notNil and: { ev.localValues[key].notNil }) {
+			ev.localValues[key];
+		} {
+			//self.selectedTrackParam.get; // FIXME: not available in pattern
+			nil
+		};
+	},
+
+	makeEventListener: { arg self, ev, key;
+		var con;
+		"make raw listener".debug;
+		if(ev.localValues.isNil) {
+			ev.localValues = ();
+		};
+		//[ key, ev ].debug("installing raw listener");
+		con = SimpleController(ev.localValues).put(\set, { arg obj, msg, prop;
+			//[obj, msg, prop, key, prop == key].debug("listener got");
+			if(self.view.isClosed) {
+				con.remove;
+			} {
+				if(prop == key) {
+					self.view.refresh;
+				};
+			};
+		});
+		con;
+	},
+));
+
+ProtoTemplateDef(\ModulatorStripEventModel_step, (
+	parent: ProtoTemplateDef(\ModulatorStripEventModel),
+	modulatorType: \step,
+
+	setEventContent: { arg self, ev, idx, val, direction=1;
+		var key = self.selectedParam.propertyRoot;
+		var num = ev[self.xlenkey] / self.cellWidth;
+		var seq;
+
+		self.setModulatorType(ev, key, \step);
+		if(ev.localMod[key][\step].isNil) { // do not create if not existing
+			seq = List.newFrom( self.selectedTrackParam.get!num );
+			ev.localMod[key][\step] = seq;
+		} {
+			seq = ev.localMod[key][\step]
+		};
+
+
+		if(direction == 1) {
+			if(idx >= seq.size) {
+				var more = idx - ( seq.size-1 );
+				ev.localMod[key][\step] = List.newFrom(seq ++ ( self.selectedTrackParam.get!more ));
+			};
+		} {
+			if(idx <= 0) {
+				var more = ( ev[self.xlenkey] / self.cellWidth ) - ( seq.size );
+				[( ev[self.xlenkey] / self.cellWidth ) , ( seq.size ), more].debug("MORE") ;
+				ev.localMod[key][\step] = List.newFrom(( self.selectedTrackParam.get!more ) ++ seq);
+			};
+
+		};
+		ev.localMod[key][\step][idx] = val;
+	},
+		
+	drawEventContent: { arg self, ev;
+		var key = self.selectedParam.propertyRoot;
+		var len = ev[self.xlenkey];
+		var num;
+		var sliderwidth = self.cellWidth;
+		var seqev, seq;
+		var isSet = true;
+		var xkey = self.xkey;
+		var color;
+		var modtype;
+		var default = ( ev.localValues[key] ?? { self.selectedTrackParam.get } );
+		var res;
+		var mod;
+		num = ( len / self.cellWidth ).asInteger;
+		#seq, isSet = self.getModulatorDataAndIsSet(ev, key, \step, { List.newFrom( default !num); });
+
+
+		if(isSet) {
+			color = self.colors.full;
+		} {
+			color = self.colors.unset;
+		};
+		num.do { arg idx;
+			var curlevel = seq[idx] ? default;
+			curlevel = self.selectedParam.spec.unmap(curlevel);
+			self.drawBar(ev[xkey], idx, curlevel, color);
+		};
+	},
+
+	modulatorPattern: { arg self, ev, key;
+		if(self.isModulatorDefined(ev, key)) {
+			PstepSeq(ev[\localMod][key][\step]);
+		} {
+			ev.localValues[key];
+		};
+	},
+));
+
+ProtoTemplateDef(\ModulatorStripEventModel_modenv, (
+	parent: ProtoTemplateDef(\ModulatorStripEventModel),
+	modulatorType: \modenv,
+
+	setEventContent: { arg self, ev, idx, val, direction=1, pxpos;
+		var key = self.selectedParam.propertyRoot;
+		var num = ev[self.xlenkey] / self.cellWidth;
+		var seq, modenv;
+		var gxpos;
+		var xrel, idxrel, nearEnd;
+		num = num + 1; // curve need one more segment
+
+		gxpos = self.strip.pixelPointToGridPoint(Point(pxpos, 0)).x;
+
+		xrel = gxpos - ev[self.xkey]; // relative to event start
+		idxrel	= ( xrel / self.cellWidth );
+		nearEnd = ( idxrel % 1 ) > 0.5;
+
+		self.setModulatorType(ev, key, \modenv);
+		if(ev.localMod[key][\modenv].isNil) { // do not create if not existing
+			modenv = self.defaultData(num);
+			ev.localMod[key][\modenv] = modenv;
+		} {
+			modenv = ev.localMod[key][\modenv]
+		};
+
+		seq = modenv.valSeq;
+
+		if(direction == 1) {
+			if(idx+1 >= seq.size) {
+				var more = ( idx+1 ) - ( seq.size-1 );
+				//more = more + 1; // curve need one more segment
+				modenv.valSeq = List.newFrom(seq ++ ( self.selectedParam.get!more ));
+			};
+		} {
+			if(idx <= 0) {
+				var more = ( ev[self.xlenkey] / self.cellWidth ) - ( seq.size );
+				[( ev[self.xlenkey] / self.cellWidth ) , ( seq.size ), more].debug("MORE") ;
+				modenv.valSeq = List.newFrom(( self.selectedParam.get!more ) ++ seq);
+			};
+
+		};
+		if(nearEnd) {
+			seq[idx + 1] = val;
+		} {
+			seq[idx] = val;
+		};
+	},
+
+	defaultData: { arg self, num;
+		(valSeq: List.newFrom(self.selectedParam.get!num), time:self.cellWidth,curve:0)
+	},
+		
+	drawEventContent: { arg self, ev;
+		var key = self.selectedParam.propertyRoot;
+		var len = ev[self.xlenkey];
+		var num;
+		var sliderwidth = self.cellWidth;
+		var seqev, seq;
+		var isSet = true;
+		var xkey = self.xkey;
+		var color;
+		var modtype;
+		var default = ( ev.localValues[key] ?? { self.selectedTrackParam.get } );
+		var res;
+		var mod;
+		var modenv;
+		num = ( len / self.cellWidth ).asInteger;
+		#modenv, isSet = self.getModulatorDataAndIsSet(ev, key, \modenv, { self.defaultData(num) });
+		//if(ev.localMod.isNil) { // do not create if not existing
+			//mod = ();
+			//isSet = false;
+		//} {
+			//mod = ev.localMod;
+		//};
+		//if(mod[key].isNil) { // do not create if not existing
+			//mod[key] = ();
+			//isSet = false;
+		//} {
+		//};
+		//if(mod[key][\modenv].isNil) { // do not create if not existing
+			//modenv = (valSeq: List.newFrom(0!num), time:1,curve:0);
+			//isSet = false;
+		//} {
+			//modenv = mod[key][\modenv];
+		//};
+		if(isSet) {
+			color = self.colors.full;
+		} {
+			color = self.colors.unset;
+		};
+		seq = modenv.valSeq;
+		num.do { arg idx;
+			var startlevel, endlevel;
+			startlevel = seq[idx] ? default;
+			endlevel = seq[idx+1] ? default;
+			startlevel = self.selectedParam.spec.unmap(startlevel);
+			endlevel = self.selectedParam.spec.unmap(endlevel);
+			self.strip.drawCurve(ev[xkey], idx, startlevel, endlevel, color);
+		};
+	},
+
+	modulatorPattern: { arg self, ev, key;
+		if(self.isModulatorDefined(ev, key)) {
+			var modenv = ev.localMod[key][\modenv];
+			PmodEnv(PstepSeq(modenv.valSeq), nil, modenv.curve);
+		};
+	},
+
+));
+
+ProtoTemplateDef(\ModulatorStripEventModel_lfosin, (
+	parent: ProtoTemplateDef(\ModulatorStripEventModel),
+	modulatorType: \lfosin,
+
+	setEventContent: { arg self, ev, idx, val, direction=1, pxpos;
+		var key = self.selectedParam.propertyRoot;
+		var modev;
+		var modtype = \lfosin;
+
+		self.setModulatorType(ev, key, modtype);
+		if(ev.localMod[key][modtype].isNil) { // do not create if not existing
+			modev = self.defaultData;
+			ev.localMod[key][modtype] = modev;
+		} {
+			modev = ev.localMod[key][modtype]
+		};
+
+
+		ev.localValues[key] = val;
+	},
+
+	defaultData: { arg self;
+		(
+			spec: self.selectedTrackParam.spec,
+			amount: 0.5,
+			freq: 2,
+			phase: 0,
+		);
+	},
+		
+	drawEventContent: { arg self, ev;
+		var key = self.selectedParam.propertyRoot;
+		var len = ev[self.xlenkey];
+		var num;
+		var sliderwidth = self.cellWidth;
+		var seqev, seq;
+		var isSet = true;
+		var xkey = self.xkey;
+		var color;
+		var default = ( ev.localValues[key] ?? { self.selectedTrackParam.get } );
+		var res;
+		var mod;
+		var modev;
+		var modtype = \lfosin;
+		var level = self.selectedParam.spec.unmap(default);
+		var rect;
+		num = ( len / self.cellWidth ).asInteger;
+		#modev, isSet = self.getModulatorDataAndIsSet(ev, key, modtype);
+		if(isSet) {
+			color = self.colors.full;
+		} {
+			color = self.colors.unset;
+		};
+		//self.strip.drawCurve(ev[xkey], idx, startlevel, endlevel, color);
+		rect = self.strip.gridRectToPixelRect(Rect(ev[self.xkey], 0, ev[self.xlenkey], 1));
+		rect = self.scaleRectForView(rect);
+		default = self.selectedTrackParam.spec.unmap(default);
+		self.drawSin(rect, default, modev.freq ? 1, modev.amount, modev.phase ? 0);
+	},
+
+	scaleRectForView: { arg self, rect;
+		//rect = rect.copy;
+		rect = rect.moveBy(0,-2);
+		rect.height = rect.height - 3;
+		rect;
+	},
+
+	drawSin: { arg self, rect, base, freq, amount, phase=0;
+		var val;
+		//var unit = self.strip.gridPointToPixelPoint(Point(self.cellWidth,0)).x;
+		var unit = self.strip.gridRectToPixelRect(Rect(0,0,1,0)).width;
+		rect.width.do { arg idx;
+			val = ( sin(idx/unit * 2pi * freq + phase)+1/2 * amount + base ).linlin(0,1,rect.bottom,rect.top);
+			if(idx == 0) {
+				Pen.moveTo(Point(rect.left + idx,val));
+			} {
+				Pen.lineTo(Point(rect.left + idx,val));
+			};
+		};
+		Pen.lineTo(Point(rect.right, rect.bottom));
+		Pen.lineTo(Point(rect.left, rect.bottom));
+		Pen.lineTo(Point(rect.left, rect.bottom));
+		Pen.color = self.colors.full;
+		Pen.fill;
+	},
+
+	modulatorPattern: { arg self, ev, key;
+		// can't use defaultData because spec from selectedParam
+		if(self.isModulatorDefined(ev, key)) {
+			var modev; 
+			var base;
+			debug("modulatorPattern: start");
+			base = ev.localValues[key] ? 0;
+			modev = self.getModulatorData(ev, key); 
+			base = modev.spec.unmap(base);
+			[base, modev].debug("modulatorPattern: modev");
+			~pmodsynth.({ 
+				var sig = SinOsc.kr(modev.freq * TempoClock.default.tempo, modev.phase).unipolar * modev.amount + base;
+				sig = modev.spec.map(sig);
+				//sig = sig.linlin(0,1, modev.spec.minval, modev.spec.maxval);
+				//base.poll;
+				//sig.poll;
+				sig;
+			});
+
+		}
+	},
+
+	modulatorParamGroup: { arg self, ev, key;
+		var data = self.getModulatorData(ev, key);
+		data.debug("modulatorParamGroup data");
+		ParamGroup([
+			Param(data, \amount, \bipolar),
+			Param(data, \phase, ControlSpec(0,2pi,\lin)),
+			Param(data, \freq, \lofreq),
+		])
+	},
+
+	makeEventListener: { arg self, ev, key;
+		var con;
+		var data = self.getModulatorData(ev, key);
+		data.debug("make lfosin listener");
+		//[ key, ev ].debug("installing raw listener");
+		con = SimpleController(data).put(\set, { arg obj, msg, prop;
+			[obj, msg, prop, key, prop == key].debug("listener got");
+			if(self.view.isClosed) {
+				con.remove;
+			} {
+				self.view.refresh;
+			};
+		});
+		con;
+	},
+
+));
+
 //// GUI
 
 WindowDef(\ModulatorStrip, (
@@ -218,13 +825,19 @@ WindowDef(\ModulatorStrip, (
 	selectEventInTimeline: { arg self, ev;
 		var node = self.model.masterTimeline.nodes.detect { arg x; x.model == ev };
 		self.model.masterTimeline.deselectAllNodes;
-		self.model.masterTimeline.selectNode(node);
+		if(node.notNil) {
+			self.model.masterTimeline.selectNode(node);
+		} {
+			"Can't find node for ev %".format(ev).error;
+			nil
+		};
 	},
 
 	createEventInTimeline: { arg self, pxpos;
 		var gypos = self.model.fxTimelinePanel.selectedFxIndex;
 		var gxpos = self.model.masterTimeline.pixelPointToGridPoint(Point(pxpos, 0)).x.trunc(self.cellWidth);
 		var ev = self.model.masterTimeline.eventFactory(Point(gxpos,gypos), self.cellWidth);
+		self.model.fxTimelinePanel.timeline_model.addHistorySnapshot;
 		self.model.fxTimelinePanel.eventList.addEvent( ev );
 		ev;
 	},
@@ -241,57 +854,59 @@ WindowDef(\ModulatorStrip, (
 	installListeners: { arg self;
 		self.view.followChange(self.model.fxTimelinePanel, \selectedFx, {
 			self.refresh;
-		});
+		}, false);
 		self.view.followChange(self.model.fxTimelinePanel, \selectedParam, {
 			self.refresh;
-		});
+		}, false);
 		
 	},
 
 	installVisibleListeners: { arg self, evlist;
-		var key;
-		var modtype;
-		//"installVisibleListeners".debug;
 		evlist = evlist ?? {self.getLineEvents};
-		if(self.visibleListeners.notNil) {
-			self.visibleListeners.do { arg item, idx;
-				item.remove;
-			};
-		};
-		self.visibleListeners = List.new;
-		if(self.selectedParam.notNil) {
-			key = self.selectedParam.propertyRoot;
-			//[key].debug("listener for key");
-			evlist.do { arg ev, idx;
-				if(ev.modulatorType.notNil) {
-					modtype = ev.modulatorType[key];
-				};
-				modtype = modtype ?? { self.selectedModulatorType };
-				//[modtype, ev].debug("listener for ev");
-				if(modtype == \raw) {
-					var con;
-					if(ev.localValues.isNil) {
-						ev.localValues = ();
-					};
-					//[ key, ev ].debug("installing raw listener");
-					con = SimpleController(ev.localValues).put(\set, { arg obj, msg, prop;
-						//[obj, msg, prop, key, prop == key].debug("listener got");
-						if(self.view.isClosed) {
-							con.remove;
-						} {
-							if(prop == key) {
-								self.view.refresh;
-							};
-						};
-					});
-					self.visibleListeners.add(con);
-				} {
-					if(modtype == \step) {
+		self.eventModel.installEventListeners(evlist);
+		//var key;
+		//var modtype;
+		////"installVisibleListeners".debug;
+		//evlist = evlist ?? {self.getLineEvents};
+		//if(self.visibleListeners.notNil) {
+			//self.visibleListeners.do { arg item, idx;
+				//item.remove;
+			//};
+		//};
+		//self.visibleListeners = List.new;
+		//if(self.selectedParam.notNil) {
+			//key = self.selectedParam.propertyRoot;
+			////[key].debug("listener for key");
+			//evlist.do { arg ev, idx;
+				//if(ev.modulatorType.notNil) {
+					//modtype = ev.modulatorType[key];
+				//};
+				//modtype = modtype ?? { self.selectedModulatorType };
+				////[modtype, ev].debug("listener for ev");
+				//if(modtype == \raw) {
+					//var con;
+					//if(ev.localValues.isNil) {
+						//ev.localValues = ();
+					//};
+					////[ key, ev ].debug("installing raw listener");
+					//con = SimpleController(ev.localValues).put(\set, { arg obj, msg, prop;
+						////[obj, msg, prop, key, prop == key].debug("listener got");
+						//if(self.view.isClosed) {
+							//con.remove;
+						//} {
+							//if(prop == key) {
+								//self.view.refresh;
+							//};
+						//};
+					//});
+					//self.visibleListeners.add(con);
+				//} {
+					//if(modtype == \step) {
 
-					};
-				};
-			};
-		};
+					//};
+				//};
+			//};
+		//};
 		
 	},
 
@@ -339,11 +954,15 @@ WindowDef(\ModulatorStrip, (
 	selectedModulatorTypeAction: { arg self, ev;
 		ev.debug("selectedModulatorTypeAction");
 		if(ev.notNil and: { self.selectedParam.notNil }) {
-			if(ev.modulatorType.isNil) {
-				ev.modulatorType = ();
-			};
-			ev.modulatorType[self.selectedParam.propertyRoot] = self.selectedModulatorType;
+			self.eventModel.setModulatorType(ev, self.selectedParam.propertyRoot, self.selectedModulatorType);
 		};
+	},
+
+	eventModel: { arg self;
+		if(self[\eventModel_obj].isNil) {
+			self[\eventModel_obj] = ProtoTemplateDef(\ModulatorStripEventModel).new(self);
+		};
+		self[\eventModel_obj];
 	},
 
 	drawEventContent: { arg self, ev;
@@ -357,57 +976,62 @@ WindowDef(\ModulatorStrip, (
 		var color;
 		var modtype;
 		var default = ( ev.localValues[key] ?? { self.selectedTrackParam.get } );
+		var res;
 		num = ( len / self.cellWidth ).asInteger;
 		Pen.width = 1;
 
-		if(ev.modulatorType.notNil and: { ev.modulatorType[key].notNil }) {
-			modtype = ev.modulatorType[key];
-		};
-		modtype = modtype ?? { self.selectedModulatorType };
-		if(modtype == \raw) {
-			var curlevel;
-			if(ev[\localValues].isNil or: { ev[\localValues][key].isNil }) {
-				isSet = false;
-				[default, self.selectedTrackParam, self.selectedTrackParam.get, ev].debug("set default raw");
-				curlevel = default;
-			} {
-				curlevel = ev.localValues[key];
-			};
-			curlevel = self.selectedParam.spec.unmap(curlevel);
-			if(isSet) {
-				color = self.colors.full;
-			} {
-				color = self.colors.unset;
-			};
-			num.do { arg idx;
-				self.drawBar(ev[xkey], idx, curlevel, color);
-			};
-		} {
-			if(modtype == \step) {
-				if(ev.localSeq.isNil) { // do not create if not existing
-					seqev = ();
-					isSet = false;
-				} {
-					seqev = ev.localSeq;
-				};
-				if(seqev[key].isNil) {
-					seq = List.newFrom( default !num);
-					isSet = false;
-				} {
-					seq = seqev[key];
-				};
-				if(isSet) {
-					color = self.colors.full;
-				} {
-					color = self.colors.unset;
-				};
-				num.do { arg idx;
-					var curlevel = seq[idx] ? default;
-					curlevel = self.selectedParam.spec.unmap(curlevel);
-					self.drawBar(ev[xkey], idx, curlevel, color);
-				};
-			};
-		};
+		"ModulatorStrip.drawEventContent".debug;
+
+		self.eventModel.drawEventContent(ev);
+
+		//if(ev.modulatorType.notNil and: { ev.modulatorType[key].notNil }) {
+			//modtype = ev.modulatorType[key];
+		//};
+		//modtype = modtype ?? { self.selectedModulatorType };
+		//if(modtype == \raw) {
+			//var curlevel;
+			//if(ev[\localValues].isNil or: { ev[\localValues][key].isNil }) {
+				//isSet = false;
+				//[default, self.selectedTrackParam, self.selectedTrackParam.get, ev].debug("set default raw");
+				//curlevel = default;
+			//} {
+				//curlevel = ev.localValues[key];
+			//};
+			//curlevel = self.selectedParam.spec.unmap(curlevel);
+			//if(isSet) {
+				//color = self.colors.full;
+			//} {
+				//color = self.colors.unset;
+			//};
+			//num.do { arg idx;
+				//self.drawBar(ev[xkey], idx, curlevel, color);
+			//};
+		//} {
+			//if(modtype == \step) {
+				//if(ev.localSeq.isNil) { // do not create if not existing
+					//seqev = ();
+					//isSet = false;
+				//} {
+					//seqev = ev.localSeq;
+				//};
+				//if(seqev[key].isNil) {
+					//seq = List.newFrom( default !num);
+					//isSet = false;
+				//} {
+					//seq = seqev[key];
+				//};
+				//if(isSet) {
+					//color = self.colors.full;
+				//} {
+					//color = self.colors.unset;
+				//};
+				//num.do { arg idx;
+					//var curlevel = seq[idx] ? default;
+					//curlevel = self.selectedParam.spec.unmap(curlevel);
+					//self.drawBar(ev[xkey], idx, curlevel, color);
+				//};
+			//};
+		//};
 
 	},
 
@@ -471,43 +1095,49 @@ WindowDef(\ModulatorStrip, (
 			val = self.selectedParam.spec.map(val);
 			//ev.debug("setCellAtPos: ev");
 			//self.selectedModulatorTypeAction(ev);
+			self.eventModel.setEventContent(ev, idx, val, direction, pxpos);
 
-			if(self.selectedParam.notNil) {
-				if(ev.modulatorType.isNil) {
-					// set only if nil contrary to selectedModulatorType which always set
-					ev.modulatorType = ();
-					ev.modulatorType[self.selectedParam.propertyRoot] = self.selectedModulatorType;
-				};
-			};
+			//if(self.selectedParam.notNil) {
+				//if(ev.modulatorType.isNil) {
+					//// set only if nil contrary to selectedModulatorType which always set
+					//ev.modulatorType = ();
+					//ev.modulatorType[self.selectedParam.propertyRoot] = self.selectedModulatorType;
+				//};
+			//};
 
-			if(ev.modulatorType[key] == \raw) {
-				if(ev.localValues.isNil) {
-					ev.localValues = ();
-				};
-				ev.localValues[key] = val;
-				//[self.selectedParam, ev].debug("selp");
-				ev.localValues.changed(\set, key);
-			} {
-				var num = ev[self.xlenkey] / self.cellWidth;
+			//if(ev.modulatorType[key] == \raw) {
+				//if(ev.localValues.isNil) {
+					//ev.localValues = ();
+				//};
+				//ev.localValues[key] = val;
+				////[self.selectedParam, ev].debug("selp");
+				//ev.localValues.changed(\set, key);
+			//} {
+				//var num = ev[self.xlenkey] / self.cellWidth;
 
-				if(ev.localSeq.isNil) {
-					ev.localSeq = ();
-				};
-				if(ev.localSeq[key].isNil) {
-					[self.selectedTrackParam, self.selectedTrackParam.get, num, key].debug("create seq");
-					ev.localSeq[key] = List.newFrom( self.selectedTrackParam.get!num );
-				};
-				if(idx >= ev.localSeq[key].size) {
-					var more = idx - ( ev.localSeq[key].size-1 );
-					if(direction == 1) {
-						ev.localSeq[key] = List.newFrom(ev.localSeq[key] ++ ( self.selectedTrackParam.get!num ));
-					} {
-						ev.localSeq[key] = List.newFrom(( self.selectedTrackParam.get!num ) ++ ev.localSeq[key]);
-						
-					};
-				};
-				ev.localSeq[key][idx] = val;
-			};
+				//if(ev.localSeq.isNil) {
+					//ev.localSeq = ();
+				//};
+				//if(ev.localSeq[key].isNil) {
+					//[self.selectedTrackParam, self.selectedTrackParam.get, num, key].debug("create seq");
+					//ev.localSeq[key] = List.newFrom( self.selectedTrackParam.get!num );
+				//};
+
+				//if(direction == 1) {
+					//if(idx >= ev.localSeq[key].size) {
+						//var more = idx - ( ev.localSeq[key].size-1 );
+						//ev.localSeq[key] = List.newFrom(ev.localSeq[key] ++ ( self.selectedTrackParam.get!more ));
+					//};
+				//} {
+					//if(idx <= 0) {
+						//var more = ( ev[self.xlenkey] / self.cellWidth ) - ( ev.localSeq[key].size );
+						//[( ev[self.xlenkey] / self.cellWidth ) , ( ev.localSeq[key].size ), more].debug("MORE") ;
+						//ev.localSeq[key] = List.newFrom(( self.selectedTrackParam.get!more ) ++ ev.localSeq[key]);
+					//};
+
+				//};
+				//ev.localSeq[key][idx] = val;
+			//};
 			//ev[self.xlenkey] 
 			self.refresh;
 		};
@@ -618,6 +1248,7 @@ WindowDef(\ModulatorStrip, (
 		var gposx = sliderwidth * idx;
 		var rect;
 		var fullrect;
+		//"drawBar".debug;
 		rect = self.gridRectToPixelRect(Rect(gposx+gxoffset,0, sliderwidth, maxlevel * level));
 		//rect.debug("rect");
 		rect.left = rect.left + penOffset;
@@ -654,6 +1285,61 @@ WindowDef(\ModulatorStrip, (
 			Pen.addRect( rect.insetBy(0) );
 			Pen.fill;
 		};
+	},
+
+	drawCurve: { arg self, gxoffset, idx, startlevel, endlevel, color, colorEmpty;
+		var maxlevel = 1;
+		var penOffset = 0; // compensate don't know what
+		var sliderwidth = self.cellWidth;
+		var gposx = sliderwidth * idx;
+		var rect;
+		var fullrect;
+		//"drawBar".debug;
+		rect = self.gridRectToPixelRect(Rect(gposx+gxoffset,0, sliderwidth, maxlevel));
+		//rect.debug("rect");
+		rect.left = rect.left + penOffset;
+		rect.bottom = rect.bottom - 4;
+		rect.width = rect.width - 1;
+		//fullrect.top = self.virtualBounds.height;
+		//fullrect.height = self.virtualBounds.height.neg * 0.5;
+		fullrect = Rect(rect.origin.x, 6, rect.width, self.virtualBounds.height);
+		//fullrect.debug("FULLRECT");
+
+		//Pen.color = colorEmpty ?? { self.colors.empty };
+		//Pen.width = 1;
+		//Pen.addRect( fullrect.insetBy(1) );
+		//Pen.stroke;
+
+		//Pen.width = 1;
+		//Pen.addRect( fullrect.insetBy(1) );
+		////Pen.color = colorEmpty ?? { self.colors.empty };
+		//Pen.fill;
+
+		Pen.color = colorEmpty ?? { self.colors.empty };
+		Pen.width = 4;
+		Pen.addRect( fullrect.insetBy(2) );
+		Pen.stroke;
+		Pen.addRect( fullrect.insetBy(2) );
+		Pen.fill;
+
+		if(color.notNil) {
+
+			Pen.color = color;
+			Pen.width = 1;
+			//Pen.addRect( rect.insetBy(1) );
+			rect = rect.insetBy(1);
+			startlevel = 1-startlevel;
+			endlevel = 1-endlevel;
+			Pen.moveTo(Point(rect.left,rect.bottom));
+			Pen.lineTo(Point(rect.left,rect.top + (rect.height * startlevel)));
+			Pen.lineTo(Point(rect.right,rect.top+ (rect.height * endlevel)));
+			Pen.lineTo(Point(rect.right,rect.bottom));
+			Pen.draw(3);
+			//Pen.stroke;
+			//Pen.addRect( rect.insetBy(0) );
+			//Pen.fill;
+		};
+		
 	},
 
 	drawFunc: { arg self;
@@ -754,6 +1440,87 @@ WindowDef(\ModulatorStrip, (
 
 ));
 
+WindowDef(\ModulatorStrip_slider, (
+	parent: WindowDef(\ModulatorStrip).proto,
+
+	viewport: { arg self;
+		Rect(0, 0, 1, 1);
+	},
+	areasize: { arg self;
+		Point(8, 1);
+	},
+
+	cellWidth: 1,
+
+	mapParam: { arg self, param;
+		self.targetParam = param;
+		self.installListeners;
+	},
+
+	drawFunc: { arg self;
+		{
+			var arr = self.targetParam.get;
+			var gxoffset = self.pixelPointToGridPoint(Point(5,0)).x;
+			gxoffset = gxoffset.trunc(self.cellWidth);
+			Pen.translate(0,5);
+			[arr, self.targetParam, self.targetParam.get].debug("drawFunc");
+			self.seqSize.do { arg item, idx;
+				var val = self.targetParam.at(idx).spec.unmap(arr[idx]);
+				self.drawBar(gxoffset, idx, val, self.colors.full);
+			};
+		}
+	},
+
+	setCellAtPos: { arg self, pxpos, val, mouseActionType;
+		var xrel, idx;
+		var gxpos;
+		gxpos = self.pixelPointToGridPoint(Point(pxpos, 0)).x;
+		idx	= ( gxpos / self.cellWidth ).asInteger;
+		self.targetParam.at(idx).normSet(val);
+		self.view.refresh;
+	},
+	
+	installListeners: { arg self, evlist;
+		self.targetParam.onChange(\set, {
+			self.view.refresh;
+		})
+		
+	},
+
+	asView: { arg self, def, param, size;
+		var view = UserView.new;
+		var tl;
+		self.view = view;
+		//self.model = ProtoTemplateDef(\ModulatorStrip);
+		self.seqSize = size;
+		self.mapParam(param);
+
+		view.drawFunc = self.drawFunc;
+		view.background_(Color.white);
+
+		view.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+			var idx;
+			var offset = -13;
+			[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+			if(buttonNumber == 1) {
+				self.showContextMenu(x);
+			} {
+				self.setCellAtPos(x, 1 - ( ( y + offset )/self.virtualBounds.height ), \down);
+			};
+		});
+		view.mouseMoveAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+			var idx;
+			var offset = -13;
+			//[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseMoveAction");
+			self.setCellAtPos(x, 1 - ( ( y + offset )/self.virtualBounds.height ), \move);
+
+		});
+		view.addUniqueMethod(\proto, { self });
+		view;
+	},
+
+));
+
 //////// FxTimeline
 
 ParamProto.init;
@@ -848,35 +1615,44 @@ ProtoClassDef(\FxTimeline, ProtoClass(( // can't use ProtoTemplateDef, clash wit
 						var fxidx;
 						if(ev.isRest.not) {
 							var pat;
-							var modev = ();
-							var modtype;
+							var modpat;
 							fxidx = ev.use { ~midinote.value };
 							fxidx.debug("fxidx");
 							pat = self.fxRack.childAt(fxidx).asPattern;
-							if(ev[\localValues].notNil) {
-								ev.localValues.keys.do { arg key, idx;
-									if(ev.modulatorType.notNil and: { ev.modulatorType[key].notNil }) {
-										modtype = ev.modulatorType[key];
-									};
-									modtype = modtype ? \raw;
-									if(modtype == \raw) {
-										modev[key] = ev.localValues[key];
-									} {
-										if(modtype == \step) {
-											if(ev[\localSeq].notNil and: { ev[\localSeq][key].notNil }) {
-												modev[key] = PstepSeq(ev[\localSeq][key]);
-											} {
-												modev[key] = ev.localValues[key];
-											};
-										};
-									};
-								};
-								pat = Pbind(
-									* modev.keys.asArray.collect { arg key, idx;
-										[key, modev[key]]
-									}.flatten ++ [\dur, self.cellWidth];
-								) <> pat;
+							//modpat = self.modulatorStripView.proto.eventModel.asPattern(ev);
+							modpat = ProtoTemplateDef(\ModulatorStripEventModel).asPattern(ev);
+							if(modpat.notNil) {
+								pat = modpat <> pat;
 							};
+
+
+							//if(ev[\localValues].notNil) {
+								//ev.localValues.keys.do { arg key, idx;
+									//if(ev.modulatorType.notNil and: { ev.modulatorType[key].notNil }) {
+										//modtype = ev.modulatorType[key];
+									//};
+									//modtype = modtype ? \raw;
+									//if(modtype == \raw) {
+										//modev[key] = ev.localValues[key];
+									//} {
+										//if(modtype == \step) {
+											//if(ev[\localSeq].notNil and: { ev[\localSeq][key].notNil }) {
+												//modev[key] = PstepSeq(ev[\localSeq][key]);
+											//} {
+												//modev[key] = ev.localValues[key];
+											//};
+										//};
+									//};
+								//};
+								//pat = Pbind(
+									//* modev.keys.asArray.collect { arg key, idx;
+										//[key, modev[key]]
+									//}.flatten ++ [\dur, self.cellWidth];
+								//) <> pat;
+							//};
+
+
+
 							//if(ev[\localValues].notNil) {
 								//pat = Pn(ev[\localValues],inf) <> pat;
 							//};
@@ -1126,38 +1902,15 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 				knob.mouseDownAction = mouseDownAction.addFunc(knob.mouseDownAction);
 				labelview.mouseDownAction = labelview.mouseDownAction.addFunc(mouseDownAction);
 				labelview.followChange(self, \selectedParam, {
+					debug("selectedParam labelview handler");
 					if(self.selectedParam == param) {
 						labelview.background_(ParamViewToolBox.color_ligth)
 					} {
 						labelview.background_(Color.clear)
 						
 					};
-					self.bottomPanelHeaderView.removeAll;
-					self.bottomPanelHeaderView.layout_(
-						VLayout (
-							HLayout (
-								StaticText.new.string_(self.selectedParam.fullLabel),
-								//BasicButton.new,
-								Param(Message(self), \selectedModulatorType, TagSpec([
-									\raw,
-									\step,
-								])).asPopUpMenu,
-							),
-							//HLayout (
-								//* 4.collect { arg item, idx;
-									
-								//VLayout (
-									//StaticText.new.string_("slope").font_(Font.default.size_(10)).align_(\center),
-									//Knob.new,
-									////StaticText.new.string_("0.4234"),
-								//).margins_(0).spacing_(5)
-								//},
-							//).margins_(0).spacing_(0),
-							nil
-						)
-					);
 
-				});
+				}, false);
 				VLayout (
 					labelview,
 					knob,
@@ -1165,6 +1918,52 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 				).spacing_(10)
 			} ++ [nil];
 		).spacing_(10)
+	},
+
+	updateBottomPanelHeaderView: { arg self;
+		var label;
+		if(self.selectedParam == self.selectedTrackParam) {
+			label = "Track %".format(self.selectedParam.propertyRoot);
+		} {
+			label = "Event %".format(self.selectedParam.propertyRoot);
+		};
+		self.bottomPanelHeaderView.removeAll;
+		self.bottomPanelHeaderView.layout_(
+			VLayout (
+				HLayout (
+					StaticText.new.string_(label),
+					//BasicButton.new,
+					Param(Message(self), \selectedModulatorType, TagSpec([
+						\raw,
+						\step,
+						\modenv,
+						\lfosin,
+					])).asPopUpMenu,
+				),
+				HLayout (
+					* self.modulatorStripView.proto.eventModel.asParamGroup(self.selectedEvent, self.selectedParam.propertyRoot).collect { arg param, idx;
+
+						VLayout (
+							param.asStaticTextLabel.font_(Font.default.size_(10)).align_(\center).attachContextMenu,
+							param.asKnob,
+							//StaticText.new.string_("0.4234"),
+						).margins_(0).spacing_(5)
+					} ++ [nil];
+				).margins_(0).spacing_(0),
+
+				//HLayout (
+				//* 4.collect { arg item, idx;
+
+				//VLayout (
+				//StaticText.new.string_("slope").font_(Font.default.size_(10)).align_(\center),
+				//Knob.new,
+				////StaticText.new.string_("0.4234"),
+				//).margins_(0).spacing_(5)
+				//},
+				//).margins_(0).spacing_(0),
+				nil
+			)
+		);
 	},
 
 
@@ -1175,7 +1974,12 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 		}, false);
 		self.fxEditorView.followChange(self.timeline, \selectedNodes, {
 			self.selectedNodesAction;
-		});
+		}, false);
+		self.fxEditorView.followChange(self, \selectedParam, {
+			debug("selectedParam handler");
+			self.updateBottomPanelHeaderView;
+
+		}, false);
 	},
 
 	makeLayout: { arg self;
@@ -1330,9 +2134,10 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			};
 			self.selectedEvent = note;
 			self.trackSelector.selectIndex(trackidx); // should be before setting selectedFxParamGroup
-			if(self.selectedEvent.modulatorType.notNil and: { self.selectedEvent.modulatorType[key].notNil }) {
-				self.selectedModulatorType = self.selectedEvent.modulatorType[key];
-			};
+			self.selectedModulatorType = self.eventModel.getModulatorType(self.selectedEvent, key);
+			//if(self.selectedEvent.modulatorType.notNil and: { self.selectedEvent.modulatorType[key].notNil }) {
+				//self.selectedModulatorType = self.selectedEvent.modulatorType[key];
+			//};
 			//self.changed(\selectedFx);
 		} {
 			self.selectedEvent = nil;
@@ -1342,6 +2147,10 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			};
 			nil
 		};
+	},
+
+	eventModel: { arg self;
+		self.modulatorStripView.proto.eventModel;
 	},
 
 	selectTrackAction: { arg self;
@@ -1502,6 +2311,7 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 
 ));
 Spec.add(\time, ControlSpec(0.01,1,\exp));
+Spec.add(\lpf, \freq);
 Spec.add(\dry, \unipolar);
 ProtoInst(\FxTimeline, \bla1).edit;
 
@@ -1525,6 +2335,28 @@ Pdef(\part, Pdef(\zedpart,
 		
 	])
 ));
+
+////////
+
+Pbindef(\bla,
+	\instrument, \saw,
+	\degree, PstepSeq(0!8),
+);
+
+WindowDef(\testmodstrip, { arg def;
+	var param = Param(Pbindef(\bla), \degree -> \stepseq, ControlSpec(0,14,\lin,0));
+	VLayout (
+		HLayout (
+			param.asStaticTextLabel.fixedWidth_(50),
+			WindowDef(\ModulatorStrip_slider).asView(param, 8),
+		),
+		HLayout (
+			param.asStaticTextLabel.fixedWidth_(50),
+			WindowDef(\ModulatorStrip_slider).asView(param, 8),
+		)
+	)
+});
+
 );
 
 // END
@@ -1923,7 +2755,7 @@ NoteTimeline('aze').eventList = TimelineEventList.newFrom([
 NoteTimeline(\aze).edit
 );
 
-
+(2**(1..7))/3
 
 (
 	~drawDebug = { arg thi;
@@ -2095,3 +2927,67 @@ NoteTimeline(\aze).edit
 		canvas.background_(Color.grey);
 	}).front;
 )
+
+
+////////////////////////////
+
+
+(
+Pbindef(\testmod, 
+	\instrument, \saw,
+	\degree, Pseq([0,3,2,Pwhite(0,7)],inf),
+	\lpfr, PmodEnv(PstepSeq([1,2,1,4]*2,1), 2).loop,
+	\rq, 0.3,
+	\octave, 4,
+	\dur, 1/2,
+	\amp, 0.1,
+).play;
+);
+Pdef(\testmod).clear;
+
+Pbindef(\testmod).source.at(\lpfr).source.levels
+Param(Message( Pbindef(\testmod).source.at(\lpfr).source.pattern.valPat ), \list).edit
+PmodEnv(PstepSeq([1,2,1,4]*2,1), 2)
+
+SampleTimeline(\bla).edit
+:wa
+
+WindowDef(\win, { arg def;
+	Menu(
+		MenuAction("sdf").icon_(Image("/usr/share/icons/elementary-xfce/places/i48/folder-home.png")),
+		MenuAction("sdf"),
+		MenuAction("sdf"),
+		MenuAction("sdf"),
+		MenuAction("sdf"),
+	)
+	
+}).front;
+
+
+(
+WindowDef(\win, { arg def;
+	var menu = Menu();
+	~menu = menu;
+	menu
+	
+}).front;
+)
+
+~menu.addAction(MenuAction("bla"))
+~menu.removeAction(~menu.actions[0])
+~menu.actions = [MenuAction("perferct")]
+ListView
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \saw,
+		\degree, Pseq([0],inf),
+		\lpfr, ~pmodsynth.({ SinOsc.ar(0.3).range(1,8)  }),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+NoteTimeline(\blz).edit
+SynthDescLib

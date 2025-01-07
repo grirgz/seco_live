@@ -259,6 +259,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 			{
 				2.wait;
 				bus.free;
+				SynthDescLib.global.removeAt(instrname);
 			}.fork;
 		});
 
@@ -282,7 +283,8 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 		CmdPeriod.doOnce({ 
 			if(bus.index.notNil) {
 				bus.free 
-			}
+			};
+			SynthDescLib.global.removeAt(instrname);
 		});
 
 		pattern = Pseq([
@@ -307,7 +309,7 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 		if(ev.notNil) {
 			if(ev[\finish].isKindOf(Function)) {
 				var oldfun = ev[\finish];
-				ev[\finish] = { finfun.value; oldfun.value };
+				ev[\finish] = { arg ev; finfun.value(ev); oldfun.value(ev) };
 			} {
 				ev[\finish] = finfun;
 			};

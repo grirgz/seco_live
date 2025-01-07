@@ -135,7 +135,7 @@ SynthDef(\ifx_fb, { arg out=0, gate=1;
 ))).add;
 TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_fb);
 
-SynthDef(\ifx_stutter, { arg out = 0, gate=1, time= 0.1, mix=0, rate=1;
+SynthDef(\ifx_stutter, { arg out = 0, gate=1, time= 0.1, mix=1, rate=1;
 	var stutter = { arg sig, reset, time, rate = 1.0, maxdelay = 10;
 		var phase, fragment, del;
 		phase = Sweep.ar(reset);
