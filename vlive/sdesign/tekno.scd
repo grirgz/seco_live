@@ -232,3 +232,6 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 Pdef(\corpus).edit
+
+SampleTimeline(\bla)
+~t = 185/4/60; TempoClock.default.tempo = ~t;

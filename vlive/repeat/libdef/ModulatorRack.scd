@@ -432,6 +432,105 @@ WindowDef(\ModulatorRack, { arg def, model;
 	
 });
 
+WindowDef(\ModulatorPanel, (
+	asView: { arg self, def, modlist;
+		// modlist is list of name -> object
+		var modlistview, modEditView, modviews;
+		var selector = ProtoTemplateDef(\ViewSelector).new;
+		self.modulatorList = modlist;
+		self.selector = selector;
+		selector[\visible_] = { arg sel, val; sel[\visible_val] = val; self.modEditView.visible = val;  };
+		selector[\visible] = { arg sel, val; sel[\visible_val] ?? { self.modEditView.visible }};
+		modlistview = View.new;
+		modEditView = View.new;
+		modEditView.background = Color.white;
+		//modEditView.visible = false;
+		self.modEditView = modEditView;
+		modviews = modlist.collect { arg asso, idx;
+			var obj, view;
+			obj = asso.value;
+			view = self.makeModView(idx, asso);
+			selector.add_view(view);
+			asso.key -> view;
+		};
+		self.selector.select_item(0);
+		modlistview.layout = HLayout (
+			BasicButton.new.string_(">").action_({
+				self.selector.visible = self.selector.visible.not;
+				[ self.selector.visible, self.modEditView.visible ].debug("**** set visible");
+				self.selector.changed(\selected_index);
+			}).fixedWidth_(20),
+			HLayout (
+				DragSource.new.object_(\freq).string_("↭ freq").background_(ParamViewToolBox.color_pale).maxWidth_(60),
+				DragSource.new.object_(\velocity).string_("↭ velocity").background_(ParamViewToolBox.color_pale).maxWidth_(60),
+			),
+			* modviews.collect(_.value)
+		).margins_(0).spacing_(5);
+
+		VLayout (
+			[modlistview, stretch:0],
+			[modEditView, stretch:0],
+		).spacing_(0)
+		
+	},
+
+	makeModView: { arg self, idx, asso;
+		var proxy = asso.value;
+		var key = asso.key;
+		var showEditor;
+		var idxlabel = idx+1;
+		var modview;
+		showEditor = {
+			idx.debug("showEditor");
+			self.modEditView.removeAll;
+
+			self.modEditView.layout = proxy.asView;
+			//self.modEditView.layout = VLayout (
+				//Param(proxy, \shape, \unipolar).asView,
+				//Param(proxy, \freq, \lofreq).asView,
+			//);
+		};
+
+		modview = View.new.layout_(
+			VLayout (
+				HLayout (
+					StaticText.new.string_(key.asString.toUpper),
+					DragSource.new.object_(proxy).string_("↭").fixedSize_(25@25).align_(\center).background_(ParamViewToolBox.color_pale),
+				).margins_([5,0,0,0]),
+			).margins_(0)
+		).background_(ParamViewToolBox.color_ligth).mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+			[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+			self.selector.visible = true;
+			[ self.selector.visible, self.modEditView.visible ].debug("**** set visible");
+			defer {
+				self.selector.select_item(idx);
+			}
+		}).addUniqueMethod(\showEditor, { arg me; showEditor.(); me });
+
+		modview.followChange(self.selector, \selected_index, { arg view, selector, msg;
+			[ view, selector, msg, selector.selected_index, selector.old_selected_index, idx ].debug("selected_index");
+			[self.selector.visible, self.modEditView.visible].debug("is visible ?");
+			if(self.selector.visible.not) {
+				idx.debug("not visible, disable");
+				modview.background = ParamViewToolBox.color_ligth;
+			} {
+				if(idx == selector.selected_index) {
+					idx.debug("visible, selected, enable");
+					modview.background = Color.white;
+					showEditor.();
+				} {
+					idx.debug("visible, not selected, disable");
+					//if(idx == selector.old_selected_index) {
+						modview.background = ParamViewToolBox.color_ligth;
+					//};
+				};
+			};
+		}, false);
+
+		modview;
+	},
+));
+
 
 BusDef(\zeromono, \audio, 1);
 BusDef(\amodbus0, \audio, 1);

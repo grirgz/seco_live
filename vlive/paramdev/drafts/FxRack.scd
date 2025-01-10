@@ -4,7 +4,8 @@
 
 (
 	FileSystemProject.loadOnce("cavern/ifxsimple.scd");
-	FileSystemProject.loadOnce("paramdev/drafts/PianoCenter.scd"); // FormEntryMod
+	FileSystemProject.loadOnce("paramdev/drafts/FormEntryMod.scd"); 
+	FileSystemProject.loadOnce("paramdev/drafts/SynthDefPreset.scd"); 
 
 	ProtoTemplateDef(\InsertFxItem, (
 		new: { arg self, parent, idx, proxy;
@@ -18,7 +19,7 @@
 				self.proxySynthDef = proxy;
 				self.proxy = Pdef(name,
 					Pmono(proxy,
-						\out, Pfunc({ self.parentRack.fxBus }),
+						\out, Pfunc({ self.parentRack.inBus }),
 						\group, GroupDef.pattern(name, self.parentRack.groupDefPattern, \addToTail),
 					),
 				);
@@ -35,8 +36,8 @@
 			"%_fx_%".format(self.parentRack.rackKey, self.index).asSymbol;
 		},
 
-		presetCompileString: { arg self, idx;
-			var ref = "%.fxList[%].proxy".format(self.parentRack.refCompileString, idx);
+		presetCompileString: { arg self, idx, refCompileString;
+			var ref = "%.fxList[%].proxy".format(refCompileString ?? { self.parentRack.refCompileString }, idx);
 			self.proxy.asParamGroup.getSetCompileString(ref);
 		},
 
@@ -80,7 +81,10 @@
 		},
 
 		removeFxAt: { arg self, idx;
-			var fx = self.fxList.removeAt(idx);
+			var fx;
+			[idx, self.fxList].debug("removeFxAt");
+			fx = self.fxList.removeAt(idx);
+			[idx, self.fxList].debug("removeFxAt done");
 			self.updateProxy;
 			self.changed(\fxList);
 		},
@@ -125,22 +129,28 @@
 
 			var first;
 			var group;
-			var grouplist = self.fxList.collect { arg fx, idx;
+			var grouplist;
+
+			grouplist = self.fxList.collect { arg fx, idx;
 				fx.groupDefName
 			};
-			first = grouplist.removeAt(0);
-			first.debug("quoi ?");
-			// create the group list directly to be sure of the order
-			group = grouplist.inject(GroupDef.pattern(first, self.groupDefPattern), { arg a, b; 
-				"inject: GroupDef.pattern(%, %, \addAfter)  ".format(b, a).debug;
-				GroupDef.pattern(b, a, \addAfter) 
-			});
+			if(grouplist.size > 0) {
+				first = grouplist.removeAt(0);
+				first.debug("quoi ?");
+				// create the group list directly to be sure of the order
+				group = grouplist.inject(GroupDef.pattern(first, self.groupDefPattern), { arg a, b; 
+					"inject: GroupDef.pattern(%, %, \addAfter)  ".format(b, a).debug;
+					GroupDef.pattern(b, a, \addAfter) 
+				});
+			} {
+				group = 1;
+			};
 			self.groupStack = group;
 			
 			if(self[\monitorProxy_obj].isNil) {
 				self[\monitorProxy_obj] = EventPatternProxy.new.source_(Pmono(\ifx_out,
 					\out, Pfunc({ self.outBus }),
-					\inbus, Pfunc({ self.fxBus }),
+					\inbus, Pfunc({ self.inBus }),
 					\mkg, Plazy({ arg ev;
 						//~group = group;
 						self.groupStack;
@@ -178,6 +188,10 @@
 		},
 
 		fxBus: { arg self;
+			self.inBus;
+		},
+
+		inBus: { arg self;
 			BusDef(self.rackKey, \audio, 2)
 		},
 
@@ -215,17 +229,43 @@
 			self.asCompileString;
 		},
 
-		presetCompileString: { arg self;
+		presetCompileString: { arg self, refCompileString;
 			var str = List[];
+			var ref;
 			var namestack = self.fxList.collect { arg item, idx;
 				item.proxySynthDef
 			}.asCompileString;
-			str.add("ProtoDef(%, %).synthDefNameStack = %;".format(self.key.asCompileString, self.parent.asCompileString, namestack));
+			ref = refCompileString ?? { "ProtoDef(%, %)".format(self.key.asCompileString, self.parent.asCompileString) };
+			str.add("%.synthDefNameStack = %;".format(ref, namestack));
 			self.fxList.do { arg item, idx;
-				str.add(item.presetCompileString(idx))
+				str.add(item.presetCompileString(idx, refCompileString))
 			};
 			str.join("\n")
 			
+		},
+
+		savePreset: { arg self, key;
+			self.presetBank.savePreset(key);
+		},
+
+		loadPreset: { arg self, key;
+			self.presetBank.loadPreset(key);
+		},
+
+		presetBank: { arg self;
+			if(self[\presetBank_obj].isNil) {
+				self[\presetBank_obj] = ProtoTemplateDef(\PresetGraphBank).new((
+					main: ParamGroup([
+						Param(Message(self), \synthDefNameStack),
+					].flat),
+					items: {
+						self.fxList.collect({ arg fx;
+							(main: fx.asParamGroup)
+						})
+					}
+				))
+			};
+			self[\presetBank_obj];
 		},
 
 		asParamGroup: { arg self;
@@ -302,7 +342,7 @@
 				   
 					}, [\SynthDef])
 				}),
-				Param(Message(model), \fxBus, TagSpecDef(\BusDef)).asPopUpMenu,
+				Param(Message(model), \inBus, TagSpecDef(\BusDef)).asPopUpMenu,
 				Param(Message(model), \outBus, TagSpecDef(\BusDef)).asPopUpMenu,
 			),
 			scrollview.canvas_(fxlistview)
@@ -314,6 +354,39 @@
 // END
 
 ProtoTemplateDef(\InsertFxRack).edit
+ProtoDef(\fx, \InsertFxRack)
+ProtoDef(\fx).edit
+ProtoDef(\fx).presetCompileString("kjkj").editorInsert
+ProtoDef(\fx).presetBank
+ProtoDef(\fx).savePreset(\preset1)
+ProtoDef(\fx).loadPreset(\preset1)
+(
+kjkj.synthDefNameStack = [ 'ifx_echo' ];
+kjkj.fxList[0].proxy.setVal('wet', 1.0);
+
+);
+#
+ProtoTemplateDef(\PresetGraphBank).new()
+(
+kjkj.synthDefNameStack = [ 'ifx_echo' ];
+kjkj.fxList[0].proxy.setVal('wet', 1.0);
+
+);
+(
+kjkj.synthDefNameStack = [ 'ifx_echo' ];
+kjkj.fxList[0].proxy.setVal('wet', 1.0);
+
+);
+(
+ProtoDef('fx', ProtoTemplateDef('InsertFxRack')).synthDefNameStack = [ 'ifx_echo' ];
+ProtoDef('fx').fxList[0].proxy.setVal('wet', 1.0);
+
+);
+(
+ProtoDef('fx', ProtoTemplateDef('InsertFxRack')).synthDefNameStack = [ 'ifx_echo' ];
+ProtoDef('fx').fxList[0].proxy.setVal('wet', 1.0);
+
+);
 
 ProtoTemplateDef(\InsertFxRack).fxList.collect
 ProtoTemplateDef(\InsertFxRack).fxList

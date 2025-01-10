@@ -13,6 +13,7 @@
 //// lib
 
 //FileSystemProject.load("paramdev/drafts/arpegiator.scd");
+FileSystemProject.loadOnce("paramdev/drafts/FormEntryMod.scd"); 
 FileSystemProject.load("paramdev/drafts/FxRack.scd");
 FileSystemProject.load("paramdev/drafts/SynthDefPreset.scd");
 FileSystemProject.loadOnce("libdef/ModulatorRack.scd");
@@ -20,196 +21,6 @@ FileSystemProject.loadOnce("libdef/ModulatorRack.scd");
 Spec.add(\velocity, ControlSpec(0,127,\lin));
 
 ~initialize_jack.();
-
-WindowDef(\FormEntryMod, { arg def, param;
-	var slider;
-	var midview = View.new;
-	var paramsrc;
-	var updateMidView;
-	updateMidView = {
-		if(param.target.source.isKindOf(PbindProxy)) {
-			paramsrc = param.at(\source);
-		} {
-			if(param.hasCombinator) {
-				paramsrc = param
-			} {
-				//param.debug("paramsrc not used");
-				// not used
-			};
-		};
-
-		if(param.hasCombinator) {
-			var combi = param.getCombinator;
-			[param, paramsrc, param.hasCombinator, param.getCombinator, combi].debug("paramsrc combi");
-			[param.getCombinator.existingInputRanges ].debug("has combi");
-			//slider = paramsrc.asSlider.orientation_(\horizontal);
-			slider = param.asSlider.orientation_(\horizontal);
-
-			midview.removeAll;
-			midview.layout = HLayout (
-				//paramsrc.getCombinator.baseParam.asSlider.orientation_(\horizontal),
-				slider,
-				* combi.existingInputRanges.collect { arg subp, idx;
-					var modlabel;
-					var obj;
-					var knob;
-					obj = combi.inputObjects[idx];
-					modlabel = try {obj.label} ?? { obj.asCompileString };
-					knob = subp.asKnob.fixedSize_(25@25).toolTip_(modlabel);
-					knob.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
-						[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
-						if(buttonNumber == 1) {
-							Menu(
-								MenuAction("Remove modulation", {
-									combi.clearInput(subp.subIndex);
-									updateMidView.();
-								}),
-								MenuAction("Reset value", {
-									subp.set(0);
-								}),
-							).front;
-							false;
-						};
-					})
-				}
-			).spacing_(4).margins_(0);
-		} {
-			slider = param.asSlider.orientation_(\horizontal);
-			midview.layout = HLayout(slider).margins_(0).spacing_(0);
-		};
-		slider.canReceiveDragHandler = {
-			true
-		};
-		slider.receiveDragHandler = { arg view, x, y;
-			var pc;
-			var obj;
-			[View.currentDrag, view, x, y].debug("receiveDragHandler");
-			obj = View.currentDrag;
-			[param.get, param.getRaw].debug("receiveDragHandler: before combi");
-			pc = ParamCombinator(param);
-			[param.get, param.getRaw].debug("receiveDragHandler: after combi");
-			pc.mapObjectToInput(obj);
-			[param.get, param.getRaw].debug("receiveDragHandler: after combi2");
-			//updateMidView.();
-		};
-		slider.followChange(param.target, \combinator, { arg view, obj, msg, prop;
-			if(prop == param.propertyRoot) {
-				updateMidView.();
-			};
-	   
-		})
-	};
-	updateMidView.();
-	if(param.type == \scalar) {
-		HLayout (
-			param.asStaticTextLabel.fixedWidth_(80).attachContextMenu,
-			midview,
-			param.asTextField.fixedWidth_(60),
-		)
-
-	} {
-		param.asView
-	};
-});
-
-WindowDef(\ModulatorPanel, (
-	asView: { arg self, def, modlist;
-		// modlist is list of name -> object
-		var modlistview, modEditView, modviews;
-		var selector = ProtoTemplateDef(\ViewSelector).new;
-		self.modulatorList = modlist;
-		self.selector = selector;
-		selector[\visible_] = { arg sel, val; sel[\visible_val] = val; self.modEditView.visible = val;  };
-		selector[\visible] = { arg sel, val; sel[\visible_val] ?? { self.modEditView.visible }};
-		modlistview = View.new;
-		modEditView = View.new;
-		modEditView.background = Color.white;
-		//modEditView.visible = false;
-		self.modEditView = modEditView;
-		modviews = modlist.collect { arg asso, idx;
-			var obj, view;
-			obj = asso.value;
-			view = self.makeModView(idx, asso);
-			selector.add_view(view);
-			asso.key -> view;
-		};
-		self.selector.select_item(0);
-		modlistview.layout = HLayout (
-			BasicButton.new.string_(">").action_({
-				self.selector.visible = self.selector.visible.not;
-				[ self.selector.visible, self.modEditView.visible ].debug("**** set visible");
-				self.selector.changed(\selected_index);
-			}).fixedWidth_(20),
-			HLayout (
-				DragSource.new.object_(\freq).string_("↭ freq").background_(ParamViewToolBox.color_pale).maxWidth_(60),
-				DragSource.new.object_(\velocity).string_("↭ velocity").background_(ParamViewToolBox.color_pale).maxWidth_(60),
-			),
-			* modviews.collect(_.value)
-		).margins_(0).spacing_(5);
-
-		VLayout (
-			[modlistview, stretch:0],
-			[modEditView, stretch:0],
-		).spacing_(0)
-		
-	},
-
-	makeModView: { arg self, idx, asso;
-		var proxy = asso.value;
-		var key = asso.key;
-		var showEditor;
-		var idxlabel = idx+1;
-		var modview;
-		showEditor = {
-			idx.debug("showEditor");
-			self.modEditView.removeAll;
-
-			self.modEditView.layout = proxy.asView;
-			//self.modEditView.layout = VLayout (
-				//Param(proxy, \shape, \unipolar).asView,
-				//Param(proxy, \freq, \lofreq).asView,
-			//);
-		};
-
-		modview = View.new.layout_(
-			VLayout (
-				HLayout (
-					StaticText.new.string_(key.asString.toUpper),
-					DragSource.new.object_(proxy).string_("↭").fixedSize_(25@25).align_(\center).background_(ParamViewToolBox.color_pale),
-				).margins_([5,0,0,0]),
-			).margins_(0)
-		).background_(ParamViewToolBox.color_ligth).mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
-			[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
-			self.selector.visible = true;
-			[ self.selector.visible, self.modEditView.visible ].debug("**** set visible");
-			defer {
-				self.selector.select_item(idx);
-			}
-		}).addUniqueMethod(\showEditor, { arg me; showEditor.(); me });
-
-		modview.followChange(self.selector, \selected_index, { arg view, selector, msg;
-			[ view, selector, msg, selector.selected_index, selector.old_selected_index, idx ].debug("selected_index");
-			[self.selector.visible, self.modEditView.visible].debug("is visible ?");
-			if(self.selector.visible.not) {
-				idx.debug("not visible, disable");
-				modview.background = ParamViewToolBox.color_ligth;
-			} {
-				if(idx == selector.selected_index) {
-					idx.debug("visible, selected, enable");
-					modview.background = Color.white;
-					showEditor.();
-				} {
-					idx.debug("visible, not selected, disable");
-					//if(idx == selector.old_selected_index) {
-						modview.background = ParamViewToolBox.color_ligth;
-					//};
-				};
-			};
-		}, false);
-
-		modview;
-	},
-));
 
 
 //// PianoCenter
@@ -346,10 +157,15 @@ WindowDef(\PianoCenter, (
 		var pgView = View.new;
 		var toolbar;
 		var modview;
-		var fxview = model.fxRack.asView;
+		var fxview = View.new.layout_(model.fxRack.asView);
+		var mainpanel = View.new;
 		// View.visible seems to be lagging, this is a workaround
 		self.paramGroupView = pgView;
 		self.model = model;
+		self.fxView = fxview;
+		self.def = def;
+
+		fxview.visible = false;
 
 		pgView.followChange(model.proxy, \set, { arg view, obj, msg ...args;
 			//[view, obj, msg, args].debug("vom");
@@ -357,6 +173,7 @@ WindowDef(\PianoCenter, (
 				self.updateView;
 			};
 		});
+		pgView.maxWidth_(1200);
 
 		self.updateView;
 
@@ -368,16 +185,19 @@ WindowDef(\PianoCenter, (
 			};
 		);
 
-		HLayout (
+		mainpanel.layout = VLayout (
+			toolbar,
 			VLayout (
-				toolbar,
-				VLayout (
-					[pgView, stretch:10],
-					modview,
-				),
-				WindowDef(\TimelinePianoKeyboard).embedView(def, model.playerGroup).minHeight_(50)
+				[pgView, stretch:10],
+				modview,
 			),
+			WindowDef(\TimelinePianoKeyboard).embedView(def, model.playerGroup).minHeight_(50)
+		);
+		mainpanel.maxWidth_(1200);
+		HLayout (
+			mainpanel,
 			fxview,
+			nil
 		)
 	},
 
@@ -433,7 +253,34 @@ WindowDef(\PianoCenter, (
 					model.recorderTimeline.edit;
 				}),
 				RecordButton.new(model, \recorder, "Rec").view.fixedWidth_(40),
-			).spacing_(0)
+			).spacing_(0),
+			BasicButton.new.string_("Fx>").action_({
+				var wasVisible = self.fxView.visible;
+				self.def.windowDo { arg win;
+					if(wasVisible == false) {
+						self.bounds_nofx = win.bounds.copy;
+						win.bounds.debug("old bounds");
+						//win.rememberPosition;
+					};
+				};
+				self.fxView.visible = wasVisible.not;
+				self.def.windowDo { arg win;
+					wasVisible.debug("wasVisible");
+					if(wasVisible == true) {
+						if(self.bounds_nofx.notNil) {
+							win.bounds.debug("old bounds");
+							{
+								win.bounds = self.bounds_nofx;
+							}.defer;
+							//[win.bounds, self.bounds_nofx].debug("new bounds");
+							//win.recallPosition;
+						};
+					};
+					//var bo = win.bounds.copy;
+					//bo.width = bo.width - self.fxView.bounds.width;
+					//win.bounds = bo;
+				};
+			}).fixedWidth_(30),
 		).margins_(0).spacing_(10);
 	},
 
@@ -453,8 +300,9 @@ WindowDef(\PianoCenter, (
 
 ////
 
-ProtoTemplateDef(\PianoCenter).proxy.source.set(\instrument, \saw);
-//ProtoTemplateDef(\PianoCenter).edit;
+ProtoDef(\PianoCenter, \PianoCenter);
+ProtoDef(\PianoCenter).proxy.source.set(\instrument, \saw);
+ProtoDef(\PianoCenter).edit;
 Ndef(\lfo1, { arg freq=1, gain=1; 
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -1284,3 +1132,19 @@ Pdef(\huhu).edit
 
 ParamGroupDef(\SynthDef_saw).presets.keys
 ParamGroupDef(\SynthDef_saw).do(_.postln)
+
+NoteTimeline
+
+Pdef(\edit).edit
+Pdef(\edit, Pbind()).play
+
+
+(
+Tdef(\wwww, {
+	"heel".debug;
+	
+
+})
+)
+
+Fdef(\bla, )

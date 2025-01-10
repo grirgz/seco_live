@@ -59,16 +59,16 @@ ProtoTemplateDef(\ModulatorStripEventModel, (
 		self;
 	},
 
-	wrapperFor: { arg self, ev;
+	wrapperFor: { arg self, ev, key;
 		var modtype;
-		var key = self.selectedParam.propertyRoot;
+		key = key ?? { self.selectedParam.propertyRoot };
 		//if(ev.modulatorType.notNil and: { ev.modulatorType[key].notNil }) {
 			//modtype = ev.modulatorType[key];
 		//};
 		modtype = self.getModulatorType(ev, key);
 		//modtype = modtype ?? { self.strip.selectedModulatorType };
-		[modtype].debug("wrapperFor: modtype");
-		[ self.wrapperDict.keys].debug("wrapperFor: keys");
+		//[modtype].debug("wrapperFor: modtype");
+		//[ self.wrapperDict.keys].debug("wrapperFor: keys");
 		self.wrapperDict[modtype];
 	},
 
@@ -128,13 +128,31 @@ ProtoTemplateDef(\ModulatorStripEventModel, (
 		ev.localMod[key].modulatorType = val;
 	},
 
+	isModulatorDefined: { arg self, ev, key, modtype;
+		modtype = modtype ?? { self.modulatorType };
+		ev.localMod.notNil and: {ev.localMod[key].notNil and: {ev.localMod[key][modtype].notNil}}
+	},
+
 	getModulatorData: { arg self, ev, key, modtype, defaultFun;
 		self.getModulatorDataAndIsSet(ev, key, modtype, defaultFun).first;
 	},
 
-	isModulatorDefined: { arg self, ev, key, modtype;
+	getAndCreateModulatorData: { arg self, ev, key, modtype, defaultFun;
+		var mod, seq, isSet = true;
 		modtype = modtype ?? { self.modulatorType };
-		ev.localMod.notNil and: {ev.localMod[key].notNil and: {ev.localMod[key][modtype].notNil}}
+		defaultFun = defaultFun ?? { { self.defaultData } };
+		if(ev.localMod.isNil) { // do not create if not existing
+			ev.localMod = ();
+		};
+		if(ev.localMod[key].isNil) { // do not create if not existing
+			ev.localMod[key] = ();
+		};
+		if(ev.localMod[key][modtype].isNil) { // do not create if not existing
+			[mod, key, modtype].debug("running defaultFun").debug;
+			[ ev].debug("running defaultFun ev").debug;
+			ev.localMod[key][modtype] = defaultFun.value;
+		};
+		ev.localMod[key][modtype]
 	},
 
 	getModulatorDataAndIsSet: { arg self, ev, key, modtype, defaultFun;
@@ -255,12 +273,14 @@ ProtoTemplateDef(\ModulatorStripEventModel_raw, (
 			ev.localValues = ();
 		};
 		ev.localValues[key] = val;
+		self.strip.valuePopupCurrentValue = val;
 		self.setModulatorType(ev, key, \raw);
 		//[self.selectedParam, ev].debug("selp");
 		ev.localValues.changed(\set, key);
 	},
 		
 	drawEventContent: { arg self, ev;
+		var ouuu_raw;
 		var key = self.selectedParam.propertyRoot;
 		var len = ev[self.xlenkey];
 		var num;
@@ -270,14 +290,13 @@ ProtoTemplateDef(\ModulatorStripEventModel_raw, (
 		var xkey = self.xkey;
 		var color;
 		var modtype;
-		var default = ( ev.localValues[key] ?? { self.selectedTrackParam.get } );
 		var res;
 		var curlevel;
 		num = ( len / self.cellWidth ).asInteger;
 		if(ev[\localValues].isNil or: { ev[\localValues][key].isNil }) {
 			isSet = false;
-			[default, self.selectedTrackParam, self.selectedTrackParam.get, ev].debug("set default raw");
-			curlevel = default;
+			[self.selectedTrackParam, self.selectedTrackParam.get, ev].debug("set default raw");
+			curlevel = self.selectedTrackParam.get;
 		} {
 			curlevel = ev.localValues[key];
 		};
@@ -353,10 +372,12 @@ ProtoTemplateDef(\ModulatorStripEventModel_step, (
 			};
 
 		};
+		self.strip.valuePopupCurrentValue = val;
 		ev.localMod[key][\step][idx] = val;
 	},
 		
 	drawEventContent: { arg self, ev;
+		var ouuu_step;
 		var key = self.selectedParam.propertyRoot;
 		var len = ev[self.xlenkey];
 		var num;
@@ -366,7 +387,7 @@ ProtoTemplateDef(\ModulatorStripEventModel_step, (
 		var xkey = self.xkey;
 		var color;
 		var modtype;
-		var default = ( ev.localValues[key] ?? { self.selectedTrackParam.get } );
+		var default = ( ev.localValues !? { ev.localValues[key] } ?? { self.selectedTrackParam.get } );
 		var res;
 		var mod;
 		num = ( len / self.cellWidth ).asInteger;
@@ -436,6 +457,7 @@ ProtoTemplateDef(\ModulatorStripEventModel_modenv, (
 			};
 
 		};
+		self.strip.valuePopupCurrentValue = val;
 		if(nearEnd) {
 			seq[idx + 1] = val;
 		} {
@@ -523,6 +545,7 @@ ProtoTemplateDef(\ModulatorStripEventModel_lfosin, (
 		};
 
 
+		self.strip.valuePopupCurrentValue = val;
 		ev.localValues[key] = val;
 	},
 
@@ -625,7 +648,7 @@ ProtoTemplateDef(\ModulatorStripEventModel_lfosin, (
 
 	makeEventListener: { arg self, ev, key;
 		var con;
-		var data = self.getModulatorData(ev, key);
+		var data = self.getAndCreateModulatorData(ev, key);
 		data.debug("make lfosin listener");
 		//[ key, ev ].debug("installing raw listener");
 		con = SimpleController(data).put(\set, { arg obj, msg, prop;
@@ -823,10 +846,13 @@ WindowDef(\ModulatorStrip, (
 	},
 
 	selectEventInTimeline: { arg self, ev;
-		var node = self.model.masterTimeline.nodes.detect { arg x; x.model == ev };
+		var node;
+		debug("selectEventInTimeline");
+		node = self.model.masterTimeline.nodes.detect { arg x; x.model == ev };
 		self.model.masterTimeline.deselectAllNodes;
 		if(node.notNil) {
 			self.model.masterTimeline.selectNode(node);
+			self.model.fxTimelinePanel.selectedEvent = ev;
 		} {
 			"Can't find node for ev %".format(ev).error;
 			nil
@@ -843,7 +869,6 @@ WindowDef(\ModulatorStrip, (
 	},
 
 	refresh: { arg self;
-		self.installVisibleListeners;
 		self.view.refresh;
 	},
 
@@ -857,13 +882,16 @@ WindowDef(\ModulatorStrip, (
 		}, false);
 		self.view.followChange(self.model.fxTimelinePanel, \selectedParam, {
 			self.refresh;
+			self.installVisibleListeners;
 		}, false);
 		
 	},
 
 	installVisibleListeners: { arg self, evlist;
 		evlist = evlist ?? {self.getLineEvents};
-		self.eventModel.installEventListeners(evlist);
+		if(self.selectedTrackParam.notNil and: { self.selectedParam.notNil }) {
+			self.eventModel.installEventListeners(evlist);
+		};
 		//var key;
 		//var modtype;
 		////"installVisibleListeners".debug;
@@ -948,7 +976,7 @@ WindowDef(\ModulatorStrip, (
 	),
 
 	selectedModulatorType: { arg self;
-		self.model.fxTimelinePanel.selectedModulatorType ? \raw
+		self.model.fxTimelinePanel.selectedModulatorType ? \raw;
 	},
 
 	selectedModulatorTypeAction: { arg self, ev;
@@ -975,7 +1003,6 @@ WindowDef(\ModulatorStrip, (
 		var xkey = self.xkey;
 		var color;
 		var modtype;
-		var default = ( ev.localValues[key] ?? { self.selectedTrackParam.get } );
 		var res;
 		num = ( len / self.cellWidth ).asInteger;
 		Pen.width = 1;
@@ -1049,6 +1076,10 @@ WindowDef(\ModulatorStrip, (
 			if(ev.localValues.isNil) {
 				ev.localValues = ();
 			};
+			if(self.selectedModulatorType != \raw) {
+				ev.localMod = ();
+				ev.localMod[key] = (modulatorType: self.selectedModulatorType);
+			};
 			ev.localValues[key] = val; // localValues is the ref for keys
 			self.createdEvent = ev;
 			self.createdEventPxpos = pxpos;
@@ -1091,55 +1122,43 @@ WindowDef(\ModulatorStrip, (
 
 			if(mouseActionType == \down) {
 				self.selectEventInTimeline(ev);
+				self.model.masterTimeline.refresh;
+				self.shouldShowValuePopup = true;
+				self.valuePopupPxpos = pxpos;
+			};
+			if(mouseActionType == \move) {
+				self.valuePopupPxpos = pxpos;
+				
 			};
 			val = self.selectedParam.spec.map(val);
 			//ev.debug("setCellAtPos: ev");
-			//self.selectedModulatorTypeAction(ev);
 			self.eventModel.setEventContent(ev, idx, val, direction, pxpos);
 
-			//if(self.selectedParam.notNil) {
-				//if(ev.modulatorType.isNil) {
-					//// set only if nil contrary to selectedModulatorType which always set
-					//ev.modulatorType = ();
-					//ev.modulatorType[self.selectedParam.propertyRoot] = self.selectedModulatorType;
-				//};
-			//};
+			if(mouseActionType == \up) {
+				self.shouldShowValuePopup = false;
+				self.installVisibleListeners;
+			};
+			self.view.refresh;
+		};
+	},
 
-			//if(ev.modulatorType[key] == \raw) {
-				//if(ev.localValues.isNil) {
-					//ev.localValues = ();
-				//};
-				//ev.localValues[key] = val;
-				////[self.selectedParam, ev].debug("selp");
-				//ev.localValues.changed(\set, key);
-			//} {
-				//var num = ev[self.xlenkey] / self.cellWidth;
-
-				//if(ev.localSeq.isNil) {
-					//ev.localSeq = ();
-				//};
-				//if(ev.localSeq[key].isNil) {
-					//[self.selectedTrackParam, self.selectedTrackParam.get, num, key].debug("create seq");
-					//ev.localSeq[key] = List.newFrom( self.selectedTrackParam.get!num );
-				//};
-
-				//if(direction == 1) {
-					//if(idx >= ev.localSeq[key].size) {
-						//var more = idx - ( ev.localSeq[key].size-1 );
-						//ev.localSeq[key] = List.newFrom(ev.localSeq[key] ++ ( self.selectedTrackParam.get!more ));
-					//};
-				//} {
-					//if(idx <= 0) {
-						//var more = ( ev[self.xlenkey] / self.cellWidth ) - ( ev.localSeq[key].size );
-						//[( ev[self.xlenkey] / self.cellWidth ) , ( ev.localSeq[key].size ), more].debug("MORE") ;
-						//ev.localSeq[key] = List.newFrom(( self.selectedTrackParam.get!more ) ++ ev.localSeq[key]);
-					//};
-
-				//};
-				//ev.localSeq[key][idx] = val;
-			//};
-			//ev[self.xlenkey] 
-			self.refresh;
+	showValuePopup: { arg self, show=true;
+		var unit = self.gridRectToPixelRect(Rect(0,0,self.cellWidth*2,0.5)).extent;
+		if(show) {
+			var rect = Rect(self.valuePopupPxpos + unit.x, unit.y, 55, 20);
+			//Pen.color = Color.gray.blend(Color.red, 0.1);
+			Pen.color = self.colors.selected;
+			Pen.strokeColor = Color.black;
+			Pen.fillColor = self.colors.selected;
+			Pen.width = 1/2;
+			//self.drawRoundBox(rect,10);
+			//Pen.stroke;
+			//self.drawRoundBox(rect.insetBy(1),10);
+			Pen.addRect(rect.insetBy(1));
+			Pen.draw(3);
+			Pen.color = Color.black;
+			Pen.stringInRect(self.valuePopupCurrentValue.asStringPrec(5), rect.insetBy(4).moveBy(3,0), Font.default.size_(9), alignment:\center);
+			Pen.stroke;
 		};
 	},
 
@@ -1185,6 +1204,8 @@ WindowDef(\ModulatorStrip, (
 	},
 
 	drawRoundBox: { arg self, rect, smooth=1, width=1;
+		// problem: can't fill because addAnnularWedge do not add to pen path
+		// maybe use curveTo
 		var radius = smooth;
 		var inradius = radius - ( width/10 );
 		Pen.moveTo(Point(rect.left, rect.bottom - radius));
@@ -1369,6 +1390,8 @@ WindowDef(\ModulatorStrip, (
 				self.drawEventContent(ev);
 				self.drawEventBox(ev[xkey], ev[xlenkey], ev === self.model.fxTimelinePanel.selectedEvent);
 			};
+
+			self.showValuePopup(self.shouldShowValuePopup ? false);
 		}
 	},
 
@@ -1400,6 +1423,13 @@ WindowDef(\ModulatorStrip, (
 			var offset = -13;
 			//[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseMoveAction");
 			self.setCellAtPos(x, 1 - ( ( y + offset )/self.virtualBounds.height ), \move);
+
+		});
+		view.mouseUpAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+			var idx;
+			var offset = -13;
+			//[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseMoveAction");
+			self.setCellAtPos(x, 1 - ( ( y + offset )/self.virtualBounds.height ), \up);
 
 		});
 		view.addUniqueMethod(\proto, { self });
@@ -1789,6 +1819,36 @@ ProtoClassDef(\FxTimeline, ProtoClass(( // can't use ProtoTemplateDef, clash wit
 		self.editor.areasize = Point(self.editor.areasize.x, self.tracks.size ); // track_count is self.tracks.size
 		self.changed(\tracks);
 	},
+
+	savePreset: { arg self, key;
+		self.presetBank.savePreset(key);
+	},
+
+	loadPreset: { arg self, key;
+		self.presetBank.loadPreset(key);
+	},
+
+	presetBank: { arg self;
+		if(self[\presetBank_obj].isNil) {
+			self[\presetBank_obj] = ProtoTemplateDef(\PresetGraphBank).new((
+				main: ParamGroup([
+					Param(Message(self), \eventListClone),
+				].flat),
+				items: {
+					[
+						self.fxRack.presetBank.groupDict
+					]
+				}
+			), {
+				"loadPresetHook called!!".debug;
+				self.changed(\fxList);
+				self.eventList.changed(\refresh);
+				self.changed(\tracks);
+			})
+		};
+		self[\presetBank_obj];
+	},
+
 )));
 
 
@@ -1798,16 +1858,15 @@ ProtoClassDef(\FxTimeline, ProtoClass(( // can't use ProtoTemplateDef, clash wit
 ProtoTemplateDef(\FxTimelinePanelView, (
 	parent: ProtoTemplateDef(\ClipTimelinePanelView),
 
-	makeFxParamView: { arg self;
-		var strip, stripview;
-		strip = ProtoTemplateDef(\ModulatorStrip).new(self);
-		stripview = strip.asView;
+	//// properties
+
+	colors: (
+		selected: ParamViewToolBox.color_ligth,
+		deselected: Color.gray(0.7),
 		
-		//self.bottomPanelView.layout = self.selectedFx.asParamGroup.asView;
-		self.modulatorStrip = strip;
-		self.modulatorStripView = stripview;
-		self.bottomPanelView.layout = VLayout(stripview).margins_([0,0,0,0]).spacing_(0)
-	},
+	),
+
+	trackHeaderWidth: 200,
 
 	selectedFx: { arg self;
 		self.timeline_model.tracks.first;
@@ -1822,6 +1881,7 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 		self.changed(\selectedModulatorType);
 		self.modulatorStripView.proto.selectedModulatorTypeAction(self.selectedEvent); // ugly
 		self.modulatorStripView.refresh;
+		self.updateBottomPanelHeaderView;
 	},
 
 	selectedParam_: { arg self, param;
@@ -1834,6 +1894,56 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 		//self.selectedFx.asParamGroup.rejectByProperty([ \adsr, \dur, \legato, \out ]).first;
 	//},
 
+	isBottomPanelVisible_: { arg self, val;
+		if(val == true) {
+			self.bottomPanelView.visible = true;
+			self.bottomPanelVerticalScroller.visible = true;
+			self.bottomPanelHeaderView.visible = true;
+		} {
+			self.bottomPanelView.visible = false;
+			self.bottomPanelVerticalScroller.visible = false;
+			self.bottomPanelHeaderView.visible = false;
+		};
+	},
+
+	selectedEvent: { arg self;
+		var ar = self.timeline.selectedNodes.asArray;
+		if(ar.size > 0) { ar.first.model } { nil };
+	},
+
+	eventModel: { arg self;
+		self.modulatorStripView.proto.eventModel;
+	},
+
+	//// commands
+
+	add_track: { arg self, fx;
+		self.timeline_model.add_track(fx);
+		self.timeline.refreshEventList;
+		self.timeline.refresh;
+		self.update_track_header;
+	},
+
+	//// make views
+
+
+	makeFxEditorView: { arg self;
+		self.fxEditorView = View.new;
+		self.fxEditorView.followChange(self, \selectedFx, {
+			self.updateFxEditorView;
+		}, false);
+		//self.fxEditorView.followChange(self.timeline, \selectedNodes, {
+			////self.selectedNodesAction;
+			//self.changed(\selectedParam);
+			////self.updateBottomPanelHeaderView;
+		//}, false);
+		self.fxEditorView.followChange(self, \selectedParam, {
+			debug("selectedParam handler");
+			self.updateBottomPanelHeaderView;
+
+		}, false);
+	},
+
 	makeBottomPanelView: { arg self;
 		self.bottomPanelView = View.new;
 		//self.bottomPanelView.fixedHeight_(100);
@@ -1845,18 +1955,6 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 		self.bottomPanelVerticalScroller.orientation = \vertical;
 		self.makeBottomPanelToolbar;
 		self.isBottomPanelVisible = true;
-	},
-
-	isBottomPanelVisible_: { arg self, val;
-		if(val == true) {
-			self.bottomPanelView.visible = true;
-			self.bottomPanelVerticalScroller.visible = true;
-			self.bottomPanelHeaderView.visible = true;
-		} {
-			self.bottomPanelView.visible = false;
-			self.bottomPanelVerticalScroller.visible = false;
-			self.bottomPanelHeaderView.visible = false;
-		};
 	},
 
 	makeBottomPanelToolbar: { arg self;
@@ -1876,7 +1974,10 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 		self.makeFxEditorView;
 		self.bottomPanelToolbar.layout = VLayout (
 			self.fxEditorView,
-			self.bottomPanelShowButton,
+			HLayout (
+				self.bottomPanelShowButton,
+				WindowDef(\PresetSelectorView).asView(self.timeline_model.presetBank),
+			),
 			//self.automationPopup,
 			//self.velocityButton,
 			//self.automationButton,
@@ -1885,102 +1986,6 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 		).margins_(0);
 	},
 
-	updateFxEditorView: { arg self;
-		self.fxEditorView.removeAll;
-		self.fxEditorView.layout = HLayout (
-			* self.selectedFxParamGroup.asArray.collect { arg param, idx;
-				var knob = param.asKnob;
-				var labelview = param.asStaticTextLabel.align_(\center).attachContextMenu;
-				var mouseDownAction;
-				mouseDownAction = { arg view, x, y, modifiers, buttonNumber, clickCount;
-					[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
-					self.selectedParam = param;
-					//false;
-					true;
-				};
-				//knob.mouseDownAction = knob.mouseDownAction.addFunc(mouseDownAction);
-				knob.mouseDownAction = mouseDownAction.addFunc(knob.mouseDownAction);
-				labelview.mouseDownAction = labelview.mouseDownAction.addFunc(mouseDownAction);
-				labelview.followChange(self, \selectedParam, {
-					debug("selectedParam labelview handler");
-					if(self.selectedParam == param) {
-						labelview.background_(ParamViewToolBox.color_ligth)
-					} {
-						labelview.background_(Color.clear)
-						
-					};
-
-				}, false);
-				VLayout (
-					labelview,
-					knob,
-					param.asStaticText.align_(\center).fixedWidth_(70),
-				).spacing_(10)
-			} ++ [nil];
-		).spacing_(10)
-	},
-
-	updateBottomPanelHeaderView: { arg self;
-		var label;
-		if(self.selectedParam == self.selectedTrackParam) {
-			label = "Track %".format(self.selectedParam.propertyRoot);
-		} {
-			label = "Event %".format(self.selectedParam.propertyRoot);
-		};
-		self.bottomPanelHeaderView.removeAll;
-		self.bottomPanelHeaderView.layout_(
-			VLayout (
-				HLayout (
-					StaticText.new.string_(label),
-					//BasicButton.new,
-					Param(Message(self), \selectedModulatorType, TagSpec([
-						\raw,
-						\step,
-						\modenv,
-						\lfosin,
-					])).asPopUpMenu,
-				),
-				HLayout (
-					* self.modulatorStripView.proto.eventModel.asParamGroup(self.selectedEvent, self.selectedParam.propertyRoot).collect { arg param, idx;
-
-						VLayout (
-							param.asStaticTextLabel.font_(Font.default.size_(10)).align_(\center).attachContextMenu,
-							param.asKnob,
-							//StaticText.new.string_("0.4234"),
-						).margins_(0).spacing_(5)
-					} ++ [nil];
-				).margins_(0).spacing_(0),
-
-				//HLayout (
-				//* 4.collect { arg item, idx;
-
-				//VLayout (
-				//StaticText.new.string_("slope").font_(Font.default.size_(10)).align_(\center),
-				//Knob.new,
-				////StaticText.new.string_("0.4234"),
-				//).margins_(0).spacing_(5)
-				//},
-				//).margins_(0).spacing_(0),
-				nil
-			)
-		);
-	},
-
-
-	makeFxEditorView: { arg self;
-		self.fxEditorView = View.new;
-		self.fxEditorView.followChange(self, \selectedFx, {
-			self.updateFxEditorView;
-		}, false);
-		self.fxEditorView.followChange(self.timeline, \selectedNodes, {
-			self.selectedNodesAction;
-		}, false);
-		self.fxEditorView.followChange(self, \selectedParam, {
-			debug("selectedParam handler");
-			self.updateBottomPanelHeaderView;
-
-		}, false);
-	},
 
 	makeLayout: { arg self;
 		var clipEditor;
@@ -2004,7 +2009,6 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			self.timeline.eventFactory = self.timeline_model.eventFactory;
 		});
 		self.timeline.mouseDownAction = { arg me, px, py, mod, buttonNumber, clickCount, chosennode;
-			"hein?".debug;
 			if(clickCount == 2) {
 				if(chosennode.notNil) {
 					self.showClipEditor(chosennode.model);
@@ -2014,9 +2018,19 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 					self.showTimelineContextMenu(chosennode);
 				} {
 					var idx = self.timeline.pixelPointToGridPoint(Point(px,py)).y.asInteger;
+					self.selectedEvent = chosennode !? { chosennode.model };
 					self.trackSelector.selectIndex(idx);
 				};
 			}
+		};
+		self.timeline.mouseUpAction = { arg ...args;
+			args.debug("mouseUpAction");
+			//self.changed(\selectedParam);
+		};
+		self.timeline.createNodeHook = { arg newevent;
+			//self.selectedEvent = newevent;
+			self.selectedEvent.debug("createNodeHook");
+			self.changed(\selectedParam);
 		};
 		//"clipTimelinePanelView.makeLayout: part 3".debug;
 		self.timeline.view.followChange(self.eventloop, \list, { 
@@ -2031,11 +2045,15 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 		self.layout;
 	},
 
-	add_track: { arg self, fx;
-		self.timeline_model.add_track(fx);
-		self.timeline.refreshEventList;
-		self.timeline.refresh;
-		self.update_track_header;
+	makeFxParamView: { arg self;
+		var strip, stripview;
+		strip = ProtoTemplateDef(\ModulatorStrip).new(self);
+		stripview = strip.asView;
+		
+		//self.bottomPanelView.layout = self.selectedFx.asParamGroup.asView;
+		self.modulatorStrip = strip;
+		self.modulatorStripView = stripview;
+		self.bottomPanelView.layout = VLayout(stripview).margins_([0,0,0,0]).spacing_(0)
 	},
 
 	make_header: { arg self;
@@ -2117,41 +2135,11 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			//self.update_track_header;
 		})
 		;
+
+		self.timeline_model.changed(\tracks); // init areasize from track count
 	},
 
-	selectedNodesAction: { arg self;
-		var note;
-		self.timeline.selectedNodes.debug("selectedNodes");
-		if(self.timeline.selectedNodes.size > 0) {
-			var trackidx;
-			var key = self.selectedParam.propertyRoot;
-			note = self.timeline.selectedNodes.asArray.first.model;
-			note.midinote.debug("selectedNodes midinote");
-			trackidx = note.midinote;
-			self.selectedFx = self.timeline_model.tracks[trackidx];
-			if(note[\localValues].isNil) {
-				note[\localValues] = ();
-			};
-			self.selectedEvent = note;
-			self.trackSelector.selectIndex(trackidx); // should be before setting selectedFxParamGroup
-			self.selectedModulatorType = self.eventModel.getModulatorType(self.selectedEvent, key);
-			//if(self.selectedEvent.modulatorType.notNil and: { self.selectedEvent.modulatorType[key].notNil }) {
-				//self.selectedModulatorType = self.selectedEvent.modulatorType[key];
-			//};
-			//self.changed(\selectedFx);
-		} {
-			self.selectedEvent = nil;
-			if(self.trackSelector.notNil) {
-				self.trackSelector.selectedIndex.debug("selectedNodes follower");
-				self.trackSelector.selectIndex(self.trackSelector.selectedIndex);
-			};
-			nil
-		};
-	},
-
-	eventModel: { arg self;
-		self.modulatorStripView.proto.eventModel;
-	},
+	//// actions
 
 	selectTrackAction: { arg self;
 		var color_selected = self.colors.selected;
@@ -2160,6 +2148,8 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			var view;
 			var ridx = self.timeline_model.tracks.size - 1 - idx;
 			var pg;
+			var key;
+			debug("----#### selectTrackAction start");
 			view = subself.views[ridx]; // view are reversed
 			view.background_(color_selected);
 			// views are reversed but view 0 at bottom still mean fx 0
@@ -2167,26 +2157,44 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 
 			pg = self.selectedFx.asParamGroup.rejectByProperty([\out, \adsr, \legato, \dur]);
 			if(self.selectedEvent.notNil) {
+				debug("**selectedEvent mode");
+				if(self.selectedEvent.localValues.isNil) {
+					self.selectedEvent.localValues = ();
+					self.selectedEvent.localMod = ();
+				};
 				// change param to main (track) or event depending on selection
 				// selectedTrackParam is always the main one
 				self.selectedFxParamGroup = ParamGroup(pg.collect { arg param, idx;
 					Param(self.selectedEvent.localValues, param.property, param.spec).default_(param.get)
 				});
 			} {
+				debug("**NOselect mode");
 				self.selectedFxParamGroup = pg; 
 			};
 
+			// call updateFxEditorView
+			// should be before changing selectedParam so knobs can already receive the msg
+			self.changed(\selectedFx); 
+
 			if(self.selectedFx.selectedParam.notNil) {
+				// self.selectedParam_ send changed message so should be after selectedTrackParam_
+				self.selectedTrackParam = Param(self.selectedFx.proxy, self.selectedFx.selectedParam.propertyRoot);
+				// this call updateBottomPanelHeaderView
 				self.selectedParam = self.selectedFxParamGroup
 					.asPropertyDict[self.selectedFx.selectedParam.propertyRoot];
-				self.selectedTrackParam = Param(self.selectedFx.proxy, self.selectedFx.selectedParam.propertyRoot);
 			} {
-				self.selectedParam = self.selectedFxParamGroup.first;
 				self.selectedTrackParam = pg.first;
+				// this call updateBottomPanelHeaderView
+				self.selectedParam = self.selectedFxParamGroup.first;
 			};
 
+			if(self.selectedEvent.notNil) {
+				key = self.selectedParam.propertyRoot;
+				self.selectedModulatorType = self.eventModel.getModulatorType(self.selectedEvent, key);
+			};
 
-			self.changed(\selectedFx);
+			//debug("selectTrackAction send changed");
+			//debug("selectTrackAction finish");
 		};
 	},
 
@@ -2202,13 +2210,118 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 		};
 	},
 
-	colors: (
-		selected: ParamViewToolBox.color_ligth,
-		deselected: Color.gray(0.7),
-		
-	),
+	selectedNodesAction: { arg self; // deprecated by selectedEvent
+		var note;
+		debug("----- selectedNodesAction start");
+		self.timeline.selectedNodes.debug("selectedNodes");
+		if(self.timeline.selectedNodes.size > 0) {
+			var trackidx;
+			var key = self.selectedParam.propertyRoot;
+			note = self.timeline.selectedNodes.asArray.first.model;
+			note.midinote.debug("selectedNodes midinote");
+			trackidx = note.midinote;
+			self.selectedFx = self.timeline_model.tracks[trackidx];
+			if(note[\localValues].isNil) {
+				note[\localValues] = ();
+			};
+			self.selectedEvent = note;
+			self.selectedModulatorType = self.eventModel.getModulatorType(self.selectedEvent, key);
+		} {
+			self.selectedEvent = nil;
+			//if(self.trackSelector.notNil) {
+				//self.trackSelector.selectedIndex.debug("selectedNodes follower");
+				//self.trackSelector.selectIndex(self.trackSelector.selectedIndex);
+			//};
+			nil
+		};
+	},
 
-	trackHeaderWidth: 200,
+
+	//// update
+
+	updateFxEditorView: { arg self;
+		self.fxEditorView.removeAll;
+		self.selectedFxParamGroup.debug("--- updateFxEditorView: start");
+		self.fxEditorView.layout = HLayout (
+			* self.selectedFxParamGroup.asArray.collect { arg param, idx;
+				var knob = param.asKnob;
+				var labelview = param.asStaticTextLabel.align_(\center).attachContextMenu;
+				var mouseDownAction;
+				mouseDownAction = { arg view, x, y, modifiers, buttonNumber, clickCount;
+					[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+					self.selectedParam = param;
+					//false;
+					true;
+				};
+				//knob.mouseDownAction = knob.mouseDownAction.addFunc(mouseDownAction);
+				knob.mouseDownAction = mouseDownAction.addFunc(knob.mouseDownAction);
+				labelview.mouseDownAction = labelview.mouseDownAction.addFunc(mouseDownAction);
+				labelview.followChange(self, \selectedParam, {
+					//[self.selectedParam, param, self.selectedFxParamGroup].debug("selectedParam labelview handler");
+					if(self.selectedParam == param) {
+						labelview.background_(ParamViewToolBox.color_ligth)
+					} {
+						labelview.background_(Color.clear)
+						
+					};
+
+				}, false);
+				VLayout (
+					labelview,
+					knob,
+					param.asStaticText.align_(\center).fixedWidth_(70),
+				).spacing_(10)
+			} ++ [nil];
+		).spacing_(10);
+	},
+
+	updateBottomPanelHeaderView: { arg self;
+		var label;
+		debug("----- updateBottomPanelHeaderView start");
+		if(self.selectedParam == self.selectedTrackParam) {
+			label = "Track %".format(self.selectedParam.propertyRoot);
+		} {
+			label = "Event %".format(self.selectedParam.propertyRoot);
+		};
+		self.bottomPanelHeaderView.removeAll;
+		self.bottomPanelHeaderView.layout_(
+			VLayout (
+				HLayout (
+					StaticText.new.string_(label),
+					//BasicButton.new,
+					Param(Message(self), \selectedModulatorType, TagSpec([
+						\raw,
+						\step,
+						\modenv,
+						\lfosin,
+					])).asPopUpMenu,
+				),
+				HLayout (
+					* self.modulatorStripView.proto.eventModel.asParamGroup(self.selectedEvent, self.selectedParam.propertyRoot).collect { arg param, idx;
+
+						VLayout (
+							param.asStaticTextLabel.font_(Font.default.size_(10)).align_(\center).attachContextMenu,
+							param.asKnob,
+							//StaticText.new.string_("0.4234"),
+						).margins_(0).spacing_(5)
+					} ++ [nil];
+				).margins_(0).spacing_(0),
+
+				//HLayout (
+				//* 4.collect { arg item, idx;
+
+				//VLayout (
+				//StaticText.new.string_("slope").font_(Font.default.size_(10)).align_(\center),
+				//Knob.new,
+				////StaticText.new.string_("0.4234"),
+				//).margins_(0).spacing_(5)
+				//},
+				//).margins_(0).spacing_(0),
+				nil
+			)
+		);
+	},
+
 
 	update_track_header: { arg self;
 		var track_count = self.timeline_model.track_count;
@@ -2247,6 +2360,7 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			res.mouseDownAction_({ arg view, px, py, modifiers, buttonNumber, clickCount;
 				[x, view, px, py, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
 				self.timeline.deselectAllNodes;
+				self.selectedEvent = nil;
 				self.trackSelector.selectIndex(idx)
 			});
 			self.trackSelector.addView(res);
@@ -2361,8 +2475,19 @@ WindowDef(\testmodstrip, { arg def;
 
 // END
 
+ProtoInst(\FxTimeline, \bla1).savePreset(\pre1)
+ProtoInst(\FxTimeline, \bla1).loadPreset(\pre1)
+ProtoInst(\FxTimeline, \bla1).fxRack.presetBank.getCurrentPreset
+ProtoInst(\FxTimeline, \bla1).presetBank_obj = nil
+ProtoInst(\FxTimeline, \bla1).eventList
+ProtoInst(\FxTimeline, \bla1).presetBank
+ProtoInst(\FxTimeline, \bla1).editor.selectedParam
+ProtoInst(\FxTimeline, \bla1).editor.selectedTrackParam
+ProtoInst(\FxTimeline, \bla1).editor.selectedParam == ProtoInst(\FxTimeline, \bla1).editor.selectedTrackParam
+ProtoInst(\FxTimeline, \bla1).changed(\selectedParam)
 
 ProtoInst(\FxTimeline, \bla1).edit
+ProtoInst(\FxTimeline, \bla1).changed(\tracks)
 ProtoInst(\FxTimeline, \bla1).fxRack[\monitorProxy].asCompileString
 ~s = ~group.asStream
 ~s.next(())[\payload].asCompileString
@@ -2390,6 +2515,7 @@ TimelineEventList
 ProtoInst(\FxTimeline, \bla1).editor.areasize
 ProtoInst(\FxTimeline, \bla1).editor.timeline.areasize
 ProtoInst(\FxTimeline, \bla1).areasize
+ProtoInst(\FxTimeline, \bla1).editor.selectedFxParamGroup
 ~s = ProtoInst(\FxTimeline, \bla1).asPattern.asStream
 ~s.next(())
 ProtoDef(\bla, ProtoClassDef(\FxTimeline).new)
@@ -2928,6 +3054,41 @@ NoteTimeline(\aze).edit
 	}).front;
 )
 
+(
+	WindowDef(\farfalle, {
+		var canvas = UserView.new;
+		~draw_round_box = { arg rect, smooth=1, width=1;
+			var radius = smooth;
+			var inradius = radius - ( width/10 );
+			Pen.moveTo(Point(rect.left, rect.bottom - radius));
+			Pen.lineTo(Point(rect.left, rect.top + radius));
+			Pen.addAnnularWedge(Point(rect.left, rect.top)+radius, inradius,radius, 2pi/2, pi/2);
+			Pen.lineTo(Point(rect.left, rect.bottom - radius));
+		};
+		canvas.drawFunc = {
+			var rect = Rect(40,40,180,140);
+			var rect2 = Rect(40,40,180,140).moveBy(200,100);
+			var pwidth = 10;
+			Pen.strokeColor = Color.black;
+			Pen.fillColor = ParamViewToolBox.color_light;
+			Pen.moveTo(200@100);
+
+			//Pen.addAnnularWedge(100@100, 9,10, 0, pi/2);
+			//Pen.addRect(rect);
+			//Pen.draw(3);
+
+			Pen.color = Color.red;
+			~draw_round_box.(rect.scale(4),80, pwidth);
+			Pen.width = pwidth;
+			//Pen.addRect(rect2);
+			Pen.draw(3);
+			//Pen.stroke;
+			//Pen.fill;
+		};
+		canvas.background_(Color.grey);
+	}).front;
+)
+
 
 ////////////////////////////
 
@@ -2991,3 +3152,18 @@ Pdef(\zed,
 );
 NoteTimeline(\blz).edit
 SynthDescLib
+
+
+ClipTimeline(\bla).edit
+NoteTimeline(\bla).edit
+
+Pdef(\hiihih).edit
+Pdef(\hiihih).play
+FileSystemProject.load("libdef/ModulatorRack.scd")
+
+ProtoDef(\PianoCenter).edit
+NoteTimeline(\blaa).edit
+NoteTimeline(\blaa).editor.has_selection_rect
+NoteTimeline(\blaa).editor.clipboard.selection_rect
+ProtoInst(\FxTimeline, \bla1).eventListClone
+ProtoInst(\FxTimeline, \bla1).eventList.clone

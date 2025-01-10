@@ -132,12 +132,14 @@ ProtoTemplateDef(\SynthDefPresetBank, (
 
 ));
 ProtoTemplateDef(\PresetGraphBank, (
+	shouldUnsetParams: true,
 
-	new: { arg self, targetlist;
+	new: { arg self, paramGroupDict, loadPresetHook;
 		self = ProtoClass((parent:self));
 
-		self.targetList = targetlist;
-		if(Archive.global.at(\Param, \PresetGraphBank, self.instrument).notNil) {
+		self.groupDict = paramGroupDict;
+		self.loadPresetHook = loadPresetHook;
+		if(Archive.global.at(\Param, \PresetGraphBank, paramGroupDict.name).notNil) {
 			self.loadArchive;
 		};
 
@@ -151,27 +153,79 @@ ProtoTemplateDef(\PresetGraphBank, (
 		self[\presetBank_obj];
 	},
 
+	presetDict: { arg self;
+		self.presetBank
+	},
+
+	////
+
+	getParamDict: { arg self, pg;
+		var ev = ();
+		[pg, pg.asPropertyDict].debug("PresetGraphBank.getParamDict");
+		pg.asPropertyDict.keysValuesDo { arg key, val;
+			if(val.isSet) {
+				ev[key] = val.get.copy;
+			};
+		};
+		ev;
+	},
+
+	getPresetTreeFromPgTree: { arg self, pgEvent;
+		var preset = IdentityDictionary.new;
+		preset[\main] = self.getParamDict(pgEvent[\main].value);
+		preset[\name] = pgEvent.name;
+		preset[\items] = pgEvent[\items].value.collect { arg pg;
+			self.getPresetTreeFromPgTree(pg);
+		};
+		preset;
+	},
+
+	loadParamDict: { arg self, pg, preset;
+		var pgd = pg.asPropertyDict;
+		var keys = pgd.keys ++ preset.keys;
+		keys.do { arg key, idx;
+			if(pgd[key].isNil) {
+				pgd[key] = Param(pgd[pgd.keys.first].target, key)
+			};
+			if(preset[key].notNil) {
+				pgd[key].set(preset[key].copy);
+			} {
+				pgd[key].unset;
+			};
+		};
+	},
+
+	loadPresetTreeToPgTree: { arg self, pgEvent, presetEvent;
+		self.loadParamDict(pgEvent[\main].value, presetEvent[\main]);
+		presetEvent[\items].value.do { arg subpreset, idx;
+			self.loadPresetTreeToPgTree(pgEvent[\items].value[idx], subpreset);
+		};
+	},
+
 	savePreset: { arg self, key;
 		var preset = IdentityDictionary.new;
-		var paramList;
-		preset[\targetList] = IdentityDictionary.new;
-		preset[\targetList] = self.targetList;
-		preset[\dataList] = self.targetList.collect { arg proxy, idx;
-			ProtoTemplateDef(\SynthDefPresetBank).new(self.proxy).buildPreset;
-		};
-		self.paramList = self.targetList.collect { arg proxy, idx;
-			proxy.asParamGroup.asArray;
-		}.flatten;
-
-		preset[\combi] = self.paramList.collect({ arg param;
-			if(param.hasCombinator) {
-				param -> param.getCombinator.presetCompileString;
-			} {
-				nil
-			};
-		}).select(_.notNil);
-
+		preset = self.getPresetTreeFromPgTree(self.groupDict);
 		self.presetBank[key] = preset;
+
+		//var paramList;
+		//preset[\targetList] = IdentityDictionary.new;
+		//preset[\targetList] = self.targetList;
+		//preset[\dataList] = self.targetList.collect { arg proxy, idx;
+			//ProtoTemplateDef(\SynthDefPresetBank).new(self.proxy).buildPreset;
+		//};
+		//self.paramList = self.targetList.collect { arg proxy, idx;
+			//proxy.asParamGroup.asArray;
+		//}.flatten;
+
+		//preset[\combi] = self.paramList.collect({ arg param;
+			//if(param.hasCombinator) {
+				//param -> param.getCombinator.presetCompileString;
+			//} {
+				//nil
+			//};
+		//}).select(_.notNil);
+
+		//self.presetBank[key] = preset;
 	},
 
 	loadPreset: { arg self, key;
@@ -179,27 +233,39 @@ ProtoTemplateDef(\PresetGraphBank, (
 		if(preset.isNil) {
 			"No preset named %".format(key).error;
 		} {
-			preset[\dataList].collect { arg subpreset, idx;
-				ProtoTemplateDef(\SynthDefPresetBank).new(preset[\targetList][idx]).loadPresetFromObject(subpreset);
-			};
-			self.paramList = self.targetList.collect { arg proxy, idx;
-				proxy.asParamGroup.asArray;
-			}.flatten;
-			self.paramList.do { arg param, idx;
-				var item = preset[\combi].detect { arg x; x.key == param };
-				if(item.notNil) {
-					item.value.debug("Enable combi");
-					item.value.interpret
-				} {
-					param.debug("Clear combi");
-					param.clearCombinator(false);
-				};
-			};
+			self.loadPresetTreeToPgTree(self.groupDict, preset);
 		};
+		self.loadPresetHook(key);
+
+
+
+		//var preset = self.presetBank[key];
+		//if(preset.isNil) {
+			//"No preset named %".format(key).error;
+		//} {
+			//preset[\dataList].collect { arg subpreset, idx;
+				//ProtoTemplateDef(\SynthDefPresetBank).new(preset[\targetList][idx]).loadPresetFromObject(subpreset);
+			//};
+			//self.paramList = self.targetList.collect { arg proxy, idx;
+				//proxy.asParamGroup.asArray;
+			//}.flatten;
+			//self.paramList.do { arg param, idx;
+				//var item = preset[\combi].detect { arg x; x.key == param };
+				//if(item.notNil) {
+					//item.value.debug("Enable combi");
+					//item.value.interpret
+				//} {
+					//param.debug("Clear combi");
+					//param.clearCombinator(false);
+				//};
+			//};
+		//};
 	},
 
-	presetDict: { arg self;
-		self.presetBank
+	getCurrentPreset: { arg self;
+		var preset = IdentityDictionary.new;
+		preset = self.getPresetTreeFromPgTree(self.groupDict);
+		preset;
 	},
 
 ))
