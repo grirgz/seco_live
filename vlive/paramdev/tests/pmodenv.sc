@@ -1001,3 +1001,75 @@ Pdef(\acidbass,
 
 
 /////////////////// doc examples
+
+
+
+//////////////////// new bug:
+// fixed
+// there was another alive using delta
+
+(
+SynthDef(\simplefm, { arg out=0, amp=0.1, gate=1, pan=0;
+	var sig;
+	sig = LFSaw.ar(\freq.ar(200) * ( 1 + ( SinOsc.ar(\fmf.kr(1) * [1,1+\fmfmul.kr(0.001)]) * \fma.kr(1) )));
+	sig = RLPF.ar(sig, \lpfr.kr(1) * \freq.ar, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+	// no bug when single
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \simplefm,
+			\note, Pseq([
+				0,-5,-4,-7,-5,
+			],inf),
+			\octave, 3,
+			\fmf, 1693.43,
+			\lpfr, PmodEnv(Pseq([1,4,18,4,1,1,4,1],1), 1/8).loop,
+			\dur, Pseq([
+				1,1,1,1/2,1/2,
+			],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \default,
+			//\bufnum, ~buflib.kick[1505].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \simplefm,
+			\note, Pseq([
+				0,-5,-4,-7,-5,
+			],inf),
+			\octave, 3,
+			\fmf, 1693.43,
+			\lpfr, PmodEnv(Pseq([1,4,18,4,1,1,4,1],1), 1/8).loop,
+			\dur, Pseq([
+				1,1,1,1/2,1/2,
+			],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+PmodEnv.watchdogEnabled = false

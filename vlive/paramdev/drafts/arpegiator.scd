@@ -1,50 +1,184 @@
 
 (
 // model moved to quark, here is gui arp sequencer building
+FileSystemProject.loadOnce("paramdev/drafts/PianoCenter.scd");
+FileSystemProject.loadOnce("paramdev/drafts/FxTimeline.scd");
 
-Pbindef(\arp, 
-	\instrument, \default,
-	\degree, Pseq([0],inf),
-	\dur, 1,
-	\amp, 0.1,
+Pbindef(\modarp, 
+	//\instrument, \default,
+	//\degree, Pseq([0],inf),
+	//\mute, 0,
+	//\muter, Pif(Pkey(\mute) > 0, 1, Rest()),
+	//\dur, 1,
+	//\amp, 0.1,
 );
+//Pbindef(\modarp).clear
+TagSpecDef(\ArpPreset).addUnique(\modarp);
 
-WindowDef(\Arp, { arg def, arp;
-	var num = 8;
-	var pgroup = ParamGroup([
-		Param(arp, \idx -> \stepseq, ControlSpec(-12,12,\lin,1,0)),
-		Param(arp, \velocity -> \stepseq, ControlSpec(0,2,\lin,0,1)),
-	]);
-	var pdict = pgroup.asPropertyDict;
+WindowDef(\Arpegiator, { arg def, arp;
+	var num;
+	var pgroup;
+	var pdict;
 	var sourcepat = Pbind();
-	var arper = ProtoTemplateDef(\Arpegiator).arper(sourcepat, arp);
+	var arpmodel;
+	var arper;
+	var stepheight = 40;
+	var modviewlist;
+	var cursormod;
+	var seqmodel;
+
+	pgroup = ParamGroup([
+		Param(arp, \isOn -> \stepseq, ControlSpec(0,1,\lin)),
+		Param(arp, \idx -> \stepseq, ControlSpec(-12,12,\lin,1,0)),
+		Param(arp, \velocity -> \stepseq, ControlSpec(0.5,1,\lin,0.5,0.5)),
+		Param(arp, \octaveshift -> \stepseq, ControlSpec(-2,2,\lin,1,0)),
+		Param(arp, \legato -> \stepseq, ControlSpec(0,1,\lin)),
+		Param(arp, \ctranspose -> \stepseq, ControlSpec(-12,12,\lin,1,0)),
+		//Param(arp, \mute -> \stepseq, ParamBoolSpec()),
+	]);
+	pdict = pgroup.asPropertyDict;
+	~pdict = pdict;
+
+	if(pgroup[0].isSet.not) {
+		num = 8;
+	} {
+		num = pgroup[0].size;
+	};
+
+	seqmodel = (
+		seqsize: num,
+		seqsize_: { arg self, val;
+			val = val.asInteger;
+			val.debug("change size");
+			~mods = modviewlist;
+			pgroup.do { arg param, idx;
+				var li = param.get;
+				var mod = modviewlist[idx+1]; // first item is cursor
+				li.dump;
+				if(val > li.size) {
+					li = li.extend(val, li.last);
+				} {
+					li = li.keep(val);
+				};
+				//{
+				param.set(li);
+				mod.seqSize = param.size;
+				//modviewlist[idx].refresh;
+				//}.defer;
+			};
+			modviewlist[0].seqSize = val;
+		},
+	);
+	~seqmodel = seqmodel;
+	arpmodel = ProtoTemplateDef(\Arpegiator);
+	arper = arpmodel.arper(sourcepat, arp);
 	pgroup.do(_.initPstepSeq(num));
+
+	cursormod = WindowDef(\ModulatorStrip_cursor).asView(pdict[\idx]);
+	modviewlist = modviewlist.add(cursormod.proto);
 	VLayout (
 		HLayout (
 			PlayerWrapperView(arper),
-			BasicButton.new.string_("Select source"),
+			//BasicButton.new.string_("Select source"),
+			//Param(
+				//Message(arpmodel),
+				//\arpPreset, 
+				//TagSpecDef(\ArpPreset),
+			//).asPopUpMenu,
+			Param(arp, \dur -> \source).asTextField,
+			Param(Message(seqmodel), \seqsize, ControlSpec(1,32,\lin,1,8)).asNumberBox,
 		),
-		GridLayout.rows(
-			[StaticText.new.string_("Index")] ++
-			pdict[\idx].collect { arg subp, idx;
-				subp.asNumberBox
-			},
-		
-			[StaticText.new.string_("Velocity")] ++
-			pdict[\velocity].collect { arg subp, idx;
-				subp.asNumberBox
-			},
+		GridLayout.rows( *
+
+			[[
+				//StaticText.new.string_("cursor"),
+				nil,
+				cursormod.minHeight_(10),
+
+			]] ++
+			( [
+				(
+					label: "On",
+					key: \isOn,
+					type: \button, 
+				),
+				(
+					label: "Tie",
+					key: \legato,
+					type: \button, 
+				),
+				(
+					label: "Accent",
+					key: \velocity,
+					type: \button, 
+				),
+				(
+					label: "Note order",
+					key: \idx,
+					type: \slider, 
+				),
+				(
+					label: "Octave",
+					key: \octaveshift,
+					type: \slider, 
+				),
+				(
+					label: "Transpose",
+					key: \ctranspose,
+					type: \slider, 
+				),
+			].collect { arg item, idx;
+				var mod = WindowDef("ModulatorStrip_%".format(item.type).asSymbol).asView(pdict[item.key]);
+				modviewlist = modviewlist.add(mod.proto);
+				[
+					StaticText.new.string_(item.label).fixedWidth_(80),
+					mod.minHeight_(stepheight),
+					mod.proto.cursorEnabled = false;
+					BasicButton.new.string_("...").fixedWidth_(25).action_({
+						var param = pdict[item.key];
+						var default = param.default.first;
+						var spec = param.spec;
+						Menu(
+							MenuAction("Reset", {
+								param.set(default!param.size);
+								mod.refresh;
+							}),
+							MenuAction("Randomize", {
+								param.normSet({ rrand(0.0,1.0); }!param.size);
+								mod.refresh;
+							}),
+						).front
+					})
+				];
+			} )
 		),
 		nil
 	)
 	
-})
+});
+WindowDef(\Arpegiator).front(Pbindef(\modarp));
 )
 
 // END
-WindowDef(\Arpegiator).front(Pbindef(\arp));
 
-Pbindef(\arp).clear
+WindowDef(\Arpegiator).front(Pbindef(\modarp));
+ProtoDef(\PianoCenter).edit
+
+~pdict[\ctranspose].parent
+~mods.do({ arg x; x.debug("----") })
+~mods
+~mods.last.refresh
+~mods.last.areasize
+~mods.last.seqSize = 8
+~seqmodel.seqsize = 8
+~mods[0].targetParam.size
+~mods[0].areasize
+~mods[0].areasize = Point(12,1)
+~mods[0].refresh
+~mods.collect(_.targetParam).do(_.postln)
+~pdict.collect(_.targetParam).do(_.postln)
+Pbindef(\modarp).clear
+Pbindef(\modarp).source.at(\idx).source.list
 Pbindef(\arp).source.set(\idx, PstepSeq(0!8))
 Pbindef(\arp).source.at(\idx).source
 Pbindef(\arp).source.at(\velocity).source.list
@@ -63,10 +197,16 @@ Pbindef(\arp,
 	Param(Pbindef(\arp), \idx2 -> \stepseq).size
 	Param(Pbindef(\arp), \idx2 -> \stepseq).default
 	Param(Pbindef(\arp), \idx2).parent.default
-	~arp = Pbindef(\arp)
+	~arp = Pbindef(\modarp)
 Param(~arp, \idx -> \stepseq, ControlSpec(-12,12,\lin,1,0)).parent.default
 Param(~arp, \idx -> \stepseq, ControlSpec(-12,12,\lin,1,0)).default
-Param(~arp, \idx -> \stepseq, ControlSpec(-12,12,\lin,1,0)).spec
+~p = Param(~arp, \idx -> \stepseq, ControlSpec(-12,12,\lin,1,0))
+~sp = ~p.spec.array.first
+~sp.minval == ~sp.maxval.neg
+~p.parent.at(\source).get
+~p.parent.getRaw
+Param(~arp, \idx -> \stepseq, ControlSpec(-12,12,\lin,1,0)).spec.array.first.minval
+ControlSpec
 Param(~arp, \idx -> \source, ControlSpec(-12,12,\lin,1,0)).default
 Param(~arp, \idx, ControlSpec(-12,12,\lin,1,0)).default
 (

@@ -70,13 +70,17 @@
 		synthDefNameStack: { arg self;
 			self.fxList.collect { arg item, idx;
 				item.proxySynthDef
-			};
+			} ?? { [] };
 		},
 
 		synthDefNameStack_: { arg self, list;
 			self.fxList = List.new;
-			list.do { arg item, idx;
-				self.addFx(item)
+			if(list.isKindOf(Number)) {
+				"%.synthDefNameStack_: type not supported: %".format(self.refCompileString, list.asCompileString).error;
+			} {
+				list.do { arg item, idx;
+					self.addFx(item)
+				};
 			};
 		},
 
@@ -357,7 +361,14 @@ ProtoTemplateDef(\InsertFxRack).edit
 ProtoDef(\fx, \InsertFxRack)
 ProtoDef(\fx).edit
 ProtoDef(\fx).presetCompileString("kjkj").editorInsert
-ProtoDef(\fx).presetBank
+ProtoDef(\fx).presetBank.printTree
+ProtoDef(\fx).presetBank.printTree(~pr)
+ProtoDef(\fx).presetBank.printCurrentPreset
+ProtoDef(\fx).presetBank.loadPresetFromObject(~pr)
+ProtoDef(\fx).fxList
+~pr
+~pr = ProtoDef(\fx).presetBank.getCurrentPreset
+ProtoDef(\fx).presetBank.presetScheme.items.value
 ProtoDef(\fx).savePreset(\preset1)
 ProtoDef(\fx).loadPreset(\preset1)
 (

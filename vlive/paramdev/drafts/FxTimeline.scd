@@ -668,8 +668,14 @@ ProtoTemplateDef(\ModulatorStripEventModel_lfosin, (
 
 WindowDef(\ModulatorStrip, (
 
+	shouldDrawEmptyBar: false,
+
 	virtualBounds: { arg self;
-		self.view.bounds.insetBy(5,10);
+		var offsetx = 5;
+		var offsety = 5;
+		//self.view.bounds.insetBy(5,10);
+		Rect(offsetx, offsety, self.view.bounds.extent.x-(2*offsetx), self.view.bounds.extent.y-(2*offsety));
+		//self.view.bounds;
 	},
 	viewport: { arg self;
 		var vp = self.masterTimeline.viewport;
@@ -1262,7 +1268,7 @@ WindowDef(\ModulatorStrip, (
 
 	},
 
-	drawBar: { arg self, gxoffset, idx, level, color, colorEmpty;
+	drawBar_old: { arg self, gxoffset, idx, level, color, colorEmpty;
 		var maxlevel = 1;
 		var penOffset = 0; // compensate don't know what
 		var sliderwidth = self.cellWidth;
@@ -1298,6 +1304,64 @@ WindowDef(\ModulatorStrip, (
 		Pen.fill;
 
 		if(color.notNil) {
+
+			Pen.color = color;
+			Pen.width = 1;
+			Pen.addRect( rect.insetBy(1) );
+			Pen.stroke;
+			Pen.addRect( rect.insetBy(0) );
+			Pen.fill;
+		};
+	},
+
+	drawBar: { arg self, gxoffset, idx, level, color, colorEmpty;
+		var maxlevel = 1;
+		var penOffset = 0; // compensate don't know what
+		var sliderwidth = self.cellWidth;
+		var gposx = sliderwidth * idx;
+		var rect;
+		var fullrect;
+		var zerolevel;
+		//"drawBar".debug;
+
+		if(self.centered == true) {
+			zerolevel = 0.5;
+			if(level > 0.5) {
+				//rect.top = rect.top - ( rect.height/2 );
+				rect = self.gridRectToPixelRect(Rect(gposx+gxoffset,0.5, sliderwidth, level - 0.5));
+			} {
+				rect = self.gridRectToPixelRect(Rect(gposx+gxoffset,level, sliderwidth, 0.5 - level));
+				//rect.bottom = rect.bottom - ( rect.height/2 );
+			}
+		} {
+			rect = self.gridRectToPixelRect(Rect(gposx+gxoffset,0, sliderwidth, maxlevel * level));
+			zerolevel = 0;
+		};
+
+		//rect.debug("rect");
+		rect.left = rect.left + penOffset;
+		rect.bottom = rect.bottom - 4;
+		rect.width = rect.width - 1;
+
+		fullrect = self.gridRectToPixelRect(Rect(gposx+gxoffset,0, sliderwidth, maxlevel));
+		fullrect.bottom = fullrect.bottom - 4;
+		fullrect.width = fullrect.width - 1;
+		//fullrect.debug("FULLRECT");
+
+
+		//// draw empty rect
+
+		Pen.color = colorEmpty ?? { self.colors.empty };
+		Pen.width = 4;
+		Pen.addRect( fullrect.insetBy(2) );
+		Pen.stroke;
+		Pen.addRect( fullrect.insetBy(2) );
+		Pen.fill;
+
+		//// draw value rect
+
+		if(color.notNil and: { level.equalWithPrecision(zerolevel).not or: { self.shouldDrawEmptyBar == true } }) {
+			level.debug("drawFunc: level");
 
 			Pen.color = color;
 			Pen.width = 1;
@@ -1410,7 +1474,7 @@ WindowDef(\ModulatorStrip, (
 
 		view.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 			var idx;
-			var offset = -13;
+			var offset = -8;
 			[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
 			if(buttonNumber == 1) {
 				self.showContextMenu(x);
@@ -1420,14 +1484,14 @@ WindowDef(\ModulatorStrip, (
 		});
 		view.mouseMoveAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 			var idx;
-			var offset = -13;
+			var offset = -8;
 			//[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseMoveAction");
 			self.setCellAtPos(x, 1 - ( ( y + offset )/self.virtualBounds.height ), \move);
 
 		});
 		view.mouseUpAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 			var idx;
-			var offset = -13;
+			var offset = -8;
 			//[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseMoveAction");
 			self.setCellAtPos(x, 1 - ( ( y + offset )/self.virtualBounds.height ), \up);
 
@@ -1470,8 +1534,23 @@ WindowDef(\ModulatorStrip, (
 
 ));
 
+WindowDef(\ModulatorStrip_generic, (
+	parent: WindowDef(\ModulatorStrip).proto,
+	// TODO: return child by spec
+));
+
 WindowDef(\ModulatorStrip_slider, (
 	parent: WindowDef(\ModulatorStrip).proto,
+
+	shouldDrawBarLabel: true,
+
+	virtualBounds: { arg self;
+		var offsetx = 0;
+		var offsety = 0;
+		//self.view.bounds.insetBy(5,10);
+		Rect(offsetx, offsety, self.view.bounds.extent.x-(2*offsetx), self.view.bounds.extent.y-(2*offsety));
+		//self.view.bounds;
+	},
 
 	viewport: { arg self;
 		Rect(0, 0, 1, 1);
@@ -1480,23 +1559,117 @@ WindowDef(\ModulatorStrip_slider, (
 		Point(8, 1);
 	},
 
-	cellWidth: 1,
+	seqSize_: { arg self, val;
+		self[\seqSize] = val;
+		if(self.targetParam.notNil) {
+			[self.targetParam.propertyRoot, val].debug("seqSize_");
+		} {
+			["vide", val].debug("seqSize_");
+		};
+		self.areasize = Point(val,1);
+		self.refresh;
+	},
+
+	cellWidth: { arg self; self.stepDur },
+	stepDur: 1/8,
 
 	mapParam: { arg self, param;
+		var spec = param.spec;
 		self.targetParam = param;
+		if(spec.isKindOf(ParamArraySpec)) {
+			spec = spec.array.first;
+		};
+		if(spec.isKindOf(ParamBoolSpec)) {
+			self.centered = false;
+		} {
+			if(spec.minval == spec.maxval.neg) {
+				self.centered = true;
+			} {
+				self.centered = false;
+			};
+		};
 		self.installListeners;
+	},
+
+	drawBarLabel: { arg self, gxoffset, idx, level, color, colorEmpty;
+		var maxlevel = 1;
+		var penOffset = 0; // compensate don't know what
+		var sliderwidth = self.cellWidth;
+		var gposx = sliderwidth * idx;
+		var rect;
+		var fullrect;
+		var label;
+		var font;
+		//"drawBar".debug;
+		rect = self.gridRectToPixelRect(Rect(gposx+gxoffset,0, sliderwidth, maxlevel * level));
+		//rect.debug("rect");
+		rect.left = rect.left + penOffset;
+		rect.bottom = rect.bottom - 4;
+		rect.width = rect.width - 1;
+		//fullrect.top = self.virtualBounds.height;
+		//fullrect.height = self.virtualBounds.height.neg * 0.5;
+		//fullrect = Rect(rect.origin.x, 0, rect.width, self.virtualBounds.height);
+		fullrect = self.gridRectToPixelRect(Rect(gposx+gxoffset,0, sliderwidth, maxlevel));
+		fullrect.bottom = fullrect.bottom - 4;
+		fullrect.width = fullrect.width - 1;
+
+		label = level.asStringPrec(3).asString;
+		//[level.asCompileString, label.asCompileString].debug("label");
+		font = Font.default.pixelSize_(min(fullrect.height/2, fullrect.width*1.2));
+		Pen.stringInRect(label, fullrect.insetBy(fullrect.width/7,fullrect.height/5), font, Color.black, \right)
+	},
+
+	drawSeparator: { arg self, gxoffset, idx, level, color, penwidth=2;
+		var maxlevel = 1;
+		var penOffset = 0; // compensate don't know what
+		var sliderwidth = self.cellWidth;
+		var gposx = sliderwidth * idx;
+		var rect;
+		var fullrect;
+		//"drawBar".debug;
+		rect = self.gridRectToPixelRect(Rect(gposx+gxoffset,0, sliderwidth, maxlevel));
+		rect.left = rect.left + penOffset;
+		rect.bottom = rect.bottom - 4;
+		rect.width = rect.width - 1;
+		Pen.line(Point(rect.left,rect.bottom), Point(rect.left,rect.top));
+		Pen.color = color;
+		Pen.width = penwidth;
+		Pen.stroke;
 	},
 
 	drawFunc: { arg self;
 		{
+			var rect;
 			var arr = self.targetParam.get;
-			var gxoffset = self.pixelPointToGridPoint(Point(5,0)).x;
-			gxoffset = gxoffset.trunc(self.cellWidth);
-			Pen.translate(0,5);
-			[arr, self.targetParam, self.targetParam.get].debug("drawFunc");
-			self.seqSize.do { arg item, idx;
-				var val = self.targetParam.at(idx).spec.unmap(arr[idx]);
-				self.drawBar(gxoffset, idx, val, self.colors.full);
+			var gxoffset = self.pixelPointToGridPoint(Point(0,0)).x;
+			//gxoffset = gxoffset.trunc(self.cellWidth);
+			//Pen.translate(28,-7);
+			[gxoffset, arr, self.targetParam, self.targetParam.get].debug("drawFunc");
+			//rect = Rect(5,5,100,100);
+			//rect = self.normRectToPixelRect(Rect(0,0,1,1));
+			//[self.viewport, self.virtualBounds, rect].debug("ss");
+			//Pen.addRect(rect);
+			//Pen.fill;
+			self.targetParam.size.do { arg item, idx;
+				//var val = self.targetParam.at(idx).spec.unmap(arr[idx]);
+				var val = self.targetParam.at(idx).normGet;
+				var label = self.targetParam.at(idx).get;
+				if(self.cursorEnabled == true and: {self.cursorIndex == idx}) {
+					self.drawBar(0, idx, val, self.colors.full.complementary, self.colors.empty);
+				} {
+					self.drawBar(0, idx, val, self.colors.full, self.colors.empty);
+				};
+				if(self.shouldDrawBarLabel == true) {
+					self.drawBarLabel(0, idx, label, self.colors.full, self.colors.empty);
+				};
+
+				if(idx != 0 and: {idx%8 == 0}) {
+					self.drawSeparator(0, idx, label, Color.white, 4);
+				} {
+					if(idx != 0 and: {idx%4 == 0}) {
+						self.drawSeparator(0, idx, label, Color.white, 2);
+					}
+				};
 			};
 		}
 	},
@@ -1506,14 +1679,27 @@ WindowDef(\ModulatorStrip_slider, (
 		var gxpos;
 		gxpos = self.pixelPointToGridPoint(Point(pxpos, 0)).x;
 		idx	= ( gxpos / self.cellWidth ).asInteger;
+		idx = idx.clip(0,self.areasize.x-1);
 		self.targetParam.at(idx).normSet(val);
 		self.view.refresh;
 	},
 	
 	installListeners: { arg self, evlist;
-		self.targetParam.onChange(\set, {
+		var cursorTarget = self.targetParam.parent.at(\source).get;
+		self.targetParam.onChange({
 			self.view.refresh;
-		})
+		}, self.view);
+		self.view.followChange(cursorTarget, \cursor, { arg view, obj, msg, val;
+			if(self.cursorEnabled == true) {
+				[view, obj, msg, val].debug("cursor");
+				//"cursor".debug;
+				{
+					self.cursorIndex = val;
+					self.view.refresh;
+				}.defer;
+			};
+		});
+
 		
 	},
 
@@ -1522,15 +1708,15 @@ WindowDef(\ModulatorStrip_slider, (
 		var tl;
 		self.view = view;
 		//self.model = ProtoTemplateDef(\ModulatorStrip);
-		self.seqSize = size;
+		self.seqSize = size ?? { param.size };
 		self.mapParam(param);
 
 		view.drawFunc = self.drawFunc;
-		view.background_(Color.white);
+		view.background_(Color.clear);
 
 		view.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 			var idx;
-			var offset = -13;
+			var offset = -3;
 			[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
 			if(buttonNumber == 1) {
 				self.showContextMenu(x);
@@ -1540,13 +1726,91 @@ WindowDef(\ModulatorStrip_slider, (
 		});
 		view.mouseMoveAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 			var idx;
-			var offset = -13;
+			var offset = -3;
 			//[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseMoveAction");
 			self.setCellAtPos(x, 1 - ( ( y + offset )/self.virtualBounds.height ), \move);
 
 		});
 		view.addUniqueMethod(\proto, { self });
 		view;
+	},
+
+));
+
+WindowDef(\ModulatorStrip_button, (
+	parent: WindowDef(\ModulatorStrip_slider).proto,
+
+
+	drawBarLabel: { arg self;
+		// NOOP
+	},
+
+	setCellAtPos: { arg self, pxpos, val, mouseActionType;
+		var xrel, idx;
+		var gxpos;
+		var param;
+		gxpos = self.pixelPointToGridPoint(Point(pxpos, 0)).x;
+		idx	= ( gxpos / self.cellWidth ).asInteger;
+		idx = idx.clip(0,self.areasize.x-1);
+		if(idx != self.lastSetIndex or: { mouseActionType == \down }) {
+			self.lastSetIndex = idx;
+			param = self.targetParam.at(idx);
+			param.normSet(1-param.normGet);
+			self.view.refresh;
+		};
+	},
+	
+
+));
+
+WindowDef(\ModulatorStrip_cursor, (
+	parent: WindowDef(\ModulatorStrip_slider).proto,
+
+
+	drawBarLabel: { arg self;
+		// NOOP
+	},
+
+	setCellAtPos: { arg self, pxpos, val, mouseActionType;
+		// NOOP
+	},
+
+	centered: false,
+	centered_: {},
+
+	cursorEnabled: true,
+	
+	drawFunc: { arg self;
+		{
+			var rect;
+			var arr = self.targetParam.get;
+			var gxoffset = self.pixelPointToGridPoint(Point(0,0)).x;
+			//gxoffset = gxoffset.trunc(self.cellWidth);
+			//Pen.translate(28,-7);
+			[gxoffset, arr, self.targetParam, self.targetParam.get].debug("drawFunc");
+			//rect = Rect(5,5,100,100);
+			//rect = self.normRectToPixelRect(Rect(0,0,1,1));
+			//[self.viewport, self.virtualBounds, rect].debug("ss");
+			//Pen.addRect(rect);
+			//Pen.fill;
+			self.seqSize.do { arg item, idx;
+				//var val = self.targetParam.at(idx).spec.unmap(arr[idx]);
+				var val = self.targetParam.at(idx).normGet;
+				var label = self.targetParam.at(idx).get;
+				if(self.cursorEnabled == true and: {self.cursorIndex == idx}) {
+					self.drawBar(0, idx, 1, self.colors.full.complementary, self.colors.empty);
+				} {
+					self.drawBar(0, idx, 1, self.colors.full, self.colors.empty);
+				};
+				if(idx != 0 and: {idx%8 == 0}) {
+					self.drawSeparator(0, idx, label, Color.white, 4);
+				} {
+					if(idx != 0 and: {idx%4 == 0}) {
+						self.drawSeparator(0, idx, label, Color.white, 2);
+					}
+				};
+			};
+		}
 	},
 
 ));
@@ -2454,26 +2718,47 @@ Pdef(\part, Pdef(\zedpart,
 
 Pbindef(\bla,
 	\instrument, \saw,
-	\degree, PstepSeq(0!8),
+	\degree, PstepSeq(0!8,inf),
+	\mute, PstepSeq(false!8,inf),
 );
 
 WindowDef(\testmodstrip, { arg def;
 	var param = Param(Pbindef(\bla), \degree -> \stepseq, ControlSpec(0,14,\lin,0));
+	var parammute = Param(Pbindef(\bla), \mute -> \stepseq, ParamBoolSpec());
+	var mod;
+	mod = WindowDef(\ModulatorStrip_slider);
+	~mod = mod;
 	VLayout (
 		HLayout (
-			param.asStaticTextLabel.fixedWidth_(50),
-			WindowDef(\ModulatorStrip_slider).asView(param, 8),
+			param.asStaticTextLabel.fixedWidth_(90),
+			mod.asView(param, 8),
 		),
 		HLayout (
-			param.asStaticTextLabel.fixedWidth_(50),
-			WindowDef(\ModulatorStrip_slider).asView(param, 8),
-		)
-	)
+			param.asStaticTextLabel.fixedWidth_(90),
+			WindowDef(\ModulatorStrip_button).asView(parammute, 8),
+		),
+		HLayout (
+			param.asStaticTextLabel.fixedWidth_(90),
+			WindowDef(\ModulatorStrip_button).asView(parammute, 8),
+		),
+		HLayout (
+			param.asStaticTextLabel.fixedWidth_(90),
+			WindowDef(\ModulatorStrip_button).asView(parammute, 8),
+		),
+		//HLayout (
+			//param.asStaticTextLabel.fixedWidth_(50),
+			//WindowDef(\ModulatorStrip_slider).asView(param, 8),
+		//)
+	).spacing_(0)
 });
-
+WindowDef(\testmodstrip).front;
 );
 
 // END
+
+~mod.proto.areasize
+~mod.proto.viewport
+~mod.proto.cellWidth
 
 ProtoInst(\FxTimeline, \bla1).savePreset(\pre1)
 ProtoInst(\FxTimeline, \bla1).loadPreset(\pre1)
@@ -3167,3 +3452,12 @@ NoteTimeline(\blaa).editor.has_selection_rect
 NoteTimeline(\blaa).editor.clipboard.selection_rect
 ProtoInst(\FxTimeline, \bla1).eventListClone
 ProtoInst(\FxTimeline, \bla1).eventList.clone
+
+~r = Rect(1,2,10,20)
+~r.insetAll(1,2,3,4)
+ClipTimeline(\bla).edit
+TimelineEventList
+
+Quarks.install("https://github.com/grirgz/param.git");
+
+NoteTimeline(\testme).edit;

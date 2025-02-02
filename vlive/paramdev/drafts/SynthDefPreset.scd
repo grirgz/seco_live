@@ -132,18 +132,31 @@ ProtoTemplateDef(\SynthDefPresetBank, (
 
 ));
 ProtoTemplateDef(\PresetGraphBank, (
+	// presetScheme format:
+	// (
+	//	main: a function returning the main ParamGroup,
+	//	items: an optional function returning a list of presetScheme
+	// )
+	// the constraint for paramgroup in a presetScheme is no duplicate property name
+	// if we remove one key from the paramgroup, preset loading will use the target of the 
+	//		first param of the group to set the preset value
+
 	shouldUnsetParams: true,
 
-	new: { arg self, paramGroupDict, loadPresetHook;
+	new: { arg self, presetScheme, loadPresetHook;
 		self = ProtoClass((parent:self));
 
-		self.groupDict = paramGroupDict;
+		self.presetScheme = presetScheme;
 		self.loadPresetHook = loadPresetHook;
-		if(Archive.global.at(\Param, \PresetGraphBank, paramGroupDict.name).notNil) {
+		if(Archive.global.at(\Param, \PresetGraphBank, presetScheme.name).notNil) {
 			self.loadArchive;
 		};
 
 		self;
+	},
+
+	groupDict:{ arg self;
+		self.presetScheme;
 	},
 
 	presetBank: { arg self;
@@ -155,6 +168,42 @@ ProtoTemplateDef(\PresetGraphBank, (
 
 	presetDict: { arg self;
 		self.presetBank
+	},
+	////
+
+	getCombinatorPresetEvent: { arg self, pg;
+		var ev = ();
+		pg.getCombinatorList.do { arg asso, idx;
+			var combi = asso.value;
+			ev[asso.key.propertyRoot] = (
+				mapAllInputs: combi.inputObjects.collect { arg item, idx;
+					if(item.notNil) {
+						item.presetCompileString
+					};
+				},
+				ranges: combi.rangeParam.get.copy,
+			)
+		};
+		if(ev.keys.size == 0) {
+			nil
+		} {
+			ev;
+		};
+	},
+
+	loadCombinatorPresetEvent: { arg self, pg, preset;
+		if(preset.notNil) {
+			pg.do { arg param, idx;
+				var key = param.propertyRoot;
+				if(preset[key].isNil) {
+					param.clearCombinator;
+				} {
+					ParamCombinator(param).mapAllInputs(preset[key][\mapAllInputs].collect { arg item, idx;
+						item.interpret;
+					}, preset[key][\ranges].copy);
+				};
+			};
+		};
 	},
 
 	////
@@ -170,12 +219,14 @@ ProtoTemplateDef(\PresetGraphBank, (
 		ev;
 	},
 
-	getPresetTreeFromPgTree: { arg self, pgEvent;
-		var preset = IdentityDictionary.new;
-		preset[\main] = self.getParamDict(pgEvent[\main].value);
+	getPresetTreeFromScheme: { arg self, pgEvent;
+		var preset = ();
+		var mpg = pgEvent[\main].value;
+		preset[\main] = self.getParamDict(mpg);
+		preset[\combinators] = self.getCombinatorPresetEvent(mpg);
 		preset[\name] = pgEvent.name;
 		preset[\items] = pgEvent[\items].value.collect { arg pg;
-			self.getPresetTreeFromPgTree(pg);
+			self.getPresetTreeFromScheme(pg);
 		};
 		preset;
 	},
@@ -195,37 +246,21 @@ ProtoTemplateDef(\PresetGraphBank, (
 		};
 	},
 
-	loadPresetTreeToPgTree: { arg self, pgEvent, presetEvent;
-		self.loadParamDict(pgEvent[\main].value, presetEvent[\main]);
+	loadPresetTreeToScheme: { arg self, pgEvent, presetEvent;
+		var mpg = pgEvent[\main].value;
+		self.loadParamDict(mpg, presetEvent[\main]);
+		self.loadCombinatorPresetEvent(mpg, presetEvent[\combinators]);
 		presetEvent[\items].value.do { arg subpreset, idx;
-			self.loadPresetTreeToPgTree(pgEvent[\items].value[idx], subpreset);
+			self.loadPresetTreeToScheme(pgEvent[\items].value[idx], subpreset);
 		};
 	},
 
 	savePreset: { arg self, key;
-		var preset = IdentityDictionary.new;
-		preset = self.getPresetTreeFromPgTree(self.groupDict);
+		var preset = ();
+		self.presetScheme.debug("savePreset: schema:");
+		preset = self.getPresetTreeFromScheme(self.presetScheme);
+		preset.debug("savePreset: data:");
 		self.presetBank[key] = preset;
-
-		//var paramList;
-		//preset[\targetList] = IdentityDictionary.new;
-		//preset[\targetList] = self.targetList;
-		//preset[\dataList] = self.targetList.collect { arg proxy, idx;
-			//ProtoTemplateDef(\SynthDefPresetBank).new(self.proxy).buildPreset;
-		//};
-		//self.paramList = self.targetList.collect { arg proxy, idx;
-			//proxy.asParamGroup.asArray;
-		//}.flatten;
-
-		//preset[\combi] = self.paramList.collect({ arg param;
-			//if(param.hasCombinator) {
-				//param -> param.getCombinator.presetCompileString;
-			//} {
-				//nil
-			//};
-		//}).select(_.notNil);
-
-		//self.presetBank[key] = preset;
 	},
 
 	loadPreset: { arg self, key;
@@ -233,42 +268,74 @@ ProtoTemplateDef(\PresetGraphBank, (
 		if(preset.isNil) {
 			"No preset named %".format(key).error;
 		} {
-			self.loadPresetTreeToPgTree(self.groupDict, preset);
+			self.presetScheme.debug("loadPreset: schema:");
+			preset.debug("loadPreset: data:");
+			self.loadPresetTreeToScheme(self.presetScheme, preset);
 		};
 		self.loadPresetHook(key);
+	},
 
-
-
-		//var preset = self.presetBank[key];
-		//if(preset.isNil) {
-			//"No preset named %".format(key).error;
-		//} {
-			//preset[\dataList].collect { arg subpreset, idx;
-				//ProtoTemplateDef(\SynthDefPresetBank).new(preset[\targetList][idx]).loadPresetFromObject(subpreset);
-			//};
-			//self.paramList = self.targetList.collect { arg proxy, idx;
-				//proxy.asParamGroup.asArray;
-			//}.flatten;
-			//self.paramList.do { arg param, idx;
-				//var item = preset[\combi].detect { arg x; x.key == param };
-				//if(item.notNil) {
-					//item.value.debug("Enable combi");
-					//item.value.interpret
-				//} {
-					//param.debug("Clear combi");
-					//param.clearCombinator(false);
-				//};
-			//};
-		//};
+	loadPresetFromObject: { arg self, preset;
+		self.loadPresetTreeToScheme(self.presetScheme, preset);
 	},
 
 	getCurrentPreset: { arg self;
-		var preset = IdentityDictionary.new;
-		preset = self.getPresetTreeFromPgTree(self.groupDict);
+		var preset;
+		preset = self.getPresetTreeFromScheme(self.presetScheme);
 		preset;
 	},
 
-))
+	getTreeString: { arg self, tree, indent=0;
+		var pg, items = "", itemstr = "";
+		var indstr = "\t".dup(indent).join;
+		var mainstr = "";
+		var namestr = "";
+		var combistr = "";
+		tree = tree ?? { self.presetScheme };
+		if(tree[\main].notNil) {
+			var val = tree[\main].value;
+			if(val.isKindOf(IdentityDictionary)) {
+				pg = val.asCompileString;
+			} {
+				pg = "[\n%%\t]".format(val.collect { arg item, idx;
+					"\t%%,\n".format("\t".dup(indent+1).join, item.asCompileString);
+				}.join, indstr);
+			};
+			mainstr = "\t%main: %,\n".format(indstr, pg);
+		};
+		if(tree[\combinators].notNil) {
+			var val = tree[\combinators].value;
+			val = val.asCompileString;
+			combistr = "\t%combinators: %,\n".format(indstr, val);
+		};
+		if(tree[\items].notNil) {
+			var val = tree[\items].value;
+			if(val.notNil) {
+				items = val.collect { arg item, idx;
+					"%,\n".format(self.getTreeString(item, indent+2))
+				}.join;
+				itemstr = "\t%items: [\n%\t%]\n".format(indstr, items, indstr);
+			} {
+				itemstr = "\t%items: {}, // ERROR\n".format(indstr, items, indstr);
+			};
+		};
+		if(tree[\name].notNil) {
+			namestr = "\t%name: %,\n".format(indstr, tree[\name].value.asCompileString);
+		};
+
+		"%(\n%%%%%)".format(indstr, namestr, mainstr, combistr, itemstr, indstr)
+	},
+
+	printTree: { arg self, val;
+		self.getTreeString(val).postln;
+		nil
+	},
+
+	printCurrentPreset: { arg self;
+		self.printTree(self.getCurrentPreset)
+	},
+
+));
 )
 
 // END
@@ -309,3 +376,31 @@ ProtoTemplateDef(\S)
 ~b.presetDict[\preset1][\unset]
 Pdef(\hoho).asParamGroup.asPropertyDict[\spread].get
 // TODO: add .changed(\set) in .unset
+
+
+(
+ProtoTemplateDef(\PresetGraphBank).new(
+	(
+		main: [ Param(Pdef(\bla), \rah) ]
+	)
+).printTree
+)
+
+(
+ProtoTemplateDef(\PresetGraphBank).new(
+	(
+		main: [ Param(Pdef(\bla), \rah) ],
+		name: "aaze",
+		items: {
+			[
+				(main: {
+					[ Param(Pdef(\bla), \rah) ]
+				}),
+				(main: {
+					[ Param(Pdef(\bla), \rah) ]
+				}),
+			]
+		}
+	)
+).printTree;
+)

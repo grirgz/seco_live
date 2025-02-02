@@ -94,9 +94,29 @@ ProtoTemplateDef(\PianoCenter, (
 		self[\playerGroup_obj] = nil;
 	},
 
+	//presetBank: { arg self;
+		//if(self[\presetBank_obj].isNil) {
+			//self[\presetBank_obj] = IdentityDictionary.new;
+		//};
+		//self[\presetBank_obj];
+	//},
+
 	presetBank: { arg self;
 		if(self[\presetBank_obj].isNil) {
-			self[\presetBank_obj] = IdentityDictionary.new;
+			self[\presetBank_obj] = ProtoTemplateDef(\PresetGraphBank).new((
+				main: ParamGroup([
+					//Param(Message(self), \synthDefNameStack),
+				].flat),
+				items: {
+					[
+						(main:self.proxy.asParamGroup),
+						self.fxRack.presetBank.presetScheme,
+						self.modRack.presetBank.presetScheme,
+					]
+				}
+			), {
+				self.fxRack.changed(\fxList);
+			})
 		};
 		self[\presetBank_obj];
 	},
@@ -227,7 +247,7 @@ WindowDef(\PianoCenter, (
 			).spacing_(5),
 			//Param(Message(model), \currentPreset, self.presetBank.keys).asPopUpMenu,
 
-			WindowDef(\PresetSelectorView).asView(model),
+			WindowDef(\PresetSelectorView).asView(model.presetBank),
 			HLayout (
 				StaticText.new.string_("Arp:"),
 				HLayout (
@@ -350,6 +370,11 @@ ProtoTemplateDef(\PianoCenter).modRack.presetCompileString
 ProtoTemplateDef(\PianoCenter).fxRack.presetCompileString.editorInsert
 ProtoTemplateDef(\PianoCenter).fxRack.asParamGroup.do({ arg x; x.debug("--") })
 ProtoTemplateDef(\PianoCenter).fxRack.fxList[0].asCompileString
+ProtoTemplateDef(\PianoCenter).modRack.childAt(0).presetScheme.items
+ProtoTemplateDef(\PianoCenter).presetBank_obj = nil
+ProtoTemplateDef(\PianoCenter).edit
+ProtoTemplateDef(\PianoCenter).presetBank.printTree
+ProtoTemplateDef(\PianoCenter).presetBank.printCurrentPreset
 
 Message
 
@@ -1148,3 +1173,70 @@ Tdef(\wwww, {
 )
 
 Fdef(\bla, )
+
+
+
+ClipTimeline(\bla).edit
+
+(
+Tdef(\hello, {
+	var pp;
+	3.do { arg item, idx;
+		pp = (degree:idx).play;
+		1.wait;
+		pp.stop;
+	};
+})
+)
+
+
+(
+Fdef(\mais, {
+	var pp;
+	3.do { arg item, idx;
+		pp = (degree:idx*2).play;
+		fork {
+			1.wait;
+			pp.stop;
+		}
+	};
+})
+)
+
+PlayerWrapper(Fdef(\mais)).label
+
+Fdef(\mais).value
+Fdef(\mais).findKey
+Fdef(\mais).findKey
+Fdef.all.findKeyForValue(Fdef(\mais))
+p = ProxySpace.new.push
+~aa = { arg freq=100; SinOsc.ar(freq)*0.1!2  }
+~aa.play
+currentEnvironment.findKeyForValue(~aa)
+~aa.key
+p.pop
+~aa
+~n = NodeProxy()
+~n.key
+{
+	
+var a = NodeProxy(); a.key.debug("k");
+}.value
+
+(
+f = SynthDef.new(\flux , {
+    var sig, amp, env;
+    env = EnvGen.kr (
+        Env.new([0,1,0], [10,10], [1, -1]),
+        doneAction: 2);
+    amp = SinOsc.kr({ExpRand(0, 2)}!8).range(0,1);
+    sig = SinOsc.ar({ExpRand(50,1200)}!8);
+    sig = sig * amp * env;
+    sig = Splay.ar(sig) * 0.5;
+    Out.ar(0,sig);
+}).add;
+)
+
+f = Synth.new(\flux);
+
+Line

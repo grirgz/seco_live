@@ -2194,3 +2194,265 @@ a.size
 (Constraint({ true.postln }) or: Constraint({false.postln})).value
 
 Event
+
+
+
+
+1
+(
+SynthDef.new(\FeedbackSynth, {
+	arg freq;
+	var sig, delay_line, env, finisher=Env.perc(0, 10).ar(2);
+	sig = PinkNoise.ar();
+	env = Env.perc(0.01, 0.01).ar();
+	sig = sig * env;
+	// sig = LPF.ar(sig, 500);
+	delay_line = LocalIn.ar(1);
+	// delay_line = DelayN.ar(delay_line + sig, 1, 1/freq);
+	delay_line = DelayL.ar(delay_line + sig, 1, (1/freq).clip(0.001, 1) - ControlRate.ir.reciprocal.poll);
+	sig = sig + (delay_line*\feedback.ar(0.99));
+	sig = LPF.ar(sig, Clip.kr(freq*4, 500, 18000));
+	sig = sig  ;
+	LocalOut.ar(sig);
+
+	Out.ar(0, sig!2);
+}).add;
+)
+
+
+Synth(\FeedbackSynth, [freq: 200, feedback:0.99])
+(freq:200).play
+
+
+s.options.blockSize
+s.sampleRate
+( 64/s.sampleRate )
+
+(
+
+{
+    var imp, local;
+    local = LocalIn.ar(1);
+    imp = Impulse.ar(1);
+
+    // for feedback
+    LocalOut.ar(DelayC.ar(imp + (local * 0.995), 1, 440.reciprocal - ControlRate.ir.reciprocal));
+
+    local
+
+}.play;
+
+{ SinOsc.ar(440, 0, 0.2) }.play; // compare pitch
+)
+Main.version
+
+
+
+( 
+{
+    var sig = SinOsc.ar(100);
+    6.collect { |i|
+        sig = LPF.ar(sig, 300);
+    };
+}.plot(0.04)
+)
+
+OnePole
+
+
+(
+Ndef(\onepole, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SoundIn.ar([0,1]);
+	//sig = sig * SinOsc.ar(freq);
+	sig = OnePole.ar(sig, \coef.kr(0));
+	//sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+Ndef(\onepole).edit
+Spec.add(\coef, \bipolar)
+
+
+0
+0
+
+s.options.memSize = 65536*4;
+s.options.numBuffers = 1024;
+s.reboot;
+(
+SynthDef(\p, {
+    arg freq = 200, amp = 1.0, pan = 0, pos = 0.15, t = 2.0, b = 0.85;
+    var exc, str, res;
+    
+    exc = LPF.ar(Mix([
+        PinkNoise.ar * Env.perc(0.00232, rrand(0.01, 0.03)).ar * 0.6,
+        WhiteNoise.ar * Env.perc(0.00124, rrand(0.005, 0.01)).ar * 0.4,
+        BrownNoise.ar * Env.perc(0.00534, rrand(0.008, 0.009)).ar * 0.3
+    ]), freq * LFNoise1.kr(10.6).range(0.3, 13));
+    
+    str = Mix.fill(2, { |i|
+        var d = [0, -0.03].at(i);
+        Pluck.ar(in: exc, trig: 1, maxdelaytime: 1.0,
+            delaytime: (freq * (1 + d)).reciprocal,
+            decaytime: t, coef: b)
+    });
+    
+    res = LPF.ar(str, 17000);
+    res = HPF.ar(res, 120);
+    res = res + (HPF.ar(res, 4000) * 0.1);
+    res = res * (1 + (LFNoise2.kr(3) * 0.1)); 
+    res = FreqShift.ar(res, LFNoise1.kr(0.2).range(-2, 2));
+    res = XFade2.ar(
+        res,
+        Decimator.ar(res, 
+            rate: LFNoise2.kr(0.3).exprange(12000, 44100),
+            bits: LFNoise2.kr(1.8).range(3, 24)
+        ),
+        LFNoise1.kr(0.1) * 0.2
+    );
+    DetectSilence.ar(res, doneAction: 2);
+    Out.ar(0, Pan2.ar(res * amp, pan));
+}).add;
+
+~x = {
+    var bpm = 50;
+    var f = 100;
+    var n = 6, t = 1.0; var w =  1.0;
+    var m = Array.fill(13, { |i| (i+1).nthPrime / (i+2).nthPrime });
+    var r = Array.fill(n, { rrand(3.7, 3.9999) });
+    var x = Array.fill(n, { 0.5.rand });
+    
+    var accelPatterns = [
+        {|t| t},  // linear
+        {|t| t * t},  // quadratic acceleration
+        {|t| t.sqrt},  // quadratic deceleration
+        {|t| sin(t * pi/2)},  // sinusoidal
+        {|t| exp(t - 1)},  // exponential
+        {|t| 1 - cos(t * pi/2)}, // inverse cosine
+        {|t| t.pow(3)},  // cubic acceleration
+        {|t| t.pow(1/3)} // cubic deceleration
+    ];
+    
+    var phaseMods = Array.fill(n, { rrand(0.02, 0.1) });
+    
+    n.do { |i|
+        var p = i.linlin(0, n-1, -0.8, 0.8);
+        var currentPattern = accelPatterns.choose;
+        var accelPhase = 0;
+        
+        
+        fork { loop { w = rrand(0.5, 2.0); rrand(5, 20).wait}};
+        
+        fork { 
+            loop { 
+                t = 0.gauss(6.3).abs  * w + 0.1; 
+                
+                if(0.2.coin) { currentPattern = accelPatterns.choose };
+                rrand(1,7.0).wait;
+            } 
+        };
+        
+        Task({
+            var baseTime = 60/bpm * (i + 1)/n;
+            var phaseOffset = 0;
+            
+            loop {
+                var f1, c;
+                var timeWarp;
+                
+                x[i] = r[i] * x[i] * (1 - x[i]);
+                c = Complex(0.7, 0.8);
+                c = c * exp(Complex(0, 0.4 - (6/(1 + x[i].squared))));
+                f1 = f * m.wrapAt((c.real.abs * 13).floor) * [0.17, 0.593, 0.866, 1, 1.25, 1.42, 9.3].choose * rrand(0.98, 1.12);
+                
+                
+                accelPhase = (accelPhase + phaseMods[i]).wrap(0, 1);
+                timeWarp = currentPattern.(accelPhase);
+                
+                Synth(\p, [
+                    \freq, f1 * (1 + 0.001.rand2),
+                    \amp, c.real.abs.clip(0.1, 0.3),
+                    \t, c.imag.abs.clip(0.9, 2.0),
+                    \pos, x[i].wrap(0.1, 0.9),
+                    \b, c.real.abs.wrap(0.2, 0.7),
+                    \pan, p + (0.1.rand2)
+                ]);
+                
+                
+                (baseTime * c.real.abs.clip(0.5, 1.5) * t * timeWarp).wait;
+                
+                
+                if(0.05.coin) { 
+                    accelPhase = 0;
+                    if(0.3.coin) { currentPattern = accelPatterns.choose };
+                };
+            }
+        }).play;
+    };
+};
+)
+
+
+
+// start
+~x.();
+
+
+(
+~lower = { arg rhythm;
+	var array = [];
+	var current = rhythm.copy;
+	while { current.size > 1 }
+	{
+		var pick, pickIndex,sum, start,stop;
+		var index = current.minIndex;
+		var left = current[index-1];
+		var right = current[index+1];
+		if( left.isNil || right.isNil ) {
+			if(left.notNil) { pick=left; pickIndex=index-1; };
+			if(right.notNil) { pick=right; pickIndex=index+1; };
+		} {
+			if( right < left )
+			{ pick=right; pickIndex=index+1 }
+			{ pick=left; pickIndex=index-1; };
+		};
+		sum = current[index] + pick;
+		if ( pickIndex < index )
+		{ start = pickIndex; stop = index; }
+		{ start = index; stop = pickIndex; };
+		current = current[..start-1]++sum++current[stop+1..];
+		array = array.add(current);
+	};
+	array;
+};
+~higher = { arg rhythm;
+	var array = [];
+	var current = rhythm.copy;
+	while { current.size < rhythm.sum } {
+		var index = current.size-current.reverse.maxIndex-1;
+		current = current[..index-1]++[current[index]-1,1]++current[index+1..];
+		array = array.add(current);
+	};
+	array;
+};
+~getAbs = { arg rhythm;
+	var lower = ~lower.(rhythm);
+	var higher = ~higher.(rhythm);
+	lower.reverse++[rhythm]++higher;
+}
+)
+
+a=~getAbs.([3,3,4,2,4])
+a.collect(_.postln;)
+(
+Pdef(\test,Ppar([
+	Pbind(\legato,0.1,\dur, Pseq(a[2]*0.125,inf),\degree,0),
+	Pbind(\legato,0.1,\dur, Pseq(a[3]*0.125,inf),\degree,2),
+	Pbind(\legato,0.1,\dur, Pseq(a[4]*0.125,inf),\degree,4),
+	Pbind(\legato,0.1,\dur, Pseq(a[5]*0.125,inf),\degree,6),
+	Pbind(\legato,0.1,\dur, Pseq(a[6]*0.125,inf),\degree,8),
+	Pbind(\legato,0.1,\dur, Pseq(a[7]*0.125,inf),\degree,10),
+],inf)).play
+)
+
+

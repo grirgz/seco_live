@@ -123,7 +123,7 @@ TrackTemplateDef(\InsertFxSeqTrack, (
 
 )
 
-TrackDef(\cc2, TrackTemplateDef(\CustomTrackList)).edit
+TrackDef(\cc3, TrackTemplateDef(\CustomTrackList)).edit
 TrackDef(\cc).childAt()
 
 (

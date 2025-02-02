@@ -1,14 +1,19 @@
 // TODO: finish "Add param" button
 
 (
-FileSystemProject.loadOnce("libdef/CustomTrackList.scd");
-FileSystemProject.loadOnce("libdef/PbindefEditor.scd");
+//FileSystemProject.loadOnce("libdef/CustomTrackList.scd");
+//FileSystemProject.loadOnce("libdef/PbindefEditor.scd");
+FileSystemProject.loadOnce("libdef/synthplayrec.scd");
+
+//////// KitSeqGridTrack
+// to be used as a CustomTrackTemplate and contains a the KitSeqGrid .grid
 
 TrackTemplateDef(\KitSeqGridTrack, (
 	parent: TrackTemplateDef(\CustomInstrumentTrack),
 
 	grid: { arg self;
 		self[\grid] = ProtoDef(( self.trackKey++\_grid ).asSymbol, TrackTemplateDef(\KitSeqGrid));
+		self[\grid].parentGrid = { self.parentTrack };
 		self[\grid];
 	},
 
@@ -16,68 +21,42 @@ TrackTemplateDef(\KitSeqGridTrack, (
 		self.grid.linePlayerAt(idx)
 	},
 	editInstrument: { arg self;
-		self.grid.chooseKitDialog;
+		//self.grid.chooseKitDialog;
+
+		WindowDef(\KitSequencer).front(self.grid, self.activeIndex)
 	},
 
 ));
 TagSpecDef(\CustomTrackTemplate).addUnique(\KitSeqGridTrack -> TrackTemplateDef(\KitSeqGridTrack));
 
 
-TrackTemplateDef(\KitSeqSection, (
-	parent: TrackTemplateDef(\CustomTrackListPart),
-	//outBus_: { arg self;
-		
-	//},
-	//outBus: { arg self;
-		//0
-	//},
-	asPreview: { arg self;
-		View.new.layout_(
-			VLayout (*
-				self.existingChildren.keep(4).collect { arg child, idx;
-					child.asPreview;
-				};
-
-			)
-		)
-		
-	},
-
-	edit: { arg self;
-		//WindowDef(\win, { arg def;
-			//View.new.layout_(
-				//VLayout (*
-					//self.existingChildren.collect { arg child, idx;
-						//child.asPreview;
-					//};
-
-				//)
-			//)
-		//}).front;
-		self.parentTrack.selectedPart = self.index;
-		self.parentTrack.edit;
-		
-	},
-
-	makeScore: { arg self;
-		"hello i make score3!".postln;
-		self.parentTrack.existingChildren.do { arg child, idx;
-			self.childAt(child.index).makeScore;
-		};
-		
-	},
-));
 
 //////// KitSeqGrid
 
 TrackTemplateDef(\KitSeqGrid, (
-	parent: TrackTemplateDef(\CustomTrackList),
+	parent: TrackTemplateDef(\TrackList),
 	childClass: { TrackTemplateDef(\KitSeqTrack) },
-	lineClass: { TrackTemplateDef(\KitSeqSection) },
+	sectionClass: { TrackTemplateDef(\KitSeqSection) },
 	kit_: { arg self, kit;
 		self[\kit] = kit;
 		32.do { arg idx;
 			self.childAt(idx); // create 32 children if existing
+		};
+	},
+
+	areasizex: { arg self;
+		// used for preview size
+		if(self.parentGrid.notNil) {
+			self.parentGrid.areasizex
+		} {
+			self[\areasizex_obj]
+		};
+	},
+	areasizex_: { arg self, val;
+		if(self.parentGrid.notNil) {
+			self.parentGrid.areasizex = val;
+		} {
+			self[\areasizex_obj] = val;
 		};
 	},
 
@@ -116,17 +95,86 @@ TrackTemplateDef(\KitSeqGrid, (
 		}).front;
 	},
 ));
+
+TrackTemplateDef(\KitSeqSection, (
+	///// section for KitSeqGrid and also children of KitSeqGridTrack
+
+	parent: TrackTemplateDef(\TrackListSection),
+
+	//outBus_: { arg self;
+		
+	//},
+	//outBus: { arg self;
+		//0
+	//},
+
+	asPreview: { arg self;
+		var view;
+		var areasize;
+		"pourquoi---------".debug;
+		view = WindowDef(\KitSequencerPreview).asView(self);
+		areasize = view.proto.areasize;
+		// Problem: areasizex is in parent grid
+		areasize.x = self.parentTrack.areasizex ?? { areasize.x };
+		view.proto.areasize = areasize;
+		view;
+
+		//View.new.layout_(
+			//VLayout (*
+				//self.existingChildren.keep(4).collect { arg child, idx;
+					//child.asPreview;
+				//};
+
+			//)
+		//)
+		
+	},
+
+	stepDur_: { arg self, val;
+		self[\stepDur] = val;
+		self.existingChildren.do { arg item, idx;
+			item.stepDurParam.set(val)
+		};
+	},
+	stepDur: 1/8,
+
+	edit: { arg self;
+		//WindowDef(\win, { arg def;
+			//View.new.layout_(
+				//VLayout (*
+					//self.existingChildren.collect { arg child, idx;
+						//child.asPreview;
+					//};
+
+				//)
+			//)
+		//}).front;
+		//self.parentTrack.selectedPart = self.index;
+		//self.parentTrack.edit;
+		//WindowDef(\KitSequencer).front(self.parentTrack, self.index)
+		
+	},
+
+	makeScore: { arg self;
+		"hello i make score3!".postln;
+		self.parentTrack.existingChildren.do { arg child, idx;
+			self.childAt(child.index).makeScore;
+		};
+		
+	},
+));
+
 TrackTemplateDef(\KitSeqTrack, (
-	parent: TrackTemplateDef(\CustomInstrumentTrack),
+	parent: TrackTemplateDef(\CustomTrack),
 	childClass: { TrackTemplateDef(\KitSeqTrackPart) },
 	outBus: { arg self;
 		if(self.isEmpty.not) {
-			Param(self.kitItemProxy, \out).get.debug("get")
+			Param(self.kitItemTarget, \out).get.debug("get")
 		}
 	},
 	outBus_: { arg self, val;
 		if(self.isEmpty.not) {
-			Param(self.kitItemProxy, \out).setBus(val.debug("set"))
+			Param(self.kitItemTarget, \out).setBus(val.debug("set"))
 		}
 	},
 	isEmpty: { arg self;
@@ -145,13 +193,13 @@ TrackTemplateDef(\KitSeqTrack, (
 
 	kitItemPattern: { arg self;
 		if(self.parentTrack.kit.notNil) {
-			self.kitItemTarget.asPattern
+			self.parentTrack.kit.getPattern(self.index)
 		};
 	},
 
 	kitItemTarget: { arg self;
 		if(self.parentTrack.kit.notNil) {
-			self.parentTrack.kit.childAt(self.index).target
+			self.parentTrack.kit.childAt(self.index).targetData
 		};
 	},
 	kitItem: { arg self;
@@ -160,19 +208,12 @@ TrackTemplateDef(\KitSeqTrack, (
 		}
 	},
 	kitItemProxy: { arg self;
-		var target = self.kitItemTarget;
-		if(target.notNil) {
-			if(target.isKindOf(StepEvent)) {
-				target
-			} {
-				target.proxy
-			}
-		};
+		self.kitItemTarget;
 	},
 
 ));
 TrackTemplateDef(\KitSeqTrackPart, (
-	parent: TrackTemplateDef(\CustomInstrumentTrackPart),
+	parent: TrackTemplateDef(\CustomTrackPart),
 	outBus: { arg self;
 		if(self.isEmpty.not) {
 			self.score.source.at(\out).source;
@@ -199,8 +240,12 @@ TrackTemplateDef(\KitSeqTrackPart, (
 	},
 	makeScore: { arg self;
 		self.score = Pbindef(self.trackKey+++\score, \dur, 1/8);
-		self.score.addHalo(\instrument, self.parentTrack.kitItemTarget.instrument);
+		self.score.addHalo(\instrument, self.parentTrack.kitItem.instrument);
 		self.source = Pdef(self.trackKey+++\pat, self.gridPattern <> Pbind(\isRest, Pkey(\kitseq).coin.not) <> self.score <> self.parentTrack.kitItemPattern);
+	},
+
+	stepDurParam: { arg self;
+		Param(Pbindef(self.trackKey+++\score), \dur);
 	},
 
 	edit: { arg self;
@@ -229,11 +274,7 @@ TrackTemplateDef(\KitSeqTrackPart, (
 							self.score.asParamGroup.reject({ arg p; p.isSet }).collect { arg param, idx;
 								MenuAction(param.label, { 
 									var val, proxy = self.parentTrack.kitItemTarget;
-									if(proxy.isKindOf(StepEvent)) {
-										val = Param(proxy, param.property).get;
-									} {
-										val = Param(proxy.proxy, param.property).get;
-									};
+									val = Param(proxy, param.property).get;
 									self.score.set( param.property, val);
 									refresh.();
 								});
@@ -266,6 +307,8 @@ TrackTemplateDef(\KitSeqTrackPart, (
 	},
 	
 ));
+
+//// GUI
 
 WindowDef(\KitSeqTrackPart_preview, { arg def, pdef, prop, defaultSize;
 	var defaultVal = 0;
@@ -334,6 +377,8 @@ WindowDef(\stepseq_butlist, { arg def, pdef, prop, defaultSize;
 	view;
 });
 
+//// Debug
+
 TrackDef(\KitSeqGrid, TrackTemplateDef(\KitSeqGrid));
 FileSystemProject.loadOnce("capsule/PatKitDef_comkit.scd");
 TrackDef(\KitSeqGrid).kit = PatKitDef(\comkit);
@@ -344,13 +389,19 @@ Spec.add(\kitseq, \unipolar);
 { SinOsc.ar(500) ! 2 * 0.1}.play;
 
 TrackDef(\KitSeqGrid).edit
+TrackDef(\KitSeqGrid)[\edit].asCompileString
+TrackDef(\KitSeqGrid).existingChildren.size
+TrackDef(\KitSeqGrid).kit.getPattern(0)
+TrackDef(\KitSeqGrid).childAt(0).kitItemTarget
 
 Pbindef(\bla, \out, nil).play
+PatKitDef(\comkit).edit
 
 TrackDef(\KitSeqGrid).kit = PatKitDef(\kitrand2);
+TrackDef(\KitSeqGrid).kit = PatKitDef(\comkit);
 PlayerWrapper(TrackDef(\KitSeqGrid).kit.childAt(0).target).outBus
 PlayerWrapper(TrackDef(\KitSeqGrid).kit.childAt(0).target).wrapper
-TrackDef(\KitSeqGrid).kit.childAt(0).target.out
+TrackDef(\KitSeqGrid).kit.childAt(0).proxy
 StepEvent
 TrackDef(\KitSeqGrid).childAt(5).kitItemTarget.instrument
 TrackDef(\KitSeqGrid).childAt(0).kitItemTarget[\pan]

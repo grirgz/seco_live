@@ -30,6 +30,12 @@
 			{ BufDef.stereo(path); }
 		})
 	}.value,
+
+	foley1: {
+		"/home/ggz/Musique/sc/samplekit/cfoley/Blastwave FX Foley Vol. 1/*".pathMatch.collect({ arg path;
+			{ BufDef.stereo(path); }
+		})
+	}.value,
 );
 
 

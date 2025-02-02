@@ -7,6 +7,7 @@
 //FileSystemProject.loadOnce("libdef/CustomTrackList.scd");
 FileSystemProject.loadOnce("libdef/ScopeView.scd");
 FileSystemProject.loadOnce("libdef/ParamRouter.scd");
+FileSystemProject.loadOnce("paramdev/drafts/SynthDefPreset.scd");
 
 SynthDef(\modsin, { arg out=0, gate=1, gain=1, freq=2;
 	var sig;
@@ -57,8 +58,8 @@ TrackTemplateDef(\ModulatorRack, (
 		};
 		next
 	},
-	addModulator: { arg self, trackTemplate;
-		var idx = self.nextFreeIndex;
+	addModulator: { arg self, trackTemplate, idx;
+		idx = idx ?? {self.nextFreeIndex};
 		if(trackTemplate.notNil) {
 			if(trackTemplate.isKindOf(TrackTemplateDef)) {
 				self.childAt(idx).trackTemplate = trackTemplate;
@@ -95,6 +96,41 @@ TrackTemplateDef(\ModulatorRack, (
 			str.add(child.presetCompileString);
 		};
 		str.join("\n");
+	},
+
+	sourcePreset: { arg self;
+		self.children.collect { arg item, idx;
+			if(item.isNil or: { item.isEmpty }) {
+				nil
+			} {
+				item.trackTemplate.key
+			};
+		};
+	},
+
+	sourcePreset_: { arg self, val;
+		var idx = 0;
+		self.children = SparseArray.new;
+		val.do { arg item;
+			self.addModulator(item, idx);
+			idx = idx+1;
+		};
+	},
+
+	presetBank: { arg self;
+		if(self[\presetBank_obj].isNil) {
+			self[\presetBank_obj] = ProtoTemplateDef(\PresetGraphBank).new((
+				main: ParamGroup([
+					Param(Message(self), \sourcePreset),
+				].flat),
+				items: {
+					self.existingChildren.collect({ arg item;
+						item.presetScheme
+					})
+				}
+			))
+		};
+		self[\presetBank_obj];
 	},
 ));
 
@@ -152,6 +188,17 @@ TrackTemplateDef(\ModulatorRackPart, ( // synthdef
 		str;
 	},
 
+	presetScheme: { arg self;
+		(main:self.asParamGroup)
+	},
+
+	asParamGroup: { arg self;
+		ParamGroup([
+			Param(Message(self), \label),
+		] ++
+		self.source.asParamGroup);
+	},
+
 	presetCompileString: { arg self;
 		// FIXME: need to clarify the difference between source and score
 		if(self.isEmpty) {
@@ -200,6 +247,14 @@ TrackTemplateDef(\ParamTimelineModulator, (
 		} {
 			StaticText.new.string_("Empty")
 		}
+	},
+
+	asParamGroup: { arg self;
+		ParamGroup([
+			Param(Message(self), \label),
+			Param(Message(self), \outBus),
+			Param(Message(self.source), \eventListClone),
+		])
 	},
 
 	scorePresetCompileString: { arg self;
@@ -277,6 +332,16 @@ TrackTemplateDef(\StepSeqModulator, (
 		}
 	},
 
+	asParamGroup: { arg self;
+		[
+			Param(Message(self), \label),
+			Param(self.baseProxy, \out -> \source),
+			self.stepseqParam,
+			Param(self.baseProxy, \dur -> \source),
+			Param(self.baseProxy, \lag -> \source),
+		].as(ParamGroup)
+	},
+
 	scorePresetCompileString: { arg self;
 		var str = str ++ "%.makeScore;\n".format(self.refCompileString);
 		str = str ++ "%.stepseqParam.set(%);\n".format(self.refCompileString, self.stepseqParam.get);
@@ -306,6 +371,14 @@ TrackTemplateDef(\NodeProxyModulator, (
 		//self[\proxy] = PlayerWrapper(self.source)
 	//},
 
+	sourcePreset: { arg self;
+		self.source.key;
+	},
+
+	sourcePreset_: { arg self, val;
+		self.source = Ndef(val);
+	},
+
 	makeScore: { arg self;
 		self.source = self.source ?? { Ndef(\NodeProxyModulator_default) };
 	},
@@ -326,6 +399,25 @@ TrackTemplateDef(\NodeProxyModulator, (
 		// this is called when another child start playing
 		// can be overridden when parentTrack.proxy should not be stopped, like in FileCodeTrack
 		//self.stop;
+	},
+
+	asParamGroup: { arg self;
+		[
+			Param(Message(self), \label),
+			Param(Message(self), \outBus),
+			Param(Message(self), \sourcePreset),
+		].as(ParamGroup)
+	},
+
+	presetScheme: { arg self;
+		(
+			main: [
+				Param(Message(self), \label),
+				Param(Message(self), \outBus),
+				Param(Message(self), \sourcePreset),
+			].as(ParamGroup),
+			items: { [ (main:self.source.asParamGroup) ] }
+		)
 		
 	},
 
@@ -423,6 +515,7 @@ WindowDef(\ModulatorRack, { arg def, model;
 					}
 				).front
 			}),
+			WindowDef(\PresetSelectorView).asView(model.presetBank),
 			BasicButton.new.string_("ParamRouter").action_({
 				ProtoDef(\ParamRouter).edit;
 			}),
@@ -545,6 +638,26 @@ TrackDef(\ModulatorRack, TrackTemplateDef(\ModulatorRack));
 //////////////////////////////////////////
 
 TrackDef(\ModulatorRack).edit;
+TrackDef(\ModulatorRack).presetBank.presetScheme.items
+~pb = TrackDef(\ModulatorRack).presetBank
+~pb.getParamDict(~pg)
+~pb
+~pg = TrackDef(\ModulatorRack).childAt(1).asParamGroup
+~pg.first
+~pg[1]
+~pg[1].wrapper
+TrackDef(\ModulatorRack).childAt(1).asParamGroup.do({ arg p;  p.isSet.debug("PARAM:"); p.property})
+TrackDef(\ModulatorRack).childAt(1).stepseqParam
+(TrackDef(\ModulatorRack).childAt(1).baseProxy.asParamGroup)
+(TrackDef(\ModulatorRack).childAt(1).baseProxy.asParamGroup).do(_.debug("PARAM:"))
+(TrackDef(\ModulatorRack).childAt(1).baseProxy.asParamGroup ++ [])
+(TrackDef(\ModulatorRack).childAt(1).baseProxy.asParamGroup ++ []).as(ParamGroup)
+(TrackDef(\ModulatorRack).childAt(1).baseProxy.asParamGroup ++ []).as(ParamGroup)
+~p = Param(Pdef(\bla),\rah)
+ParamGroup.newFrom([ ~p ])
+TrackDef(\ModulatorRack).presetBank_obj = nil
+TrackDef(\ModulatorRack).source
+TrackDef(\ModulatorRack).sourcePreset
 TrackDef(\ModulatorRack).presetCompileString
 TrackDef(\ModulatorRack).existingChildren
 TrackDef(\ModulatorRack).childAt(0).asPreview

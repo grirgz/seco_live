@@ -804,3 +804,22 @@ Pdef(\zed,
 
 NoteTimeline(\sun77melo3, Pdef(\melo3)).edit
 
+////////////
+
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		~parp.(NoteTimeline(\sun77melo1).asPattern, Pbind(
+			\idx, Pseq([1,0,2,0],inf),
+			\octaveshift, 1,
+			\legato, 1,
+			\dur, Pseq([1/8],inf),
+		)),
+	])
+)).play;
+);
+
+NoteTimeline(\sun77melo1).play
