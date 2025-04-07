@@ -2672,6 +2672,13 @@ SynthDef(\basicpadfm, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 );
 
 (
+~master_simple = {
+	ProtoDef(\rdn).play;
+	ProtoDef(\rdn2).play;
+}
+)
+
+(
 	~master_simple.();
 Pdef(\part, Pdef(\zed, 
 	Ppar([
@@ -2721,12 +2728,6 @@ Pdef(\part, Pdef(\zed,
 ProtoDef(\rdn).edit
 ProtoDef(\rdn2, ProtoTemplateDef(\rdn));
 ProtoDef(\rdn2).edit
-(
-~master_simple = {
-	ProtoDef(\rdn).play;
-	ProtoDef(\rdn2).play;
-}
-)
 
 
 

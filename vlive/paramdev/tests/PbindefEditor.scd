@@ -112,6 +112,8 @@ SynthDef(\testmear, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 
 Pbindef(\ttt, \instrument, \testmear);
 Pbindef(\ttt).edit
+Pbindef(\ttt).asParamGroup.collect(_.property)
+Pbindef(\ttt).asParamGroup.asPropertyDict[\freq].parent.type
 onSet
 Param(Pdef(\ttt), \env1).get.asEnv
 [1,2,3,4,5,6,7,8].asEnv

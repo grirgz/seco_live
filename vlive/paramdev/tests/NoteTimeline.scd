@@ -245,3 +245,35 @@ NoteTimeline(\testmidi).edit;
 
 
 
+////////////////////////////
+
+
+NoteTimeline(\test).edit
+NoteTimeline(\test).editor.cursor_timeline.cursor.startPosition
+NoteTimeline(\test).editor.bottomPanelSelectedTimelinePanelView.cursor
+
+(
+SynthDef(\saw, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200,  doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = LFSaw.ar(freq * [1.01,1,0.99]);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq, \rq.kr(0.5));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+
+code::
+NoteTimeline(\note1).edit; // using it create it automatically
+::
+
+By default, it code::Pdef(\NoteTimeline_default):: as the instrument for the
+notes. You want to provide your own Pdef so you can tweak SynthDef parameters.
+(
+Pdef(\instr1, 
+	Pbind(
+		\instrument, \saw,
+	)
+);
+);
+NoteTimeline(\note1, Pdef(\instr1)).edit; 

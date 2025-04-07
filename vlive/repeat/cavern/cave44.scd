@@ -38,7 +38,7 @@ Ndef(\texture1, { arg freq=200, pan=0, amp=0.1;
 	var num= 70;
 	freq = freq * Duty.kr(1/~t, 0, Dseq([
 		0,0,0,0,
-		0,-1,-1,-1,
+		0,0,-1,-1,
 	].midiratio,inf));
 	sig = Blip.ar(freq * exprand(0.98,1!num) * [0,3,7].midiratio, SinOsc.ar( SinOsc.ar(exprand(1/19,10!num)).range(1/3,10)/10  ).range(1, SinOsc.ar(exprand(1/30,10!num)).exprange(1,200) ));
 	sig = Pan2.ar(sig, SinOsc.kr(exprand(0.1,1!num)), amp).mean;

@@ -319,11 +319,13 @@ SynthDef(\chordar, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(out, sig);
 }).add;
 
+~t = 1; TempoClock.default.tempo = ~t;
+
 Pdef(\demo, 
 	Ppar([
 		Pbind(
 			// skank
-			\instrument, \fmsaw,
+			\instrument, \chordar,
 			\adsr, Pseq([
 				[ Env.adsr(0.1,0.1,0.8,0.1) ],
 			],inf),
@@ -439,13 +441,14 @@ SynthDef(\pluck, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, coef=0, decay=10
 	sig = sig * 2;
 	//sig = sig/2 + FreqShift.ar(sig, [{ 600.0.rand }!5]).flop.mean * 3;
 	//sig = RLPF.ar(sig, \lpfr.kr(4)*freq, \rq.kr(0.5)) * 1 + ( sig/4 );
-	sig = sig * EnvGen.ar(Env.adsr(0.01,[0.2,0.1],0.8,0.4,1,4),gate,doneAction:2);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = sig * amp;
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.2,0.8,0.1,1,4),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	//sig = sig * amp;
 	Out.ar(out, sig);
 }).add;
 );
 
+~t = 135/4/60; TempoClock.default.tempo = ~t;
 
 (
 Pdef(\pluck, Pbind(
@@ -462,6 +465,7 @@ Pdef(\pluck, Pbind(
 	\amp, 0.1
 )).play;
 );
+
 
 // elastic
 
@@ -652,7 +656,7 @@ SynthDef(\amdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }).add;
 );
 
-// pure R2D2
+// nasal computer
 (
 SynthDef(\amdel, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;

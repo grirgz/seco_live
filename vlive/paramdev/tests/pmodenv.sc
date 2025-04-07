@@ -1073,3 +1073,31 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 PmodEnv.watchdogEnabled = false
+
+//////////////////// new bug:
+// if a key replace the key with PmodEnv, bus is nil and throw error .index not understood
+// the finish function added by makePayload can't access the key content so the payload is never executed
+
+
+(
+	// to reproduce, run one time, then run again, this trigger the cleanup function
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \simplefm,
+			\note, Pseq([
+				0,-5,-4,-7,-5,
+			],inf),
+			\octave, 3,
+			\fmf, 1693.43,
+			\lpfr, PmodEnv(Pseq([1,4,18,4,1,1,4,1],1), 1/8).loop,
+			\lpfr, Pseq([1,18],inf),
+			\dur, Pseq([
+				1,1,1,1/2,1/2,
+			],inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+

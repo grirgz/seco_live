@@ -24,6 +24,41 @@ Pdef(\demo, Pdef(\demomo,
 )).play;
 )
 
+(
+// reversed snare
+Pdef(\demo, Pdef(\demomo, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1396].value,
+			\bufnum, ~buflib.snare[132].value,
+			\bufnum, ~buflib.snare[2518].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\speed, -0.5,
+			\pos, 1/4/~t * Pkey(\speed).abs,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			//\lag, -0.07,
+			\legato, 2,
+			\gain, 0.21,
+		),
+		
+	])
+)).play;
+)
+
 /////// pitch based
 
 (
@@ -355,3 +390,46 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+
+/////////////////::
+// granulation
+
+
+(
+SynthDef(\grancruhp, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, mbufnum, gdur=0.1, gfreq=8, pos=0, pitch_stretch=1;
+	var sig;
+	var clk = Impulse.ar(gfreq);
+	pos = pos + LFNoise1.ar(gfreq,mul:0.01);
+	//pitch_stretch = pitch_stretch + LFNoise1.ar(10, mul:0.1);
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, pos % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = HPF.ar(sig, \hpf.kr(1000));
+	sig = Pan2.ar(sig, pan, amp);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \grancruhp,
+			\mbufnum, BufDef.mono('vipere/rocksteady.flac'),
+			\pos, ~pmodenv.(Pseq([2.4,1]+3,1), 4).loop,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,2.4) ],
+			],inf),
+			\gfreq, 840,
+			\hpf, PmodEnv(Pseq([10000,100],1), 4).loop,
+			\gdur, 0.08,
+			\isRest, Pseq([
+				1,0,
+			],inf).coin.not,
+			\dur, 2,
+			\gain, 13.dbamp,
+		)
+		
+	])
+)).play;
+)

@@ -1361,7 +1361,7 @@ WindowDef(\ModulatorStrip, (
 		//// draw value rect
 
 		if(color.notNil and: { level.equalWithPrecision(zerolevel).not or: { self.shouldDrawEmptyBar == true } }) {
-			level.debug("drawFunc: level");
+			//level.debug("drawFunc: level");
 
 			Pen.color = color;
 			Pen.width = 1;
@@ -1543,6 +1543,7 @@ WindowDef(\ModulatorStrip_slider, (
 	parent: WindowDef(\ModulatorStrip).proto,
 
 	shouldDrawBarLabel: true,
+	inElasticMode: true,
 
 	virtualBounds: { arg self;
 		var offsetx = 0;
@@ -1642,9 +1643,10 @@ WindowDef(\ModulatorStrip_slider, (
 			var rect;
 			var arr = self.targetParam.get;
 			var gxoffset = self.pixelPointToGridPoint(Point(0,0)).x;
+			var color_empty_cursor = self.colors.full.complementary.add(self.colors.full.complementary, 0.5);
 			//gxoffset = gxoffset.trunc(self.cellWidth);
 			//Pen.translate(28,-7);
-			[gxoffset, arr, self.targetParam, self.targetParam.get].debug("drawFunc");
+			//[gxoffset, arr, self.targetParam, self.targetParam.get].debug("drawFunc");
 			//rect = Rect(5,5,100,100);
 			//rect = self.normRectToPixelRect(Rect(0,0,1,1));
 			//[self.viewport, self.virtualBounds, rect].debug("ss");
@@ -1655,7 +1657,7 @@ WindowDef(\ModulatorStrip_slider, (
 				var val = self.targetParam.at(idx).normGet;
 				var label = self.targetParam.at(idx).get;
 				if(self.cursorEnabled == true and: {self.cursorIndex == idx}) {
-					self.drawBar(0, idx, val, self.colors.full.complementary, self.colors.empty);
+					self.drawBar(0, idx, val, self.colors.full.complementary, color_empty_cursor);
 				} {
 					self.drawBar(0, idx, val, self.colors.full, self.colors.empty);
 				};
@@ -1691,7 +1693,7 @@ WindowDef(\ModulatorStrip_slider, (
 		}, self.view);
 		self.view.followChange(cursorTarget, \cursor, { arg view, obj, msg, val;
 			if(self.cursorEnabled == true) {
-				[view, obj, msg, val].debug("cursor");
+				//[view, obj, msg, val].debug("cursor");
 				//"cursor".debug;
 				{
 					self.cursorIndex = val;
@@ -1708,7 +1710,13 @@ WindowDef(\ModulatorStrip_slider, (
 		var tl;
 		self.view = view;
 		//self.model = ProtoTemplateDef(\ModulatorStrip);
-		self.seqSize = size ?? { param.size };
+		if(self.inElasticMode == true) {
+			self.seqSize = size ?? { param.size };
+		} {
+			if(size.notNil) {
+				self.seqSize = size;
+			};
+		};
 		self.mapParam(param);
 
 		view.drawFunc = self.drawFunc;
@@ -1755,7 +1763,7 @@ WindowDef(\ModulatorStrip_button, (
 		if(idx != self.lastSetIndex or: { mouseActionType == \down }) {
 			self.lastSetIndex = idx;
 			param = self.targetParam.at(idx);
-			param.normSet(1-param.normGet);
+			param.normSet(1-param.normGet.round);
 			self.view.refresh;
 		};
 	},
@@ -2691,7 +2699,7 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 Spec.add(\time, ControlSpec(0.01,1,\exp));
 Spec.add(\lpf, \freq);
 Spec.add(\dry, \unipolar);
-ProtoInst(\FxTimeline, \bla1).edit;
+//ProtoInst(\FxTimeline, \bla1).edit;
 
 FileSystemProject.load("libdef/synthplayrec.scd");
 ~t = 185/4/60; TempoClock.default.tempo = ~t;
@@ -2751,7 +2759,7 @@ WindowDef(\testmodstrip, { arg def;
 		//)
 	).spacing_(0)
 });
-WindowDef(\testmodstrip).front;
+//WindowDef(\testmodstrip).front;
 );
 
 // END

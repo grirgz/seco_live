@@ -20,10 +20,11 @@ FileSystemProject.load("libdef/equalizer.scd");
 
 FileSystemProject.load("capsule/sample_manager.scd"); // TODO move to libdef
 FileSystemProject.load("libdef/bufEditor.scd"); 
-FileSystemProject.load("libdef/PbindefEditor.scd"); 
+//FileSystemProject.load("libdef/PbindefEditor.scd"); // in quark
 FileSystemProject.load("libdef/ModulatorRack.scd"); 
 FileSystemProject.load("libdef/ParamTimelineRack.scd"); 
 FileSystemProject.load("libdef/WorkspaceView.scd"); 
+FileSystemProject.load("paramdev/drafts/DrumTrack.scd"); 
 
 // controller
 

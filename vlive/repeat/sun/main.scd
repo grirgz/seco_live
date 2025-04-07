@@ -2456,3 +2456,417 @@ Pdef(\test,Ppar([
 )
 
 
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+
+
+Buffer.read(s, "//home/ggz/Musique/sc/samplekit/vipere/tyanimal.flac")
+pathMatch.
+~bufs = "/home/ggz/Musique/sc/samplekit/vipere/*".pathMatch.collect({ arg p; Buffer.read(s, p) })
+~bufs.first.play
+
+
+
+(
+SynthDef(\hello, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq * ( SinOsc.kr(\fmf.kr(10)) * 1 + 1 ));
+	sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\vvv, 
+	Pbind(
+		\instrument, \hello,
+		\fmf, Pseq([1000,1],inf)
+	)
+);
+);
+
+(freq:1000).play
+NoteTimeline('simpleProject_mainTrackList.0.0score').eventList
+
+
+(
+Pdef(\zed, 
+	Pbind(
+		\type, \midi,
+		\degree, Pseq([0],inf),
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+
+BufDef("/home/ggz/Musique/sc/samplekit/vipere/tyanimal.flac").play
+BufDef(\rrrr, "/home/ggz/Musique/sc/samplekit/vipere/tyanimal.flac");
+
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \playersec,
+		\bufnum, BufDef(\rrrr),
+		\pos, Pwhite(0,1.0,inf),
+		\dur, 1/8,
+		\amp, 0.1,
+	)
+).play;
+);
+
+
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var ptr;
+	var trig;
+	ptr = Phasor.kr(1,1/s.sampleRate * 100).poll;
+	trig = ptr > 0.001;
+	//trig = HPZ1.kr(ptr) < 0;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(Env([0,0,1,0],[0,0.1,0.1,0.1]), trig);
+	sig = Pan2.ar(sig, pan, amp);
+	//[ trig, HPZ1.kr(ptr) < 0 ];
+}).play;
+);
+
+(
+{
+	var sig;
+	var ptr;
+	var trig;
+	var freq = 100;
+	ptr = Phasor.kr(1,1/s.sampleRate * 400).poll;
+	trig = ptr > 0;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(Env([0,0,1,0],[0,0.1,0.1,0.1]), trig);
+	[ trig, HPZ1.kr(ptr) < 0 ];
+	 
+}.plot(2)
+)
+
+
+BufDef(\amen, "vipere/amenbreak.wav");
+BufDef(\moeten, "voices/02_moeten.flac")
+BufDef(\crepe, "field/crepe.flac");
+BufDef(\oeuf, "field/oeuf.flac");
+BufDef(\ukraine, "bruit1/07_ukraine.flac");
+BufDef(\table, "field/table.flac");
+BufDef(\scream, "vipere/scream.flac");
+BufDef(\rocksteady, "vipere/rocksteady.flac");
+BufDef(\metal, "vipere/metal.flac");
+BufDef(\bomb, "vipere/bomb.flac");
+
+(
+SynthDef.new(\happy,{
+    arg amp=1,out=0,buf,start=0,end=0.1,rate=1;
+    var sig, ptr, env, envDur, varRate, gate,trigger, bufStart,bufEnd;
+        varRate = end-start < 0;
+    // ptr = Phasor.ar(0,BufRateScale.kr(buf)*rate,BufFrames.kr(buf)*start,BufFrames.kr(buf)*end);
+    bufStart = BufFrames.kr(buf)*start;
+    bufEnd = BufFrames.kr(buf)*end;
+    ptr = Select.ar(varRate,[
+        Phasor.ar(0,BufRateScale.kr(buf)*rate,bufStart,bufEnd),
+        Phasor.ar(0,0-(BufRateScale.kr(buf)*rate),bufStart,bufEnd)]);
+    sig = BufRd.ar(2,buf,ptr);
+    envDur = Select.kr(varRate,[(BufDur.kr(buf)*end)-(BufDur.kr(buf)*start),(BufDur.kr(buf)*start)-(BufDur.kr(buf)*end)]);
+	//trigger = Select.ar(varRate, [ptr > bufStart, ptr < bufStart]);
+	trigger = ptr > (bufStart+1);
+	//trigger = ptr > bufStart;
+	//trigger = HPZ1.ar(ptr) < 0;
+    env = EnvGen.ar(Env.new([0,0,1,1,0],[0,0.01,envDur-0.02,0.01]),trigger);
+	sig = sig * amp * env;
+    //sig = sig * amp;
+    Out.ar(out,sig);
+    ptr.poll;
+}).add;
+)
+
+
+(
+Pdef(\zed, 
+	Pmono(
+		 \happy,
+		\degree, Pseq([0],inf),
+		\buf, BufDef(\amen),
+		\start, 0,
+		\end, 0.5,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).play;
+);
+
+
+
+(
+Ndef(\phone, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var fenv;
+	var trig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	trig = Impulse.kr(1/2);
+	fenv = EnvGen.kr(Env([0.1,1,1,0.14],[0.1,0.91,0.1]), trig);
+	sig = SinOsc.ar(195 * fenv);
+	sig = sig + SinOsc.ar(600 * fenv, mul: 0.005);
+	sig2 = sig;
+	//sig = SinOsc.ar(MouseX.kr(200,800).poll);
+
+	sig = LFSaw.ar(500 * SinOsc.ar(500 ,mul:100) + SinOsc.ar(11,mul:10)  );
+	//sig = sig + SinOsc.ar(1100 * SinOsc.ar(1100 ,mul:100) + SinOsc.ar(11,mul:10)  );
+	sig = (sig*1000).tanh;
+	sig = sig * 0.091;
+	//sig = FreqShift.ar(sig2 * ( SinOsc.kr(1000) * 1 + 1 ),1000);
+	//sig = SinOsc.ar(1000 * ( SinOsc.ar(1000) * 10 + 1 ) );
+	sig = HPF.ar(sig, 5000);
+	1.do {  sig = LPF.ar(sig, 8000);};
+
+	sig = sig + sig2;
+	//sig = sig2;
+
+	sig = sig * EnvGen.kr(\env.kr(Env([0,1,1,0],[0.1,1,0.1])), trig);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\phone, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(1000 * SinOsc.ar(1000,mul:100) );
+	sig = HPF.ar(sig, 5000);
+	4.do {  sig = LPF.ar(sig, 8000);};
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\soundin, \audio)), 2); 
+	sig = in;
+	sig = HPF.ar(sig, MouseX.kr(600,15000).poll);
+	sig = MouseY.kr(0.1,18) * sig;
+	//sig = SinOsc.ar(freq);
+}).play;
+);
+
+
+{LPF.ar(in: 1.75 * Saw.ar(200) * EnvGen.kr(Env.new(levels: [0.0,1.0,0.5,0.75,1.0,0],times: [0.1,0.1,1.0,0.1,0.1]),gate: 1,doneAction: 2),freq: 200).tanh}.play;
+
+
+(
+	{
+		var sig;
+		var fenv, env2;
+		var trig;
+		trig = Impulse.kr(1/2);
+		fenv = EnvGen.kr(Env([0.1,1,1,0],[0.1,0.91,0.1]), trig);
+		env2 = EnvGen.kr(Env([0,1,1,0],[0.1,1,0.1]), trig);
+		sig = SinOsc.ar(195* fenv) * env2;
+		sig = sig + SinOsc.ar(600 * env2, mul: 0.005);    
+		sig = sig + Decay.ar(Impulse.ar(195 * fenv, mul: 0.05)*env2, decayTime: 0.0001);    
+		sig = sig * 0.1;
+
+	}.play;
+
+)
+
+(
+	SynthDef.new(\sine, {
+    arg trig=1;
+    var env, aenv, snd;
+    env = Env.perc(
+            \atk.kr(0.1),
+            \rel.kr(0.5),
+            \vel.kr(1),
+            \curv.kr(-4)
+    );
+    aenv = EnvGen.kr(
+        env,
+        trig,
+        doneAction:2
+    );
+    snd = SinOsc.ar(\freq.kr(440));
+    snd = Pan2.ar(snd, \pan.kr(0));
+    snd = snd * aenv;
+    Out.ar(\out.kr(0), snd);
+}).add;
+)
+
+//using \dur values greater than 0.75 returns the message "FAILURE IN SERVER /n_set Node xxxx not found"
+(p = Pbind(
+    \instrument, \sine,
+    \dur, 1
+);
+)
+p.play;
+
+//smaller \dur values are fine?
+(p = Pbind(
+    \instrument, \sine,
+    \dur, 0.7
+);
+)
+p.play;
+
+
+t = ([0, 1, 3, 4, 7, 11, 12] + 70).midicps; 
+b = Buffer(s, t.size, 1); 
+b.alloc;
+b.sendCollection(collection: t,startFrame: 0,wait: -1,action: nil);
+b.plot
+
+////////
+
+
+ClipTimeline(\bla).edit
+
+ParamTimeline(\bla).edit
+ParamTimeline(\bla).outBus
+
+
+(
+SynthDef(\bass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq);
+	sig = 
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+NoteTimeline(\hel).edit
+NoteTimeline(\hel).eventList.print
+SampleTimeline(\ble).edit
+SampleTimeline(\bledd).edit
+Quarks.install("EQui");
+
+ParamTimeline(\ll).edit
+
+NoteTimeline(\hel7).edit
+NoteTimeline(\hel6).presetCompileString.editorInsert
+(
+NoteTimeline('hel6').param = Param(Pdef('NoteTimeline_default'), 'midinote');
+NoteTimeline('hel6').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 1.5, \label: 'start', \playDur: 1.5, \relDur: 1.5, \sustain: 0, \type: 'start', ),
+	(\absTime: 1.5, \dur: 0.5, \midinote: 37.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.375, ),
+	(\absTime: 2.0, \dur: 0.0, \midinote: 28.0, \playDur: 0.0, \relDur: 0.0, \sustain: 0.25, ),
+	(\absTime: 2.0, \dur: 0.5, \midinote: 53.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.375, ),
+	(\absTime: 2.5, \dur: 5.5, \midinote: 36.0, \playDur: 5.5, \relDur: 5.5, \sustain: 0.375, ),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+NoteTimeline('hel6').automationRack.paramList = [ Param(Pdef('NoteTimeline_default'), 'amp') ];
+ParamTimeline('AutomationRack_noteTimeline_hel6_amp').param = Param(Pdef('NoteTimeline_default'), 'amp');
+ParamTimeline('AutomationRack_noteTimeline_hel6_amp').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.125, \playDur: 0.125, \relDur: 0.125, \sustain: 0, \type: 'start', ),
+	(\absTime: 0.125, \dur: 1.625, \legato: 1, \level: 0.076658638287939, \next_absTime: 1.75, \next_level: 0.039480524992308, \playDur: 1.625, \relDur: 1.625, \sustain: 1.625, ),
+	(\absTime: 1.75, \curve: 0.0, \dur: 0.625, \legato: 1, \level: 0.039480524992308, \next_absTime: 2.375, \next_level: 0.48137380767966, \playDur: 0.625, \relDur: 0.625, \sustain: 0.625, ),
+	(\absTime: 2.375, \dur: 0.125, \legato: 1, \level: 0.48137380767966, \next_absTime: 2.5, \next_level: 0.049061528504281, \playDur: 0.125, \relDur: 0.125, \sustain: 0.125, ),
+	(\absTime: 2.5, \curve: 0.0, \dur: 1.625, \legato: 1, \level: 0.049061528504281, \next_absTime: 4.125, \next_level: 0.097783530859744, \playDur: 1.625, \relDur: 1.625, \sustain: 1.625, ),
+	(\absTime: 4.125, \dur: 3.875, \legato: 1, \level: 0.097783530859744, \playDur: 3.875, \relDur: 3.875, ),
+	(\absTime: 8, \dur: 0, \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+);
+NoteTimeline(\hel5).eventList.print
+NoteTimeline(\hel4).editor.locatorbar.selectedNodes
+NoteTimeline(\hel4).editor.locatorbar.nodes
+NoteTimeline(\hel4).editor.locatorbar.chosennode
+~no = NoteTimeline(\hel4).editor.locatorbar.nodes
+~sno = NoteTimeline(\hel4).editor.locatorbar.selectedNodes
+~no.collect(_.identityHash.postln)
+~sno.collect(_.identityHash.postln)
+~sno[0].identityHash
+~sno.asArray.first.model
+~sno ++ ~no ++ ~no
+
+(
+{
+	~no.sect(~sno).debug("sect");
+	NoteTimeline(\hel4).editor.locatorbar.selectedNodes.debug("x")
+}.defer(4)
+)
+
+(
+{
+	NoteTimeline(\hel4).editor.locatorbar.selectedNodes.collect({ arg x; x.dump });
+	NoteTimeline(\hel4).editor.locatorbar.selectedNodes.debug("x");
+}.defer(4)
+)
+PatKitDef(\bla).edit
+ParamProto.init(true)
+
+~el = TimelineEventList()
+~el.start
+~el.finish(2)
+~el.historyList
+
+~eloop = TimelineEventLoop.newInstance
+~eloop.historyList
+~eloop.list = ~el
+ClipTimeline(\bla).edit
+ClipTimeline(\bla).presetCompileString.editorInsert
+(
+ClipTimeline('bla').tracks = [ ( 'index': 0, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+{
+ClipTimeline('bla').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.625, \label: 'start', \playDur: 0.625, \relDur: 0.625, \sustain: 0, \type: 'start', ),
+	PatternEvent((\absTime: 0.625, \dur: 7.375, \legato: 1, \midinote: 0.0, \playDur: 7.375, \relDur: 7.375, \sustain: 2.125, \timeline: { SampleTimeline('loop') }, \type: 'pattern', )),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ }.value;
+
+SampleTimeline('loop').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \label: 'start', \playDur: 8, \relDur: 8, \sustain: 0, \type: 'start', ),
+	(\absTime: 6.75, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+SampleTimeline('loop').buffer = BufDef('samplekit/vbreaks/Augusto Alguero - Laugh, Laugh.wav');
+SampleTimeline('loop').postPatternPreset = (  );
+SampleTimeline('loop').earlyOut = 0.0;
+
+
+
+);
+
+
+SampleTimeline(\loop).edit
+SampleTimeline(\loop).label
+ClipTimeline(\bla).edit
+ClipTimeline(\bla).presetCompileString.editorInsert
+PatternEvent()
+~ev= ClipTimeline(\bla).eventList[1]
+PatternEvent(~ev).label
+nil ?? { \bla }
+SampleTimeline(\loop).presetCompileString.editorInsert
+(
+SampleTimeline('loop').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \label: 'start', \playDur: 8, \relDur: 8, \sustain: 0, \type: 'start', ),
+	(\absTime: 6.75, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+SampleTimeline('loop').buffer = BufDef('samplekit/vbreaks/Augusto Alguero - Laugh, Laugh.wav');
+SampleTimeline('loop').postPatternPreset = (  );
+
+);
+ParamProto.init(true)
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\degree, Pseq([
+				[3,5,9],\r,\r,\r,8,5
+			],inf),
+			\legato, Pseq([
+				[4,4,3],\r,\r,\r,0.25,1,
+			],4),
+			\dur, 1/4,
+		),
+		
+	])
+)).play;
+);

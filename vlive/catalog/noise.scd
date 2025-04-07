@@ -81,3 +81,4 @@ Ndef(\zed, { arg freq=39, pan=0, amp=0.1;
 	sig = Pan2.ar(sig, pan, amp);
 }).play;
 );
+

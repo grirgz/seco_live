@@ -1014,3 +1014,38 @@ Ndef(\zed, { arg freq=39, pan=0, amp=0.1;
 	sig = Pan2.ar(sig, pan, amp);
 }).play;
 );
+
+
+/////////// organic, wet texture
+
+
+(
+// only env on sinosc
+SynthDef(\click, { arg out=0, trig=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.ar(Env.perc(0.001,0.001), trig, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Ppar(
+
+			Pbind(
+				\instrument, \click,
+				//\env, Pfunc({[ Env([rrand(500,17000.0), 20,1], [0.01,0.08]) ] }),
+				\freq, Pwhite(20,14000.0,inf),
+				\dur, Pwhite(0.4,0.7,inf),
+				\amp, 0.1,
+			)!15
+		)
+	])
+)).play;
+);

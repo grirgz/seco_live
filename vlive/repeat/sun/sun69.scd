@@ -1,5 +1,21 @@
 ~t = 127/2/60; TempoClock.default.tempo = ~t;
 (
+SynthDef(\doublegran, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, pos=0, gdur=0.1, pan;
+	var sig;
+	var clk;
+	var phase;
+	clk = Impulse.ar(\gfreq.kr(40));
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = pos;
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, phase + [0,\dephase.kr(0)] % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig.mean * 0.6;
+	sig.debug("sig");
+	sig = sig * EnvGen.ar(\asr.kr(Env.asr(0.01,1,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+)
+(
 	// generate fmc
 	~genfmc_long = {
 
@@ -578,35 +594,35 @@ NoteTimeline(\mel2, Pdef(\mel2)).presetCompileString.editorInsert
 (
 );
 
-		(
-		SynthDef(\fmc_ambientchords2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-			var sig;
-			var num=20;
-			//thisThread.randSeed = 100000.rand.debug("seed");
-			//thisThread.randSeed = 10019;
-			sig = num.collect { arg idx;
-				var isig;
-				var oscgen = {
-					[SinOsc,LFSaw,LFPulse,LFCub].wchoose([1,0.1,0.1].normalizeSum)
-				};
-				var harms = [1,2,4,1/2,1/4];
-				var fenv;
-				var lfo1 = SinOsc.kr(rrand(0.01,1)).range(0,1) * 0.01 + 1;
-				isig = oscgen.value.ar(oscgen.value.ar(freq * harms.choose) * freq * lfo1 * harms.choose + rrand(0.01,0.2));
-				isig = isig * EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.1,1),rrand(0.1,2)),gate,doneAction:0);
-				fenv = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.1,1),rrand(0.1,2)),gate,doneAction:0);
-				fenv = fenv * rrand(0.1,8) + rrand(0.1,2);
-				isig = RLPF.ar(isig, ( \lpfr.kr(1.1) * freq * fenv ).clip(20,20000), \rq.kr(0.5));
-				isig;
-			};
-			sig = sig.clump(2).flop.mean;
-			sig.debug("sig");
-			sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
-			//sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
-			sig = Splay.ar(sig, \spread.kr(0.1), amp, pan);
-			Out.ar(out, sig);
-		}).add;
-		)
+(
+SynthDef(\fmc_ambientchords2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var num=20;
+	//thisThread.randSeed = 100000.rand.debug("seed");
+	//thisThread.randSeed = 10019;
+	sig = num.collect { arg idx;
+		var isig;
+		var oscgen = {
+			[SinOsc,LFSaw,LFPulse,LFCub].wchoose([1,0.1,0.1].normalizeSum)
+		};
+		var harms = [1,2,4,1/2,1/4];
+		var fenv;
+		var lfo1 = SinOsc.kr(rrand(0.01,1)).range(0,1) * 0.01 + 1;
+		isig = oscgen.value.ar(oscgen.value.ar(freq * harms.choose) * freq * lfo1 * harms.choose + rrand(0.01,0.2));
+		isig = isig * EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.1,1),rrand(0.1,2)),gate,doneAction:0);
+		fenv = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.1,1),rrand(0.1,2)),gate,doneAction:0);
+		fenv = fenv * rrand(0.1,8) + rrand(0.1,2);
+		isig = RLPF.ar(isig, ( \lpfr.kr(1.1) * freq * fenv ).clip(20,20000), \rq.kr(0.5));
+		isig;
+	};
+	sig = sig.clump(2).flop.mean;
+	sig.debug("sig");
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+	sig = Splay.ar(sig, \spread.kr(0.1), amp, pan);
+	Out.ar(out, sig);
+}).add;
+)
 
 
 

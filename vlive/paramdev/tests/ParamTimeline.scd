@@ -793,3 +793,18 @@ Pdef(\bla, Pdef(\zedpart,
 
 
 /////////////////////////////////////////
+
+(
+	Ndef(\ndef_scalar, { arg freq=200, pan=0, amp=0.1;
+       var sig;
+    sig = SinOsc.ar(freq);
+    sig = Pan2.ar(sig, pan, amp);
+}).play;
+
+);
+
+ParamTimeline(\test, Param(Ndef(\ndef_scalar), \freq, \freq.asSpec));
+ParamTimeline(\test).edit
+ProtoClassDef(\ParamTimelinex).new
+
+ParamProto.init(true)

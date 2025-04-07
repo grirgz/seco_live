@@ -232,7 +232,7 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
-
+1*~t/( 176/4/60 )
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([

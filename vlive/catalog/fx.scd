@@ -695,3 +695,132 @@ Pdef(\part, Pdef(\zedpart,
 		sig = LeakDC.ar(sig);
 		Out.ar(out, sig);
 	}).add;
+
+
+////////// harmonizer
+
+(
+// from Eli Fieldsteel's book
+SynthDef(\harmonizer, {
+    arg in = 0, out = 0, trnsp = 0, maxdel = 0.04, amp = 0.7;
+    var sig, phs, sawrate;
+    sawrate = (trnsp.midiratio - 1).neg;
+    sig = In.ar(in, 1);
+    phs = LFSaw.ar(sawrate / maxdel).unipolar(1);
+    sig = DelayL.ar(sig, maxdel, phs * maxdel);
+    sig = sig * amp ! 2;
+    Out.ar(out, sig);
+}).add;
+)
+
+(
+// removed clicks and delay independent from maxdelay
+SynthDef(\harmonizer, {
+    arg in = 0, out = 0, trnsp = 0, maxdel = 0.04, delay=0.04;
+    var sig, phs, sawrate;
+	var insig;
+	var of = delay/\atf.kr(2);
+	of.poll;
+    sawrate = (trnsp.midiratio - 1).neg;
+    sig = insig = In.ar(in, 2);
+    phs = LFSaw.ar(sawrate / delay).unipolar(1);
+    sig = DelayL.ar(sig, maxdel, phs * delay);
+	sig = sig * EnvGen.ar(Env([0,1,1,0],[of,delay/sawrate - (of*2),of]), Impulse.ar(sawrate/delay));
+	sig = SelectX.ar(\mix.kr(1), [insig, sig]);
+    sig = sig * \gain.kr(1);
+    Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				//3,
+				0,3,7,0,
+				//Pseq((0..12)),
+			],inf),
+			\octave, 4,
+			\dur, 1/1,
+			\legato, 0.3,
+			\amp, 0.1,
+			\out, BusDef(\pfx1, \audio),
+		),
+		Pmono(\harmonizer,
+			\in, BusDef(\pfx1, \audio),
+			//\instrument, \harmonizer,
+			\trnsp, [0,4,7]+12,
+			//\trnsp, 7,
+			\mix, [0,1,1],
+			\gain, [0.3,1,1],
+			\maxdel, 0.2,
+			\atf, 4,
+			\delay, PmodEnv(Pseq([0.001,0.2],1), 8*2).loop,
+			\delay, 1/2/1/~t,
+			\dur, 1,
+		)
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				//3,
+				0,3,7,0,
+				//Pseq((0..12)),
+			],inf),
+			\octave, 5,
+			\dur, 1/1,
+			\legato, 0.9,
+			\amp, 0.1,
+			\out, BusDef(\pfx1, \audio),
+		),
+		Pmono(\harmonizer,
+			\in, BusDef(\pfx1, \audio),
+			//\instrument, \harmonizer,
+			\trnsp, [0,4,7] + Pseq([1,-1,2,3,-2]*12),
+			//\trnsp, 7,
+			\mix, [0,1,1],
+			\gain, [0.3,1,1],
+			\maxdel, 0.2,
+			\atf, 8,
+			\delay, PmodEnv(Pseq([0.001,0.2],1), 8*2).loop,
+			\delay, 1/2/1/~t * Pseq([1,1/8/2,1/4],inf),
+			\dur, 4,
+		)
+	])
+)).play;
+);
+
+///////// distortion
+
+
+// CrossoverDistortion
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	//sig = SinOsc.ar(freq);
+	sig = SinOsc.ar(freq * ( SinOsc.ar(12) * 1 + 1 ));
+	sig = CrossoverDistortion.ar(sig, 1, 0.01);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	//sig = SinOsc.ar(freq);
+	sig = SinOsc.ar(freq * ( SinOsc.ar(12) * 1 + 1 ));
+	sig = InsideOut.ar(sig);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);

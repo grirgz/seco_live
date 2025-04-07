@@ -51,7 +51,6 @@
 				SendTrig.kr(onsets,(0..(onsets.size-1)),frame);
 				// Generate pips at a variety of pitches
 				pips = SinOsc.ar((threshes).linexp(0, 1, 440, 3520), 0, EnvGen.kr(Env.perc(0.001, 0.1, 0.5), onsets)).mean;
-				//Out.ar(0, Pan2.ar(sig, -0.75, 0.2) + Pan2.ar(pips, 0.75, 1));
 				Out.ar(0, Pan2.ar(sig));
 				//Out.ar(0, sig);
 		}.play;
@@ -93,6 +92,12 @@ Pdef(\amen, Pbind(
 )).play;
 )
 
+////////////////////////////////////////// share version
+~buf = BufDef(\amen, "vipere/amenbreak.wav");
+
+~buf = Buffer.read(s, "path/to/sample.wav");
+~get_sample_slices.(~buf, { arg x; ~list = x; });
+~list
 
 
 ////////////////////////////////////////// drafts

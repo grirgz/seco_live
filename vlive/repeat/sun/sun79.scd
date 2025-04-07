@@ -711,6 +711,8 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+//////////////////////////////////////////////
+
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
@@ -813,6 +815,225 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1505].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+				1,0,0,0, 1,0,0,0,
+				1,0,0,0, 1,0,0,0,
+				1,0,1,1, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1563].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.clap[304].value,
+			//\bufnum, ~buflib.clap[~buflib.clap.size.rand.debug("c")].value,
+			\isRest, Pseq([
+				Pseq([
+					0,0,1,0, 1,0,0,0,
+					0,0,1,0, 0,0,1,0,
+					1,0,1,0, 0,1,0,0.5,
+					1,0,0,0, 0,0,0,0,
+				],4),
+
+				Pseq([
+					0,0,1,0, 0,0,0,0,
+					1,0,0,0, 0,0,1,0,
+					1,0,1,0, 0,1,0,0.5,
+					1,0,0,0, 0,0,0,0,
+				],3),
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 1,0,1,0,
+					1,0,0,0, 0,0,0,0,
+					1,0,1,0, 1,1,0,0.5,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \simplefm,
+			\note, Pstep(Pseq([
+				0,-5,-4,-7,-5,
+			],inf),Pseq([
+				1,1,1,1/2,1/2,
+			],inf)),
+			\octave, 3,
+			\fmf, 4193.43,
+			\fma, 1,
+			\lpfr, PmodEnv(Pseq([1,4,18,4,4,1,4,14,8],1), 1/4).loop,
+			\legato, Pseq([
+				1/2,1/2,1/2,1,
+				1/2,1/2,1/2,1/2,
+				1,1/2,1/2,1,
+			],inf),
+			\dur, Pseq([
+				Pseq([
+					1/4,
+				],8*6),
+				Pseq([
+					Pn(1/2,1),1/4,
+					Pn(1/2,1),1/4,
+					Pn(1/2,1),Pn(1/4,2),
+					Pn(1/2,2),1/4,
+					Pn(1/2,3),1/4,
+				],2),
+			],inf).stutter(1),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[336].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				1,1,1,1, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				1,1,1,1, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				1,1,1,1, 0,0,0,0,
+				0,0,0,0, 1,1,1,1,
+				0,0,0,0, 1,1,1,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1164].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,0,
+
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,0,
+				1,1,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,0,
+
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,0,
+				1,0,1,1, 1,0,1,0,
+
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,1,
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11 * Pseq([
+				0.3,0.7,1,0.7,
+			],inf),
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1505].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+				1,0,0,0, 1,0,0,0,
+				1,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1563].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \fmsaw,
+			\note, Pseq([
+				0,-5,-4,-7,
+			],inf),
+			\note, Pstep(Pseq([
+				3,-2,3,-12,
+			],inf),Pseq([
+				1,1,1
+			],inf)),
+			\octave, 5,
+			\isRest, Pseq([
+				0,0,1,0, 1,0,0,1,
+				1,0,0,1, 0,1,0,1,
+			],inf).coin.not,
+			\dur, 1/4,
+			\amp, 0.1,
+			\isRest, true,
+		),
+		Pbind(
+			\instrument, \simplefm,
+			\note, Pstep(Pseq([
+				0,-5,-4,-7,
+			],inf),Pseq([
+				1,1,1
+			],inf)),
+			\octave, 3,
+			\fmf, 4193.43,
+			\fma, 1,
+			//\lpfr, PmodEnv(Pseq([1,18],1), 4).loop,
+			\lpfr, 3,
+			\legato, Pseq([
+				1,
+			],inf),
+			\isRest, Pseq([
+				1,0,0,1, 0,0,1,0,
+				0,1,0,0, 1,0,0,1,
+			],inf).coin.not,
+			\dur, Pseq([
+				Pseq([
+					1/4,
+				],8*6),
+			],inf).stutter(1),
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\melo, 
+	Pbind(
+		\instrument, \fmsaw,
+	)
+)
+);
+Pdef(\melo).edit
+ProtoDef(\piano).startControl(Pdef(\melo))
 
 PmodEnv.watchdogEnabled = true
 

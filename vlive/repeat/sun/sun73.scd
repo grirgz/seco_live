@@ -4,6 +4,53 @@ TempoClock.default.setMeterAtBeat(8, TempoClock.default.nextTimeOnGrid(Pdef.defa
 
 FileSystemProject.load("holis/synthdef.scd")
 FileSystemProject.load("sun/fmgen.scd")
+
+(
+SynthDef(\transi1, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	lfo1 = XLine.kr(1,0.1,2);
+	lfo2 = Line.kr(0.01,0,1);
+	lfo3 = XLine.kr(1,2.1,2);
+	sig = LFCub.ar(freq * [1,1 + lfo2 ] * ( LFSaw.ar(freq) * lfo1 + 1 ) * XLine.kr(1,-1.midiratio,2));
+	sig = sig.mean;
+	sig = BPF.ar(sig, ( \lpfr.kr(1.1) * freq * lfo3 ).clip(20,20000), \rq.kr(0.5));
+	//sig = sig * LFSaw.ar(freq * lfo1);
+	sig = sig.fold2(lfo1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(3.1,0.1,0.8,0.1,1,4)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+~gen_transi = { arg seed=1234, num=12;
+
+	SynthDef(\transi_v+++seed+++\_n+++num, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, timeScale=1, freqfac=1;
+		var sig;
+		var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+		//var num = 17;
+		var xfreq;
+		thisThread.randSeed = seed;
+		freq = exprand(100,18000!num) * freqfac;
+		lfo1 = XLine.kr(0.1,0.01,2/~t * timeScale);
+		lfo2 = XLine.kr(2,0.001,2/~t * timeScale);
+		lfo3 = XLine.kr(0.2,0.9,1/~t * timeScale);
+		//lfo1 = LFNoise1.ar(0.1);
+		sig = SinOsc.ar(freq * ( LFSaw.ar(freq * lfo1) * lfo1 * 3 + 1 ));
+		sig = sig.mean;
+		//sig = BPF.ar(sig, freq * lfo2,0.05)*2 + sig;
+		sig = RHPF.ar(sig, freq * lfo2,0.5);
+		sig = FreeVerb.ar(sig, mix:1 * lfo3, room:1.5, damp:0.5);
+		//sig = sig * LFSaw.ar(freq * lfo1);
+		//sig = sig.fold2(lfo1);
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(1.1,0.1,0.8,0.1,1,[4,4,-4])), gate, doneAction:2);
+		sig = Pan2.ar(sig, pan, amp);
+		Out.ar(out, sig);
+	}).add;
+}
+);
 (
 SynthDef(\expdelay, { arg out=0, gate=1;
 	var sig;
@@ -562,52 +609,6 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-(
-SynthDef(\transi1, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
-	lfo1 = XLine.kr(1,0.1,2);
-	lfo2 = Line.kr(0.01,0,1);
-	lfo3 = XLine.kr(1,2.1,2);
-	sig = LFCub.ar(freq * [1,1 + lfo2 ] * ( LFSaw.ar(freq) * lfo1 + 1 ) * XLine.kr(1,-1.midiratio,2));
-	sig = sig.mean;
-	sig = BPF.ar(sig, ( \lpfr.kr(1.1) * freq * lfo3 ).clip(20,20000), \rq.kr(0.5));
-	//sig = sig * LFSaw.ar(freq * lfo1);
-	sig = sig.fold2(lfo1);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(3.1,0.1,0.8,0.1,1,4)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-
-(
-	~gen_transi = { arg seed=1234, num=12;
-
-		SynthDef(\transi_v+++seed+++\_n+++num, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, timeScale=1, freqfac=1;
-			var sig;
-			var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
-			//var num = 17;
-			var xfreq;
-			thisThread.randSeed = seed;
-			freq = exprand(100,18000!num) * freqfac;
-			lfo1 = XLine.kr(0.1,0.01,2/~t * timeScale);
-			lfo2 = XLine.kr(2,0.001,2/~t * timeScale);
-			lfo3 = XLine.kr(0.2,0.9,1/~t * timeScale);
-			//lfo1 = LFNoise1.ar(0.1);
-			sig = SinOsc.ar(freq * ( LFSaw.ar(freq * lfo1) * lfo1 * 3 + 1 ));
-			sig = sig.mean;
-			//sig = BPF.ar(sig, freq * lfo2,0.05)*2 + sig;
-			sig = RHPF.ar(sig, freq * lfo2,0.5);
-			sig = FreeVerb.ar(sig, mix:1 * lfo3, room:1.5, damp:0.5);
-			//sig = sig * LFSaw.ar(freq * lfo1);
-			//sig = sig.fold2(lfo1);
-			sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(1.1,0.1,0.8,0.1,1,[4,4,-4])), gate, doneAction:2);
-			sig = Pan2.ar(sig, pan, amp);
-			Out.ar(out, sig);
-		}).add;
-	}
-);
 
 
 (

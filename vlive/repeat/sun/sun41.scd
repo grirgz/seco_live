@@ -1,5 +1,20 @@
 
 ~t = 87/2/60; TempoClock.default.tempo = ~t;
+(
+SynthDef(\largechord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\lpenv.kr(Env([0.1,0.32,2.1],[0.7,1.8])), 1);
+	freq = freq * [1/4,1/2,1,2,3,4,5,6,7];
+	sig = LFSaw.ar(freq *.x [1,1+\diff.kr(0.00001)]);
+	sig = sig + SinOsc.ar(freq,mul:\sinamp.kr(0.2));
+	sig = RLPF.ar(sig, ( \lpfr.kr(8.1) * env1 * freq ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,8.1,0.2,2.1,1,-1)), gate, doneAction:2);
+	pan = pan + LFNoise1.ar(1/2!sig.size); 
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -236,7 +251,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
-Pdef(\part, Pdef(\zedpart, 
+Pdef(\part, Pdef(\drums1, 
 	Ppar([
 		Pbind(
 			\instrument, \playersec,
@@ -519,7 +534,7 @@ Pdef(\part, Pdef(\zedpart,
 			\instrument, \largechord,
 			\legato, 0.91,
 			\note, Pseq([
-				\Am, \Gm, \Gm7, \Am,\Gm7,
+				\A, \Gm, \Gm7, \A,\Gm7,
 			].chordProg,inf)-3,
 			\octave, 5,
 			\dur, Pseq([
@@ -534,17 +549,60 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
-SynthDef(\largechord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(\lpenv.kr(Env([0.1,0.32,2.1],[0.7,1.8])), 1);
-	freq = freq * [1/4,1/2,1,2,3,4,5,6,7];
-	sig = LFSaw.ar(freq *.x [1,1+\diff.kr(0.00001)]);
-	sig = sig + SinOsc.ar(freq,mul:\sinamp.kr(0.2));
-	sig = RLPF.ar(sig, ( \lpfr.kr(8.1) * env1 * freq ).clip(20,20000), \rq.kr(0.5));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,8.1,0.2,2.1,1,-1)), gate, doneAction:2);
-	pan = pan + LFNoise1.ar(1/2!sig.size); 
-	sig = Pan2.ar(sig, pan, amp).mean;
-	Out.ar(out, sig);
-}).add;
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\drums1),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				5,11,10,
+			],inf),
+			\octave, 2,
+			\lpf, PmodEnv(Pseq([400,1200,4000,8000],1), 8).loop,
+			\legato, 0.91,
+			\dur, Pseq([1.5,1/4,1/4],inf),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				Pseq([
+					Pseq([
+						-1,0,
+					],4*3),
+					Pseq([
+						4,5
+					],4),
+				],3),
+				Pseq([
+					-1,Prand([0,4,5,-1],1),
+				],4*3),
+				Pseq([
+					4,5
+				],4),
+			],inf),
+			//\octave, Pseq([6,6,6,5],inf).stutter(8),
+			\lpf, PmodEnv(Pseq([400,1200,4000,8000]*2,1), 4).loop,
+			\octave, 6,
+			\dur, 1/8/2,
+			\amp, 0.1 * Pseq([
+				Pwhite(0.5,1,1), Pwhite(0.1,0.9,2),
+				Pwhite(0.5,1,1), Pwhite(0.1,0.9,1),
+				Pwhite(0.5,1,1), Pwhite(0.1,0.9,2),
+			],inf),
+			\out, BusDef(\pfx1, \audio),
+		),
+		Pmono(\fx_freeverb2,
+			\inbus, BusDef(\pfx1, \audio),
+			\addAction, \addToTail,
+			\delay, 1/4/~t,
+			//\delay, 0.01,
+			\decay, 2,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		
+	])
+)).play;
 );
+

@@ -3,6 +3,20 @@
 FileSystemProject.load("cavern/lib.scd");
 )
 
+TrackDef(\tlist, \TrackList).edit
+TrackDef(\tlist2, \TrackList).edit
+~td = TrackDef(\tlist2);
+~td.editor
+ParamViewToolBox.clipboard.trackDef_section
+~td.sectionAt(~td.selectedPart).existingChildren.childAt(0)
+~td.sectionAt(~td.selectedPart).childAt(2).parentTrack.index
+~s = TrackDef(\tlist).childAt(0).source
+~s.isKindOf(Pbindef)
+BaseParam.getInstrumentFromPbind(~s.source).asCompileString
+PdefParam.instrument(~s)
+
+TrackDef(\tlist).childAt(0).source.source.pairs
+PdefParam.instrument(TrackDef(\tlist).childAt(0).source)
 TrackDef(\tlist, TrackTemplateDef(\TrackList))
 TrackDef(\tlist).edit
 TrackTimeline(\bla2, TrackDef(\tlist))

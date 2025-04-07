@@ -241,3 +241,86 @@ Pdef(\pdeftester,
 	)
 ).play;
 );
+
+
+/////////////////////////////
+// test recording, saving and loading
+// bug with volume and dropdur shifting
+// occured in sun82
+
+ClipTimeline(\test).edit
+
+FileSystemProject.loadOnce("sndlib/buflib.scd");
+FileSystemProject.loadOnce("libdef/synthplayrec.scd");
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,1,0,0, 1,0,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \default,
+			\degree, Pseq([0,3,2,Pwhite(0,12,1)],inf),
+			\dur, 1/4,
+			\octave, 3,
+			\amp, 0.1,
+		)
+	])
+)).play;
+);
+
+ClipTimeline(\test).presetCompileStringSavePath = "~/tmp/ttt.scd";
+ClipTimeline(\test).loadPresetCompileString
+SampleTimeline('rec_test_t0_250317_165209').edit
+ClipTimeline(\test).savePresetCompileString
+ClipTimeline(\test).edit
+ClipTimeline(\test).eventList.startTime
+ClipTimeline(\test).eventList.endTime
+ClipTimeline(\test).eventLoop.historyList
+ClipTimeline(\test).bufferInfo
+SampleTimeline('rec_test_t0_250317_165209').eventLoop.historyList.size
+SampleTimeline('rec_test_t0_250317_165209').eventLoop.historyList[0].extraData
+SampleTimeline('rec_test_t0_250317_165209').eventLoop.historyList[1].extraData.buffer
+SampleTimeline('rec_test_t0_250317_165209').eventLoop.historyList[0].extraData.waveformImage.plot
+SampleTimeline('rec_test_t0_250317_165209').eventLoop.historyAddSnapshot
+SampleTimeline('rec_test_t0_250317_165209').eventList.extraData
+SampleTimeline('rec_test_t0_250317_165209').eventList.extraData.buffer
+SampleTimeline('rec_test_t0_250317_165209').eventList.extraData.waveformImage.hash
+SampleTimeline('rec_test_t0_250317_165209').eventList.extraData.waveformImage.plot
+SampleTimeline('rec_test_t0_250317_165209').changed(\data) // refresh waveform
+SampleTimeline('rec_test_t0_250317_165209').eventLoop.changed(\list)
+SampleTimeline('rec_test_t0_250317_165209').eventLoop.dump
+SampleTimeline('rec_test_t0_250317_165209').editor.eventLoop.hash
+SampleTimeline('rec_test_t0_250317_165209').editor.allez
+SampleTimeline('rec_test_t0_250317_165209').eventLoop.hash.asString.editorInsert
+onChange
+(
+-1233397519
+);
+SampleTimeline('rec_test_t0_250317_165209').editor.refresh // refresh events
+SampleTimeline('rec_test_t0_250317_165209').editor.timeline.refresh
+Image
+SampleTimeline('rec_test_t0_250317_165209').refreshBufferData
+SampleTimeline('rec_test_t0_250317_165209').edit
+

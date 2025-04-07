@@ -1,4 +1,4 @@
-~t = 1; TempoClock.default.tempo = ~t;
+
 (
 Spec.add(\midside, \unipolar);
 Spec.add(\det, \unipolar);
@@ -18,7 +18,9 @@ SynthDef(\sh101, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.8)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
-}).add;
+}, metadata:(specs:(
+	lpadsr: ParamEnvSpec.adsr,
+))).add;
 
 SynthDef(\sh101mod, { arg vcfout=0, vcoout=0, gate=1, freq=1;
 	var sig;
@@ -53,185 +55,7 @@ SynthDef(\sh101fx, { arg out=0, gate=1, crusher=0, reverb=0, delay=0;
 	delay: \unipolar,
 	delaytime: ControlSpec(0.001,1,\exp),
 ))).add;
-);
 
-
-/////// warm sustained bassline
-
-(
-Pdef(\warmbass, 
-	Pbind(
-		\instrument, \sh101,
-		\degree, Pseq([0,3,2,-2],inf),
-		\lpadsr, Pseq([
-			[ Env.adsr(0.01,0.4,1.3,0.8) ],
-		],inf),
-		\adsr, Pseq([
-			[ Env.adsr(0.01,0.01,1.0,0.9) ],
-		],inf),
-		\kbamt, 0,
-		\lpf, 330,
-		\rq, 0.7,
-		\envamt, 1,
-		\legato, 0.6,
-		\octave, 3,
-		\dur, 1,
-		\amp, 0.1,
-	)
-).play;
-);
-
-/////// resonant 303 acid bassline
-
-(
-Pdef(\acidbass, 
-	Pbind(
-		\instrument, \sh101,
-		\degree, Pseq([0,3,2,-2],inf),
-		\lpadsr, Pseq([
-			[ Env.adsr(0.01,0.1,1.2,0.1) ],
-		],inf),
-		\adsr, Pseq([
-			[ Env.adsr(0.01,0.01,1,0.01) ],
-		],inf),
-		\kbamt, 0,
-		//\lpf, PmodEnv(Pseq([150,400],1), 8).loop,
-		\lpf, Pseg(Pseq([150,600],1), 8).loop,
-		\lpf, PmodEnv(( Pser([150,400,Pwhite(100.0,1000,6)],16) * Pseg(Pseq([0.2,4],1),8).loop ), 1/2).loop,
-		\rq, 0.4,
-		\envamt, 2,
-		\octave, 4,
-		\dur, 1/8,
-		\amp, 0.06,
-	)
-).play;
-);
-
-/////// plucky lead sound
-
-(
-Pdef(\pluckylead, 
-	Ppar([
-		Pbind(
-			\instrument, \sh101,
-			\degree, Pseq([9,7,9,7,5,4],inf),
-			\lpadsr, Pseq([
-				[ Env.adsr(0.01,0.2,0.2,0.3) ],
-			],inf),
-			\adsr, Pseq([
-				[ Env.adsr(0.01,0.01,1,0.5) ],
-			],inf),
-			\kbamt, 0,
-			\lpf, 700,
-			\rq, 0.6,
-			\envamt, 2,
-			\octave, 5,
-			\dur, 1/2,
-			\amp, 0.03,
-			\out, BusDef(\sh101fx, \audio),
-		),
-		Pmono(\sh101fx,
-			\inbus, BusDef(\sh101fx, \audio),
-			\addAction, \addToTail,
-			\lag, 0.0009,
-			\reverb, 0.8,
-			\delay, 0.6,
-			\delaytime, 0.14,
-			\dur, 1,
-		),
-	]),
-).play;
-);
-
-/////// long atmospheric drone
-
-(
-Pdef(\atmodrone, 
-	Ppar([
-		Pbind(
-			\instrument, \sh101,
-			\degree, Pseq([0],inf),
-			\lpadsr, Pseq([
-				[ Env.adsr(0.3,1.2,1.2,0.3) ],
-			],inf),
-			\adsr, Pseq([
-				[ Env.adsr(1,0.01,1,1.5) ],
-			],inf),
-			\vcfmod, BusDef(\vcf_2, \control).asMap,
-			\vcomod, BusDef(\vco_2, \control).asMap,
-			\kbamt, 0,
-			\lpf, 400,
-			\rq, 0.4,
-			\envamt, 1,
-			\octave, 3,
-			\legato, 1.2,
-			\dur, 4,
-			\amp, 0.04,
-			\out, BusDef(\sh101fx_2, \audio),
-		),
-		Pmono(\sh101mod,
-			\freq, 0.2,
-			\vcf, 0.5,
-			\vca, 0.2,
-			\vcoout, BusDef(\vco_2, \control),
-			\vcfout, BusDef(\vcf_2, \control),
-			\dur, 1,
-			\amp, 0.1,
-		),
-		Pmono(\sh101fx,
-			\inbus, BusDef(\sh101fx_2, \audio),
-			\addAction, \addToTail,
-			\lag, 0.0009,
-			\reverb, 0.8,
-			\damp, 0.9,
-			\crusher, 0.5,
-			\delay, 0.7,
-			\delaytime, 0.8,
-			\dur, 1,
-		),
-	]),
-).play;
-);
-
-/////// supersaw
-
-(
-SynthDef(\supersaw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var lpenv, lpfreq, vcfmod;
-	freq = freq * ( \vcomod.kr(0) + 1 );
-	// rand phase is important
-	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * \fspread.kr(0.022) + 1), Rand(0,2!8));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.8)), gate, doneAction:2);
-	sig = Splay.ar(sig, \spread.kr(0), amp, pan);
-	sig = RLPF.ar(sig, ( \lpf.kr(10.1)  ).clip(20,20000), \rq.kr(0.5));
-	Out.ar(out, sig);
-}).add;
-)
-
-(
-Pdef(\supersaw, 
-	Pbind(
-		\instrument, \supersaw,
-		\degree, Pseq([
-			[ 0,4,7 ],
-			[ 0,4,7 ]+2,
-		],inf),
-		\octave, 4,
-		\lpf, PmodEnv(Pseq([200,8000],1), 8).loop,
-		\spread, PmodEnv(Pwhite(0.0,1,10), 4).loop,
-		\dur, 2,
-		\amp, 0.1,
-	)
-).play;
-);
-
-Pdef(\supersaw).edit
-Pdef(\supersaw).envir.clear
-
-
-///
-(
 SynthDef(\rolandsupersaw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, det=0.75, midside=0;
 	var detuneCurve = { |x|
 		(10028.7312891634*x.pow(11)) -
@@ -274,32 +98,7 @@ SynthDef(\rolandsupersaw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, det=0.7
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
-);
-(
-Pdef(\supersaw, 
-	Pbind(
-		\instrument, \rolandsupersaw,
-		\degree, Pseq([
-			[ 0,4,7 ],
-			[ 0,4,7 ]+2,
-		],inf),
-		\midside, 0.51,
-		\midside, PmodEnv(Pseq([0,1],1), 16).loop,
-		\adsr, Pseq([
-			[ Env.adsr(0.4,0.1,0.8,1.1) ],
-		],inf),
-		\octave, 4,
-		\lpf, 5400,
-		\det, PmodEnv(Pseq([0,0.81],1), 8).loop,
-		\dur, 2,
-		\amp, 0.1,
-	)
-).play;
-);
 
-////// reese bass
-
-(
 SynthDef(\reese, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var lpenv, lpfreq;
@@ -308,40 +107,13 @@ SynthDef(\reese, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.01,0.4,0.1,0.2)), gate, doneAction:0) * \lpadsramt.kr(1) + 1;
 	lpfreq = freq * \kbamt.kr(0) + 1;
 	sig = ( sig*\distamp.kr(10) ).tanh * \distpostamp.kr(1/2);
-	sig = RLPF.ar(sig, ( \lpf.kr(330) * lpenv * lpfreq ).clip(20,20000).poll, \rq.kr(0.8));
+	sig = RLPF.ar(sig, ( \lpf.kr(330) * lpenv * lpfreq ).clip(20,20000), \rq.kr(0.8));
 	sig = RLPF.ar(sig, ( \lpf.kr(330) * lpenv * lpfreq ).clip(20,20000), \rq.kr(0.8));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
 	Out.ar(out, sig);
 }).add;
-Pdef(\reese).reset;
-);
 
-(
-Pdef(\reese, 
-	Pmono(
-		 \reese,
-		\degree, Pseq([0,-2],inf),
-		//\lpadsramt, 2,
-		\itrig, 1,
-		//\lpf, 800,
-		//\rq, 0.8,
-		\octave, 3,
-		\dur, 2,
-		//\amp, 0.1,
-	)
-).play;
-);
-
-Pdef(\reese).edit
-notch
-Spec.add(\fspread, ControlSpec(0.001,1,\exp))
-Pdef(\reese).envir.clear
-
-
-//////////////////////////////// draft
-///////////////:
-(
 SynthDef(\warmbass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var lpenv, lpfreq;
@@ -353,90 +125,8 @@ SynthDef(\warmbass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
-);
-
-(
-Pdef(\zed, 
-	Pbind(
-		\instrument, \warmbass,
-		\degree, Pseq([0,3,2,-2],inf),
-		\octave, 3,
-		\dur, 1,
-		\amp, 0.1,
-	)
-).play;
-);
-
-(
-Pdef(\atmodrone, 
-	Ppar([
-		Pbind(
-			\instrument, \sh101,
-			\degree, Pseq([0,1,-1],inf),
-			\lpadsr, Pseq([
-				[ Env.adsr(0.3,1.2,1.2,0.3) ],
-			],inf),
-			\adsr, Pseq([
-				[ Env.adsr(1,0.01,1,1.5) ],
-			],inf),
-			\vcfmod, BusDef(\vcf, \control).asMap,
-			\vcomod, BusDef(\vco, \control).asMap,
-			\kbamt, 0,
-			\lpf, 300,
-			\rq, 0.6,
-			\envamt, 1,
-			\octave, 3,
-			\dur, 2,
-			\amp, 0.07,
-			\out, BusDef(\sh101fx, \audio),
-		),
-		Pmono(\sh101mod,
-			\freq, 2,
-			\vcf, 2,
-			\vcoout, BusDef(\vco, \control),
-			\vcfout, BusDef(\vcf, \control),
-			\dur, 1,
-			\amp, 0.1,
-		),
-		Pmono(\sh101fx,
-			\inbus, BusDef(\sh101fx, \audio),
-			\addAction, \addToTail,
-			\lag, 0.0009,
-			\reverb, 0,
-			\delay, 0,
-			\delaytime, 0.14,
-			\dur, 1,
-		),
-	]),
-).play;
-);
 
 
-(
-Pdef(\acidbass, 
-	Pbind(
-		\instrument, \sh101,
-		\degree, Pseq([0,3,2,-2],inf),
-		\lpadsr, Pseq([
-			PpatEnv.adsr(0.01,Pbrown(0.01,1,0.001),1.2,Pbrown(0.01,1,0.001))
-		],inf),
-		\adsr, Pseq([
-			PpatEnv.adsr(Pbrown(0.01,0.1,0.0001),Pbrown(0.01,1,0.001),1,Pbrown(0.01,0.3,0.001))
-		],inf),
-		//\kbamt, PmodEnv(Pseq([0.01,0.1],4), 8).loop,
-		//\lpf, PmodEnv(Pseq([150,400],1), 8).loop,
-		//\lpf, Pseg(Pseq([150,600],1), 8).loop,
-		\lpf, PmodEnv(( Pser([150,400,Pwhite(100.0,1000,6)],16) * Pseg(Pseq([0.2,4],1),8).loop ), 1/2).loop,
-		\rq, PmodEnv(Pser([0.31,0.47],9), Pwhite(0.1,8)).loop,
-		//\envamt, PmodEnv(Pseq([2,1,4],1), 8).loop,
-		\octave, 4,
-		\dur, 1/8,
-		\amp, 0.06,
-	)
-).play;
-);
-
-(
 Library.put(\synthlib, \rolandsupersaw, { arg freq=200, det=0.75, midside=0.5;
 	var detuneCurve = { |x|
 		(10028.7312891634*x.pow(11)) -
@@ -475,12 +165,8 @@ Library.put(\synthlib, \rolandsupersaw, { arg freq=200, det=0.75, midside=0.5;
 	var sig = (center * centerGain.(mix)) + (side * sideGain.(mix));
 	sig;
 });
-	 
-)
-Library.at(\synthlib, \rolandsupersaw)
-Library.put(\synthlib, nil)
-(
-SynthDef(\reese, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+
+SynthDef(\rolandreese, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var lpenv, lpfreq;
 	freq = freq.lag(0.08,);
@@ -495,32 +181,9 @@ SynthDef(\reese, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
 	Out.ar(out, sig);
 }).add;
-Pdef(\reese).reset;
-);
 
-(
-Pdef(\reese, 
-	Pmono(
-		 \reese,
-		\degree, Pseq([0,-2],inf),
-		//\lpadsramt, 2,
-		\itrig, 1,
-		//\lpf, 800,
-		//\rq, 0.8,
-		\octave, 3,
-		\dur, 2,
-		//\amp, 0.1,
-	)
-).play;
-);
 
-Pdef(\reese).edit
-Pdef(\reese).asParamGroup.getPbindCompileString.editorInsert
-
-ParamGroup
-
-(
-SynthDef(\reese, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+SynthDef(\reese2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var lpenv, lpfreq;
 	freq = freq.lag(0.08,);
@@ -542,88 +205,8 @@ SynthDef(\reese, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 }, metadata:(specs:(
 	peakboost: ControlSpec(-30,30,\lin, 0, 0, "db")
 ))).add;
-Pdef(\reese).reset;
-);
-
-(
-Pdef(\melo, 
-	Pbind(
-		\instrument, \reese,
-		\degree, Pseq([0,2,4,-1],inf),
-		\dur, 1,
-		\amp, 0.1/2,
-		'det', 0.010650406504065,
-		'lpadsr', [ Env([ 0.0, 1.0, 0.70000000149012, 0.0 ], [ 0.99999997764826, 0.40000000596046, 0.80000000298023 ], [ -4.0, -4.0, -4.0 ], 2.0) ],
-		'lpadsramt', 2.0299079577523,
-		'kbamt', 0.051,
-		'distamp', 0.91920977520277,
-		'distpostamp', 0.93261116187045,
-		'lpf', 36.068456413524,
-		'rq', 0.6024824032852,
-		'peakf', 980.7062015945,
-		'peakrq', 0.815764317177,
-		'peakboost', 10.975609756098,
-		'adsr', [ Env([ 0.0, 1.0, 0.80000001192093, 0.0 ], [ 0.50000000149012, 0.10000000149012, 0.80149012 ], [ -4.0, -4.0, -4.0 ], 2.0) ],
-	)
-)
-);
-ProtoDef(\piano).startControl(Pdef(\melo))
-
-(
-Pdef(\zed, 
-	Pbind(
-		\instrument, \reese,
-		\degree, Pseq([0,2,4,-1],inf),
-		\dur, 1,
-		\amp, 0.1,
-		'det', 0.040650406504065,
-		'lpadsr', [ Env([ 0.0, 1.0, 0.10000000149012, 0.0 ], [ 0.0099999997764826, 0.40000000596046, 0.20000000298023 ], [ -4.0, -4.0, -4.0 ], 2.0) ],
-		'lpadsramt', 1.0299079577523,
-		'kbamt', 0.1,
-		'distamp', 0.91920977520277,
-		'distpostamp', 0.93261116187045,
-		'lpf', 36.068456413524,
-		'rq', 0.26024824032852,
-		'peakf', 2040.7062015945,
-		'peakrq', 0.12815764317177,
-		'peakboost', 10.975609756098,
-		'adsr', [ Env([ 0.0, 1.0, 0.80000001192093, 0.0 ], [ 0.10000000149012, 0.10000000149012, 0.10000000149012 ], [ -4.0, -4.0, -4.0 ], 2.0) ],
-	)
-).play;
-);
-(
-
-Pbind(
-	'dur', 1.0,
-	'legato', 0.8,
-	'out', 0,
-	'amp', 0.27498512790006,
-	'pan', 0.0,
-	'freq', 261.6255653006,
-	'det', 0.040650406504065,
-	'lpadsr', [ Env([ 0.0, 1.0, 0.10000000149012, 0.0 ], [ 0.0099999997764826, 0.40000000596046, 0.20000000298023 ], [ -4.0, -4.0, -4.0 ], 2.0) ],
-	'lpadsramt', 1.0299079577523,
-	'kbamt', 0.1,
-	'distamp', 0.91920977520277,
-	'distpostamp', 0.93261116187045,
-	'lpf', 36.068456413524,
-	'rq', 0.26024824032852,
-	'peakf', 2040.7062015945,
-	'peakrq', 0.12815764317177,
-	'peakboost', 10.975609756098,
-	'adsr', [ Env([ 0.0, 1.0, 0.80000001192093, 0.0 ], [ 0.10000000149012, 0.10000000149012, 0.10000000149012 ], [ -4.0, -4.0, -4.0 ], 2.0) ],
-	'spread', 1.0,
-)
-
-);
 
 
-
-//////////////////////////////////////////
-////////////////////// 5 essential pads
-////// mellow pad
-
-(
 SynthDef(\mellowpad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
@@ -636,31 +219,7 @@ SynthDef(\mellowpad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	//sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
-);
 
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \mellowpad,
-			\note, Pseq([
-				[ 0,5-12,7 ],
-				[ 2,5,7-12 ],
-			],inf),
-			\octave, 5,
-			\dur, 2,
-			\amp, 0.1/2,
-		),
-	])
-)).play;
-);
-
-
-////// brass pad
-
-
-
-(
 SynthDef(\brasspad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
@@ -668,35 +227,12 @@ SynthDef(\brasspad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = LFSaw.ar(freq * LFNoise1.kr(0.1!10,mul:0.02,add:1),Rand(0,2));
 	env1 = EnvGen.kr(\lpenv.kr(Env.perc(0.05,3,curve:-3)), gate);
 	sig = RLPF.ar(sig, ( \lpf.kr(820) * ( freq * \kbamt.kr(0) +1 ) * (env1 * \lpenvamt.kr(3.2) + 1)).clip(20,20000), \rq.kr(0.5) );
-	sig = sig * EnvGen.kr(\adsr.kr(Env.perc(0.18,3,curve:-2)), gate, doneAction:2);
+	sig = sig * EnvGen.kr(\perc.kr(Env.perc(0.18,3,curve:-2)), gate, doneAction:2);
 	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
 	//sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
-Pdef(\part).play;
-);
 
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \brasspad,
-			\note, Pseq([
-				[ 0,5-12,7 ],
-				[ 2,5,7-12 ],
-			],inf),
-			\octave, 5,
-			\dur, 2,
-			\amp, 0.1,
-		),
-	])
-)).play;
-);
-
-////// flute pad
-
-
-(
 SynthDef(\flutepad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -709,31 +245,8 @@ SynthDef(\flutepad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	//sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
-Pdef(\part).play;
-);
-
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \flutepad,
-			\note, Pseq([
-				2+12,12,
-				[ 0,5+12,7 ],
-				[ 2,5,7+12 ],
-			],inf),
-			\octave, 5,
-			\dur, 2,
-			\amp, 0.1,
-		),
-	])
-)).play;
-);
-
-////// string pad
 
 
-(
 SynthDef(\stringpad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -760,31 +273,7 @@ SynthDef(\stringpad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	//sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
-Pdef(\part).play;
-);
 
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \stringpad,
-			\note, Pseq([
-				2+12,12,
-				[ 0,5+12,7 ],
-				[ 2,5,7+12 ],
-			],inf),
-			\octave, 5,
-			\dur, 2,
-			\amp, 0.1,
-		),
-	])
-)).play;
-);
-////// bass pad
-
-
-
-(
 SynthDef(\basspad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -801,64 +290,85 @@ SynthDef(\basspad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	//sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
-Pdef(\part).play;
+
+SynthDef(\snappad, {
+	var snd, freq;
+	freq = \freq.kr(440);
+	// Four pulse waves (two one octave down) with randomly modulated pitches and pulse widths
+	snd = Pulse.ar(
+		freq * ({ LFNoise2.kr(3).range(-0.05, 0.05).midiratio }.dup(4)) * [1, 1/2, 1/2, 1],
+		{ LFNoise2.kr(3).range(0.3, 0.7) }.dup(4)
+	);
+	// Spread across stereo field
+	snd = Splay.ar(snd);
+	// Sharp hi cut made by cascading three lowpass filters
+	3.do { snd = LPF.ar(snd, \ffreq.kr(1500)); };
+	snd = snd * Env.asr(\at.kr(3), \sustainlevel.kr(1), \rel.kr(3), -4).ar(Done.freeSelf, \gate.kr(1));
+	Out.ar(\out.kr(0), Balance2.ar(snd[0], snd[1], \pan.kr(0), \amp.kr(0.1)));
+}).add;
+SynthDef(\snapsigh, {
+	var snd, freq;
+	freq = \freq.kr(440, 0.3) * LFNoise2.kr(6).range(-0.1, 0.1).midiratio;
+	snd = Pulse.ar(freq, LFNoise2.kr(6).range(0.3, 0.7));
+	snd = RLPF.ar(snd, LFNoise2.kr(3).exprange(500, 1000), 0.2);
+	snd = LPF.ar(snd, \lpf.kr(1000));
+	snd = snd * Env.asr(0.1, 1, 3).ar(Done.freeSelf, \gate.kr(1));
+	Out.ar(\out.kr(0), Pan2.ar(snd, \pan.kr(0), \amp.kr(0.1)));
+}).add;
+SynthDef(\snapbow, {
+	var snd, freq;
+	freq = \freq.kr(440, 0.3);
+	snd = CombC.ar(LeakDC.ar({ PinkNoise.ar }.dup(2)), freq.reciprocal, freq.reciprocal, 5);
+	snd = LeakDC.ar(snd);
+	snd = RLPF.ar(snd, Duty.kr(\bowdur.kr(1/4/~t), 0, Dseq([
+		\bowhi.kr(1000),\bowlo.kr(100),
+	],inf)) * \lpfr.kr(1), 0.3);
+	snd = snd * EnvGen.kr(\perc.kr(Env.perc(4, 1, 1, 4)), 1, doneAction:Done.freeSelf);
+	Out.ar(\out.kr(0), Balance2.ar(snd[0], snd[1], \pan.kr(0), \amp.kr(0.1)));
+}).add;
 );
 
+//////////////////
+
+
 (
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \basspad,
-			\note, Pseq([
-				0,4,3,1,
-				//[ 0,5+12,7 ],
-				//[ 2,5,7+12 ],
-			],inf),
-			\octave, 4,
-			\dur, 4,
-			\amp, 0.1,
-		),
-	])
-)).play;
-);
-
-
-
-/////////////////////////////////////
-
-/// test osc shape
-(
-Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+// unison of pulse modulated by pulse width
+SynthDef(\superpw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
-	//sig = LFSaw.ar(freq).lagud(0,0.03);
-	sig = LFSaw.ar(freq) * SinOsc.ar(freq/2+0.1);
-	sig = LeakDC.ar(sig);
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
-);
-
-(
-Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var num=8;
+	var lpenv;
+	sig = LFPulse.ar(freq, 0, LFNoise1.kr(1.1!num, mul:1, add:0).unipolar);
+	sig = sig + LFPulse.ar(freq*2, 0, LFNoise1.kr(1.1, mul:1, add:0).unipolar, mul:0.2);
+	//lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.04,0.4,0.2,4.1,4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.perc(1.6,0.4,curve:4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	sig = RLPF.ar(sig, \lpf.kr(400) * lpenv, \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fmsaw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	//sig = LFSaw.ar(freq).lagud(0,0.03);
-	//sig = SelectX.ar(MouseX.kr(0,1), [LFSaw.ar(freq, 1), Decay.Impulse.ar(freq)]);
-	sig = LFSaw.ar(freq,0);
-	sig2 = LFSaw.ar(freq,1);
-	sig1 = IEnvGen.ar(Env([0,1,-1,0],[0.5,0,0.5],[8,0,-8]), sig.unipolar);
-	sig = SelectX.ar(MouseX.kr(0,1), [sig1, sig2]);
-	sig = LeakDC.ar(sig);
-	sig = Pan2.ar(sig, pan, amp);
-}).play;
+	var lpenv;
+	var fmenv;
+	lpenv = EnvGen.kr(Env([0,1,0],[0.01,0.4]), 1) * \lpenvamt.kr(2) + 1;
+	fmenv = EnvGen.kr(Env([0,1,0],[0.01,0.8]), 1) * \fmenvamt.kr(3) + 1;
+	sig = LFPulse.ar(freq + (LFSaw.ar(freq * 1 * [2,1,1/2,1.001,2], 1/2)*100 * fmenv + 1) );
+	//sig = DFM1.ar(sig, \lpf.kr( 30 ) * lpenv, 1/\rq.kr(0.2));
+	sig = MoogFF.ar(sig, \lpf.kr( 400 ) * lpenv, 1/\rq.kr(0.4));
+	sig = DelayL.ar(sig, 0.1,0.0001 * ( SinOsc.kr(0.1) * 1 + 1 )) + sig;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\simplefm, { arg out=0, amp=0.1, gate=1, pan=0;
+	var sig;
+	sig = LFSaw.ar(\freq.ar(200) * ( 1 + ( SinOsc.ar(\fmf.kr(1) * [1,1+\fmfmul.kr(0.001)]) * \fma.kr(1) )));
+	sig = RLPF.ar(sig, ( \lpfr.kr(1) * \freq.ar ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+ 	 
 );
-
-////////////////////////////
-(
-Pdef(\melo, 
-	Pbind(
-		\instrument, \basspad,
-	)
-)
-);
-
-ProtoDef(\piano).startControl(Pdef(\melo))

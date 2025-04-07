@@ -4427,6 +4427,19 @@ SynthDef(\cymbaldan2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\cymline, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var fspread = EnvGen.kr(Env([1,1.02,0.001],[0.1,2.8]), 1);
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([4701,7000,100],[0.1,2.8]), 1);
+	freq = { freq * rrand(0.5,1.5) }.dup(8);
+	sig = LFSaw.ar(freq * ( SinOsc.ar( freq * ((0..7)/7 - 0.5 * fspread + 1) ) * 1 + 1 ));
+	sig = RHPF.ar(sig, env1, \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
+	pan = pan + LFNoise1.kr(1/8!8, mul: XLine.kr(0.5,1,1));
+	sig = Pan2.ar(sig, pan, amp).mean * 2;
+	Out.ar(out, sig);
+}).add;
 );
 
 (
