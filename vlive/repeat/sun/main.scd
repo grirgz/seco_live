@@ -2870,3 +2870,210 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+
+NoteTimeline(\hel7).edit
+NoteTimeline(\hel7).presetCompileString.editorInsert
+(
+Pbindef('NoteTimeline_default', \instrument, \sh101);
+NoteTimeline('hel7').param = Param(Pdef('NoteTimeline_default'), 'midinote');
+NoteTimeline('hel7').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 2.0, \label: 'start', \playDur: 2.0, \relDur: 2.0, \sustain: 0, \type: 'start', ),
+	(\absTime: 2.0, \dur: 0.5, \midinote: 73.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.5, ),
+	(\absTime: 2.5, \dur: 0.625, \midinote: 63.0, \playDur: 0.625, \relDur: 0.625, \sustain: 0.5, ),
+	(\absTime: 3.125, \dur: 4.875, \midinote: 37.0, \playDur: 4.875, \relDur: 4.875, \sustain: 0.5, ),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+NoteTimeline('hel7').automationRack.paramList = [ Param(Pdef('NoteTimeline_default'), ('lpf' -> 'source')) ];
+ParamTimeline('AutomationRack_noteTimeline_hel7_lpf').param = Param(Pdef('NoteTimeline_default'), ('lpf' -> 'source'));
+ParamTimeline('AutomationRack_noteTimeline_hel7_lpf').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 2.0, \playDur: 2.0, \relDur: 2.0, \sustain: 0, \type: 'start', ),
+	(\absTime: 2.0, \curve: -0.0034170731939482, \dur: 0.375, \legato: 1, \level: 53.514481423503, \next_absTime: 2.375, \next_level: 2121.1723255532, \playDur: 0.375, \relDur: 0.375, \sustain: 0.375, ),
+	(\absTime: 2.375, \curve: 0.23700570919597, \dur: 0.75, \legato: 1, \level: 2121.1723255532, \next_absTime: 3.125, \next_level: 18.227763307062, \playDur: 0.75, \relDur: 0.75, \sustain: 0.75, ),
+	(\absTime: 3.125, \curve: 0.0, \dur: 0.375, \legato: 1, \level: 18.227763307062, \next_absTime: 3.5, \next_level: 246.09345908902, \playDur: 0.375, \relDur: 0.375, \sustain: 0.375, ),
+	(\absTime: 3.5, \dur: 0.5, \legato: 1, \level: 246.09345908902, \next_absTime: 4.0, \next_level: 1237.961053608, \playDur: 0.5, \relDur: 0.5, \sustain: 0.5, ),
+	(\absTime: 4.0, \curve: 0, \dur: 4.0, \legato: 1, \level: 1237.961053608, \playDur: 4.0, \relDur: 4.0, ),
+	(\absTime: 8, \dur: 0, \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+);
+
+
+{Gendy1.ar(minfreq: 200,maxfreq: 400,mul: [LFNoise2.kr(freq: 1), LFNoise2.kr(freq: 1)]) * 0.1}.play;
+
+(
+s.waitForBoot { FileSystemProject.loadOnce("sun/lib.scd"); };
+TrackDef(\rere, \TrackList).edit
+)
+\bufnum.asSpec
+~b = BufDef("/home/ggz/Musique/sc/samplekit/com/Kick/Kick Flamingo 2.wav")
+~b = BufDef.stereo("/home/ggz/Musique/sc/samplekit/com/Kick/Kick Eliot 3 V18.wav")
+BufDef.bufferCompileString( ~b )
+~b = BufDef(\amen, "vipere/amenbreak.wav");
+~b.asCompileString
+~b.key
+~b.path
+~b.asCompileString
+BufDef(\moeten, "voices/02_moeten.flac")
+BufDef(\crepe, "field/crepe.flac");
+BufDef(\oeuf, "field/oeuf.flac");
+BufDef(\ukraine, "bruit1/07_ukraine.flac");
+BufDef(\table, "field/table.flac");
+BufDef(\scream, "vipere/scream.flac");
+BufDef(\rocksteady, "vipere/rocksteady.flac");
+BufDef(\metal, "vipere/metal.flac");
+BufDef(\bomb, "vipere/bomb.flac");
+BufDef.bufferChannelCache['/home/ggz/Musique/sc/samplekit/com/Kick/Kick Flamingo 2.wav'][\numChannels]
+BufDef.bufferChannelCache["/home/ggz/Musique/sc/samplekit/com/Kick/Kick Flamingo 2.wav"][\numChannels]
+BufDef.bufferChannelCache.keys
+BufDef.all[\amen]
+BufDef.all
+s.waitForBoot { FileSystemProject.loadOnce("sun/lib.scd"); };
+TrackDef(\rere, \TrackList).edit
+TrackDef(\rere, \TrackList).elAt(3).presetCompileString
+TrackDef(\rere, \TrackList).presetCompileString
+TagSpecDef(\BufDef_stereo).unmapKey(2)
+TagSpecDef(\BufDef_stereo).list
+Buffer.new(nil, )
+BufDef.all.keys
+Buffer.cachedBufferAt(Server.default, 2).asCompileString
+~b = BufDef("/home/ggz/Musique/sc/samplekit/com/Kick/Kick FM7 2 V4.wav")
+TrackDef(\rere, \TrackList).elAt(0).score.source.at(\bufnum).source
+TrackDef(\rere, \TrackList).elAt(0).source.asParamGroup.getPbindCompileString
+TrackDef(\rere, \TrackList).elAt(0).source.asParamGroup.getPbindefCompileString
+PlayerWrapper(TrackDef(\rere, \TrackList).elAt(0).source  ).presetCompileString
+
+Param()
+
+(
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \playersec,
+	)
+).play;
+);
+)
+Pdef(\zed).edit
+\bufnum.asSpec.tagSpec.list
+BufDef.all.keys
+BufDef.bufferChannelCache
+
+(
+s.waitForBoot { FileSystemProject.loadOnce("sun/lib.scd"); };
+Pdef(\zed, 
+	Pbind(
+		\instrument, \sh101,
+		\degree, Pseq([0,Pwhite(0,4,1)],inf),
+		\dur, 1,
+		\amp, 0.1,
+		\out, TrackMixerDef(\bla),
+	)
+).play;
+Pdef(\zed).set(\lpf, 1001);
+//Pdef(\zed).set(\freq, 1002);
+);
+TrackMixerDef(\bla).clear
+
+Pdef(\zed).asParamGroup.getPbindefCompileString
+(
+TrackMixerDef(\bla).edit
+)
+TrackMixerDef(\bla).insertFxList.do(_.postln)
+TrackMixerDef(\bla).existingInsertFxList
+TrackMixerDef(\bla).insertFxAt(0).synthName
+
+TrackMixerDef(\bla).presetCompileString.editorInsert
+(
+TrackMixerDef('bla').setVal('inbus', BusDef('trackMixerDef_bla'));
+TrackMixerDef('bla').setVal('delay3000', 0.017685569433019);
+TrackMixerDef('bla').setVal('wet3000', 0.51282051282051);
+TrackMixerDef('bla').outBus = 0;
+TrackMixerDef('bla').insertFxAt(0).synthName = 'ifx_greyhole';
+TrackMixerDef('bla').insertFxAt(0).enabled = true;
+
+TrackMixerDef('bla').insertFxAt(0).synthName = nil;
+
+TrackMixerDef('bla').insertFxAt(2).synthName = nil;
+
+TrackMixerDef('bla').insertFxAt(3).synthName = nil;
+
+);
+(
+TrackMixerDef('bla').setVal('inbus', BusDef('trackMixerDef_bla'));
+TrackMixerDef('bla').setVal('wet3000', 0.51282051282051);
+TrackMixerDef('bla').outBus = 0;
+TrackMixerDef('bla').insertFxAt(0).synthName = 'ifx_greyhole';
+TrackMixerDef('bla').insertFxAt(0).enabled = false;
+
+TrackMixerDef('bla').insertFxAt(1).synthName = nil;
+
+TrackMixerDef('bla').insertFxAt(2).synthName = nil;
+
+TrackMixerDef('bla').insertFxAt(3).synthName = nil;
+
+);
+
+
+
+
+Pdef(\zed).asParamGroup.getPbindCompileString
+Pdef(\zed).asParamGroup.getSetCompileString
+Pdef(\zed).asParamGroup.presetCompileString
+Pbindef(\zedx, ).play
+Pbindef(\zedx).source
+Pbindef(\zedx)
+Pbindef(\zedxx).envir
+
+~a =  EventPatternProxy()
+~a.source = Pbind(\instrument, \sh101)
+~a.set(\lpf, 213)
+~a.asParamGroup.getPbindefCompileString
+NoteTimeline(\aze).edit
+NoteTimeline(\aze).eventList.print
+~t = 185/4/60; TempoClock.default.tempo = ~t;
+~t
+TempoClock.default.tempo
+(
+~initialize_jack.();
+Pdef.defaultQuant = 2;
+//s.latency = 0.5;
+)
+s.latency = 1.2;
+
+
+
+~b = BufDef(\amen, "vipere/amenbreak.wav");
+
+BufDef.bufferList(2)
+BufDef.bufferList()
+(
+TagSpecDef(\BufDef_stereo, {
+	[\0->0] ++ BufDef.bufferList(2)
+		.collect({ arg kv; kv.key -> kv.value.bufnum })
+});
+)
+(
+TagSpecDef(\BufDef_stereo, {
+	[\0->0] ++ BufDef.all.keys.as(Array).sort
+		.collect({ arg k; 
+			var path;
+			var buf;
+			var cache;
+			k.asCompileString.debug("TagSpecDef BufDef_stereo key");
+			path = BufDef.relpath_to_abspath(BufDef.all[k]).asSymbol;
+			path.asCompileString.debug("TagSpecDef BufDef_stereo path");
+			cache = BufDef.bufferChannelCache[path];
+			cache.debug("TagSpecDef BufDef_stereo cache");
+			if(cache.notNil) {
+				buf = cache[2];
+				if(buf.notNil) {
+					k -> buf
+				};
+			};
+		})
+		.select({ arg kv; kv.notNil and: {kv.value.numChannels == 2 }}) 
+		.collect({ arg kv; kv.key -> kv.value.bufnum })
+});
+)
+TagSpecDef(\BufDef_stereo).list

@@ -1,5 +1,5 @@
 
-"hell".postln;
+"loading ControllerDef definitions".postln;
 (
 ControllerDef(\icon, { arg def, model;
 	var ktl = MKtl('icon', "icon-icontrols");

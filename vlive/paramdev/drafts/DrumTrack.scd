@@ -66,8 +66,8 @@ TrackTemplateDef(\DrumTrack, (
 	makeScore: { arg self;
 		self[\score] = Pbindef(self.trackKey, 
 			\instrument, \DrumTrack_player_stereo,
+			\dur, 1/8,
 		);
-		self.score.set(\dur, 1/8);
 		//self.isEmpty = false;
 	},
 ));
@@ -228,10 +228,12 @@ WindowDef(\DrumTrackPartPreview, { arg def, part;
 	modstrip.fixedHeight_(50);
 	modstrip.proto.stepDur = score.source.at(\dur).source ?? { 1/8 };
 	areasizex.debug("DrumTrackPartPreview areasizex");
-	if(areasizex.notNil) {
+	if(areasizex.notNil and: { areasizex != 0 }) {
 		areasizex.debug("DrumTrackPartPreview areasizex");
 		modstrip.proto.seqSize = areasizex;
 		//modstrip.proto.areasize = Point(areasizex, 1);
+	} {
+		modstrip.proto.seqSize = param.size*modstrip.proto.stepDur;
 	};
 	modstrip.proto.colors.empty = Color.grey(0.8);
 	modstrip.proto.cursorEnabled = true;
@@ -522,3 +524,33 @@ ProtoDef(\test, (
 
 ProtoDef(\test).start
 ~s.isPlaying
+
+Param(Pdef(\bla), \speed -> \stepseq).edit
+Param(Pdef(\bla), \speed -> \stepseq, \unipolar).default
+Param(Pdef(\bla), \speed -> \stepseq).spec
+Param(Pdef(\bla), \speed).spec
+Spec.add(\speed, \unipolar)
+ParamArraySpec
+Param(Pdef(\bla), \speed -> \stepseq).at(0).default
+Param(Pdef(\bla), \speed -> \stepseq, \unipolar).initPstepSeq
+Param(Pdef(\bla), \speed -> \stepseq, \unipolar).parent.spec
+Param(Pdef(\bla), \speed -> \stepseq).size
+Param(Pdef(\bla), \speed -> \stepseq).get
+Param(Pdef(\bla), \speed -> \stepseq).setDefaultIfNil
+Pbindef(\bla, \aaa, 1, \hey, PstepSeq([1,2,3],inf)).edit
+Pbindef(\bla2, \aaa, 1, \degree, PstepSeq([1,2,3],inf)).edit
+Pbindef(\bla3, \degree, PstepSeq([1,2,3],inf), \aaa, 1, ).edit
+Pbindef(\bla3, \hihi, 10);
+Param(Pbindef(\bla), \instrument).get
+Param(Pbindef(\bla), \instrument).getRaw
+Param(Pbindef(\bla), \instrument -> \source).get
+Param(Pbindef(\bla), \instrument -> \source, TagSpecDef(\SynthDef_keys)).edit
+Param(Pbindef(\bla), \instrument -> \source, TagSpecDef(\SynthDef_keys)).getRaw
+Param(Pbindef(\bla), \instrument -> \source, TagSpecDef(\SynthDef_keys)).default
+TagSpecDef(\SynthDef_keys).default
+Param(Pbindef(\bla), \instrument -> \source).spec
+Param(Pbindef(\bla), \instrument).spec
+Param(Pbindef(\bla), \instrument -> \source).getRaw
+
+NoteTimeline(\bla).edit
+ClipTimeline(\bla).edit

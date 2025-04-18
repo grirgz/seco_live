@@ -1,3 +1,4 @@
+~t = ~t ? 1;
 
 (
 Spec.add(\midside, \unipolar);

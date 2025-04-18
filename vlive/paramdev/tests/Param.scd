@@ -588,3 +588,18 @@ ParamTimeline(\zzz).play
 
 WindowDef(\ScopeView).front(ParamTimeline(\zzz).outBus)
 ParamTimeline(\zzz).outBus.rate
+
+////////////////////////// test PopUpMenu
+
+(
+WindowDef(\test, { arg def;
+	VLayout (
+		Param(Pdef(\bla), \scale).asView,
+		Param(Pdef(\bla), \scale).asPopUpMenu,
+	)
+}).front;
+);
+Scale.major == Scale.ionian; // cause of the bug
+Scale.major === Scale.major
+Param.trace = true
+Param(Pdef(\bla), \scale).get

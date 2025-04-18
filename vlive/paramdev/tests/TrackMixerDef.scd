@@ -591,14 +591,118 @@ Pdef(\zed,
 
 (
 WindowDef(\win, { arg def;
-	VLayout (
-		CompactServerMeterView(nil, 0,2, BusDef(\mybus)).hideTicks_(true).orientation_(\horizontal).view,
-		CompactServerMeterView(nil, 0,2, BusDef(\mybus)).hideTicks_(false).orientation_(\horizontal).view,
+	View.new.layout_(VLayout (
+		//CompactServerMeterView(nil, 0,2, BusDef(\mybus)).hideTicks_(true).view,
+		CompactServerMeterView(nil, 0,2, BusDef(\mybus)).hideTicks_(true).orientation_(\vertical).view,
+		CompactServerMeterView(nil, 0,2, BusDef(\mybus)).hideTicks_(false).orientation_(\vertical).view,
 		//SimpleServerMeterView(nil, 0,2, BusDef(\mybus)).view
+	).spacing_(0).margins_(0)).minSize_(100@300)
+	
+}).front;
+);
+(
+WindowDef(\win, { arg def;
+	VLayout (
+		CompactServerMeterView(nil, 0,2, BusDef(\mybus)).hideTicks_(true).orientation_(\horizontal).view.minSize_(100@100),
+		CompactServerMeterView(nil, 0,2, BusDef(\mybus)).hideTicks_(false).orientation_(\horizontal).view,
+		SimpleServerMeterView(nil, 0,2, BusDef(\mybus)).view
 	).spacing_(0).margins_(0)
 	
 }).front;
 );
+
+// simple example when slider control main volume and meter listen to bus 0 (SC audio out)
+(
+Pdef(\help, Pbind(\pan, Pwhite(-1,1)*0.4)).play; // simple sound
+WindowDef(\help, { arg def;
+	VLayout (
+		StackLayout(
+			Param(Server.default.volume, \volume).asSlider.orientation_(\horizontal).background_(Color.clear),
+			CompactServerMeterView(nil, 0,2, 0).orientation_(\vertical)
+		).mode_(\stackAll),
+		StackLayout(
+			Param(Server.default.volume, \volume).asSlider.orientation_(\horizontal).background_(Color.clear),
+			CompactServerMeterView(nil, 0,2, 0).orientation_(\horizontal)
+		).mode_(\stackAll),
+		StackLayout(
+			Param(Server.default.volume, \volume).asSlider.orientation_(\horizontal).background_(Color.clear),
+			CompactServerMeterView(nil, 0,2, 0)
+		).mode_(\stackAll),
+
+		CompactServerMeterView(nil, 0,2, 0).orientation_(\vertical),
+		CompactServerMeterView(nil, 0,2, 0).orientation_(\horizontal),
+		CompactServerMeterView(nil, 0,2, 0),
+	)
+}).front
+)
+
+(
+WindowDef(\help, { arg def;
+	VLayout (
+	)
+}).front
+)
+
+(
+// something to meter
+s.waitForBoot({
+b = Buffer.read(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav");
+
+    x = {
+        var colum, noise, imp, delimp, mul = 1;
+    imp = Impulse.kr(10);
+    delimp = Delay1.kr(imp);
+    colum = PlayBuf.ar(1, b, BufRateScale.kr(b), loop: 1) * mul;
+    // measure rms and Peak
+    SendReply.kr(imp, '/levels', [Amplitude.kr(colum), K2A.ar(Peak.ar(colum, delimp).lag(0, 3))]);
+    colum;
+}.play;
+
+    a = LevelIndicator(bounds:Rect(100, 100, 400, 100)).front;
+    a.onClose_({ x.free; o.free; });
+o = OSCFunc({arg msg;
+    {
+        a.value = msg[3].ampdb.linlin(-40, 0, 0, 1);
+        a.peakLevel = msg[4].ampdb.linlin(-40, 0, 0, 1);
+    }.defer;
+}, '/levels', s.addr);
+})
+)
+
+(
+a.warning = -6.dbamp;
+a.critical = -3.dbamp;
+)
+// optionally show peak level
+a.drawsPeak = true;
+
+(
+a.style = \led;
+a.stepWidth = 3;
+)
+
+// different colors
+(
+a.meterColor = Color.blue(0.9);
+a.warningColor = Color.blue(0.8);
+a.criticalColor = Color.blue(0.6);
+)
+// all styles can have ticks
+(
+a.background = Color.clear;
+a.numTicks = 11; // includes 0;
+)
+
+// Single blinking square level indicator
+(
+a.style = \led;
+a.numTicks = 0;
+a.drawsPeak = false;
+a.bounds = a.bounds.resizeTo(90, 90);
+a.numSteps = 1;
+)
+
+/////////////////////////////////////////////:
 
 TrackDef(\tlist).elAt(0).mixer.proxy.set(\sendbus3003, BusDef(\sendbus0))
 
@@ -914,3 +1018,7 @@ WindowDef(\mixer, { arg def;
 }).front;
 )
 
+ProtoDef(\mm, \MixerBoard).source_([\bass, \hi]).edit
+ProtoDef(\mm).edit
+
+////////////////

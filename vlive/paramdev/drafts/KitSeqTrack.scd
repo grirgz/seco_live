@@ -111,7 +111,7 @@ TrackTemplateDef(\KitSeqSection, (
 	asPreview: { arg self;
 		var view;
 		var areasize;
-		"pourquoi---------".debug;
+		//"pourquoi---------".debug;
 		view = WindowDef(\KitSequencerPreview).asView(self);
 		areasize = view.proto.areasize;
 		// Problem: areasizex is in parent grid

@@ -50,8 +50,10 @@ ProtoDef(\apc40, (
 	)),
 
 	color_modes: (
-		normal: 0,
-		blink: 13,
+		//normal: 0,
+		//blink: 13,
+		normal: \normal,
+		blink: \blink,
 	),
 
 	gridsize: Point(8,5),
@@ -72,19 +74,20 @@ ProtoDef(\apc40, (
 	padAt: { arg self, pos;
 		pos.debug("padAt");
 		//self.ktl.elAt(\pad, pos.x+( pos.y*self.gridsize.x ));
-		self.ktl.elAt(\bt, \clip, 5-pos.y, pos.x);
+		self.ktl.elAt(\bt, \clip, pos.y, pos.x);
 	},
 
 	setColorAt: { arg self, pos, color, mode;
 		mode = mode ? 0;
-		//[pos, color, mode].debug("setColorAt");
-		//self.ktl.elAt(\bt, \clipColor, pos.y, pos.x, mode).value = color/127; // disabled new desc
+		[pos, color, mode].debug("setColorAt");
+		self.ktl.elAt(\bt, \clipColor, pos.y, pos.x, mode).value = color/127; // disabled new desc
 	},
 
 	render_cell: { arg self, pos, isPlaying, mode;
 		// playerWrapper to pad
 		var color;
 		var child = self.childAtOffset(pos);
+		pos.debug("render_cell");
 		if(child.isNil or: {child.isEmpty == true}) {
 			color = \off
 		} {
@@ -102,6 +105,7 @@ ProtoDef(\apc40, (
 		};
 		color = self.colors[color];
 		self.setColorAt(pos, color, mode);
+		0;
 	},
 
 	render_linebutton: { arg self, idx;
@@ -139,7 +143,7 @@ ProtoDef(\apc40, (
 	render_track_selection_button: { arg self, idx;
 		// only one color available in [ \bt,\selection ]
 		var clip = self.grid.childAtOffset(idx);
-		var iidx = ( 7-idx ).asInteger; // MKtl selection mapping is reversed
+		var iidx = ( idx ).asInteger; // MKtl selection mapping was reversed
 		"rtsb1".debug;
 
 		[idx, iidx, clip.isActive].debug("render_track_selection_button");
@@ -152,7 +156,7 @@ ProtoDef(\apc40, (
 	},
 
 	render_grid: { arg self;
-		"a".debug;
+		"render_grid a".debug;
 		self.gridsize.x.do { arg x;
 			self.gridsize.y.do { arg y;
 				var pos = Point(x, y);
@@ -162,22 +166,20 @@ ProtoDef(\apc40, (
 		};
 		"b".debug;
 		self.map_scene_buttons;
-		//self.gridsize.y.do { arg x;
-			//self.render_linebutton(x)
-		//};
+
 		self.gridsize.x.do { arg x;
 			x.debug("render_grid, render_trackbutton");
 			self.render_trackbutton(x);
 			self.render_track_selection_button(x);
 		};
-		"c".debug;
+		//"c".debug;
 		self.makeListeners;
-		"d".debug;
+		//"d".debug;
 		self.gridsize.x.do { arg idx;
 			self.render_mixer_button(\muteMode, idx, true);
 			self.render_mixer_button(\soloMode, idx);
 		};
-		"end".debug;
+		"render_grid end".debug;
 	},
 
 	render_mixer_button: { arg self, key, idx, reverse=false;
@@ -220,12 +222,13 @@ ProtoDef(\apc40, (
 
 	listenAt: { arg self, pos;
 		var player = PlayerWrapper(self.childAtOffset(pos));
+		pos.debug("listenAt");
 		if(self.controllers[pos.x][pos.y].notNil) {
 			self.controllers[pos.x][pos.y].remove;
 		};
 		self.controllers[pos.x][pos.y] = player.makeListener({ arg me, msg, args;
 			//{
-			//[msg, args].debug("listenat!!");
+			[msg, args].debug("listenat!!");
 				self.render_cell(pos, msg == \play, self.color_modes.blink);
 				player.doWithQuant {
 					self.render_cell(pos);
@@ -464,11 +467,11 @@ ProtoDef(\apc40, (
 			//self.clearAll;
 			"10--".debug;
 
-			//self.activate_bank_selector; // disabled can't find
+			self.activate_bank_selector; // disabled can't find
 			"11--".debug;
-			//self.activate_trackmixer;
+			self.activate_trackmixer;
 			"12--".debug;
-			//self.map_rdn;
+			self.map_rdn;
 			"13--".debug;
 			if(self.grid.notNil) {
 				self.render_grid;
@@ -575,8 +578,20 @@ ProtoDef(\apc40, (
 
 	map_scene_buttons: { arg self;
 		self.ktl.elAt(\bt, \scene).do { arg pad, idx;
+			var player;
 			idx = 4-idx;
-			pad.elAt(\on).mapPlayer(PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)), { self.render_linebutton(idx) }  );
+			player = PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y));
+			//pad.elAt(\on).mapPlayer(PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)), { self.render_linebutton(idx) }  );
+			pad.elAt(\on).action = {
+				if(self.shiftModifier == true) {
+					player.target.index.debug("assign_splitpart");
+					~assign_splitpart.(self.grid, Pdef(\part), player.target.index, ( self.grid.trackKey++\_split ).asSymbol);
+					self.render_grid;
+				} {
+					player.togglePlay;
+					self.render_linebutton(idx);
+				};
+			};
 			self.render_linebutton(idx);
 			//pad.elAt(0).action = {
 				//PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)).togglePlay;
@@ -589,7 +604,7 @@ ProtoDef(\apc40, (
 	map_quant_chooser: { arg self;
 		self.quant_list = [0, 8, 4, 2,  1, 1/4, 1/8, 1/16];
 		8.do { arg idx;
-			var iidx = 7-idx;
+			var iidx = idx;
 			self.ktl.elAt(\bt, \selection, idx, 0).action = { arg me;
 				if(self.modifier_send == true) {
 					self.selected_send_idx = iidx;
@@ -692,7 +707,7 @@ ProtoDef(\apc40, (
 
 ));
 
-ProtoDef(\apc40).activate(TrackDef(\mygrid)); // debug
+ProtoDef(\apc40).activate(TrackDef(\split)); // debug
 );
 
 // END

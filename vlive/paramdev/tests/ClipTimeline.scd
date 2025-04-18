@@ -324,3 +324,147 @@ Image
 SampleTimeline('rec_test_t0_250317_165209').refreshBufferData
 SampleTimeline('rec_test_t0_250317_165209').edit
 
+
+
+////
+NoteTimeline(\bla).edit
+ParamTimeline(\hoho).edit;
+
+(
+MIDIdef.cc(\track1, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	
+});
+)
+
+TrackDef(\aze, \TrackList).edit
+FileSystemProject.load("paramdev/drafts/DrumTrack.scd")
+
+FileSystemProject.load("libdef/pdeftrack.scd");
+FileSystemProject.load("libdef/apc.scd");
+Pdef(\pdefgrid0_0, Pbind(\note, Pseq([0,1],inf), \dur, 1/8));
+Pdef(\pdefgrid0_1, Pbind(\note, Pseq([3,4],inf), \dur, 1/8));
+TrackDef(\pdefgrid).edit
+ProtoDef(\apc40).activate(TrackDef(\pdefgrid));
+
+ProtoDef(\apc40).map_rdn_to_bank(0, \rdn, [\delay, \delay2]);
+ProtoDef(\apc40).activate_bank_selector
+MKtl.find(\midi); // when was not connected
+
+		MKtl(\apc, "akai-apc40");
+		MKtlDesc.descFolders
+
+////////////////////////////// test recording param and notes
+
+
+
+(
+//////// Param
+s.boot;
+Pdef.defaultQuant = 4;
+ClipTimeline(\bla4).edit;
+ClipTimeline(\bla4).bindPlayWithRecord = true;
+ClipTimeline('bla4').tracks = [ ( 'recordSourceLabel': "P gggg lpf", 'muted': false, 'index': 0, 'recordArmed': true, 
+  'recordBus': 0, 'recordSource': Param(Pdef('gggg'), 'lpf') ), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+{
+ClipTimeline('bla4').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	PatternEvent((\absTime: 0.0, \dur: 0.0, \legato: 1, \midinote: 1.0, \pattern: Pdef('gggg'), \playDur: 0.0, \relDur: 0.0, \sustain: 7.75, \type: 'pattern', )),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ }.value;
+Param(Pdef(\gggg),\lpf).setBusMode(true).set(3000);
+Pdef(\gggg, 
+	Pbind(
+		\instrument, \sh101,
+		\degree, Pseq([
+			0,4,9,1,
+		],inf),
+		\octave, 3,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).edit;
+Pdef(\sh101instr, 
+	Pbind(
+		\instrument, \sh101,
+	)
+);
+);
+
+Param(Pdef(\gggg),\lpf).getRaw.asCachedBus.get
+Param(Pdef(\gggg),\lpf).getRaw.asCachedBus.get
+Param(Pdef(\gggg),\lpf).getRaw.asCachedBus.getCached
+Param(Pdef(\gggg),\lpf).getRaw.asCachedBus.set(100)
+Param(Pdef(\gggg),\lpf).getRaw.asBus.getSynchronous
+Param(Pdef(\gggg),\lpf).getRaw.asBus.asCachedBus
+Param(Pdef(\gggg),\lpf).get
+Pdef(\gggg).getVal(\lpf)
+
+(
+//////// lastTweaked
+~initialize_jack.();
+ClipTimeline(\bla4).clear;
+Pdef.defaultQuant = 4;
+ClipTimeline(\bla4).edit;
+ClipTimeline(\bla4).bindPlayWithRecord = true;
+ClipTimeline('bla4').tracks = [ ( 'recordSourceLabel': "lastTweaked", 'muted': false, 'index': 0, 'recordArmed': true, 
+  'recordBus': 0, 'recordSource': \lastTweaked), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+{
+ClipTimeline('bla4').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	PatternEvent((\absTime: 0.0, \dur: 0.0, \legato: 1, \midinote: 1.0, \pattern: Pdef('gggg'), \playDur: 0.0, \relDur: 0.0, \sustain: 7.75, \type: 'pattern', )),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ }.value;
+Param(Pdef(\gggg),\lpf).setBusMode(true).set(3000);
+Pdef(\gggg, 
+	Pbind(
+		\instrument, \sh101,
+		\degree, Pseq([
+			0,4,9,1,
+		],inf),
+		\octave, 3,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).edit;
+s.boot;
+);
+
+Log(\Param).level = \info
+
+(
+~initialize_jack.();
+s.boot;
+//////// notes
+Pdef.defaultQuant = 1;
+ClipTimeline(\bla4).edit;
+ClipTimeline(\bla4).bindPlayWithRecord = true;
+ClipTimeline('bla4').tracks = [ ( 'recordSourceLabel': "Pdef rrr", 'muted': false, 'index': 0, 'recordArmed': true, 
+  'recordBus': 0, 'recordSource': Pdef('rrr') ), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+{
+ClipTimeline('bla4').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	PatternEvent((\absTime: 0.0, \dur: 0.0, \legato: 1, \midinote: 1.0, \pattern: Pdef('gggg'), \playDur: 0.0, \relDur: 0.0, \sustain: 7.75, \type: 'pattern', )),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ }.value;
+Param(Pdef(\gggg),\lpf).setBusMode(true).set(3000);
+Pdef(\gggg, 
+	Pbind(
+		\instrument, \sh101,
+		\degree, Pseq([
+			0,4,9,1,
+		],inf),
+		\octave, 3,
+		\dur, 1,
+		\amp, 0.1,
+	)
+).edit;
+Pdef(\rrr, 
+	Pbind(
+		\instrument, \sh101,
+	)
+).edit;
+);

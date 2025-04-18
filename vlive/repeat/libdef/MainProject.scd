@@ -40,7 +40,7 @@ FileSystemProjectTemplate('MainProject', (
 			proj = FileSystemProject(path +/+ name, ProtoTemplateDef(\MainProject));
 			//proj.projectPath = path +/+ name;
 			FileSystemProject.current = proj;
-			projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
+			//projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
 		}).windowName_("Choose New Project File"); 
 	},
 
@@ -49,7 +49,7 @@ FileSystemProjectTemplate('MainProject', (
 			var proj, projlabel;
 			[path].debug("open project");
 			proj = ProtoTemplateDef(\MainProject).loadProject(path);
-			projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
+			//projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
 		}).windowName_("Open Project File"); 
 	},
 

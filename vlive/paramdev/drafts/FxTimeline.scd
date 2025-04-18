@@ -1543,6 +1543,7 @@ WindowDef(\ModulatorStrip_slider, (
 	parent: WindowDef(\ModulatorStrip).proto,
 
 	shouldDrawBarLabel: true,
+	shouldDrawBarLabelOnChange: true,
 	inElasticMode: true,
 
 	virtualBounds: { arg self;
@@ -1661,7 +1662,7 @@ WindowDef(\ModulatorStrip_slider, (
 				} {
 					self.drawBar(0, idx, val, self.colors.full, self.colors.empty);
 				};
-				if(self.shouldDrawBarLabel == true) {
+				if(self.shouldDrawBarLabel == true or: { self.shouldDrawBarLabelOnChange and: {self.inMouseMove == true }}) {
 					self.drawBarLabel(0, idx, label, self.colors.full, self.colors.empty);
 				};
 
@@ -1681,9 +1682,69 @@ WindowDef(\ModulatorStrip_slider, (
 		var gxpos;
 		gxpos = self.pixelPointToGridPoint(Point(pxpos, 0)).x;
 		idx	= ( gxpos / self.cellWidth ).asInteger;
-		idx = idx.clip(0,self.areasize.x-1);
+		idx = idx.clip(0,(self.areasize.x/self.cellWidth ).asInteger-1);
+		[pxpos, gxpos, idx, self.cellWidth].debug("ModulatorStrip_slider.setCellAtPos");
 		self.targetParam.at(idx).normSet(val);
 		self.view.refresh;
+	},
+
+	showContextMenu: { arg self, pxpos;
+		var ev, key;
+		Menu(
+			MenuAction("Edit text", {
+				WindowDef(\CompileStringEditor).front(self.targetParam);
+			}),
+			MenuAction("Set step to default value", {
+				var idx;
+				var gxpos;
+				gxpos = self.pixelPointToGridPoint(Point(pxpos, 0)).x;
+				idx	= ( gxpos / self.cellWidth ).asInteger;
+				idx = idx.clip(0,(self.areasize.x/self.cellWidth ).asInteger-1);
+				self.targetParam.at(idx).set(self.targetParam.at(idx).default);
+			}),
+			MenuAction("Set all steps to default value", {
+				var default = self.targetParam.default;
+				default.debug("ModulatorStrip default");
+				if(default.isSequenceableCollection.not) {
+					default = default ! self.targetParam.size;
+				};
+				default.debug("ModulatorStrip default2");
+				self.targetParam.set(default);
+			}),
+			MenuAction("Unset", {
+				self.targetParam.unset;
+			}),
+			Menu(
+				MenuAction("Set random pattern", {
+					var val = self.targetParam.get;
+					var pat = Pwhite(0.0,1,inf).asStream;
+					val.do { arg item, idx;
+						val[idx] = pat.next;
+					};
+					self.targetParam.normSet(val);
+				}),
+				* [
+					[0],
+					[1],
+					[1,0],
+					[1,0,0,0],
+					[1,0,0,0, 0,0,0,0],
+					[0,1],
+					[0,0,1,0],
+					[0,0,0,0, 1,0,0,0],
+				].collect { arg seq, idx;
+					MenuAction("Set pattern %".format(seq), {
+						var val = self.targetParam.get;
+						var pat = Pseq(seq,inf).asStream;
+						val.do { arg item, idx;
+							val[idx] = pat.next;
+						};
+						self.targetParam.normSet(val);
+					})
+				},
+
+			).title_("Set patterns")
+		).front
 	},
 	
 	installListeners: { arg self, evlist;
@@ -1708,6 +1769,7 @@ WindowDef(\ModulatorStrip_slider, (
 	asView: { arg self, def, param, size;
 		var view = UserView.new;
 		var tl;
+		var offsety = 0;
 		self.view = view;
 		//self.model = ProtoTemplateDef(\ModulatorStrip);
 		if(self.inElasticMode == true) {
@@ -1724,19 +1786,25 @@ WindowDef(\ModulatorStrip_slider, (
 
 		view.mouseDownAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 			var idx;
-			var offset = -3;
-			[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
+			[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction !");
 			if(buttonNumber == 1) {
 				self.showContextMenu(x);
 			} {
-				self.setCellAtPos(x, 1 - ( ( y + offset )/self.virtualBounds.height ), \down);
+				self.inMouseMove = true;
+				self.setCellAtPos(x, 1 - ( ( y + offsety )/self.virtualBounds.height ), \down);
 			};
 		});
 		view.mouseMoveAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
 			var idx;
-			var offset = -3;
 			//[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseMoveAction");
-			self.setCellAtPos(x, 1 - ( ( y + offset )/self.virtualBounds.height ), \move);
+			self.setCellAtPos(x, 1 - ( ( y + offsety )/self.virtualBounds.height ), \move);
+
+		});
+		view.mouseUpAction_({ arg view, x, y, modifiers, buttonNumber, clickCount;
+			var idx;
+			//[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseMoveAction");
+			self.inMouseMove = false;
+			view.refresh;
 
 		});
 		view.addUniqueMethod(\proto, { self });
@@ -1759,7 +1827,9 @@ WindowDef(\ModulatorStrip_button, (
 		var param;
 		gxpos = self.pixelPointToGridPoint(Point(pxpos, 0)).x;
 		idx	= ( gxpos / self.cellWidth ).asInteger;
-		idx = idx.clip(0,self.areasize.x-1);
+		idx.debug("idx");
+		idx = idx.clip(0,( self.areasize.x/self.cellWidth ).asInteger-1);
+		[pxpos, gxpos, idx, self.cellWidth].debug("ModulatorStrip_slider.setCellAtPos");
 		if(idx != self.lastSetIndex or: { mouseActionType == \down }) {
 			self.lastSetIndex = idx;
 			param = self.targetParam.at(idx);

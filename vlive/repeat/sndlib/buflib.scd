@@ -11,7 +11,7 @@
 
 ~buflib = ~buflib_paths.collect { arg path, idx;
 	( path +/+ "*" ).pathMatch.collect { arg fpath;
-		{ BufDef.stereo(path); }
+		{ BufDef.stereo(fpath); }
 	};
 };
 

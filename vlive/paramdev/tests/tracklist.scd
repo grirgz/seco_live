@@ -253,7 +253,88 @@ OSCdef(\bla, { arg ...args; args.debug("osc:") })
 PatKitDef(\ha).edit
 
 TrackDef(\aze, \CustomTrackList).edit
+TrackDef(\aze).elAt(0).score.source.at(\bufnum).source
+TrackDef(\aze).elAt(0).presetCompileString
 FileSystemProject.load("libdef/CustomTrackList.scd")
 Param
 
+ParamProto.init(true)
 PlayerEvent
+Pbindef(\boi, \instrument, \sh101).edit
+Pbindef(\boi).edit
+Pbindef(\boi).source.at(\instrument).source
+Pdef(\boi).source
+Param(Pbindef(\boi), \instrument -> \source).set(\saw)
+Param(Pbindef(\boi), \instrument -> \source).set(\saw)
+Pbindef(\boi).changed(\set, [\instrument])
+Pbindef(\boi).asParamGroup.asPropertyDict
+(
+Pdef(\aaaa, 
+	Pbind(
+		\instrument, \sh101,
+	)
+).edit;
+);
+Pdef(\aaaa).envir
+ParamTimeline(\bla, Param(Pdef(\bla), \rah, \freq)).edit
+ParamTimeline(\bla2, Param(Pdef(\bla), \aaa, \pan)).edit
+// TODO: quant is applied two times when recording param in ClipTimeline
+ClipTimeline(\bla2).tracks[0]
+RecordButton().view
+
+Pdef(\testrec, Pbind(\instrument, \sh101)).edit
+(
+TagSpecDef(\SynthDefPresetBank, {
+	ProtoTemplateDef(\SynthDefPresetBank).allPresets
+});
+)
+ProtoTemplateDef(\SynthDefPresetBank).allPresets.asDict.keys
+Archive.global.at(\Param, \SynthDefPresetBank, \sh101, \presetDict).keys
+(
+Archive.global.at(\Param, \SynthDefPresetBank).collect({ arg x; x.at(\presetDict).keys.asArray.collect({ arg sx; 
+	"%.%".format(x, sx).asSymbol -> x.at(\presetDict, sx)
+}) }).values.flat
+)
+
+(
+Archive.global.at(\Param, \SynthDefPresetBank).do({ arg x;
+	x.postln;
+})
+)
+Archive.global.at(\Param, \SynthDefPresetBank)
+	(
+	{
+		var res = List.new;
+		
+		Archive.global.at(\Param, \SynthDefPresetBank).keysValuesDo({ arg key, val; 
+			val.at(\presetDict).keys.do({ arg presetkey; 
+				res.add("%.%".format(key, presetkey).asSymbol -> val.at(\presetDict).at(presetkey));
+			}) 
+		});
+		res;
+	}.value.asDict.keys;
+	)
+
+FileSystemProject.load("sndlib/synthbasic.scd")
+Pbindef(\hey, \degree, Pseq([1,5,2,Pwhite(0,12,1)],inf)).edit
+Pbindef(\hey).edit
+Pbindef(\hey).source.pairs
+SynthDesc(\flutepad)
+SynthDesc(\saw)
+
+ProtoTemplateDef(\SynthDefPresetBank).presetsBySynthDef(\saw)[\preset1]
+ProtoTemplateDef(\SynthDefPresetBank).presetsBySynthDef(\sh101)[\preset3]
+ProtoTemplateDef(\SynthDefPresetBank).presetsBySynthDef(\flutepad)[\calm]
+
+(
+MIDIdef.cc(\track1, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	
+});
+)
+
+NoteTimeline
+ClipTimeline(\bla).edit
+ClipTimeline(\bla).editor.timeline.selNodes
+NoteTimeline(\aze, Pbindef(\hello)).edit
+ParamTimeline(\aze).edit

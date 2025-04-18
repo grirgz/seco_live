@@ -146,3 +146,21 @@ FileSystemProject.loadOnce("libdef/MainProject.scd");
 FileSystemProject.loadOnce("libdef/soundfileview.scd");
 FileSystemProject.loadOnce("libdef/tracklist_buildertrack.scd");
 FileSystemProject.loadOnce("libdef/default_specs.scd");
+
+
+///////////
+
+
+ParamProto.init
+TrackDef(\h, \TrackList)
+TrackDef(\h).edit
+
+
+TrackDef(\h).presetCompileStringSavePath = "~/tmp/azeaze4".standardizePath
+TrackDef(\h).savePresetCompileString
+TrackDef(\h).childAt(0).trackKey
+TrackDef(\h).childAt(0).presetCompileString
+TrackDef(\h).childAt(0,0).score
+TrackDef(\h).childAt(0,0).score.presetCompileString
+TrackDef(\h).childAt(0).presetCompileString
+TrackDef(\h).childAt(0).kit.key == TrackDef(\h).childAt(0).defaultKitKey

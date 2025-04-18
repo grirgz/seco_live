@@ -1,0 +1,35 @@
+
+
+TrackDef('sun85_mainTrackList').childAt(4, 1).score = NoteTimeline('sun85_mainTrackList.4.1score');
+NoteTimeline('sun85_mainTrackList.4.1score').param = Param(Pdef('sun85_mainTrackList.4.instr'), 'midinote');
+NoteTimeline('sun85_mainTrackList.4.1score').eventList = TimelineEventList.newFrom([
+	(\absTime: 0.0, \dur: 0.016436905896171, \label: 'start', \playDur: 0.016436905896171, \relDur: 0.016436905896171, \sustain: 0, \type: 'start', ),
+	(\absTime: 0.016436905896171, \clockTime: 2572.1226869059, \dur: 0.03535842177098, \legato: 0.8, \midinote: 69, \playDur: 0.03535842177098, \relDur: 0.03535842177098, \sustain: 1.8742188363958, \velocity: 26, ),
+	(\absTime: 0.051795327667151, \clockTime: 2572.1580453277, \dur: 1.4668669309371, \legato: 0.8, \midinote: 65, \playDur: 1.4668669309371, \relDur: 1.4668669309371, \sustain: 1.8082434511248, \velocity: 39, ),
+	(\absTime: 1.5186622586043, \clockTime: 2573.6249122586, \dur: 0.4813377413957, \legato: 0.8, \midinote: 72, \playDur: 0.4813377413957, \relDur: 0.4813377413957, \sustain: 0.40592766677128, \velocity: 34, ),
+	(\absTime: 2.0, \clockTime: 2574.1811704236, \dur: 0.03125, \legato: 0.8, \midinote: 64.0, \playDur: 0.03125, \relDur: 0.03125, \sustain: 1.7494426163753, \velocity: 29, ),
+	(\absTime: 2.03125, \clockTime: 2574.1956487941, \dur: 0.46875, \legato: 0.8, \midinote: 67.0, \playDur: 0.46875, \relDur: 0.46875, \sustain: 1.7572764305833, \velocity: 94, ),
+	(\absTime: 2.5, \clockTime: 2574.5577136061, \dur: 1.5, \legato: 0.8, \midinote: 72.0, \playDur: 1.5, \relDur: 1.5, \sustain: 1.3873502594583, \velocity: 55, ),
+	(\absTime: 4.0, \clockTime: 2576.1604922794, \dur: 0.0399579252298, \legato: 0.8, \midinote: 65.0, \playDur: 0.0399579252298, \relDur: 0.0399579252298, \sustain: 1.7084017646666, \velocity: 54, ),
+	(\absTime: 4.0399579252298, \clockTime: 2576.1462079252, \dur: 1.4550995311038, \legato: 0.8, \midinote: 69, \playDur: 1.4550995311038, \relDur: 1.4550995311038, \sustain: 1.7662406240829, \velocity: 50, ),
+	(\absTime: 5.4950574563336, \clockTime: 2577.6013074563, \dur: 0.4846866931043, \legato: 0.8, \midinote: 72, \playDur: 0.4846866931043, \relDur: 0.4846866931043, \sustain: 0.26940890552078, \velocity: 50, ),
+	(\absTime: 5.9797441494379, \clockTime: 2578.0859941494, \dur: 0.0161663313752, \legato: 0.8, \midinote: 67, \playDur: 0.0161663313752, \relDur: 0.0161663313752, \sustain: 1.7848095373542, \velocity: 75, ),
+	(\absTime: 5.9959104808131, \clockTime: 2578.1021604808, \dur: 0.4790698826664, \legato: 0.8, \midinote: 64, \playDur: 0.4790698826664, \relDur: 0.4790698826664, \sustain: 1.7409432253539, \velocity: 72, ),
+	(\absTime: 6.4749803634795, \clockTime: 2578.5812303635, \dur: 1.0233679587291, \legato: 0.8, \midinote: 72, \playDur: 1.0233679587291, \relDur: 1.0233679587291, \sustain: 0.26875024847914, \velocity: 69, ),
+	(\absTime: 7.4983483222086, \clockTime: 2579.6045983222, \dur: 0.4943926703126, \legato: 0.8, \midinote: 74, \playDur: 0.4943926703126, \relDur: 0.4943926703126, \sustain: 0.25410461787533, \velocity: 34, ),
+	(\absTime: 7.9927409925212, \clockTime: 2580.0989909925, \dur: 0.0141732323332, \legato: 0.8, \midinote: 65, \playDur: 0.0141732323332, \relDur: 0.0141732323332, \sustain: 1.7967097255623, \velocity: 36, ),
+	(\absTime: 8.0069142248544, \clockTime: 2580.1131642249, \dur: 1.5029472365836, \legato: 0.8, \midinote: 69, \playDur: 1.5029472365836, \relDur: 1.5029472365836, \sustain: 1.8072215288544, \velocity: 34, ),
+	(\absTime: 9.509861461438, \clockTime: 2581.6161114614, \dur: 0.491887354062, \legato: 0.8, \midinote: 72, \playDur: 0.491887354062, \relDur: 0.491887354062, \sustain: 0.27921998508282, \velocity: 60, ),
+	(\absTime: 10.0017488155, \clockTime: 2582.1079988155, \dur: 0.033436370438, \legato: 0.8, \midinote: 67, \playDur: 0.033436370438, \relDur: 0.033436370438, \sustain: 1.7864709907499, \velocity: 83, ),
+	(\absTime: 10.035185185938, \clockTime: 2582.1414351859, \dur: 0.468941464125, \legato: 0.8, \midinote: 64, \playDur: 0.468941464125, \relDur: 0.468941464125, \sustain: 1.7318488350211, \velocity: 44, ),
+	(\absTime: 10.504126650063, \clockTime: 2582.6103766501, \dur: 0.495873349937, \legato: 0.8, \midinote: 72, \playDur: 0.495873349937, \relDur: 0.495873349937, \sustain: 0.28439554045826, \velocity: 78, ),
+	(\absTime: 11.0, \clockTime: 2583.1696079701, \dur: 0.5, \legato: 0.8, \midinote: 76.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.19099489879181, \velocity: 67, ),
+	(\absTime: 11.5, \clockTime: 2583.5817190761, \dur: 0.478302322042, \legato: 0.8, \midinote: 79.0, \playDur: 0.478302322042, \relDur: 0.478302322042, \sustain: 0.23774334275004, \velocity: 46, ),
+	(\absTime: 11.978302322042, \clockTime: 2584.084552322, \dur: 0.021697677958, \legato: 0.8, \midinote: 65, \playDur: 0.021697677958, \relDur: 0.021697677958, \sustain: 1.8197270663541, \velocity: 75, ),
+	(\absTime: 12.0, \clockTime: 2584.0701329688, \dur: 1.5, \legato: 0.8, \midinote: 69.0, \playDur: 1.5, \relDur: 1.5, \sustain: 1.8194596650419, \velocity: 45, ),
+	(\absTime: 13.5, \clockTime: 2585.6452742038, \dur: 0.5, \legato: 0.8, \midinote: 72.0, \playDur: 0.5, \relDur: 0.5, \sustain: 0.24396048820836, \velocity: 76, ),
+	(\absTime: 14.0, \clockTime: 2586.1107120963, \dur: 0.042080102646, \legato: 0.8, \midinote: 64.0, \playDur: 0.042080102646, \relDur: 0.042080102646, \sustain: 1.8132441437292, \velocity: 72, ),
+	(\absTime: 14.042080102646, \clockTime: 2586.1483301026, \dur: 0.457919897354, \legato: 0.8, \midinote: 67, \playDur: 0.457919897354, \relDur: 0.457919897354, \sustain: 1.7640534839375, \velocity: 75, ),
+	(\absTime: 14.5, \clockTime: 2586.6654473967, \dur: 1.5, \legato: 0.8, \midinote: 72.0, \playDur: 1.5, \relDur: 1.5, \sustain: 0.17589560733359, \velocity: 90, ),
+	(\absTime: 16.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);

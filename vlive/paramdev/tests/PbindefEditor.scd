@@ -72,7 +72,7 @@ Param(Pbindef(\testar2), \freqtab -> \source).edit
 (
 SynthDef(\testme, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
-	sig = SinOsc.ar(freq * \freqtab.kr(1!3)).mean;
+	sig = SinOsc.ar(freq * \freqtab.kr(1!3).poll).mean;
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
@@ -86,6 +86,8 @@ Pbindef(\yeah, \instrument, \testme, \adsr, [ Env.adsr(0.2,0.1,0.8,2.1) ])
 Pbindef(\yeah, \instrument, \testme, \adsr, Env.adsr(0.2,0.1,0.8,2.1)); // Pbindef does not accept without []
 Pbindef(\yeah).play
 Pbindef(\yeah).edit
+Pbindef(\yeah3).edit
+Pbindef(\yeah).asStream.next(())
 Param(Pbindef(\yeah), \adsr -> \source).spec
 Param(Pbindef(\yeah), \adsr -> \source).type
 Param(Pbindef(\yeah), \adsr).spec

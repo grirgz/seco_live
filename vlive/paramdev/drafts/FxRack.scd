@@ -140,10 +140,10 @@
 			};
 			if(grouplist.size > 0) {
 				first = grouplist.removeAt(0);
-				first.debug("quoi ?");
+				//first.debug("quoi ?");
 				// create the group list directly to be sure of the order
 				group = grouplist.inject(GroupDef.pattern(first, self.groupDefPattern), { arg a, b; 
-					"inject: GroupDef.pattern(%, %, \addAfter)  ".format(b, a).debug;
+					//"inject: GroupDef.pattern(%, %, \addAfter)  ".format(b, a).debug;
 					GroupDef.pattern(b, a, \addAfter) 
 				});
 			} {
