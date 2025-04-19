@@ -6,10 +6,8 @@
 		},
 		addPlayer: { arg self ...args;
 			args.do  { arg player;
-				if(player.isKindOf(PlayerWrapper).not ) {
-					player = PlayerWrapper(player);
-				};
-				if(self.playerList.includesEqual(player).not) {
+				player = PlayerWrapper(player);
+				if(self.playerList.any({ arg p; p.target === player.target }).not) {
 					self.playerList = self.playerList.add(player);
 				};
 				player.target.addDependant(self);
@@ -25,10 +23,12 @@
 		},
 		removePlayer: { arg self ...args;
 			args.do  { arg player;
-				if(player.isKindOf(PlayerWrapper).not ) {
-					player = PlayerWrapper(player);
+				var idx;
+				player = PlayerWrapper(player);
+				idx = self.playerList.detectIndex { arg p; p.target === player.target };
+				if(idx.notNil) {
+					self.playerList.removeAt(idx);
 				};
-				self.playerList.remove(player);
 				player.target.removeDependant(self)
 			};
 			self;
@@ -38,14 +38,15 @@
 			self[\playerList];
 		},
 		playingState: { arg self;
-			self[\playingState] = Dictionary.new;
+			self[\playingState] = IdentityDictionary.new;
 			self[\playingState];
 		},
 		play: { arg self;
 			self.captureEnabled = false;
 			self.playingState.asAssociations.select(_.value).collect({ arg player;
+				player = PlayerWrapper(player.key);
 				player.debug("playing player");
-				player.key.play;
+				player.play;
 			});
 			self.captureEnabled = true;
 		},
@@ -65,8 +66,8 @@
 			self.key;
 		},
 		update: { arg self, player, changed, status;
-			//[ player, changed, status ].debug("update============");
-			if(self.playerList.includesEqual(PlayerWrapper(player))) {
+			[ player, changed, status ].debug("update============");
+			if(self.playerList.any({ arg p; p.target === player.target })) {
 				Log(\Param).debug("PlayerTracker: update OK: % is part of %", player, self.key);
 				if(self.captureEnabled == true) {
 					switch(status,
@@ -75,7 +76,7 @@
 						{ nil },
 					) !? { arg shouldplay;
 						Log(\Param).debug("shouldplay: %", shouldplay);
-						self.playingState[player] = shouldplay;
+						self.playingState[player.target] = shouldplay;
 						Log(\Param).debug("huh: %", shouldplay);
 					};
 				}
