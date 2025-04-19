@@ -104,6 +104,10 @@ ProtoDef(\FxManager, (
 		self.playerTracker.isPlaying;
 	},
 
+	fxKeys: { arg self;
+		[\rdn, \rdn2, \rdn3, \rdn4, \fx1, \fx2, \fx3, \fx4];
+	},
+
 ));
 
 

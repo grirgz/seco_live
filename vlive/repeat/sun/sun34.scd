@@ -77,7 +77,7 @@ Pdef(\part, Pdef(\zedpart,
 				1,0,0,1, 1,0,0,0,
 			],inf).coin.not,
 			\dur, 1/16,
-			\amp, 0.1,
+			\amp, 0.1/2,
 		),
 		Pbind(
 			\instrument, \playersec,
@@ -149,7 +149,7 @@ Pdef(\part, Pdef(\zedpart,
 			\shape, ~pmodenv.(Pseq([0.4,1]* -1,1), 7).loop,
 			\octave, 3,
 			\dur, 1/8,
-			\amp, 0.6,
+			\amp, 0.2,
 		),
 		
 	])

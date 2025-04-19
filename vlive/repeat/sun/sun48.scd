@@ -1,6 +1,21 @@
 
+(
 ~t = 155/4/60; TempoClock.default.tempo = ~t;
-BufDef.reload('vipere/mia.flac')
+//BufDef.reload('vipere/mia.flac');
+SynthDef(\simplegran, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, pos=0, gdur=0.1, pan;
+	var sig;
+	var clk;
+	var phase;
+	clk = Impulse.ar(\gfreq.kr(40));
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = pos;
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, phase % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig * EnvGen.ar(\asr.kr(Env.asr(0.01,1,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+)
+
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
@@ -326,6 +341,9 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+
+/////////////
+
 (
 Pdef(\melo, 
 	Pbind(
@@ -371,7 +389,7 @@ Pdef(\part, Pdef(\zedpart,
 			\lpfr, ~pmodenv.(Pseq([1,2,1,4],1), 8).loop,
 			\legato, Pseg(Pseq([0.9,0.1],inf),8*4),
 			\adsr, Pseq([
-				~pEnvadsr.(Pseq([0.041,0.01],inf),0.1,0.8,Pseq([0.1,0.01],inf)),
+				PpatEnv.adsr.(Pseq([0.041,0.01],inf),0.1,0.8,Pseq([0.1,0.01],inf)),
 			],inf),
 			\note, Pseq([
 				Pseq([
@@ -393,6 +411,149 @@ Pdef(\part, Pdef(\zedpart,
 				Pn(5,Pseq([1,5],inf)),6,Pn(7,Pwhite(1,3,1)),4
 			],inf).stutter(3),
 			\dur, 1/16,
+			\amp, 0.1 * Pseq([
+				Pwhite(0.8,1,1),
+				Pwhite(0.1,0.5,1),
+				Pwhite(0.1,0.7,1),
+				Pwhite(0.1,0.5,1),
+				Pwhite(0.1,0.5,1),
+			],inf),
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pdef(\drums1),
+		Pbind(
+			\instrument, \simplegran,
+			\mbufnum, BufDef.mono('vipere/mia.flac'),
+			\st, 138/4/60,
+			\pitch_stretch, 1  * Pstep(Pseq([
+				0, 7,2,7,
+			]-2,inf).midiratio, 2/1),
+			//\pos, ~pmodenv.(Pseq([0,1],1), 1/8* ~t / Pkey(\st)).loop,
+			\pos, ~pmodenv.(Pseq([0,1,0.5],1), 1/4 / ~t* 138/4/60 ).loop,
+			\legato, Pseq([
+				2,0,2,0, 0,0,1,0,
+				0,0,2,0, 2,0,1,1,
+				4,0,0,0, 0,0,1,0,
+				0,1,1,2, 0,0,2,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		Pbind(
+			\instrument, \saw,
+			\lpfr, ~pmodenv.(Pseq([1,2,1,4],1), 8).loop,
+			\legato, Pseg(Pseq([0.9,0.1],inf),8*4),
+			\adsr, Pseq([
+				PpatEnv.adsr.(Pseq([0.041,0.01],inf),0.1,0.8,Pseq([0.1,0.01],inf)),
+			],inf),
+			\note, Pseq([
+				Pseq([
+					Pser([
+						0,4,7,4,
+					],8*2),
+					Pser([
+						0,4,7,4,
+					],8*2)+7,
+					Pser([
+						0,3,7,3,
+					],8*2)+2,
+					Pser([
+						0,4,7,4,
+					],8*2)+7,
+				],3),
+				//Pser([
+					//4,6,9,6,
+				//],8*2),
+				//Pser([
+					//4,1,9,1,
+				//],8*2),
+			],inf),
+			\octave, Pseq([
+				Pn(5,Pseq([1,5],inf)),6,Pn(7,Pwhite(1,3,1)),4
+			],inf).stutter(3),
+			\dur, 1/8,
+			\amp, 0.1 * Pseq([
+				Pwhite(0.8,1,1),
+				Pwhite(0.1,0.5,1),
+				Pwhite(0.1,0.7,1),
+				Pwhite(0.1,0.5,1),
+				Pwhite(0.1,0.5,1),
+			],inf),
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pdef(\drums1),
+		Pbind(
+			\instrument, \simplegran,
+			\mbufnum, BufDef.mono('vipere/mia.flac'),
+			\st, 138/4/60,
+			\pitch_stretch, 2  * Pstep(Pseq([
+				0, 7,2,7,
+			]-2,inf).midiratio, 2/1),
+			\gdur, PmodEnv(Pseq([0.01,0.2,0.1,0.4],1), 8).loop,
+			\gfreq, PmodEnv(Pseq([1,20,40,1,40],1), 1).loop,
+			//\pos, ~pmodenv.(Pseq([0,1],1), 1/8* ~t / Pkey(\st)).loop,
+			//\pos, ~pmodenv.(Pseq([0,1,0.5],1), 1/4 / ~t* 138/4/60 ).loop,
+			\pos, PmodEnv(Pseq([0.2,0.6,1,0,1],1), 1/1).loop,
+			\legato, Pseq([
+				2,0,2,0, 0,0,1,0,
+				0,0,2,0, 2,0,1,1,
+				4,0,0,0, 0,0,1,0,
+				0,1,1,2, 0,0,2,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		Pbind(
+			\instrument, \saw,
+			\lpfr, ~pmodenv.(Pseq([1,2,1,4],1), 8).loop,
+			\legato, Pseg(Pseq([0.9,0.1],inf),8*4),
+			\adsr, Pseq([
+				PpatEnv.adsr.(Pseq([0.041,0.01],inf),0.1,0.8,Pseq([0.1,0.01],inf)),
+			],inf),
+			\note, Pseq([
+				Pseq([
+					Pser([
+						0,4,7,4,
+					],8*2),
+					Pser([
+						0,4,7,4,
+					],8*2)+7,
+					Pser([
+						0,3,7,3,
+					],8*2)+2,
+					Pser([
+						0,4,7,4,
+					],8*2)+7,
+				],3),
+				//Pser([
+					//4,6,9,6,
+				//],8*2),
+				//Pser([
+					//4,1,9,1,
+				//],8*2),
+			],inf),
+			\octave, Pseq([
+				Pn(5,Pseq([1,5],inf)),6,Pn(7,Pwhite(1,3,1)),4
+			],inf).stutter(3),
+			\dur, 1/8,
 			\amp, 0.1 * Pseq([
 				Pwhite(0.8,1,1),
 				Pwhite(0.1,0.5,1),

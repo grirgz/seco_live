@@ -24,7 +24,7 @@ SynthDef(\kick808, {arg out = 0, freq1 = 240, freq2 = 60, amp = 0.1, ringTime = 
 	//	snd = Wrap.ar(snd, -1 * tott, tott);
 	Out.ar(out, Pan2.ar(snd, pan, amp));
 }).add;
-)
+);
 
 (
 SynthDef(\kick808, {arg out = 0, freq1 = 240, freq2 = 60, amp = 0.1, ringTime = 100, rel = 10000, dist = 1.5, pan = 0, tott=0.1, durr=0.001, gate=1;
@@ -56,7 +56,7 @@ SynthDef(\kick808, {arg out = 0, freq1 = 240, freq2 = 60, amp = 0.1, ringTime = 
 	snd = Splay.ar(snd, \spread.kr(0.8), amp, pan);
 	Out.ar(out, snd );
 }).add;
-)
+);
 
 (
 	// base

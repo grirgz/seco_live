@@ -256,6 +256,7 @@ FileSystemProject('repeat/simpleProject', ProtoTemplateDef(\SimpleProject)); // 
 
 (
 WindowDef(\MainProject, { arg def, proj;
+	var mainview;
 	var meter = SimpleServerMeterView.new(nil, 0,2);
 	var projlabel = StaticText.new;
 	var rdnbuttons;
@@ -263,6 +264,9 @@ WindowDef(\MainProject, { arg def, proj;
 	var otherResources, otherResourcesView;
 	var isRefreshing = false;
 	proj = proj ?? { FileSystemProject.current ?? { FileSystemProject('repeat/simpleProject') } };
+	if(FileSystemProject.current.isNil) {
+		FileSystemProject.current = proj;
+	};
 	projlabel.string_(FileSystemProject.unresolve(proj.key.asString));
 	//var meter = ServerMeterView.new;
 	proj.playerTracker.addPlayer(*[
@@ -321,10 +325,10 @@ WindowDef(\MainProject, { arg def, proj;
 		} {
 			Log(\Param).debug("MainProject: already refreshing project, skipped");
 		}
-	});
+	}, true);
 
 
-	HLayout (
+	mainview = HLayout (
 		meter.view.minWidth_(40),
 		//GridLayout.rows (
 			//[
@@ -388,6 +392,7 @@ WindowDef(\MainProject, { arg def, proj;
 			otherResourcesView,
 		), stretch:2],
 	).margins_(3).spacing_(3);
+	mainview;
 });
 );
 

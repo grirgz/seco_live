@@ -183,22 +183,38 @@ Pdef(\part, Pdef(\zedpart,
 		Pbind(
 			\instrument, \organ,
 			\note, Pseq([
-				0,
+				Pseq([
+					[4,7,12],
+					0,
+					[4,7,12],
+					0,
+				],2),
+				Pseq([
+					[0+12,3,7],
+					0,
+					[0+12,3,7],
+					0,
+				],2)+2,
 			],inf),
-			\dur, 1,
+			\isRest, Pseq([
+				0.0,0.1,1,0.1,
+			],inf).coin.not,
+			\lpfr, 8,
+			\dur, 1/8,
 			\amp, 0.1,
-			\isRest, true,
 		),
 		
 	])
 )).play;
 );
+Pdef(\part).clear
+Pdef(\part).envir.clear
 
 (
 Pdef(\melo, 
 	Pbind(
 		\instrument, \organ,
-		\out, BusDef(\sendbus5, \audio),
+		//\out, BusDef(\sendbus5, \audio),
 	)
 )
 );
@@ -211,4 +227,5 @@ Pdef(\melo,
 )
 );
 
+ProtoDef(\piano).startControl(Pdef(\melo))
 WindowDef(\PdefEditor).front(Pdef(\melo))

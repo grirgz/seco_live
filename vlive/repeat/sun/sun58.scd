@@ -1,6 +1,7 @@
 
 ~t = 300/4/60; TempoClock.default.tempo = ~t;
 
+FileSystemProject.loadOnce("sndlib/synthaccu.scd");
 /// expand sun27.scd blues
 (
 SynthDef(\olok, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
@@ -371,6 +372,7 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, 1/8,
 			\amp, 0.1,
 			\amp, 0.061,
+			\lag, -0.04,
 			\out, BusDef(\sendbus1, \audio),
 		),
 		
@@ -423,6 +425,7 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, 1/8,
 			\amp, 0.1,
 			\amp, 0.071,
+			\lag, -0.04,
 			\out, BusDef(\sendbus2, \audio),
 		),
 		Pdef(\basicbreak)
@@ -478,6 +481,7 @@ Pdef(\part, Pdef(\zedpart,
 			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
 			\amp, 0.1,
 			\amp, 0.071,
+			\lag, -0.04,
 			\out, BusDef(\sendbus2, \audio),
 		),
 		Pbind(
@@ -493,6 +497,7 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, 1/8,
 			\amp, 0.1,
 			\amp, 0.071,
+			\lag, -0.04,
 			\out, BusDef(\sendbus3, \audio),
 		),
 		Pdef(\basicbreak)
@@ -904,6 +909,7 @@ Pdef(\part, Pdef(\apart2,
 			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
 			\amp, 0.1,
 			\amp, 0.071,
+			\lag, -0.04,
 			\out, BusDef(\sendbus2, \audio),
 		),
 		Pbind(
@@ -919,6 +925,7 @@ Pdef(\part, Pdef(\apart2,
 			\dur, 1/8,
 			\amp, 0.1,
 			\amp, 0.071,
+			\lag, -0.04,
 			\out, BusDef(\sendbus3, \audio),
 		),
 		Pdef(\basicbreak)
@@ -977,6 +984,7 @@ Pdef(\part, Pdef(\apart3,
 			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
 			\amp, 0.1,
 			\amp, 0.071,
+			\lag, -0.04,
 			\out, BusDef(\sendbus2, \audio),
 		),
 		Pbind(
@@ -992,6 +1000,7 @@ Pdef(\part, Pdef(\apart3,
 			\dur, 1/8,
 			\amp, 0.1,
 			\amp, 0.071,
+			\lag, -0.04,
 			\out, BusDef(\sendbus3, \audio),
 		),
 		Pdef(\basicbreak),
@@ -1003,6 +1012,7 @@ Pdef(\part, Pdef(\apart3,
 				],inf),
 				\dur, 1,
 				\amp, 0.1/1.5,
+				\lag, -0.04,
 				\out, BusDef(\sendbus3, \audio),
 			),
 			16, Pbind(

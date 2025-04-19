@@ -3,8 +3,10 @@
 ~t = 140/4/60; TempoClock.default.tempo = ~t;
 ~swing = 0.3;
 // load project
+FileSystemProject("sun/sun55").open.edit;
 
 FileSystemProject.load("holis/synthdef.scd");
+FileSystemProject.load("sndlib/mysynthdefault.scd");
 (
 SynthDef(\bass_fmek, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;

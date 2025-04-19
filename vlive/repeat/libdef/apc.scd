@@ -17,24 +17,13 @@ ProtoDef(\apc40, (
 	},
 
 	shiftModifier: false,
+	//displayMode: \pan,
 
 	clearAll: { arg self;
 		//self.ktl.sendSpecialMessage(\clearAll);
 		//self.ktl.sendSpecialMessage(\enableFlashMode);
 	},
 
-	quickpad: { arg self;
-		var name = \quickpad;
-		self['property_'+++name] ?? {
-			self['property_'+++name] = { { nil ! ( self.gridsize.y+1 ) } ! ( self.gridsize.x+1 ) };
-			self['property_'+++name]
-		}
-	},
-
-	quickpad_: { arg self, val;
-		var name = \quickpad;
-		self['property_'+++name] = val
-	},
 
 	colors: ProtoClass((
 			red: 120,
@@ -108,51 +97,69 @@ ProtoDef(\apc40, (
 		0;
 	},
 
-	render_linebutton: { arg self, idx;
+	render_scene_button: { arg self, idx;
 		var clip = self.grid.linePlayerAtOffset(idx);
-		var ridx = 4 - idx; // MKtl mapping is reversed
-		"rlb1".debug;
+		//var ridx = 4 - idx; // MKtl mapping is reversed
+		//"rlb1".debug;
 		if(clip.isEmpty.not) {
-			"rlb2".debug;
+			//"rlb2".debug;
 			if(clip.isPlaying) {
-				self.ktl.elAt(\bt, \scene, ridx, \on).value = self.colors.green/127;
+				self.ktl.elAt(\bt, \scene, idx, \on).value = self.colors.green/127;
 			} {
-				self.ktl.elAt(\bt, \scene, ridx, \on).value = self.colors.red/127;
+				self.ktl.elAt(\bt, \scene, idx, \on).value = self.colors.red/127;
 			}
 		} {
-		"rlb3".debug;
-			self.ktl.elAt(\bt, \scene, ridx, \on).value = self.colors.off.debug("color off");
+			//"rlb3".debug;
+			self.ktl.elAt(\bt, \scene, idx, \on).value = self.colors.off;
 		};
-		"rlb4".debug;
+		//"rlb4".debug;
+	},
+
+	render_scene_buttons: { arg self;
+		self.gridsize.y.do { arg idx;
+			self.render_scene_button(idx)
+		};
 	},
 
 	render_trackbutton: { arg self, idx;
 		var clip = self.grid.childAtOffset(idx);
 		idx.debug("render_trackbutton");
-		"rtb1".debug;
+		//"rtb1".debug;
 		if(clip.isPlaying) {
-		"rtb2".debug;
+			//"rtb2".debug;
 			self.ktl.elAt(\bt, \clipS, idx, \on).value = self.colors.green/127;
 		} {
-		"rtb3".debug;
+			//"rtb3".debug;
 			self.ktl.elAt(\bt, \clipS, idx, \on).value = self.colors.off.debug("color off");
 		};
-		"rtb4".debug;
+		//"rtb4".debug;
 	},
 
 	render_track_selection_button: { arg self, idx;
 		// only one color available in [ \bt,\selection ]
-		var clip = self.grid.childAtOffset(idx);
-		var iidx = ( idx ).asInteger; // MKtl selection mapping was reversed
-		"rtsb1".debug;
-
-		[idx, iidx, clip.isActive].debug("render_track_selection_button");
-		if(clip.isActive) {
-			self.ktl.elAt(\bt, \selection, iidx, \on).value = self.colors.green/127;
+		var oldidx = self.selectedTrackIndex ? 0;
+		switch(self.displayMode,
+			\pan, { 
+				self.selectedTrackIndex = self.grid.activeIndex ? 0;
+			},
+			\sends, { 
+				self.selectedTrackIndex = self.selected_send_idx ? 0;
+			},
+			\user, { 
+				if(self.selectedUserPanelIndex.isNil) {
+					self.selectedUserPanelIndex = 0;
+				};
+				self.selectedTrackIndex = self.selectedUserPanelIndex;
+			},
+		);
+		if(idx == self.selectedTrackIndex) {
+			self.ktl.elAt(\bt, \selection, idx, \on).value = self.colors.green/127;
+			if(oldidx != idx) {
+				self.ktl.elAt(\bt, \selection, oldidx, \on).value = self.colors.off.debug("color off");
+			};
 		} {
-			self.ktl.elAt(\bt, \selection, iidx, \on).value = self.colors.off.debug("color off");
+			self.ktl.elAt(\bt, \selection, idx, \on).value = self.colors.off.debug("color off");
 		};
-		"rtsb4".debug;
 	},
 
 	render_grid: { arg self;
@@ -166,6 +173,8 @@ ProtoDef(\apc40, (
 		};
 		"b".debug;
 		self.map_scene_buttons;
+		self.map_clipStop_buttons;
+		self.render_displayMode;
 
 		self.gridsize.x.do { arg x;
 			x.debug("render_grid, render_trackbutton");
@@ -196,6 +205,20 @@ ProtoDef(\apc40, (
 				self.ktl.elAt(*[\bt, \track, kind, idx,\on]).value = mix.asParam(key).normGet;
 			}
 		}
+	},
+
+	render_displayMode: { arg self;
+		if(self.displayMode.isNil) {
+			self.displayMode = \pan;
+		};
+		[\pan, \sends, \user].do { arg item, idx;
+			self.ktl.elAt(\bt, \control, item, \on).value = if(item == self.displayMode) {
+				1
+			} {
+				0
+			};
+		};
+		
 	},
 
 	refresh: { arg self;
@@ -296,17 +319,39 @@ ProtoDef(\apc40, (
 	},
 
 	childAtOffset: { arg self, point;
-		self.grid.childAtOffset(point);
+		switch(self.displayMode,
+			\pan, { 
+				self.grid.childAtOffset(point);
+			},
+			\sends, { 
+				self.grid.childAtOffset(point);
+			},
+			\user, { 
+				var fun;
+				self.selectedUserPanelIndex = self.selectedUserPanelIndex ? 0;
+				self.userPanels = self.userPanels ?? { nil!self.gridsize.x };
+				fun = self.userPanels[self.selectedUserPanelIndex];
+				if(fun.notNil) {
+					fun.value(self, point);
+				} {
+					ProtoClass((
+						isActive: true,
+						isPlaying: false,
+						isEmpty: false,
+					))
+				};
+				//self.action_select_track(idx);
+			},
+		);
 	},
 
 	activate: { arg self, grid;
 		var move_in_grid;
 		if(grid.notNil and: { grid.isEmpty.notNil }) {
 			self.grid = grid;
-			if(FileSystemProject.current.isNil) {
-				FileSystemProject.current = ();
+			if(FileSystemProject.current.notNil) {
+				FileSystemProject.current.current_trackgrid = { self.grid };
 			};
-			FileSystemProject.current.current_trackgrid = { self.grid };
 			//self.ktl.elAt(\bt, \bt_user2).action = { arg el;
 			//self.edit_mode = ( el.value != 0 );
 			//self.edit_mode.debug("edit mode!");
@@ -318,74 +363,17 @@ ProtoDef(\apc40, (
 
 			"1--".debug;
 
-			self.ktl.sendSpecialMessage(\setLiveMode);
+			self.ktl.sendSpecialMessage(\abletonLiveMode);
 
 			"2--".debug;
 
-			self.ktl.elAt(\bt, \clip).do { arg row, rowidx;
-				row.do { arg pad, colidx;
 
-					pad.elAt(\on).action = {
-						var point = Point(colidx, rowidx);
-						point.debug("pad down");
-						if(self.shiftModifier == true) {
-							{
-								self.childAtOffset(point).edit;
-								self.render_cell(point);
-							}.defer;
-						} {
-							if(self.modifier_mixer == true) {
-								point.debug("what ?");
-								self.quickpad[point.x][point.y].debug("2what ?");
-								self.quickpad[point.x][point.y].value(self, point);
-								self.quickpad[point.x][point.y].debug("end what ?");
-							} {
-								var node = self.childAtOffset(point);
-								if(node.playMode == \gate) {
-									point.debug("pad gate play");
-									PlayerWrapper(node).play;
-								} {
-									if(node.playMode == \reset) {
-										point.debug("pad reset play");
-										node.resetPlay;
-									} {
-										point.debug("pad toggle play");
-										PlayerWrapper(node).togglePlay;
-									}
-								}
-							};
-						}
-					};
-					pad.elAt(\off).action = {
-						var point = Point(colidx, rowidx);
-						var node = self.childAtOffset(point);
-						if(node.playMode == \gate) {
-							point.debug("pad gate stop");
-							PlayerWrapper(node).stop;
-						} {
-							// NOOP
-						}
-					};
-				};
-			};
-
+			self.map_clip_buttons;
 
 			"3--".debug;
 
 			self.map_scene_buttons;
-			self.ktl.elAt(\bt, \clipS).do { arg pad, idx;
-				var player = self.grid.childAtOffset(idx);
-				//idx = 7-idx;
-				pad.elAt(\on).mapPlayer(PlayerWrapper(player), { 
-					//{self.render_trackbutton(idx)}.defer(player.quant + 1) 
-					"clipS pushed".debug(idx);
-					self.render_trackbutton(idx)
-				})
-
-				//pad.elAt(0).action = {
-				//PlayerWrapper(self.grid.childAtOffset(idx)).stop;
-				//};
-			};
+			self.map_clipStop_buttons;
 
 			"4--".debug;
 
@@ -400,6 +388,14 @@ ProtoDef(\apc40, (
 			self.ktl.elAt(\bt, \shift, \off).action = { arg me;
 				"aaakjkjk".debug;
 				self.shiftModifier = false;
+			};
+			self.ktl.elAt(\bt, \bank, \on).action =  { arg me;
+				"kjkjk".debug;
+				self.bankModifier = true;
+			};
+			self.ktl.elAt(\bt, \bank, \off).action = { arg me;
+				"aaakjkjk".debug;
+				self.bankModifier = false;
 			};
 
 			"6--".debug;
@@ -446,17 +442,16 @@ ProtoDef(\apc40, (
 			"9--".debug;
 			self.ktl.elAt(\bt, \transport, \play,\on).mapPlayer(PlayerWrapper(self.grid));
 
-			self.ktl.elAt(\bt, \control, \sends,\on).action = {
-				self.modifier_send = true;
-				self.map_track_mixer_sends(self.selected_send_idx ? 0);
+			[\pan, \sends, \user].do { arg item, idx;
+				var fun;
+				self.ktl.elAt(\bt, \control, item, \on).action = {
+					self.displayMode = item;
+					self.render_displayMode;
+					self.render_grid;
+					//self.modifier_send = true;
+					//self.map_track_mixer_sends(self.selected_send_idx ? 0);
+				};
 			};
-			self.ktl.elAt(\bt, \control, \sends,\off).action = {
-				self.modifier_send = false;
-			};
-			//self.controllers_dict[\gridplay] = PlayerWrapper(self.grid).makeListener({ arg me, msg, args;
-			//PlayerWrapper(self.grid).isPlaying.asInteger.debug("gridplay listener");
-			//self.ktl.elAt(\bt, \flat, \play,\on).value = PlayerWrapper(self.grid).isPlaying.asInteger;
-			//});
 
 			self.ktl.elAt(\bt, \bankselect, \up,\on).action = { arg el; move_in_grid.(el, Point(0,-1)) }; // down
 			self.ktl.elAt(\bt, \bankselect, \down,\on).action = { arg el; move_in_grid.(el, Point(0,1)) }; // up
@@ -467,7 +462,7 @@ ProtoDef(\apc40, (
 			//self.clearAll;
 			"10--".debug;
 
-			self.activate_bank_selector; // disabled can't find
+			//self.activate_bank_selector; 
 			"11--".debug;
 			self.activate_trackmixer;
 			"12--".debug;
@@ -485,6 +480,53 @@ ProtoDef(\apc40, (
 	},
 
 	///// custom
+
+	map_clip_buttons: { arg self;
+		self.ktl.elAt(\bt, \clip).do { arg row, rowidx;
+			row.do { arg pad, colidx;
+
+				pad.elAt(\on).action = {
+					var point = Point(colidx, rowidx);
+					point.debug("pad down");
+					if(self.shiftModifier == true) {
+						{
+							self.childAtOffset(point).edit;
+							self.render_cell(point);
+						}.defer;
+					} {
+						var node = self.childAtOffset(point);
+						if(node.playMode == \gate) {
+							point.debug("pad gate play");
+							PlayerWrapper(node).play;
+						} {
+							if(node.playMode == \reset) {
+								point.debug("pad reset play");
+								node.resetPlay;
+							} {
+								point.debug("pad toggle play");
+								PlayerWrapper(node).togglePlay;
+								PlayerWrapper(node).doWithQuant {
+									self.render_scene_buttons;
+								}
+							}
+						}
+					}
+				};
+				pad.elAt(\off).action = {
+					var point = Point(colidx, rowidx);
+					var node = self.childAtOffset(point);
+					if(node.playMode == \gate) {
+						point.debug("pad gate stop");
+						node.debug("pad gate stop");
+						node[\stop].asCompileString.debug("hoo");
+						PlayerWrapper(node).stop;
+					} {
+						// NOOP
+					}
+				};
+			};
+		};
+	},
 
 	clear_flats: { arg self;
 		self.bank_names.do { arg name;
@@ -576,29 +618,93 @@ ProtoDef(\apc40, (
 		};
 	},
 
+	map_sendMode_fx: { arg self, idx;
+		if(idx.notNil and: { idx > 0 }) {
+			var fxkey = ProtoDef(\FxManager).fxKeys[idx-1];
+			[fxkey.asCompileString, idx, fxkey.asString.contains("rdn")].debug("map_sendMode_fx");
+			if(fxkey.asString.contains("rdn")) {
+				var proxy = Ndef(fxkey);
+				[idx, proxy].debug("mapping sendmode fx");
+				[
+					Param(proxy, \delay),
+					Param(proxy, \delay2),
+					Param(proxy, \fb),
+					Param(proxy, \distamp),
+
+					Param(proxy, \posthpf),
+					Param(proxy, \postlpf),
+					nil,
+					Param(proxy, \gain),
+				].collect({ arg param, idx;
+					self.mapParam([ \kn, \d, 0, idx ], param);
+				});
+
+				self.ktl.elAt(\bt, \device, 0, \detail, \on).action = {
+					{
+						ProtoDef(fxkey).edit;
+					}.defer;
+				};
+				self.ktl.elAt(\bt, \device, 0, \devonoff, \on).mapPlayer(PlayerWrapper(ProtoDef(fxkey)));
+			} {
+
+			}
+		};
+			
+	},
+
+	map_clipStop_buttons: { arg self;
+		self.ktl.elAt(\bt, \clipS).do { arg pad, idx;
+			var player = self.grid.childAtOffset(idx);
+			//idx = 7-idx;
+			pad.elAt(\on).mapPlayer(PlayerWrapper(player), { 
+				//{self.render_trackbutton(idx)}.defer(player.quant + 1) 
+				"clipS pushed".debug(idx);
+				self.render_trackbutton(idx)
+			})
+
+			//pad.elAt(0).action = {
+			//PlayerWrapper(self.grid.childAtOffset(idx)).stop;
+			//};
+		};
+	},
+
 	map_scene_buttons: { arg self;
 		self.ktl.elAt(\bt, \scene).do { arg pad, idx;
 			var player;
-			idx = 4-idx;
-			player = PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y));
-			//pad.elAt(\on).mapPlayer(PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)), { self.render_linebutton(idx) }  );
+			//idx = 4-idx;
+			player = PlayerWrapper(self.grid.sectionAt(idx + self.gridOffset.y));
+			//pad.elAt(\on).mapPlayer(PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)), { self.render_scene_button(idx) }  );
 			pad.elAt(\on).action = {
-				if(self.shiftModifier == true) {
-					player.target.index.debug("assign_splitpart");
-					~assign_splitpart.(self.grid, Pdef(\part), player.target.index, ( self.grid.trackKey++\_split ).asSymbol);
-					self.render_grid;
-				} {
+				var res = self.callback_scene_button(idx);
+				if(res != false) {
 					player.togglePlay;
-					self.render_linebutton(idx);
 				};
+				self.render_scene_button(idx);
+				player.doWithQuant {
+					self.render_scene_buttons;
+				}
 			};
-			self.render_linebutton(idx);
+			//pad.elAt(\on).getHalo(\ParamListener) !? _.remove;
+			//pad.elAt(\on).addHalo(\ParamListener, player.makeListener({ arg me, msg ...args;
+				// do not work because nobody send stopped signal for sections
+				//[ idx, msg, args, player, player.isPlaying.asInteger ].debug("map_scene_buttons.mapPlayer listener: receive ************##############");
+				//self.render_scene_button(idx);
+			//}));
+			self.render_scene_button(idx);
 			//pad.elAt(0).action = {
 				//PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)).togglePlay;
-				//self.render_linebutton(idx);
+				//self.render_scene_button(idx);
 			//};
 		};
 		
+	},
+
+	action_select_track: { arg self, idx;
+		// or quant chooser
+		var oldidx = self.selectedTrackIndex ? 0;
+		self.selectedTrackIndex = idx;
+		self.render_track_selection_button(idx);
+		self.render_track_selection_button(oldidx);
 	},
 
 	map_quant_chooser: { arg self;
@@ -606,20 +712,45 @@ ProtoDef(\apc40, (
 		8.do { arg idx;
 			var iidx = idx;
 			self.ktl.elAt(\bt, \selection, idx, 0).action = { arg me;
-				if(self.modifier_send == true) {
-					self.selected_send_idx = iidx;
-					self.map_track_mixer_sends(self.selected_send_idx);
+				self.displayMode.debug("map_quant_chooser: displayMode");
+				if(self.shiftModifier == true) {
+					self.quant_list[iidx].debug("set quant to");
+					Pdef.defaultQuant = self.quant_list[iidx];
 				} {
-					if(self.shiftModifier == true) {
-						self.quant_list[iidx].debug("set quant to");
-						Pdef.defaultQuant = self.quant_list[iidx];
+					if(self.bankModifier == true) {
+						if(self.gridBank.notNil) {
+							var grid = self.gridBank[idx];
+							if(grid.notNil) {
+								self.activate(grid);
+							};
+						};
 					} {
-						var oldidx = ( self.grid.activeIndex ? 0 ) - self.gridOffset.x;
-						self.grid.activeIndex = self.grid.childAtOffset(iidx).index;
-						self.render_track_selection_button(iidx);
-						self.render_track_selection_button(oldidx);
-						//self.oldTrackSelectionIndex = iidx;
-					}
+						self.displayMode.debug("map_quant_chooser: displayMode2");
+						switch(self.displayMode,
+							\pan, { 
+								var oldidx = ( self.grid.activeIndex ? 0 ) - self.gridOffset.x;
+								self.grid.activeIndex = self.grid.childAtOffset(iidx).index;
+								self.render_track_selection_button(idx);
+								//self.action_select_track(idx);
+							},
+							\sends, { 
+								var oldidx = ( self.selected_send_idx ? 0 );
+								self.selected_send_idx = idx;
+								self.selected_send_idx.debug("map_quant_chooser: selected_send_idx");
+								self.map_track_mixer_sends(self.selected_send_idx);
+								self.render_track_selection_button(idx);
+								//self.action_select_track(idx);
+							},
+							\user, { 
+								self.selectedUserPanelIndex = idx;
+								self.selectedUserPanelIndex.debug("map_quant_chooser: selectedUserPanelIndex");
+								self.render_track_selection_button(idx);
+								self.render_grid;
+								//self.action_select_track(idx);
+								// TODO
+							},
+						);
+					};
 				}
 			};
 		}
@@ -690,7 +821,8 @@ ProtoDef(\apc40, (
 			} {
 				self.unmapParam([\kn, \t, idx]);
 			}
-		}
+		};
+		self.map_sendMode_fx(self.selected_send_idx);
 	},
 
 	activate_simplemixer: { arg self;
@@ -707,11 +839,117 @@ ProtoDef(\apc40, (
 
 ));
 
+///// user panels
+
+
+ProtoDef(\apc40).userPanels = ProtoDef(\apc40).userPanels ?? { nil ! 8 };
+// additional launch grid
+ProtoDef(\apc40).userPanels[0] = { arg apc, point;
+	var extra = apc.extra_playergrid ?? {
+		TrackDef("%_extra".format(apc.grid.trackKey).asSymbol, \PlayerGrid)  
+	};
+	extra.childAt(point);
+};
+
+// quickpad
+ProtoDef(\apc40).putAll((
+	quickpad: { arg self;
+		var name = \quickpad;
+		self['property_'+++name] ?? {
+			self['property_'+++name] = { nil ! ( self.gridsize.y+1 ) } ! ( self.gridsize.x+1 );
+			self['property_'+++name]
+		}
+	},
+
+	quickpad_: { arg self, val;
+		var name = \quickpad;
+		self['property_'+++name] = val
+	},
+));
+ProtoDef(\apc40).userPanels[1] = { arg self, point;
+	ProtoClass((
+		isActive: false,
+		isPlaying: false,
+		playMode: \gate,
+		isEmpty: {
+			self.quickpad[point.x][point.y].isNil;
+		},
+		play: { arg cellself;
+			//"play me please".debug;
+			//self.quickpad.debug("quickpad");
+			//self.quickpad[point.x][point.y].asCompileString.debug("fun");
+			self.quickpad[point.x][point.y].value(self, point);
+		},
+	))
+};
+
+// fx pad
+ProtoDef(\apc40).putAll((
+	quickfxpad: { arg self;
+		var name = \quickfxpad;
+		self['property_'+++name] ?? {
+			self['property_'+++name] = nil ! ( self.gridsize.y+1 );
+			self['property_'+++name]
+		}
+	},
+
+	quickfxpad_: { arg self, val;
+		var name = \quickfxpad;
+		self['property_'+++name] = val
+	},
+
+	quickfxpad_objects: { arg self;
+		var name = \quickfxpad_objects;
+		self['property_'+++name] ?? {
+			self['property_'+++name] = { nil ! ( self.gridsize.y+1 ) } ! ( self.gridsize.x+1 );
+			self['property_'+++name]
+		}
+	},
+
+	quickfxpad_objects_: { arg self, val;
+		var name = \quickfxpad_objects;
+		self['property_'+++name] = val
+	},
+));
+ProtoDef(\apc40).userPanels[2] = { arg self, point;
+	if(self.quickfxpad_objects[point.x][point.y].isNil) {
+		self.quickfxpad_objects[point.x][point.y] = ProtoClass((
+			isActive: false,
+			isPlaying: false,
+			playMode: \gate,
+			isEmpty: {
+				self.quickfxpad[point.y].isNil;
+			},
+			play: { arg cellself;
+				self.quickfxpad[point.y].value(cellself, self, self.grid.childAtOffset(point.x), point);
+			},
+		))
+	};
+	self.quickfxpad_objects[point.x][point.y];
+};
+
+//////// debug
+
 ProtoDef(\apc40).activate(TrackDef(\split)); // debug
 );
 
 // END
 
+			self.ktl.sendSpecialMessage(\setLiveMode);
+
+			FileSystemProject.load("libdef/pdeftrack.scd");
+			FileSystemProject.load("libdef/apc.scd");
+			Pdef(\pdefgrid0_0, Pbind(\note, Pseq([0,1],inf), \dur, 1/8));
+			Pdef(\pdefgrid0_1, Pbind(\note, Pseq([3,4],inf), \dur, 1/8));
+			TrackDef(\pdefgrid).edit
+			ProtoDef(\apc40).activate(TrackDef(\pdefgrid));
+			
+			ProtoDef(\apc40).map_rdn_to_bank(0, \rdn, [\delay, \delay2]);
+			ProtoDef(\apc40).activate_bank_selector
+			MKtl.find(\midi); // when was not connected
+			k=MKtl(\apc, "akai-apc40mkii");
+			k.sendSpecialMessage(\setLiveMode)
+		)
 TrackDef(\mygrid).isEmpty
 ProtoDef(\apc40).activate(TrackDef(\mygrid)); // debug
 ProtoDef(\apc40).activate; // debug

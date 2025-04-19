@@ -1612,15 +1612,15 @@ Pdef(\part, Pdef(\bpart1,
 (
 Pdef(\fxseq1, 
 	Ppar([
-		Prout({ arg ev;
-			var rdn = ProtoDef(\rdn3).proxy;
-			1000.do {
-				rdn.set(\distamp, 0.5);
-				3.wait;
-				rdn.set(\distamp, 74);
-				1.wait;
-			}
-		}),
+		//Prout({ arg ev;
+			//var rdn = ProtoDef(\rdn3).proxy;
+			//1000.do {
+				//rdn.set(\distamp, 0.5);
+				//3.wait;
+				//rdn.set(\distamp, 74);
+				//1.wait;
+			//}
+		//}),
 		Prout({ arg ev;
 			var rdn = ProtoDef(\rdn3).proxy;
 			1000.do {
@@ -1630,9 +1630,23 @@ Pdef(\fxseq1,
 				(2).wait;
 			}
 		}),
+		Prout({ arg ev;
+			var rdn = ProtoDef(\rdn3).proxy;
+			1000.do {
+				var rn = rrand(0.7,1);
+				rdn.set(\delay, 0.0000005);
+				(1).wait;
+				rdn.set(\delay, rn);
+				(1/2).wait;
+				rdn.set(\delay, Ndef(\lfo1, { Line.kr(rn,0.1,4/~t) }));
+				(1/2).wait;
+				//(1).wait;
+			}
+		}),
 	]),
 );
 );
+Pdef(\fxseq1).play
 
 
 

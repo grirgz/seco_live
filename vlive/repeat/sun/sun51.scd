@@ -2,6 +2,7 @@
 ~t = 132/2/60; TempoClock.default.tempo = ~t;
 
 (
+FileSystemProject.load("holis/synthdef.scd");
 SynthDef(\fx_chorust3, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -14,7 +15,6 @@ SynthDef(\fx_chorust3, { arg out=0, gate=1;
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
-Pdef(\part).reset;
 );
 (
 SynthDef(\filterfm, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
@@ -35,6 +35,42 @@ SynthDef(\simplesin, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	Out.ar(out, sig);
 }).add;
 );
+(
+SynthDef(\acidtry2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var ffenv = EnvGen.kr(Env([0,1,0],[\ffat.kr(0.05),\ffrel.kr(0.1)], 1, 1,1), gate, levelScale:\ffscale.kr(700));
+	freq = freq * [1/2,1,2,];
+	sig = SelectX.ar(\wave.kr(0.9),[ Saw.ar(freq),Pulse.ar(freq) ]);
+	sig = SelectX.ar(\oct.kr(0.1)*2, sig);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq + ffenv, \rq.kr(0.1), mul:\distgain.kr(0.5)).distort;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.4,1,-1)), gate, doneAction:2);
+	pan = [-0.1,0.1];
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\starb, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
+	var sig, sig1, sig2, sig3;
+	sig = {arg x; SinOsc.ar( freq/2 * x + ExpRand(freq/64,2*freq/64))}!9;
+	sig = sig.scramble;
+	sig = TScramble.ar(sig, Impulse.kr(4),1);
+	sig = FreqShift.ar(sig, 4 * SinOsc.kr(1/45).range(0,1)) + sig;
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1.01,0.1,1,1.1)),gate,doneAction:doneAction);
+	sig = sig /10;
+	sig = Splay.ar(sig, spread, amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+(
+Pdef('acidtrem').setVal('ffscale', 6.4876406187238);
+Pdef('acidtrem').setVal('tremfac', 2.5491518880364);
+Pdef('acidtrem').setVal('trembias', 12.093374395794);
+Pdef('acidtrem').setVal('wave', 0.88432621454712);
+Pdef('acidtrem').setVal('oct', 0.36980050469245);
+Pdef('acidtrem').setVal('lpfr', 1.5489134175503);
+
+);
+
+///////////
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -94,15 +130,6 @@ Pdef(\part, Pdef(\zedpart,
 ProtoDef(\piano).startControl()
 Pdef(\acidtrem).edit
 Pdef(\acidtrem).presetCompileString.editorInsert
-(
-Pdef('acidtrem').setVal('ffscale', 6.4876406187238);
-Pdef('acidtrem').setVal('tremfac', 2.5491518880364);
-Pdef('acidtrem').setVal('trembias', 12.093374395794);
-Pdef('acidtrem').setVal('wave', 0.88432621454712);
-Pdef('acidtrem').setVal('oct', 0.36980050469245);
-Pdef('acidtrem').setVal('lpfr', 1.5489134175503);
-
-);
 
 ~t
 
@@ -159,7 +186,6 @@ Pdef(\part, Pdef(\zedpart,
 
 /////////////////////////////
 
-FileSystemProject.load("holis/synthdef.scd");
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -265,20 +291,6 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-(
-SynthDef(\acidtry2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var ffenv = EnvGen.kr(Env([0,1,0],[\ffat.kr(0.05),\ffrel.kr(0.1)], 1, 1,1), gate, levelScale:\ffscale.kr(700));
-	freq = freq * [1/2,1,2,];
-	sig = SelectX.ar(\wave.kr(0.9),[ Saw.ar(freq),Pulse.ar(freq) ]);
-	sig = SelectX.ar(\oct.kr(0.1)*2, sig);
-	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq + ffenv, \rq.kr(0.1), mul:\distgain.kr(0.5)).distort;
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.4,1,-1)), gate, doneAction:2);
-	pan = [-0.1,0.1];
-	sig = Pan2.ar(sig, pan, amp).mean;
-	Out.ar(out, sig);
-}).add;
-);
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -668,7 +680,7 @@ Pdef(\part, Pdef(\zedpart,
 			\degree, Pseq([
 				0,2,4,0,
 			],inf),
-			\mtranspose, -2
+			\mtranspose, -2,
 			\adsr, Pseq([
 				[ Env.adsr(0.01,0.1,0.8,0.1) ],
 			],inf),
@@ -1233,17 +1245,6 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-SynthDef(\starb, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneAction=2;
-	var sig, sig1, sig2, sig3;
-	sig = {arg x; SinOsc.ar( freq/2 * x + ExpRand(freq/64,2*freq/64))}!9;
-	sig = sig.scramble;
-	sig = TScramble.ar(sig, Impulse.kr(4),1);
-	sig = FreqShift.ar(sig, 4 * SinOsc.kr(1/45).range(0,1)) + sig;
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(1.01,0.1,1,1.1)),gate,doneAction:doneAction);
-	sig = sig /10;
-	sig = Splay.ar(sig, spread, amp, pan);
-	Out.ar(out, sig);
-}).add;
 
 (
 	~swing = 0.32;

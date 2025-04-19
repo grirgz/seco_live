@@ -69,7 +69,7 @@ SynthDef(\star, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, doneA
 	sig = Splay.ar(sig, spread, amp, pan);
 	Out.ar(out, sig);
 }).add;
-)
+);
 
 (
 SynthDef(\oscsmpcomp, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, bufnum;
@@ -88,6 +88,8 @@ SynthDef(\oscsmpcomp, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, bufnum;
 	Out.ar(out, sig);
 }).add;
 );
+
+////////
 
 
 (
@@ -108,7 +110,7 @@ Pdef(\demo, Pdef(\xdemo,
 		
 	])
 )).play;
-)
+);
 
 (
 Pdef(\melo, 
