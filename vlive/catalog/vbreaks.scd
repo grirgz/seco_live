@@ -32,7 +32,31 @@ Pdef(\vbreaks_drums, Ppar([
 ]));
 );
 
+////
+// using buffer duration when loop is seemless
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
 
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/The New Mastersounds - Nervous 2.wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }) / 8,
+			\speed, ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 8,
+			]+0,1),8).loop * Pkey(\bufdur),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+//////////////////////////////////////////////
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
@@ -389,6 +413,50 @@ Pdef(\part, Pdef(\zedpart,
 			\pos, Pseg(Pseq([
 				0, 8,
 			]+0,1),8).loop / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/The New Mastersounds - Dusty Groove 2.wav'),
+			\legato, 1,
+			\st, 119/2/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 8,
+			]+0,1),8).loop / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/The New Mastersounds - Nervous 2.wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/8 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 8,
+			]+0,1),8).loop * Pkey(\bufdur) * 1/8,
 			\dur, 1/8,
 			\gain, 1/8,
 		),

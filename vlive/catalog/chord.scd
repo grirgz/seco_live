@@ -1156,3 +1156,60 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+
+////////////////
+
+(
+SynthDef(\formant, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\fenv.kr(Env([0,1,0],[0.1,0.8])), 1) * \fenvamt.kr(1) + 1;
+	env2 = EnvGen.kr(\bwenv.kr(Env([0,1,0],[0.1,0.8])), 1) * \bwenvamt.kr(1) + 1;
+	sig = Formant.ar(freq, \formfreq.kr(120) * env1, \bwfreq.kr(195) * env2);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \formant,
+			\note, Pseq([
+				[0,4,7,0+12],
+				[0,4,7-12,0+12]+5,
+				[1,4,7-12,1+12]+5,
+				[0,4,7-12,0+12]+7,
+			],inf).stutter(8*2),
+			\isRest, Pseq([
+				1,0,1,0,
+			],inf).coin.not,
+			\legato, Pseq([
+				4,0,0,0, 0,0,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\formfreq, PmodEnv(Pseq([100,200],1), 8*2).loop,
+			\bwfreq, PmodEnv(Pseq([100,800],1), 8*2).loop,
+			\fenvamt, 1.1,
+			\fenv, [
+				Env([0,0,1],[0.1,7.08])
+			],
+			\bwenv, [
+				Env([0,0,1],[0.1,7.08])
+			],
+			//\formfreq, PmodEnv(Pseq([140,780],1), 8).loop,
+			//\fspread, PmodEnv(Pseq([0.0051,0.04],1), 8).loop,
+			//\bwfreq, PmodEnv(Pseq([1400,152],1), 8).loop,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,2.5) ],
+			],inf),
+			\octave, 4,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);

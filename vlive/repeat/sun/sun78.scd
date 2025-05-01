@@ -1026,3 +1026,133 @@ Pbind(
 )).play;
 );
 
+/////////////
+// sample the bass
+
+
+(
+Pdef(\part, Pdef(\part1, 
+	Ppar([
+		//Pdef(\drums3),
+		//Pbind(
+		//\instrument, \playersec,
+		//\bufnum, BufDef('vipere/danger.flac'),
+		//\pos, ~pos.engine2,
+		//\speed, 1,
+		//\loop,1,
+		//\legato, 1,
+		//\dur, 8,
+		//\adsr, Pseq([
+		//[ Env.adsr(0.4,0.1,0.6,0.1) ],
+		//],inf),
+		//\gain, 1/6,
+		//),
+		Pbind(
+			\instrument, \saw,
+			\note, Pseq([
+				-3,
+				-3,
+				-3,
+				[5,4],
+			],inf),
+			\lpfr, 5,
+			\legato, 0.2,
+			\octave, 3,
+			\strum, 2,
+			\dur, 4,
+			\amp, 0.1,
+			\out, BusDef(\pfx1, \audio),
+		),
+		Pmono(\rdn_terrorbass,
+			\inbus, BusDef(\pfx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\dur, 1,
+		) <> 
+		Pbind(
+			'wet10', 1.0,
+			'mix', 0.52521008403361,
+			'gain', 0.43697478991597,
+			'fb', 0.0001,
+			'delay', 0.55962764453196,
+			'delay2', 0.0001,
+			'shift', 0.0,
+			'shift2', 0.12605042016807,
+			'distamp', 57.610839222447,
+			'pitchlag', 1.0,
+			'pitchmix', 0.0,
+			'prelpf', 17000,
+			'prehpf', 17,
+			'lpf', 17000,
+			'hpf', 17,
+			'fbdistamp', 0.47619047619048,
+			'fbdistmix', 0.91176470588235,
+			'postlpf', 17000,
+			'posthpf', 17,
+			'wetamp', 0.46579739809918,
+			'indelay', 0.04,
+			'wet20', 1.0,
+			'mamp', 1,
+		),
+		//Ptpar([
+		//8+6, Ppar([
+		//Pbind(
+		//\instrument, \playersec,
+		//\bufnum, BufDef('vipere/danger.flac'),
+		//\pos, 0.0,
+		//\speed, 0.8,
+		//\legato, 1,
+		//\dur, Pn(1,1),
+		//\gain, 1/8,
+		//),
+		//Pbind(
+		//\instrument, \rise,
+		//\freq, PmodEnv(Pseq([100,62.midicps],1), 1).loop,
+		//\rq, 0.8,
+		//\lpf, 1800/2,
+		//\lpf, PmodEnv(Pseq([100,1000],1), 1).loop,
+		//\legato, 1,
+
+		//\dur, Pn(1,1),
+		//\amp, PmodEnv(Pseq([0,0.1/2],1), 1).loop,
+		//),
+		//]),
+		//8+7, Pbind(
+		//\instrument, \playersec,
+		//\bufnum, BufDef('vipere/danger.flac'),
+		//\pos, ~pos.danger,
+		//\legato, 1,
+		//\dur, Pn(1,1),
+		//\gain, 1/8,
+		//),
+		//],inf),
+
+	])
+)).play;
+);
+SampleTimeline('rec_mainTimeline_t0_250420_224140').presetCompileString.editorInsert
+(
+SampleTimeline('terrorbass').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \label: 'start', \playDur: 8, \relDur: 8, \sustain: 0, \type: 'start', ),
+	(\absTime: 64.0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+SampleTimeline('rec_mainTimeline_t0_250420_224140').buffer = BufDef(\terrorbass, "cliprec/rec_rec_mainTimeline_t0_250420_224140_250420_224140.wav");
+SampleTimeline('rec_mainTimeline_t0_250420_224140').postPatternPreset = (  );
+
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef(\terrorbass),
+			\pos, Pseq((0..4-1)*2,inf).stutter(4),
+			\legato, 1,
+			\dur, 1/4,
+			\gain, 1,
+		)
+	])
+)).play;
+);

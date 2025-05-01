@@ -120,7 +120,7 @@ SynthDef(\warmbass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var lpenv, lpfreq;
 	sig = LFSaw.ar(freq);
 	lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.01,0.8,0.4,0.8)), gate, doneAction:0) * \envamt.kr(1) + 1;
-	lpfreq = freq * \kbamt.kr(1);
+	lpfreq = freq * \kbamt.kr(1) + 1;
 	sig = RLPF.ar(sig, ( \lpf.kr(50) * lpenv * lpfreq ).clip(20,20000), \rq.kr(0.5));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.8)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
@@ -372,4 +372,20 @@ SynthDef(\simplefm, { arg out=0, amp=0.1, gate=1, pan=0;
 	Out.ar(out, sig);
 }).add;
  	 
+/////////////////
+
+SynthDef(\formant, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\fenv.kr(Env([0,1,0],[0.1,0.8])), 1) * \fenvamt.kr(1) + 1;
+	env2 = EnvGen.kr(\bwenv.kr(Env([0,1,0],[0.1,0.8])), 1) * \bwenvamt.kr(1) + 1;
+	sig = Formant.ar(freq, \formfreq.kr(120) * env1, \bwfreq.kr(195) * env2);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}, metadata:(specs:(
+	fenv: ParamEnvSpec(\unipolar),
+	bwenv: ParamEnvSpec(\unipolar),
+))).add;
+
 );

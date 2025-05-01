@@ -36,6 +36,7 @@ ProtoDef(\apc40, (
 			orange: 125,
 			amber: 126,
 			off: 0, 
+			disabled: 43,
 	)),
 
 	color_modes: (
@@ -46,6 +47,8 @@ ProtoDef(\apc40, (
 	),
 
 	gridsize: Point(8,5),
+
+	/////// utils
 
 	gridOffset_: { arg self, val;
 		self.grid.gridOffset = val;
@@ -66,6 +69,166 @@ ProtoDef(\apc40, (
 		self.ktl.elAt(\bt, \clip, pos.y, pos.x);
 	},
 
+	childAtOffset: { arg self, point;
+		switch(self.displayMode,
+			\pan, { 
+				self.grid.childAtOffset(point);
+			},
+			\sends, { 
+				self.grid.childAtOffset(point);
+			},
+			\user, { 
+				var fun;
+				self.selectedUserPanelIndex = self.selectedUserPanelIndex ? 0;
+				self.userPanels = self.userPanels ?? { nil!self.gridsize.x };
+				fun = self.userPanels[self.selectedUserPanelIndex];
+				if(fun.notNil) {
+					fun.value(self, point);
+				} {
+					ProtoClass((
+						isActive: true,
+						isPlaying: false,
+						isEmpty: false,
+						padColor: \disabled,
+					))
+				};
+				//self.action_select_track(idx);
+			},
+		);
+	},
+
+
+	mapParam: { arg self, ktlpath, param, toggleMode;
+		[ktlpath, param].debug("mapParam");
+		self.ktl.elAt(*ktlpath).mapParam(param, toggleMode);
+		//self.ktl.elAt(*ktlpath).value = param.normGet;
+		//if(param.isNil) {
+			//self.ktl.elAt(*ktlpath).action = { arg me; };
+			//self.ktl.elAt(*ktlpath).value = 0;
+		//} {
+			//self.ktl.elAt(*ktlpath).action = { arg me;
+				//param.normSet(me.value)
+			//};
+			//self.ktl.elAt(*ktlpath).value = param.normGet;
+		//};
+	},
+
+	unmapParam: { arg self, ktlpath;
+		self.mapParam(ktlpath, nil)
+	},
+
+	mapToggleButtonParam: { arg self, ktlpath, param;
+		if(param.isNil) {
+			self.ktl.elAt(*ktlpath).action = { arg me; };
+			self.ktl.elAt(*ktlpath).value = 0;
+		} {
+			self.ktl.elAt(*ktlpath).action = { arg me;
+				param.normSet(me.value)
+			};
+			self.ktl.elAt(*ktlpath).value = param.normGet;
+		};
+	},
+
+	/////// listeners
+
+	controllers: { arg self;
+		var k = self.ktl.getHalo(\controllers);
+		if(k.isNil) {
+			k = { nil ! ( self.gridsize.y + 1 )} ! ( self.gridsize.x + 1 );
+			self.ktl.addHalo(\controllers, k)
+		};
+		k
+	},
+
+	controllers_dict: { arg self;
+		var k = self.ktl.getHalo(\controllers_dict);
+		if(k.isNil) {
+			k = IdentityDictionary.new;
+			self.ktl.addHalo(\controllers_dict, k)
+		};
+		k
+	},
+
+	listenAt: { arg self, pos;
+		var player = PlayerWrapper(self.childAtOffset(pos));
+		pos.debug("listenAt");
+		if(self.controllers[pos.x][pos.y].notNil) {
+			self.controllers[pos.x][pos.y].remove;
+		};
+		self.controllers[pos.x][pos.y] = player.makeListener({ arg me, msg, args;
+			//{
+			[msg, args].debug("listenat!!");
+				self.render_cell(pos, msg == \play, self.color_modes.blink);
+				player.doWithQuant {
+					self.render_cell(pos);
+				};
+			//}.defer(1)
+		});
+	},
+
+	listenAtMixerParam: { arg self, key, idx, param, action;
+		self.controllers_dict[\mixer] = self.controllers_dict[\mixer] ?? { IdentityDictionary.new };
+		self.controllers_dict[\mixer][key] = self.controllers_dict[\mixer][key] ?? { List.newClear(self.gridsize.x) };
+		if(self.controllers_dict[\mixer][key][idx].notNil) {
+			self.controllers_dict[\mixer][key][idx].remove;
+		};
+		if(param.notNil) {
+			self.controllers_dict[\mixer][key][idx] = param.makeListener({ arg me, msg, args;
+				//{
+				//[msg, args].debug("listenat!!");
+				action.()
+				//}.defer(1)
+			});
+		}
+	},
+
+	makeListeners: { arg self;
+		if(self.controllers_dict[\gridOffset].notNil) {
+			self.controllers_dict[\gridOffset].remove;
+		};
+		self.controllers_dict[\gridOffset] = SimpleController(self.grid).put(\gridOffset, {
+			//self.map_track_mixer_mute;
+			self.activate_trackmixer;
+			self.render_grid;
+		});
+	},
+
+
+	/////// rendering
+
+	render_grid: { arg self;
+		"render_grid a".debug;
+		self.gridsize.x.do { arg x;
+			self.gridsize.y.do { arg y;
+				var pos = Point(x, y);
+				self.render_cell(pos);
+				self.listenAt(pos);
+			}
+		};
+		"b".debug;
+		self.map_scene_buttons;
+		self.map_clipStop_buttons;
+		self.render_displayMode;
+
+		self.gridsize.x.do { arg x;
+			x.debug("render_grid, render_trackbutton");
+			self.render_trackbutton(x);
+			self.render_track_selection_button(x);
+		};
+		//"c".debug;
+		self.makeListeners;
+		//"d".debug;
+		self.gridsize.x.do { arg idx;
+			self.render_mixer_button(\muteMode, idx, true);
+			self.render_mixer_button(\soloMode, idx);
+		};
+		"render_grid end".debug;
+	},
+
+	refresh: { arg self;
+		self.render_grid;
+	},
+
 	setColorAt: { arg self, pos, color, mode;
 		mode = mode ? 0;
 		[pos, color, mode].debug("setColorAt");
@@ -77,19 +240,23 @@ ProtoDef(\apc40, (
 		var color;
 		var child = self.childAtOffset(pos);
 		pos.debug("render_cell");
-		if(child.isNil or: {child.isEmpty == true}) {
-			color = \off
+		if(child.padColor.notNil) {
+			color = child.padColor;
 		} {
-			//[isPlaying, child.isPlaying].debug("render_cell: is, chiisp");
-			isPlaying = isPlaying ?? { child.isPlaying };
-			if(isPlaying) {
-				color = \green;
+			if(child.isNil or: {child.isEmpty == true}) {
+				color = \off
 			} {
-				if(child.isActive) {
-					color = \red;
+				//[isPlaying, child.isPlaying].debug("render_cell: is, chiisp");
+				isPlaying = isPlaying ?? { child.isPlaying };
+				if(isPlaying) {
+					color = \green;
 				} {
-					color = \yellow;
-				}
+					if(child.isActive) {
+						color = \red;
+					} {
+						color = \yellow;
+					}
+				};
 			};
 		};
 		color = self.colors[color];
@@ -162,35 +329,6 @@ ProtoDef(\apc40, (
 		};
 	},
 
-	render_grid: { arg self;
-		"render_grid a".debug;
-		self.gridsize.x.do { arg x;
-			self.gridsize.y.do { arg y;
-				var pos = Point(x, y);
-				self.render_cell(pos);
-				self.listenAt(pos);
-			}
-		};
-		"b".debug;
-		self.map_scene_buttons;
-		self.map_clipStop_buttons;
-		self.render_displayMode;
-
-		self.gridsize.x.do { arg x;
-			x.debug("render_grid, render_trackbutton");
-			self.render_trackbutton(x);
-			self.render_track_selection_button(x);
-		};
-		//"c".debug;
-		self.makeListeners;
-		//"d".debug;
-		self.gridsize.x.do { arg idx;
-			self.render_mixer_button(\muteMode, idx, true);
-			self.render_mixer_button(\soloMode, idx);
-		};
-		"render_grid end".debug;
-	},
-
 	render_mixer_button: { arg self, key, idx, reverse=false;
 		var kind = switch(key,
 			\muteMode, { \activ },
@@ -221,129 +359,7 @@ ProtoDef(\apc40, (
 		
 	},
 
-	refresh: { arg self;
-		self.render_grid;
-	},
-
-	controllers: { arg self;
-		var k = self.ktl.getHalo(\controllers);
-		if(k.isNil) {
-			k = { nil ! ( self.gridsize.y + 1 )} ! ( self.gridsize.x + 1 );
-			self.ktl.addHalo(\controllers, k)
-		};
-		k
-	},
-
-	controllers_dict: { arg self;
-		var k = self.ktl.getHalo(\controllers_dict);
-		if(k.isNil) {
-			k = IdentityDictionary.new;
-			self.ktl.addHalo(\controllers_dict, k)
-		};
-		k
-	},
-
-	listenAt: { arg self, pos;
-		var player = PlayerWrapper(self.childAtOffset(pos));
-		pos.debug("listenAt");
-		if(self.controllers[pos.x][pos.y].notNil) {
-			self.controllers[pos.x][pos.y].remove;
-		};
-		self.controllers[pos.x][pos.y] = player.makeListener({ arg me, msg, args;
-			//{
-			[msg, args].debug("listenat!!");
-				self.render_cell(pos, msg == \play, self.color_modes.blink);
-				player.doWithQuant {
-					self.render_cell(pos);
-				};
-			//}.defer(1)
-		});
-	},
-
-	listenAtMixerParam: { arg self, key, idx, param, action;
-		self.controllers_dict[\mixer] = self.controllers_dict[\mixer] ?? { IdentityDictionary.new };
-		self.controllers_dict[\mixer][key] = self.controllers_dict[\mixer][key] ?? { List.newClear(self.gridsize.x) };
-		if(self.controllers_dict[\mixer][key][idx].notNil) {
-			self.controllers_dict[\mixer][key][idx].remove;
-		};
-		if(param.notNil) {
-			self.controllers_dict[\mixer][key][idx] = param.makeListener({ arg me, msg, args;
-				//{
-				//[msg, args].debug("listenat!!");
-				action.()
-				//}.defer(1)
-			});
-		}
-	},
-
-	makeListeners: { arg self;
-		if(self.controllers_dict[\gridOffset].notNil) {
-			self.controllers_dict[\gridOffset].remove;
-		};
-		self.controllers_dict[\gridOffset] = SimpleController(self.grid).put(\gridOffset, {
-			//self.map_track_mixer_mute;
-			self.activate_trackmixer;
-			self.render_grid;
-		});
-	},
-
-	mapParam: { arg self, ktlpath, param, toggleMode;
-		[ktlpath, param].debug("mapParam");
-		self.ktl.elAt(*ktlpath).mapParam(param, toggleMode);
-		//self.ktl.elAt(*ktlpath).value = param.normGet;
-		//if(param.isNil) {
-			//self.ktl.elAt(*ktlpath).action = { arg me; };
-			//self.ktl.elAt(*ktlpath).value = 0;
-		//} {
-			//self.ktl.elAt(*ktlpath).action = { arg me;
-				//param.normSet(me.value)
-			//};
-			//self.ktl.elAt(*ktlpath).value = param.normGet;
-		//};
-	},
-
-	unmapParam: { arg self, ktlpath;
-		self.mapParam(ktlpath, nil)
-	},
-
-	mapToggleButtonParam: { arg self, ktlpath, param;
-		if(param.isNil) {
-			self.ktl.elAt(*ktlpath).action = { arg me; };
-			self.ktl.elAt(*ktlpath).value = 0;
-		} {
-			self.ktl.elAt(*ktlpath).action = { arg me;
-				param.normSet(me.value)
-			};
-			self.ktl.elAt(*ktlpath).value = param.normGet;
-		};
-	},
-
-	childAtOffset: { arg self, point;
-		switch(self.displayMode,
-			\pan, { 
-				self.grid.childAtOffset(point);
-			},
-			\sends, { 
-				self.grid.childAtOffset(point);
-			},
-			\user, { 
-				var fun;
-				self.selectedUserPanelIndex = self.selectedUserPanelIndex ? 0;
-				self.userPanels = self.userPanels ?? { nil!self.gridsize.x };
-				fun = self.userPanels[self.selectedUserPanelIndex];
-				if(fun.notNil) {
-					fun.value(self, point);
-				} {
-					ProtoClass((
-						isActive: true,
-						isPlaying: false,
-						isEmpty: false,
-					))
-				};
-				//self.action_select_track(idx);
-			},
-		);
-	},
+	/////// map device
 
 	activate: { arg self, grid;
 		var move_in_grid;
@@ -479,8 +495,6 @@ ProtoDef(\apc40, (
 		self.activate(model);
 	},
 
-	///// custom
-
 	map_clip_buttons: { arg self;
 		self.ktl.elAt(\bt, \clip).do { arg row, rowidx;
 			row.do { arg pad, colidx;
@@ -527,6 +541,227 @@ ProtoDef(\apc40, (
 			};
 		};
 	},
+
+	map_scene_buttons: { arg self;
+		self.ktl.elAt(\bt, \scene).do { arg pad, idx;
+			var player;
+			//idx = 4-idx;
+			player = PlayerWrapper(self.grid.sectionAt(idx + self.gridOffset.y));
+			//pad.elAt(\on).mapPlayer(PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)), { self.render_scene_button(idx) }  );
+			pad.elAt(\on).action = {
+				var res = self.callback_scene_button(idx);
+				if(res != false) {
+					player.togglePlay;
+				};
+				self.render_scene_button(idx);
+				player.doWithQuant {
+					self.render_scene_buttons;
+				}
+			};
+			//pad.elAt(\on).getHalo(\ParamListener) !? _.remove;
+			//pad.elAt(\on).addHalo(\ParamListener, player.makeListener({ arg me, msg ...args;
+				// do not work because nobody send stopped signal for sections
+				//[ idx, msg, args, player, player.isPlaying.asInteger ].debug("map_scene_buttons.mapPlayer listener: receive ************##############");
+				//self.render_scene_button(idx);
+			//}));
+			self.render_scene_button(idx);
+			//pad.elAt(0).action = {
+				//PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)).togglePlay;
+				//self.render_scene_button(idx);
+			//};
+		};
+		
+	},
+	map_quant_chooser: { arg self;
+		self.quant_list = [0, 8, 4, 2,  1, 1/4, 1/8, 1/16];
+		8.do { arg idx;
+			var iidx = idx;
+			self.ktl.elAt(\bt, \selection, idx, 0).action = { arg me;
+				self.displayMode.debug("map_quant_chooser: displayMode");
+				if(self.shiftModifier == true) {
+					self.quant_list[iidx].debug("set quant to");
+					Pdef.defaultQuant = self.quant_list[iidx];
+				} {
+					if(self.bankModifier == true) {
+						if(self.gridBank.notNil) {
+							var grid = self.gridBank[idx];
+							if(grid.notNil) {
+								self.activate(grid);
+							};
+						};
+					} {
+						self.displayMode.debug("map_quant_chooser: displayMode2");
+						switch(self.displayMode,
+							\pan, { 
+								var oldidx = ( self.grid.activeIndex ? 0 ) - self.gridOffset.x;
+								self.grid.activeIndex = self.grid.childAtOffset(iidx).index;
+								self.render_track_selection_button(idx);
+								//self.action_select_track(idx);
+							},
+							\sends, { 
+								var oldidx = ( self.selected_send_idx ? 0 );
+								self.selected_send_idx = idx;
+								self.selected_send_idx.debug("map_quant_chooser: selected_send_idx");
+								self.map_track_mixer_sends(self.selected_send_idx);
+								self.render_track_selection_button(idx);
+								//self.action_select_track(idx);
+							},
+							\user, { 
+								self.selectedUserPanelIndex = idx;
+								self.selectedUserPanelIndex.debug("map_quant_chooser: selectedUserPanelIndex");
+								self.render_track_selection_button(idx);
+								self.render_grid;
+								//self.action_select_track(idx);
+								// TODO
+							},
+						);
+					};
+				}
+			};
+		}
+	},
+
+	map_clipStop_buttons: { arg self;
+		self.ktl.elAt(\bt, \clipS).do { arg pad, idx;
+			var player = self.grid.childAtOffset(idx);
+			//idx = 7-idx;
+			pad.elAt(\on).mapPlayer(PlayerWrapper(player), { 
+				//{self.render_trackbutton(idx)}.defer(player.quant + 1) 
+				"clipS pushed".debug(idx);
+				self.render_trackbutton(idx)
+			})
+
+			//pad.elAt(0).action = {
+			//PlayerWrapper(self.grid.childAtOffset(idx)).stop;
+			//};
+		};
+	},
+
+
+	map_sendMode_fx: { arg self, idx;
+		if(idx.notNil and: { idx > 0 }) {
+			var fxkey = ProtoDef(\FxManager).fxKeys[idx-1];
+			[fxkey.asCompileString, idx, fxkey.asString.contains("rdn")].debug("map_sendMode_fx");
+			if(fxkey.asString.contains("rdn")) {
+				var proxy = Ndef(fxkey);
+				[idx, proxy].debug("mapping sendmode fx");
+				[
+					Param(proxy, \delay),
+					Param(proxy, \delay2),
+					Param(proxy, \fb),
+					Param(proxy, \distamp),
+
+					Param(proxy, \posthpf),
+					Param(proxy, \postlpf),
+					nil,
+					Param(proxy, \gain),
+				].collect({ arg param, idx;
+					self.mapParam([ \kn, \d, 0, idx ], param);
+				});
+
+				self.ktl.elAt(\bt, \device, 0, \detail, \on).action = {
+					{
+						ProtoDef(fxkey).edit;
+					}.defer;
+				};
+				self.ktl.elAt(\bt, \device, 0, \devonoff, \on).mapPlayer(PlayerWrapper(ProtoDef(fxkey)));
+			} {
+
+			}
+		};
+			
+	},
+
+	action_select_track: { arg self, idx;
+		// or quant chooser
+		var oldidx = self.selectedTrackIndex ? 0;
+		self.selectedTrackIndex = idx;
+		self.render_track_selection_button(idx);
+		self.render_track_selection_button(oldidx);
+	},
+
+	map_simplemixer_send: { arg self, send=0;
+		var mixer = ProtoDef(\simpleMixer);
+		8.do { arg idx;
+			self.mapParam([\kn, \t, idx], mixer.tracks[idx].asParam(\send+++send));
+		}
+	},
+	map_simplemixer_sends: { arg self ...args; self.map_simplemixer_send(*args) },
+
+	map_simplemixer_faders: { arg self;
+		var mixer = ProtoDef(\simpleMixer);
+		8.do { arg idx;
+			self.mapParam([\sl, 0, idx], mixer.tracks[idx].asParam(\postfader));
+		}
+	},
+
+	map_track_mixer_faders: { arg self;
+		8.do { arg idx;
+			var mix = self.grid.childAtOffset(idx).mixer;
+			[idx, mix].debug("map_track_mixer_faders");
+			if(mix.notNil) {
+				[idx, mix].debug("map_track_mixer_faders notnil");
+				self.mapParam([\sl, 0, idx], mix.asParam(\postfader));
+			} {
+				self.unmapParam([\sl, 0, idx]);
+			}
+		};
+		self.mapParam([\sl, \master], Param(Server.default.volume, \volume));
+	},
+
+	map_track_mixer_mute: { arg self;
+		8.do { arg idx;
+			var mix = self.grid.childAtOffset(idx).mixer;
+			[idx, mix].debug("map_track_mixer_mute");
+			if(mix.notNil) {
+				[idx, mix].debug("map_track_mixer_mute notnil");
+				//self.mapParam([\bt, '5', 0, idx,\on], mix.asParam(\muteMode), true);
+				//self.mapParam([\bt, '5', 1, idx,\on], mix.asParam(\soloMode), true);
+				self.mapParam([\bt, \track, \activ, idx], mix.asParam(\muteMode), true);
+				self.mapParam([\bt, \track, \solo, idx], mix.asParam(\soloMode), true);
+				self.listenAtMixerParam(\muteMode, idx, mix.asParam(\muteMode), {
+					mix.asParam(\muteMode).normGet.debug("wuuuutt");
+					//self.ktl.elAt(*[\bt, '5', 0, idx,\on]).value = ( 1 - mix.asParam(\muteMode).normGet );
+					self.render_mixer_button(\muteMode, idx, true);
+				});
+				self.listenAtMixerParam(\soloMode, idx, mix.asParam(\soloMode), {
+					//self.ktl.elAt(*[\bt, '5', 1, idx,\on]).value = mix.asParam(\soloMode).normGet;
+					self.render_mixer_button(\soloMode, idx);
+				});
+			} {
+				self.unmapParam([\bt, \track, \activ, idx]);
+				self.unmapParam([\bt, \track, \solo, idx]);
+				self.listenAtMixerParam(\muteMode, idx);
+				self.listenAtMixerParam(\soloMode, idx);
+			}
+		}
+	},
+
+	map_track_mixer_sends: { arg self, send=0;
+		8.do { arg idx;
+			var mix = self.grid.childAtOffset(idx).mixer;
+			if(mix.notNil) {
+				self.mapParam([\kn, \t, idx], mix.asParam(\send+++send));
+			} {
+				self.unmapParam([\kn, \t, idx]);
+			}
+		};
+		self.map_sendMode_fx(self.selected_send_idx);
+	},
+
+	activate_simplemixer: { arg self;
+		self.map_simplemixer_send;
+		self.map_simplemixer_faders;
+	},
+
+	activate_trackmixer: { arg self;
+		self.map_track_mixer_faders;
+		self.map_track_mixer_sends;
+		self.map_track_mixer_mute;
+		
+	},
+
+	///// custom
 
 	clear_flats: { arg self;
 		self.bank_names.do { arg name;
@@ -618,224 +853,6 @@ ProtoDef(\apc40, (
 		};
 	},
 
-	map_sendMode_fx: { arg self, idx;
-		if(idx.notNil and: { idx > 0 }) {
-			var fxkey = ProtoDef(\FxManager).fxKeys[idx-1];
-			[fxkey.asCompileString, idx, fxkey.asString.contains("rdn")].debug("map_sendMode_fx");
-			if(fxkey.asString.contains("rdn")) {
-				var proxy = Ndef(fxkey);
-				[idx, proxy].debug("mapping sendmode fx");
-				[
-					Param(proxy, \delay),
-					Param(proxy, \delay2),
-					Param(proxy, \fb),
-					Param(proxy, \distamp),
-
-					Param(proxy, \posthpf),
-					Param(proxy, \postlpf),
-					nil,
-					Param(proxy, \gain),
-				].collect({ arg param, idx;
-					self.mapParam([ \kn, \d, 0, idx ], param);
-				});
-
-				self.ktl.elAt(\bt, \device, 0, \detail, \on).action = {
-					{
-						ProtoDef(fxkey).edit;
-					}.defer;
-				};
-				self.ktl.elAt(\bt, \device, 0, \devonoff, \on).mapPlayer(PlayerWrapper(ProtoDef(fxkey)));
-			} {
-
-			}
-		};
-			
-	},
-
-	map_clipStop_buttons: { arg self;
-		self.ktl.elAt(\bt, \clipS).do { arg pad, idx;
-			var player = self.grid.childAtOffset(idx);
-			//idx = 7-idx;
-			pad.elAt(\on).mapPlayer(PlayerWrapper(player), { 
-				//{self.render_trackbutton(idx)}.defer(player.quant + 1) 
-				"clipS pushed".debug(idx);
-				self.render_trackbutton(idx)
-			})
-
-			//pad.elAt(0).action = {
-			//PlayerWrapper(self.grid.childAtOffset(idx)).stop;
-			//};
-		};
-	},
-
-	map_scene_buttons: { arg self;
-		self.ktl.elAt(\bt, \scene).do { arg pad, idx;
-			var player;
-			//idx = 4-idx;
-			player = PlayerWrapper(self.grid.sectionAt(idx + self.gridOffset.y));
-			//pad.elAt(\on).mapPlayer(PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)), { self.render_scene_button(idx) }  );
-			pad.elAt(\on).action = {
-				var res = self.callback_scene_button(idx);
-				if(res != false) {
-					player.togglePlay;
-				};
-				self.render_scene_button(idx);
-				player.doWithQuant {
-					self.render_scene_buttons;
-				}
-			};
-			//pad.elAt(\on).getHalo(\ParamListener) !? _.remove;
-			//pad.elAt(\on).addHalo(\ParamListener, player.makeListener({ arg me, msg ...args;
-				// do not work because nobody send stopped signal for sections
-				//[ idx, msg, args, player, player.isPlaying.asInteger ].debug("map_scene_buttons.mapPlayer listener: receive ************##############");
-				//self.render_scene_button(idx);
-			//}));
-			self.render_scene_button(idx);
-			//pad.elAt(0).action = {
-				//PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)).togglePlay;
-				//self.render_scene_button(idx);
-			//};
-		};
-		
-	},
-
-	action_select_track: { arg self, idx;
-		// or quant chooser
-		var oldidx = self.selectedTrackIndex ? 0;
-		self.selectedTrackIndex = idx;
-		self.render_track_selection_button(idx);
-		self.render_track_selection_button(oldidx);
-	},
-
-	map_quant_chooser: { arg self;
-		self.quant_list = [0, 8, 4, 2,  1, 1/4, 1/8, 1/16];
-		8.do { arg idx;
-			var iidx = idx;
-			self.ktl.elAt(\bt, \selection, idx, 0).action = { arg me;
-				self.displayMode.debug("map_quant_chooser: displayMode");
-				if(self.shiftModifier == true) {
-					self.quant_list[iidx].debug("set quant to");
-					Pdef.defaultQuant = self.quant_list[iidx];
-				} {
-					if(self.bankModifier == true) {
-						if(self.gridBank.notNil) {
-							var grid = self.gridBank[idx];
-							if(grid.notNil) {
-								self.activate(grid);
-							};
-						};
-					} {
-						self.displayMode.debug("map_quant_chooser: displayMode2");
-						switch(self.displayMode,
-							\pan, { 
-								var oldidx = ( self.grid.activeIndex ? 0 ) - self.gridOffset.x;
-								self.grid.activeIndex = self.grid.childAtOffset(iidx).index;
-								self.render_track_selection_button(idx);
-								//self.action_select_track(idx);
-							},
-							\sends, { 
-								var oldidx = ( self.selected_send_idx ? 0 );
-								self.selected_send_idx = idx;
-								self.selected_send_idx.debug("map_quant_chooser: selected_send_idx");
-								self.map_track_mixer_sends(self.selected_send_idx);
-								self.render_track_selection_button(idx);
-								//self.action_select_track(idx);
-							},
-							\user, { 
-								self.selectedUserPanelIndex = idx;
-								self.selectedUserPanelIndex.debug("map_quant_chooser: selectedUserPanelIndex");
-								self.render_track_selection_button(idx);
-								self.render_grid;
-								//self.action_select_track(idx);
-								// TODO
-							},
-						);
-					};
-				}
-			};
-		}
-	},
-
-	map_simplemixer_send: { arg self, send=0;
-		var mixer = ProtoDef(\simpleMixer);
-		8.do { arg idx;
-			self.mapParam([\kn, \t, idx], mixer.tracks[idx].asParam(\send+++send));
-		}
-	},
-	map_simplemixer_sends: { arg self ...args; self.map_simplemixer_send(*args) },
-
-	map_simplemixer_faders: { arg self;
-		var mixer = ProtoDef(\simpleMixer);
-		8.do { arg idx;
-			self.mapParam([\sl, 0, idx], mixer.tracks[idx].asParam(\postfader));
-		}
-	},
-
-	map_track_mixer_faders: { arg self;
-		8.do { arg idx;
-			var mix = self.grid.childAtOffset(idx).mixer;
-			[idx, mix].debug("map_track_mixer_faders");
-			if(mix.notNil) {
-				[idx, mix].debug("map_track_mixer_faders notnil");
-				self.mapParam([\sl, 0, idx], mix.asParam(\postfader));
-			} {
-				self.unmapParam([\sl, 0, idx]);
-			}
-		};
-		self.mapParam([\sl, \master], Param(Server.default.volume, \volume));
-	},
-
-	map_track_mixer_mute: { arg self;
-		8.do { arg idx;
-			var mix = self.grid.childAtOffset(idx).mixer;
-			[idx, mix].debug("map_track_mixer_mute");
-			if(mix.notNil) {
-				[idx, mix].debug("map_track_mixer_mute notnil");
-				//self.mapParam([\bt, '5', 0, idx,\on], mix.asParam(\muteMode), true);
-				//self.mapParam([\bt, '5', 1, idx,\on], mix.asParam(\soloMode), true);
-				self.mapParam([\bt, \track, \activ, idx], mix.asParam(\muteMode), true);
-				self.mapParam([\bt, \track, \solo, idx], mix.asParam(\soloMode), true);
-				self.listenAtMixerParam(\muteMode, idx, mix.asParam(\muteMode), {
-					mix.asParam(\muteMode).normGet.debug("wuuuutt");
-					//self.ktl.elAt(*[\bt, '5', 0, idx,\on]).value = ( 1 - mix.asParam(\muteMode).normGet );
-					self.render_mixer_button(\muteMode, idx, true);
-				});
-				self.listenAtMixerParam(\soloMode, idx, mix.asParam(\soloMode), {
-					//self.ktl.elAt(*[\bt, '5', 1, idx,\on]).value = mix.asParam(\soloMode).normGet;
-					self.render_mixer_button(\soloMode, idx);
-				});
-			} {
-				self.unmapParam([\bt, \track, \activ, idx]);
-				self.unmapParam([\bt, \track, \solo, idx]);
-				self.listenAtMixerParam(\muteMode, idx);
-				self.listenAtMixerParam(\soloMode, idx);
-			}
-		}
-	},
-
-	map_track_mixer_sends: { arg self, send=0;
-		8.do { arg idx;
-			var mix = self.grid.childAtOffset(idx).mixer;
-			if(mix.notNil) {
-				self.mapParam([\kn, \t, idx], mix.asParam(\send+++send));
-			} {
-				self.unmapParam([\kn, \t, idx]);
-			}
-		};
-		self.map_sendMode_fx(self.selected_send_idx);
-	},
-
-	activate_simplemixer: { arg self;
-		self.map_simplemixer_send;
-		self.map_simplemixer_faders;
-	},
-
-	activate_trackmixer: { arg self;
-		self.map_track_mixer_faders;
-		self.map_track_mixer_sends;
-		self.map_track_mixer_mute;
-		
-	},
 
 ));
 

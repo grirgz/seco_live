@@ -4,7 +4,7 @@
 
 ~t = 145/4/60; TempoClock.default.tempo = ~t;
 
-FileSystemProject.load("holis/synthdef.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
 (
 SynthDef(\largechord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -35,7 +35,7 @@ SynthDef(\gransinfm, { arg out=0, amp=0.1, freq=100, mix=0.5, gain=1, gate=1, mb
 	sig = sig * gain * amp ;
 	Out.ar(out, sig);
 }).add;
-)
+);
 (
 SynthDef(\freecordeenv, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, fspread=0.01, spread=1, timeScale=1;
 	var sig;
@@ -68,7 +68,7 @@ SynthDef(\gregrain_norm, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, mbufnum,
 	sig = sig * amp;
 	Out.ar(out, sig);
 }).add;
-)
+);
 
 (
 Pdef(\part, Pdef(\zedpart, 

@@ -1759,7 +1759,7 @@ WindowDef(\ModulatorStrip_slider, (
 				{
 					self.cursorIndex = val;
 					self.view.refresh;
-				}.defer;
+				}.defer(Server.default.latency);
 			};
 		});
 

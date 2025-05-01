@@ -38,7 +38,7 @@ SynthDef(\basicbass, { arg out=0, amp=0.1, gate=1, pan=0, spread=0.8, freq=200, 
 	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:doneAction);
 	Out.ar(out, sig);
 }).add;
-)
+);
 
 (
 SynthDef(\swirl, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;

@@ -1,7 +1,9 @@
 
+(
 ~t = 166/2/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("holis/synthdef.scd");
-FileSystemProject.load("capsule/draftsynth.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
+FileSystemProject.loadOnce("capsule/draftsynth.scd");
+)
 
 (
 SynthDef(\betri, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;

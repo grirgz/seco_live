@@ -415,7 +415,7 @@
 			indentCount = indentCount + 1; // Pmono is header but args are indent+1
 			instr.debug("instr pmono");
 		};
-		instr.debug("instr");
+		instr.asCompileString.debug("instr");
 		self.insert_after( self.gen_pbind_arguments(instr, indentCount) );
 		
 	},

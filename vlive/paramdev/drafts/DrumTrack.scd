@@ -2,6 +2,7 @@
 
 (
 FileSystemProject.loadOnce("paramdev/drafts/FxTimeline.scd");
+FileSystemProject.loadOnce("paramdev/drafts/PmodEnvView.scd");
 SynthDef(\DrumTrack_player_mono, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, trigger=1, velamp=1;
 	// pos in seconds
 	var sig;
@@ -49,7 +50,7 @@ TrackTemplateDef(\DrumTrack, (
 		WindowDef(\DrumEditor);
 	},
 	editInstrument: { arg self;
-		WindowDef(\DrumEditor).front(self.score);
+		WindowDef(\DrumEditor).front(self);
 	},
 	scorePresetCompileString: { arg self;
 		var str;
@@ -67,6 +68,7 @@ TrackTemplateDef(\DrumTrack, (
 		self[\score] = Pbindef(self.trackKey, 
 			\instrument, \DrumTrack_player_stereo,
 			\dur, 1/8,
+			\gain, 0.1,
 		);
 		//self.isEmpty = false;
 	},
@@ -140,8 +142,8 @@ TrackTemplateDef(\DrumTrackPart, (
 		newscore;
 	},
 	makeScore: { arg self;
-		self.score = Pbindef(self.trackKey).source_(PbindProxy(\seq, PstepSeq(0!8,inf)));
 		self.disabledKeys = Set.new;
+		self.score = Pbindef(self.trackKey).source_(PbindProxy(\seq, PstepSeq(0!8,inf)));
 		//self.proxy.debug("makeScore proxy end");
 	},
 	selectSourceDialog: { arg self;
@@ -193,26 +195,23 @@ TrackTemplateDef(\DrumTrackPart, (
 
 TagSpecDef(\CustomTrackTemplate).addUnique(\DrumTrack -> TrackTemplateDef(\DrumTrack));
 
-WindowDef(\DrumEditor, { arg def, score;
+WindowDef(\DrumEditor, { arg def, track;
 	var header;
+	var score = track.score;
+	var instrp = Param(score, \instrument -> \source);
+	var pview = View.new;
 	header = HLayout (
-		//BasicButton.new.string_("Rand").action_({
-			//Menu(
-				//* TagSpecDef(\RandomBufferLibrary).list.collect { arg asso, idx;
-					//var key = asso.key;
-					//var val = asso.value;
-
-					//MenuAction(key, {
-						//Param(score, \bufnum).set(val[val.size.rand].value);
-						//Param(score, \bufnum).get.debug("what")
-					//})
-				//};
-			//).front;
-		//})
+		PlayerWrapper(track),
+		instrp.asView,
 	);
+	instrp.onChange({
+		pview.removeAll;
+		pview.layout = score.asParamGroup.rejectByProperty([\instrument]).asView;
+	}, pview);
+	instrp.sendChanged;
 	View.new.layout_(VLayout (
 		header,
-		score.asParamGroup.rejectByProperty([\instrument]).asView
+		pview,
 	));
 });
 
@@ -247,7 +246,32 @@ WindowDef(\DrumTrackPartPreview, { arg def, part;
 	
 });
 WindowDef(\DrumTrackPart, (
+	lineHeight: 50,
 	makeParamView: { arg self, param, type;
+		var disabledKeys = self.part.disabledKeys ?? { []};
+		var label = param.asStaticTextLabel.fixedWidth_(100);
+		var editor;
+		var pval;
+		label.setContextMenuActions(
+			MenuAction("Enable PmodEnv mode", {
+				"enable pmod".debug;
+				param.set( PmodEnv(PstepSeq([1,2,1],1), PstepSeq([8,8],inf), PstepSeq([0,0],inf)).loop );
+				self.part.changed(\refresh);
+			}),
+			Menu(
+				*WindowDef(\ParamGenericContextMenuEntries).sourceValue(param)
+			).title_("Param menu")
+		);
+
+		pval = param.get;
+		if(pval.isKindOf(Pn)) {
+			pval = pval.pattern;
+		};
+		if(pval.isKindOf(PmodEnv)) {
+			editor = self.makePmodEnvEditor(param);
+		} {
+			editor = self.makeModstrip(param, type);
+		};
 		HLayout (
 			CheckBox.new.fixedWidth_(20).action_({ arg cbview;
 				if(cbview.value == true) {
@@ -255,10 +279,17 @@ WindowDef(\DrumTrackPart, (
 				} {
 					self.part.disabledKeys = self.part.disabledKeys.add(param.propertyRoot)
 				};
-			}).value_(self.part.disabledKeys.includes(param.propertyRoot).not),
-			param.asStaticTextLabel.attachContextMenu.fixedWidth_(100),
-			self.makeModstrip(param, type),
+			}).value_(disabledKeys.includes(param.propertyRoot).not),
+			label,
+			editor,
 		)
+	},
+
+	makePmodEnvEditor: { arg self, param;
+		var view = View.new;
+		view.layout = WindowDef(\PmodEnvEditor).asView(param).margins_(0);
+		view.fixedHeight_(self.lineHeight);
+		view;
 	},
 
 	makeModstrip: { arg self, param, type;
@@ -266,7 +297,7 @@ WindowDef(\DrumTrackPart, (
 		type = type ?? { \slider };
 		modstrip = WindowDef("ModulatorStrip_%".format(type).asSymbol).asView( param );
 		modstrip.proto.shouldDrawBarLabel = false;
-		modstrip.fixedHeight_(50);
+		modstrip.fixedHeight_(self.lineHeight);
 		modstrip.proto.stepDur = 1;
 		modstrip.proto.colors.empty = Color.grey(0.8);
 		modstrip.proto.cursorEnabled = true;
@@ -292,6 +323,16 @@ WindowDef(\DrumTrackPart, (
 		existpg = pg.select({ arg pa; 
 			pa.propertyArray.last == \stepseq and: {
 				pa.isSet
+			} 
+			or: {
+				[pa.propertyArray, pa.get].debug("existpg building");
+				pa.propertyArray.last == \source and: {
+					var val = pa.get;
+					val.isKindOf(Pn) and: {
+						val.pattern.isKindOf(PmodEnv)
+					}
+				} 
+
 			}
 		});
 		toolbar = HLayout (
@@ -306,14 +347,25 @@ WindowDef(\DrumTrackPart, (
 			),
 			BasicButton.new.string_("Add param").action_({
 				var exc = self.part.getExistingStepSeqParams.collect({ arg pa; pa.propertyRoot });
+				var pbindprop = [\degree, \note, \octave, \strum];
+				var pbindpg;
 				synthdef = self.part.parentTrack.score.source.at(\instrument).source;
 				pg = score.asParamGroup(synthdef).rejectByProperty(exclude);
+				pbindpg = pbindprop.collect { arg prop, idx;
+					Param(score, prop)
+				};
+				pg = (pg ++ pbindpg).asParamGroup;
+				//pg.do(_.debug("Add param: param"));
+
 				//var exc = existpg.collect({ arg pa; pa.propertyRoot });
 				Menu(
 					* pg.rejectByProperty(exc).collect { arg param, idx;
 						MenuAction(param.label, {
-							var pa = param.at(\stepseq);
-							pa.initPstepSeq(self.part.stepCount);
+							var pa;
+							param.debug("Add param: param");
+							//pa = param.at(\stepseq);
+							pa.debug("Add param: pa");
+							param.initPstepSeq(self.part.stepCount);
 							self.refresh;
 						});
 					};
@@ -380,6 +432,7 @@ FileSystemProject.loadOnce("sndlib/buflib.scd");
 
 TrackDef(\bla1, \TrackList).edit
 TrackDef(\bla2).childAt(0,0).score
+~t = 120/2/60; TempoClock.default.tempo = ~t;
 
 Param.lastTweaked
 ~newscore.source.pairs
@@ -554,3 +607,25 @@ Param(Pbindef(\bla), \instrument -> \source).getRaw
 
 NoteTimeline(\bla).edit
 ClipTimeline(\bla).edit
+FileSystemProject.loadOnce("sndlib/synthbasic.scd")
+
+(
+Pbindef(\rez, 
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	\dur, 1,
+	\amp, 0.1,
+).play;
+);
+
+Param(Pdef(\rez), \amp).spec
+~p = Param(Pdef(\rez), \amp -> \source)
+~px = Param(Pdef(\rez), \amp -> \stepseq)
+~p.initPstepSeq(8)
+~p.get
+~p.spec
+~p.set(1)
+
+~px.get
+~px.spec
+~px.parent.at(\source).spec

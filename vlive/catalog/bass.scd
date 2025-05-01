@@ -1806,3 +1806,84 @@ Pdef(\demo,
 	)
 ).play;
 );
+//////////
+
+
+(
+SynthDef(\formant, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\fenv.kr(Env([0,1,0],[0.1,0.8])), 1) * \fenvamt.kr(1) + 1;
+	env2 = EnvGen.kr(\bwenv.kr(Env([0,1,0],[0.1,0.8])), 1) * \bwenvamt.kr(1) + 1;
+	sig = Formant.ar(freq, \formfreq.kr(120) * env1, \bwfreq.kr(195) * env2);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}, metadata:(specs:(
+	fenv: ParamEnvSpec(\unipolar),
+	bwenv: ParamEnvSpec(\unipolar),
+))).add;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \formant,
+			\note, Pseq([
+				0,1,-3,-6,
+			],inf).stutter(4),
+			\isRest, Pseq([
+				1,0,1,0,
+			],inf).coin.not,
+			\formfreq, PmodEnv(Pseq([10,800],1), 8).loop,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\octave, 3,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+SynthDef(\formant2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([0,1,0],[0.1,0.8]), 1) * \fenvamt.kr(1) + 1;
+	env2 = EnvGen.kr(Env([0,1,0],[0.1,0.8]), 1) * \bwenvamt.kr(1) + 1;
+	freq = freq * ((0..7)/7 - 0.5 * \fspread.kr(0.02) + 1);
+	sig = Formant.ar(freq, \formfreq.kr(120) * env1, \bwfreq.kr(195) * env2);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \formant2,
+			\note, Pseq([
+				0,1,-3,-6,
+			],inf).stutter(4),
+			\isRest, Pseq([
+				1,0,1,0,
+			],inf).coin.not,
+			\formfreq, 300,
+			\formfreq, PmodEnv(Pseq([1040,180],1), 8).loop,
+			\fspread, PmodEnv(Pseq([0.0051,0.04],1), 8).loop,
+			\bwfreq, PmodEnv(Pseq([400,502],1), 8).loop,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\octave, 3,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);

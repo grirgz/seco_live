@@ -1843,3 +1843,156 @@ Pdef(\zed,
 	) <> Pstep(Pbind(\octave, Pseq([6,5],inf), \legato, Pseq([1,0.1],inf)), 1)
 ).play;
 );
+
+
+//////////////////////
+// dotted bassline
+
+
+~t = 122/2/60; TempoClock.default.tempo = ~t;
+FileSystemProject.loadOnce("holis/synthdef.scd");
+(
+// 1/8 bassline
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \basicbass,
+			\note, Pseq([
+				0,\r,\r,
+				0,\r,\r,
+				0,\r,\r,
+				0,\r,\r,
+				0,\r,0,\r,
+			],inf),
+			\octave, 3,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+	])
+)).play;
+);
+
+(
+// 1/4 bassline
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \basicbass,
+			\note, Pseq([
+				0,\r,\r,
+				0,\r,\r,
+				0,\r,
+			],inf),
+			\octave, 3,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+	])
+)).play;
+);
+
+(
+// 1/8 bassline
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				Pseq([
+					0,\r,\r,
+					0,\r,\r,
+					0,\r,\r,
+					0,\r,\r,
+					0,\r,\r,
+					0,
+
+					\r,\r,
+					0,\r,\r,
+					0,\r,\r,
+					0,\r,\r,
+					0,\r,3,
+					0,7,
+				],1)+9,
+
+				Pseq([
+					0,\r,\r, 0,\r,\r, 
+					0,\r,\r, 0,\r,\r, 
+					0,\r,4, 0,
+				],1)+5,
+				Pseq([
+					\r,\r,0, \r,\r,0,
+					\r,\r, 0,\r,\r, 
+					0,\r,3, 0, 7,
+				],1)+4,
+			],inf),
+			\rq, 0.5,
+			\octave, [2,3],
+			\pulse, 1,
+			\envamt, 6,
+			\lpadsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.1,0.1) ], // pluck filter env
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.4,0.4,1,-4) ], // pluck too
+			],inf),
+			\lpf, PmodEnv(Pseq([400,2000],1), 8).loop,
+			\dur, 1/8,
+			\amp, 0.1 * [0.4,1]/1.5,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1010].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1719].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+	])
+)).play;
+);

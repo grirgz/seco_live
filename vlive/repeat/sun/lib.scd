@@ -18,6 +18,8 @@ FileSystemProject.load("libdef/equalizer.scd");
 
 // tools
 
+FileSystemProject.load("libdef/controllers.scd"); 
+FileSystemProject.load("paramdev/drafts/PianoCenter.scd"); 
 FileSystemProject.load("capsule/sample_manager.scd"); // TODO move to libdef
 FileSystemProject.load("libdef/bufEditor.scd"); 
 //FileSystemProject.load("libdef/PbindefEditor.scd"); // in quark

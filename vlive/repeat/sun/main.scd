@@ -2905,6 +2905,43 @@ ParamTimeline('AutomationRack_noteTimeline_hel7_lpf').eventList = TimelineEventL
 s.waitForBoot { FileSystemProject.loadOnce("sun/lib.scd"); };
 TrackDef(\rere, \TrackList).edit
 )
+TrackTimeline('rere').clipList.clipList.do(_.debug("---"))
+TrackTimeline('rere').clipList.clipListIncludes([\Pdef, \metronome -> Pdef(\metronome)])
+TrackTimeline('rere').clipList[\sortClipList]
+TrackTimeline('rere').selectedPart = 0
+TrackTimeline('rere').mainTrack.existingSections
+(
+BufDef(\amen, "vipere/amenbreak.wav");
+SampleTimeline(\aze).buffer = BufDef(\amen)
+SampleTimeline(\aze).edit
+NoteTimeline(\azaza).edit
+)
+ClipTimeline(\bb).edit
+s.latency = 1
+~lib = ProtoDef(\GlobalLibrary)
+~lib.init_default_clip_factories
+~lib.init_other_factories
+~sec = TrackDef(\rere).sectionAt(0)
+~clip = TrackDef(\rere).sectionAt(0).childAt(0)
+~clip.label
+~lib.libIdToLabel(~id)
+~lib.libIdToWrapper(~id).libIdKey
+~id.last.value.label
+~id.last.value[\label].asCompileString
+~id.last.value.trackTemplate
+~id = ~lib.targetToLibId(TrackDef(\rere).sectionAt(0))
+~id = ~lib.targetToLibId(TrackDef(\rere).sectionAt(0).childAt(0))
+~lib.libIdToFactory(~id).targetToLibId(~sec)
+~sec.key
+~lib.libIdToFactory(~id).targetToLibId(~sec)
+~lib.targetToLibId(TrackDef(\rere).childAt(0))
+TrackDef(\rere).sectionAt(0).key
+TrackDef(\rere).childAt(0,0).key
+TrackDef(\rere).key
+TrackDef(\rere).sectionAt(0).trackKey
+TrackDef(\rere).childAt(0,0).trackKey
+TrackDef(\rere).key
+PlayerWrapper(TrackDef(\rere).sectionAt(0)).key
 \bufnum.asSpec
 ~b = BufDef("/home/ggz/Musique/sc/samplekit/com/Kick/Kick Flamingo 2.wav")
 ~b = BufDef.stereo("/home/ggz/Musique/sc/samplekit/com/Kick/Kick Eliot 3 V18.wav")
@@ -2914,6 +2951,17 @@ BufDef.bufferCompileString( ~b )
 ~b.key
 ~b.path
 ~b.asCompileString
+ClipTimeline(\aze).edit
+BufDef(\amen, "vipere/amenbreak.wav");
+BufDef(\moeten, "voices/02_moeten.flac")
+BufDef(\crepe, "field/crepe.flac");
+BufDef(\oeuf, "field/oeuf.flac");
+BufDef(\ukraine, "bruit1/07_ukraine.flac");
+BufDef(\table, "field/table.flac");
+BufDef(\scream, "vipere/scream.flac");
+BufDef(\rocksteady, "vipere/rocksteady.flac");
+BufDef(\metal, "vipere/metal.flac");
+BufDef(\bomb, "vipere/bomb.flac");
 BufDef(\moeten, "voices/02_moeten.flac")
 BufDef(\crepe, "field/crepe.flac");
 BufDef(\oeuf, "field/oeuf.flac");
@@ -3077,3 +3125,8 @@ TagSpecDef(\BufDef_stereo, {
 });
 )
 TagSpecDef(\BufDef_stereo).list
+
+\instrument.asSpec
+
+
+FileSystemProject.load("~/tmp/tracklistsav/TrackDef_simpleProject_mainTrackList.scd")

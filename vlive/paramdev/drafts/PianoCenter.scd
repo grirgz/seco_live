@@ -321,8 +321,8 @@ WindowDef(\PianoCenter, (
 ////
 
 ProtoDef(\PianoCenter, \PianoCenter);
-ProtoDef(\PianoCenter).proxy.source.set(\instrument, \saw);
-ProtoDef(\PianoCenter).edit;
+ProtoDef(\PianoCenter).proxy.source.set(\instrument, \sh101);
+//ProtoDef(\PianoCenter).edit;
 Ndef(\lfo1, { arg freq=1, gain=1; 
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -366,6 +366,7 @@ s.boot;
 // - now save all mod and fx and not use compilestring
 // - all in bus mode ?
 
+ProtoDef(\PianoCenter).edit;
 ProtoTemplateDef(\PianoCenter).modRack.presetCompileString
 ProtoTemplateDef(\PianoCenter).fxRack.presetCompileString.editorInsert
 ProtoTemplateDef(\PianoCenter).fxRack.asParamGroup.do({ arg x; x.debug("--") })

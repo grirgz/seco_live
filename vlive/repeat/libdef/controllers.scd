@@ -1,6 +1,7 @@
 
 "loading ControllerDef definitions".postln;
 (
+FileSystemProject.loadOnce("libdef/tracklist_extensions.scd");
 ControllerDef(\icon, { arg def, model;
 	var ktl = MKtl('icon', "icon-icontrols");
 	model.knobs.collect({ arg param, idx;
@@ -75,6 +76,11 @@ ControllerDef(\piano_generic_drumpad, { arg def, target;
 		target.wrapper.elAt(midinote).stop;
 	}).fix;
 }, [ \drumpad ]);
+
+ControllerDef(\launchpad, { arg def, target; 
+	FileSystemProject.loadOnce("libdef/launchpad.scd");
+	ProtoDef(\launchpad_playergrid).startControl(target);
+}, [ \launchpad ]);
 
 ControllerDef(\launchpad_drumpad, { arg def, target; 
 	var count = 0;

@@ -1,7 +1,47 @@
 
+(
 ~t = 185/4/60; TempoClock.default.tempo = ~t;
 FileSystemProject.load("holis/synthdef.scd");
+);
 
+(
+SynthDef(\grosfil, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var ff;
+	ff = \ff.kr(1);
+	lfo1 = SinOsc.ar(1/2*ff*~t).range(0,1);
+	lfo2 = SinOsc.ar(3*ff*~t).range(0.5,1.5);
+	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * \fspread.kr(0.1) * lfo1 + 1)).mean;
+	sig1 = LFPulse.ar(freq*[2,3]).sum * ( SinOsc.ar(4*ff*~t).range(0,1) * 1 );
+	sig = sig + sig1;
+	sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq * lfo2 ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+(
+SynthDef(\grosfilfm, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var ff;
+	ff = \ff.kr(1);
+	lfo1 = SinOsc.ar(1/2*ff*~t).range(0,1);
+	lfo2 = SinOsc.ar(3*ff*~t).range(0.5,1.5);
+	sig = LFSaw.ar(freq * ( SinOsc.ar(freq * \fmr.kr(1/3)) * \fmamp.kr(0.5) + 1 ) * ((0..7)/7 - 0.5 * \fspread.kr(0.1) * lfo1 + 1)).mean;
+	sig1 = LFPulse.ar(freq*[2,3]).sum * ( SinOsc.ar(4*ff*~t).range(0,1) * 1 );
+	sig = sig + sig1;
+	sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq * lfo2 ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+//////////////////
 (
 Pdef(\melo, 
 	Pbind(
@@ -68,42 +108,6 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 
-(
-SynthDef(\grosfil, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
-	var ff;
-	ff = \ff.kr(1);
-	lfo1 = SinOsc.ar(1/2*ff*~t).range(0,1);
-	lfo2 = SinOsc.ar(3*ff*~t).range(0.5,1.5);
-	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * \fspread.kr(0.1) * lfo1 + 1)).mean;
-	sig1 = LFPulse.ar(freq*[2,3]).sum * ( SinOsc.ar(4*ff*~t).range(0,1) * 1 );
-	sig = sig + sig1;
-	sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq * lfo2 ).clip(20,20000), \rq.kr(0.5));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-(
-SynthDef(\grosfilfm, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
-	var ff;
-	ff = \ff.kr(1);
-	lfo1 = SinOsc.ar(1/2*ff*~t).range(0,1);
-	lfo2 = SinOsc.ar(3*ff*~t).range(0.5,1.5);
-	sig = LFSaw.ar(freq * ( SinOsc.ar(freq * \fmr.kr(1/3)) * \fmamp.kr(0.5) + 1 ) * ((0..7)/7 - 0.5 * \fspread.kr(0.1) * lfo1 + 1)).mean;
-	sig1 = LFPulse.ar(freq*[2,3]).sum * ( SinOsc.ar(4*ff*~t).range(0,1) * 1 );
-	sig = sig + sig1;
-	sig = RLPF.ar(sig, ( \lpfr.kr(1.1) * freq * lfo2 ).clip(20,20000), \rq.kr(0.5));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -425,51 +429,49 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, 1/16,
 			\gain, 0.11,
 		),
-		
-			Pbind(
-				\instrument, \basicbass,
-				\lpf, ~pmodenv.(Prand([2,4,8,10]*100,10), Prand([2,8,10],inf)).loop,
-				\rq, 0.5,
-				\adsr, [ Env([ 0.0, 1.0, 0.80000001192093, 0.0 ], [ 0.0099999997764826, 0.10000000149012, 0.10000000149012 ], [ -4.0, -4.0, -4.0 ], 2.0) ],
-				\note, Pseq([
-					Pseq((0..11))
-				],inf),
-				\legato,0.95,
-				\octave, 3,
-				\dur, 2,
-				\amp, 0.1/2,
-			),
-		Ppar([
-			Pbind(
-				\instrument, \grosfilfm,
-				\note, Pseq([
-					0,2,
-				],inf),
-				\fmr, Prand([
-					2
-				],inf).stutter(16),
-				\ff, 3,
-				\ff, ~pmodenv.(Prand([10,30,100,300,0.1,1,2],1), 16).loop,
-				\octave, 5,
-				\dur, Prand([1,2],inf) * 1/8,
-				\amp, 0.1,
-				\out, BusDef(\sendbus1, \audio),
-			),
-			Pbind(
-				\instrument, \grosfilfm,
-				\note, Pseq([
-					Prand([0,4,7] +.x [-12,0,12])
-				],inf),
-				\fmr, Pseq([
-					Prand((0..8)/4)
-				],inf),
-				\ff, ~pmodenv.(Pseq([0.1,1,2],1), 8).loop,
-				\octave, 5,
-				\dur, Prand([1/2,1,1/4,2],inf) * 2,
-				\amp, 0.1/2,
-				\out, BusDef(\sendbus2, \audio),
-			),
-		]),
+
+		Pbind(
+			\instrument, \basicbass,
+			\lpf, ~pmodenv.(Prand([2,4,8,10]*100,10), Prand([2,8,10],inf)).loop,
+			\rq, 0.5,
+			\adsr, [ Env([ 0.0, 1.0, 0.80000001192093, 0.0 ], [ 0.0099999997764826, 0.10000000149012, 0.10000000149012 ], [ -4.0, -4.0, -4.0 ], 2.0) ],
+			\note, Pseq([
+				Pseq((0..11))
+			],inf),
+			\legato,0.95,
+			\octave, 3,
+			\dur, 2,
+			\amp, 0.1/2,
+		),
+		Pbind(
+			\instrument, \grosfilfm,
+			\note, Pseq([
+				0,2,
+			],inf),
+			\fmr, Prand([
+				2
+			],inf).stutter(16),
+			\ff, 3,
+			\ff, ~pmodenv.(Prand([10,30,100,300,0.1,1,2],1), 16).loop,
+			\octave, 5,
+			\dur, Prand([1,2],inf) * 1/8,
+			\amp, 0.1,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		Pbind(
+			\instrument, \grosfilfm,
+			\note, Pseq([
+				Prand([0,4,7] +.x [-12,0,12])
+			],inf),
+			\fmr, Pseq([
+				Prand((0..8)/4)
+			],inf),
+			\ff, ~pmodenv.(Pseq([0.1,1,2],1), 8).loop,
+			\octave, 5,
+			\dur, Prand([1/2,1,1/4,2],inf) * 2,
+			\amp, 0.1/2,
+			\out, BusDef(\sendbus2, \audio),
+		),
 	])
 )).play;
 );

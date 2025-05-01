@@ -15,6 +15,7 @@
 
 // param specs
 
+Spec.add(\instrument, TagSpecDef(\SynthDef_keys));
 Spec.add(\mix, \unipolar.asSpec);
 Spec.add(\wet, \unipolar.asSpec);
 Spec.add(\inbus, XBusSpec.new);
