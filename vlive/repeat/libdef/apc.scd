@@ -363,6 +363,9 @@ ProtoDef(\apc40, (
 
 	activate: { arg self, grid;
 		var move_in_grid;
+		if(self.displayMode.isNil) {
+			self.displayMode = \pan;
+		};
 		if(grid.notNil and: { grid.isEmpty.notNil }) {
 			self.grid = grid;
 			if(FileSystemProject.current.notNil) {
@@ -947,7 +950,7 @@ ProtoDef(\apc40).userPanels[2] = { arg self, point;
 
 //////// debug
 
-ProtoDef(\apc40).activate(TrackDef(\split)); // debug
+//ProtoDef(\apc40).activate(TrackDef(\split)); // debug
 );
 
 // END

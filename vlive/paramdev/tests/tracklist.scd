@@ -143,9 +143,28 @@ WindowDef(\win, { arg def;
 /////////////////////
 // test mixer save/load
 
-FileSystemProject.load("libdef/CustomTrackList.scd");
-TrackDef(\bla, TrackTemplateDef(\CustomTrackList));
+(
+~t = ~t ?? { ~t = 1; TempoClock.default.tempo = ~t; ~t };
+s.waitForBoot { 
+	FileSystemProject.load("sun/lib.scd"); 
+	FileSystemProject.load("libdef/filedialog_tracklist.scd");
+	//TrackDef(\bla, \TrackList).edit;
+	TrackDef(\hoo, \PlayerGrid).edit
+};
+)
+
+"kjk".throw
+	TrackDef(\hihi1, \PlayerGrid).edit
+TrackDef(\hoo).source
+TrackDef(\hoo).loadPresetCompileString
+PlayerWrapper(Pdef(\metronome)).savePresetCompileString
+TrackDef(\bla, \TrackList);
 TrackDef(\bla).edit
+TrackDef(\bla).resources
+TrackDef(\bla).resources.first.presetCompileStringSavePath
+PlayerWrapper(TrackDef(\bla).resources.first).presetCompileStringSavePath
+PlayerWrapper(TrackTimeline(\bla)).presetCompileStringSavePath
+PlayerWrapper(TrackTimeline(\bla)).savePresetCompileString
 FileSystemProject.load("~/tmp/bla/TrackDef_bla.scd")
 TrackDef(\bla).clear
 TrackDef(\bla).presetCompileString
@@ -338,3 +357,8 @@ ClipTimeline(\bla).edit
 ClipTimeline(\bla).editor.timeline.selNodes
 NoteTimeline(\aze, Pbindef(\hello)).edit
 ParamTimeline(\aze).edit
+
+
+
+FileSystemProject(\hello)
+

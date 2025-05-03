@@ -333,7 +333,7 @@ WindowDef(\PianoCenter, (
 
 ProtoDef(\PianoCenter, \PianoCenter);
 ProtoDef(\PianoCenter).proxy.source.set(\instrument, \sh101);
-ProtoDef(\PianoCenter).edit;
+//ProtoDef(\PianoCenter).edit;
 Ndef(\lfo1, { arg freq=1, gain=1; 
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
