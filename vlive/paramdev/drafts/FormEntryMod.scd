@@ -2,23 +2,13 @@
 WindowDef(\FormEntryMod, { arg def, param;
 	var slider;
 	var midview = View.new;
-	var paramsrc;
 	var updateMidView;
+	var labelWidth = 90;
 	updateMidView = {
-		if(param.target.source.isKindOf(PbindProxy)) {
-			paramsrc = param.at(\source);
-		} {
-			if(param.hasCombinator) {
-				paramsrc = param
-			} {
-				//param.debug("paramsrc not used");
-				// not used
-			};
-		};
 
 		if(param.hasCombinator) {
 			var combi = param.getCombinator;
-			[param, paramsrc, param.hasCombinator, param.getCombinator, combi].debug("paramsrc combi");
+			[param, param.hasCombinator, param.getCombinator, combi].debug("paramsrc combi");
 			[param.getCombinator.existingInputRanges ].debug("has combi");
 			//slider = paramsrc.asSlider.orientation_(\horizontal);
 			slider = param.asSlider.orientation_(\horizontal);
@@ -63,11 +53,11 @@ WindowDef(\FormEntryMod, { arg def, param;
 			var obj;
 			[View.currentDrag, view, x, y].debug("receiveDragHandler");
 			obj = View.currentDrag;
-			[param.get, param.getRaw].debug("receiveDragHandler: before combi");
+			[param.get, param.getRaw, param.hasCombinator].debug("receiveDragHandler: before combi");
 			pc = ParamCombinator(param);
-			[param.get, param.getRaw].debug("receiveDragHandler: after combi");
+			[param.get, param.getRaw, param.hasCombinator].debug("receiveDragHandler: after combi");
 			pc.mapObjectToInput(obj);
-			[param.get, param.getRaw].debug("receiveDragHandler: after combi2");
+			[param.get, param.getRaw, param.hasCombinator].debug("receiveDragHandler: after combi2");
 			//updateMidView.();
 		};
 		slider.followChange(param.target, \combinator, { arg view, obj, msg, prop;
@@ -80,13 +70,15 @@ WindowDef(\FormEntryMod, { arg def, param;
 	updateMidView.();
 	if(param.type == \scalar) {
 		HLayout (
-			param.asStaticTextLabel.fixedWidth_(80).attachContextMenu,
+			param.asStaticTextLabel.fixedWidth_(labelWidth).attachContextMenu,
 			midview,
 			param.asTextField.fixedWidth_(60),
 		)
 
 	} {
-		param.asView
+		var pv = param.asView;
+		pv.labelView.fixedWidth_(labelWidth);
+		pv;
 	};
 });
 

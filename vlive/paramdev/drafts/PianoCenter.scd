@@ -27,7 +27,8 @@ Spec.add(\velocity, ControlSpec(0,127,\lin));
 
 ProtoTemplateDef(\PianoCenter, (
 	proxy: { arg self;
-		Pbindef(\PianoCenter, \initialized, true)
+		//Pbindef(\PianoCenter, \initialized, true)
+		Pdef(\PianoCenter).source = Pdef(\PianoCenter).source ?? { PbindProxy() }
 		//Pbindef(\PianoCenter, \instrument, \saw)
 	},
 
@@ -109,7 +110,7 @@ ProtoTemplateDef(\PianoCenter, (
 				].flat),
 				items: {
 					[
-						(main:self.proxy.asParamGroup),
+						(main:self.asParamGroup),
 						self.fxRack.presetBank.presetScheme,
 						self.modRack.presetBank.presetScheme,
 					]
@@ -123,7 +124,7 @@ ProtoTemplateDef(\PianoCenter, (
 
 	savePreset: { arg self;
 		var preset = IdentityDictionary.new;
-		var pg = [self.proxy.asParamGroup, self.modRack.asParamGroup, self.fxRack.asParamGroup].flatten;
+		var pg = [self.asParamGroup, self.modRack.asParamGroup, self.fxRack.asParamGroup].flatten;
 		pg.debug("pg");
 	},
 
@@ -160,12 +161,16 @@ ProtoTemplateDef(\PianoCenter, (
 		//};
 	//},
 
+	asParamGroup: { arg self;
+		self.proxy.asParamGroup.rejectSystemParams.rejectByProperty([\dur,\legato,\freq, \instrument]);
+	},
+
 	presetDict: { arg self;
 		self.presetBank
 	},
 
 	getCombinatorCompileString: { arg self;
-		self.proxy.asParamGroup.getCombinatorCompileString;
+		self.asParamGroup.getCombinatorCompileString;
 	},
 	edit: { arg self;
 		WindowDef(\PianoCenter).front(self)
@@ -180,6 +185,7 @@ WindowDef(\PianoCenter, (
 		var fxview = View.new.layout_(model.fxRack.asView);
 		var mainpanel = View.new;
 		// View.visible seems to be lagging, this is a workaround
+		"PianoCenter.asView: 1".debug;
 		self.paramGroupView = pgView;
 		self.model = model;
 		self.fxView = fxview;
@@ -187,6 +193,7 @@ WindowDef(\PianoCenter, (
 
 		fxview.visible = false;
 
+		"PianoCenter.asView: 2".debug;
 		pgView.followChange(model.proxy, \set, { arg view, obj, msg ...args;
 			//[view, obj, msg, args].debug("vom");
 			if(args.first == \instrument) {
@@ -195,10 +202,13 @@ WindowDef(\PianoCenter, (
 		});
 		pgView.maxWidth_(1200);
 
+		"PianoCenter.asView: 2.1".debug;
 		self.updateView;
+		"PianoCenter.asView: 2.2".debug;
 
 		toolbar = self.makeToolbar;
 
+		"PianoCenter.asView: 3".debug;
 		modview = WindowDef(\ModulatorPanel).asView( 
 			[\lfo1, \lfo2, \step1, \step2].collect { arg key, idx;
 				key -> model.modulatorDict[key]
@@ -213,6 +223,7 @@ WindowDef(\PianoCenter, (
 			),
 			WindowDef(\TimelinePianoKeyboard).embedView(def, model.playerGroup).minHeight_(50)
 		);
+		"PianoCenter.asView: 4".debug;
 		mainpanel.maxWidth_(1200);
 		HLayout (
 			mainpanel,
@@ -310,7 +321,7 @@ WindowDef(\PianoCenter, (
 		pgView.removeAll;
 		//pgView.layout = model.proxy.asParamGroup.asView;
 		pgView.layout = VLayout(
-			* model.proxy.asParamGroup.rejectByProperty([\dur,\legato,\freq]).collect { arg param, idx;
+			* model.asParamGroup.collect { arg param, idx;
 				WindowDef(\FormEntryMod).asView(param);
 			};
 		)
@@ -322,7 +333,7 @@ WindowDef(\PianoCenter, (
 
 ProtoDef(\PianoCenter, \PianoCenter);
 ProtoDef(\PianoCenter).proxy.source.set(\instrument, \sh101);
-//ProtoDef(\PianoCenter).edit;
+ProtoDef(\PianoCenter).edit;
 Ndef(\lfo1, { arg freq=1, gain=1; 
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -370,13 +381,18 @@ ProtoDef(\PianoCenter).edit;
 ProtoTemplateDef(\PianoCenter).modRack.presetCompileString
 ProtoTemplateDef(\PianoCenter).fxRack.presetCompileString.editorInsert
 ProtoTemplateDef(\PianoCenter).fxRack.asParamGroup.do({ arg x; x.debug("--") })
+ProtoTemplateDef(\PianoCenter).fxRack.asParamGroup
 ProtoTemplateDef(\PianoCenter).fxRack.fxList[0].asCompileString
 ProtoTemplateDef(\PianoCenter).modRack.childAt(0).presetScheme.items
 ProtoTemplateDef(\PianoCenter).presetBank_obj = nil
 ProtoTemplateDef(\PianoCenter).edit
 ProtoTemplateDef(\PianoCenter).presetBank.printTree
 ProtoTemplateDef(\PianoCenter).presetBank.printCurrentPreset
+ProtoTemplateDef(\PianoCenter).asParamGroup.asPropertyDict.keys
+ProtoTemplateDef(\PianoCenter).proxy.asParamGroup.asPropertyDict.keys
 
+~param.hasCombinator
+~param.target.getHalo
 Message
 
 Dictionary
@@ -1241,3 +1257,17 @@ f = SynthDef.new(\flux , {
 f = Synth.new(\flux);
 
 Line
+(
+Pdef(\melo, 
+	Pbind(
+		\instrument, \default,
+		\amp, 0.05,
+	)
+)
+);
+ProtoDef(\piano).startControl(Pdef(\melo))
+
+
+
+		self.proxy.asParamGroup.getCombinatorCompileString();
+		self().proxy().bla().rah()

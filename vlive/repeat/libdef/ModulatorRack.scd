@@ -952,3 +952,9 @@ WindowDef(\win, { arg def;
 	TrackDef(\PianoCenter_mod_lfo1).keys
 	TrackDef(\PianoCenter_mod_lfo1).proxy
 	TrackDef(\PianoCenter_mod_lfo1).source
+
+
+////////////
+
+FileSystemProject.loadOnce("paramdev/drafts/PianoCenter.scd");
+ProtoDef(\PianoCenter).edit;

@@ -2901,15 +2901,166 @@ ParamTimeline('AutomationRack_noteTimeline_hel7_lpf').eventList = TimelineEventL
 
 {Gendy1.ar(minfreq: 200,maxfreq: 400,mul: [LFNoise2.kr(freq: 1), LFNoise2.kr(freq: 1)]) * 0.1}.play;
 
+
+(
+TrackDef('rere').childAt(0).trackTemplate = TrackTemplateDef('DrumTrack');
+TrackDef('rere').childAt(0).label = 'DrumTrack';
+
+
+
+TrackDef('rere').childAt(0).isMixerEnabled = true;
+TrackMixerDef('rere.0').outBus = 0;
+TrackMixerDef('rere.0').insertFxAt(0).synthName = 'ifx_freeverb2';
+TrackMixerDef('rere.0').insertFxAt(0).enabled = true;
+
+TrackMixerDef('rere.0').insertFxAt(1).synthName = nil;
+
+TrackMixerDef('rere.0').insertFxAt(2).synthName = nil;
+
+TrackMixerDef('rere.0').insertFxAt(3).synthName = nil;
+
+TrackMixerDef('rere.0').setVal('inbus', BusDef('trackMixerDef_rere.0'));
+TrackMixerDef('rere.0').setVal('sendbus0', BusDef('sendbus0'));
+TrackMixerDef('rere.0').setVal('sendbus1', BusDef('sendbus1'));
+TrackMixerDef('rere.0').setVal('sendbus2', BusDef('sendbus2'));
+TrackMixerDef('rere.0').setVal('sendbus3', BusDef('sendbus3'));
+TrackMixerDef('rere.0').setVal('sendbus4', BusDef('sendbus4'));
+TrackMixerDef('rere.0').setVal('sendbus5', BusDef('sendbus5'));
+TrackMixerDef('rere.0').setVal('sendbus6', BusDef('sendbus6'));
+TrackMixerDef('rere.0').setVal('sendbus7', BusDef('sendbus7'));
+TrackMixerDef('rere.0').setVal('room3000', 3.5889614933327);
+TrackMixerDef('rere.0').setVal('wet3000', 1.0);
+
+
+
+TrackDef('rere').childAt(0).score = Pbindef('rere.0',
+	'instrument', 'DrumTrack_player_stereo',
+	'dur', 0.125,
+	'gain', 0.1,
+);
+Pbindef('rere.0').set(
+	'out', BusDef('trackMixerDef_hihi1.0')
+);
+
+TrackDef('rere').childAt(0, 0).score = Pbindef('rere.0.0',
+	'seq', PstepSeq([ 1.0, 0, 0, 0, 0, 0, 0, 0 ], inf),
+);
+
+);
+
+
+TrackDef(\rere, \TrackList).childAt(0).presetCompileString.editorInsert
+TrackDef(\rere, \TrackList).childAt(0,0).presetCompileString.editorInsert
+(
+TrackDef('rere').childAt(0).trackTemplate = TrackTemplateDef('NoteTimelineTrack');
+TrackDef('rere').childAt(0).label = 'NoteTimelineTrack';
+
+
+
+TrackDef('rere').childAt(0).isMixerEnabled = true;
+TrackMixerDef('rere.0').outBus = 0;
+TrackMixerDef('rere.0').insertFxAt(0).synthName = 'ifx_freeverb2';
+TrackMixerDef('rere.0').insertFxAt(0).enabled = true;
+
+TrackMixerDef('rere.0').insertFxAt(1).synthName = nil;
+
+TrackMixerDef('rere.0').insertFxAt(2).synthName = nil;
+
+TrackMixerDef('rere.0').insertFxAt(3).synthName = nil;
+
+TrackMixerDef('rere.0').setVal('inbus', BusDef('trackMixerDef_rere.0'));
+TrackMixerDef('rere.0').setVal('sendbus0', BusDef('sendbus0'));
+TrackMixerDef('rere.0').setVal('sendbus1', BusDef('sendbus1'));
+TrackMixerDef('rere.0').setVal('sendbus2', BusDef('sendbus2'));
+TrackMixerDef('rere.0').setVal('sendbus3', BusDef('sendbus3'));
+TrackMixerDef('rere.0').setVal('sendbus4', BusDef('sendbus4'));
+TrackMixerDef('rere.0').setVal('sendbus5', BusDef('sendbus5'));
+TrackMixerDef('rere.0').setVal('sendbus6', BusDef('sendbus6'));
+TrackMixerDef('rere.0').setVal('sendbus7', BusDef('sendbus7'));
+TrackMixerDef('rere.0').setVal('wet3000', 1.0);
+
+
+
+TrackDef('rere').childAt(0).source = Pdef('rere.0.instr');
+Pbindef('rere.0.instr',
+	'instrument', 'default',
+);
+
+
+
+
+TrackDef('rere').childAt(0, 0).score = NoteTimeline('rere.0.0score');
+NoteTimeline('rere.0.0score').param = Param(Pdef('rere.0.instr'), 'midinote');
+NoteTimeline('rere.0.0score').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	(\absTime: 0.0, \dur: 8.0, \midinote: 47.0, \playDur: 8.0, \relDur: 8.0, \sustain: 1.875, ),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+);
+
+
 (
 s.waitForBoot { FileSystemProject.loadOnce("sun/lib.scd"); };
+FileSystemProject.load("libdef/filedialog_tracklist.scd");
 TrackDef(\rere, \TrackList).edit
 )
+TrackDef(\hihi1, \TrackList).edit
+
+TrackTimeline(\aze2, TrackDef(\hihi1)).edit
+TrackTimeline(\rere).presetCompileStringSaveFile
+TrackTimeline(\rere).presetCompileStringSaveFilename
+TrackTimeline(\rere).presetCompileStringSavePath = ~path
+TrackTimeline(\rere).loadPresetCompileString
+TrackTimeline(\rere).mainTrack
+TrackTimeline(\rere).savePresetCompileString
+
+~path = "/home/ggz/code/sc/seco/vlive/repeat/sun/testtest3/";
+~grid = FileSystemProject.load("/home/ggz/code/sc/seco/vlive/repeat/sun/testtest/TrackDef_rere.scd")
+FileSystemProject.load("capsule/PatKitDef_comkit.scd")
+TrackDef(\rere, \TrackList).play
+TrackDef(\rere).clone(\hihi5)
+TrackDef(\rere).presetCompileStringSavePath
+TrackDef(\rere).resources
+TrackDef(\hihi5).edit
+TrackDef(\hihi1).play
+TrackDef(\hihi1).childAt(0).mixer_obj.inbus
+TrackDef(\hihi1).childAt(0).mixer_obj.insertFxList.asArray.select(_.notNil)[0].synthName
+TrackDef(\hihi1).childAt(0).mixer_obj.insertFxList.asArray.select(_.notNil)[0].enabled = true
+TrackDef(\hihi1).childAt(0).mixer_obj.insertFxList.asArray.select(_.notNil)[0].enabled = false
+TrackDef(\hihi1).childAt(0).mixer_obj.insertFxList.asArray.select(_.notNil)[0].enabled 
+TrackDef(\hihi1).childAt(0).mixer_obj.insertFxList.asArray.select(_.notNil)[0].fxValue
+TrackDef(\hihi1).childAt(0).mixer_obj.insertFxList.asArray.select(_.notNil)[0].asParamGroup.collect(_.get)
+TrackDef(\hihi1).childAt(0).mixer_obj.insertFxList.asArray.select(_.notNil)[0].getParam(\room).get
+TrackDef(\hihi1).childAt(0).mixer_obj.proxy.nodeMap
+TrackDef(\hihi2).childAt(0).mixer_obj.proxy.source.asCompileString
+TrackDef(\hihi2).childAt(0).mixer_obj.proxy.edit
+TrackDef(\rere).childAt(0).mixer_obj.proxy.nodeMap
+TrackDef(\rere).childAt(0).mixer_obj.proxy.asParamGroup.asPropertyDict.keys
+TrackDef(\rere).childAt(0).mixer_obj.inbus
+TrackDef(\rere).childAt(0).outBus = TrackDef(\rere).childAt(0).outBus
+TrackDef(\rere).childAt(0).isMixerEnabled
+TrackDef(\rere).childAt(0,0).outBus
+TrackDef(\rere).childAt(3,0).score.presetCompileString.editorInsert
+
+TrackDef(\rere).childAt(0).mixer.proxy.objects[1].source
+TrackDef(\rere).childAt(0).mixer.proxy.copy
+Ndef(\bla, { arg freq=100; SinOsc.ar(freq)*0.1 ! 2  })
+Ndef(\bla).clone
 TrackTimeline('rere').clipList.clipList.do(_.debug("---"))
 TrackTimeline('rere').clipList.clipListIncludes([\Pdef, \metronome -> Pdef(\metronome)])
 TrackTimeline('rere').clipList[\sortClipList]
 TrackTimeline('rere').selectedPart = 0
 TrackTimeline('rere').mainTrack.existingSections
+(
+Pbindef(\zed, 
+	\instrument, \default,
+	\degree, Pseq([0],inf),
+	\dur, 1,
+	\amp, 0.1,
+).play;
+);
+Pdef(\zed).asCompileString
+Param(Pdef(\zed), \freq)
 (
 BufDef(\amen, "vipere/amenbreak.wav");
 SampleTimeline(\aze).buffer = BufDef(\amen)
@@ -3130,3 +3281,42 @@ TagSpecDef(\BufDef_stereo).list
 
 
 FileSystemProject.load("~/tmp/tracklistsav/TrackDef_simpleProject_mainTrackList.scd")
+
+TrackDef(\bla, (key:\haha))
+TrackDef(\bla).key
+
+Pbindef('rere.2.1',
+	'instrument', 'sh101',
+	'NoteTimeline', { "open Function" },
+	'dur', Prout({ arg ev;
+				//ev.debug("PbindefEditor NoteTimeline dur Prout");
+				if(ev[\disableNoteTimeline] == true) {
+					loop {
+						ev = ev[\dur].yield;
+					}
+				} {
+					var pat;
+					//ev.debug("PbindefEditor NoteTimeline dur now in pattern mode");
+					pat = ev[\NoteTimeline].value.asPattern;
+					pat.do { arg val;
+						ev.putAll(val);
+						//ev[\midinote] = val[\midinote];
+						//ev[\type] = val[\type];
+						//ev[\sustain] = val[\sustain];
+						ev = val.dur.yield;
+					};
+				};
+				ev;
+			}),
+	'envamt', 'c7',
+	'lpf', 'c8',
+	'saw', 0.1,
+	'pulse', 0.95596344239915,
+);
+
+~a = (1..8)
+~a.scramble
+~a
+~a.rand
+
+ProtoDef(\PianoCenter).edit
