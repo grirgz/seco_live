@@ -148,14 +148,23 @@ WindowDef(\win, { arg def;
 s.waitForBoot { 
 	FileSystemProject.load("sun/lib.scd"); 
 	FileSystemProject.load("libdef/filedialog_tracklist.scd");
-	//TrackDef(\bla, \TrackList).edit;
-	TrackDef(\hoo, \PlayerGrid).edit
+	TrackDef(\bla, \TrackList).edit;
+	//TrackDef(\hoo, \PlayerGrid).edit
 };
 )
 
+NoteTimeline(\hello).edit
+
+FileSystemProject('./tmp/bobo1').addResource(TrackDef(\bla))
+FileSystemProject('./tmp/bobo1').addResource(TrackDef(\hihi1))
+FileSystemProject('./tmp/bobo1', \MainProject).saveProject
 "kjk".throw
 	TrackDef(\hihi1, \PlayerGrid).edit
+	TrackDef(\bla, \TrackList).edit;
+	TrackDef(\bla, \TrackList).resources
+	TrackDef(\fufu, \TrackList).edit;
 TrackDef(\hoo).source
+TrackDef(\hoo).childAt(0,0).presetCompileStringSavePath
 TrackDef(\hoo).loadPresetCompileString
 PlayerWrapper(Pdef(\metronome)).savePresetCompileString
 TrackDef(\bla, \TrackList);

@@ -1,0 +1,111 @@
+ProtoDef('glu2_mainMixer').trackCount = 10;
+
+ProtoDef('glu2_mainMixer').tracks[0].setVal('inbus', BusDef('mixer0'));
+ProtoDef('glu2_mainMixer').tracks[0].setVal('sendbus0', BusDef('sendbus0'));
+ProtoDef('glu2_mainMixer').tracks[0].setVal('sendbus2', BusDef('sendbus2'));
+ProtoDef('glu2_mainMixer').tracks[0].setVal('sendbus7', BusDef('sendbus7'));
+ProtoDef('glu2_mainMixer').tracks[0].setVal('sendbus1', BusDef('sendbus1'));
+ProtoDef('glu2_mainMixer').tracks[0].setVal('sendbus6', BusDef('sendbus6'));
+ProtoDef('glu2_mainMixer').tracks[0].setVal('sendbus3', BusDef('sendbus3'));
+ProtoDef('glu2_mainMixer').tracks[0].setVal('sendbus4', BusDef('sendbus4'));
+ProtoDef('glu2_mainMixer').tracks[0].setVal('sendbus5', BusDef('sendbus5'));
+ProtoDef('glu2_mainMixer').tracks[0].outBus = 0;
+
+ProtoDef('glu2_mainMixer').tracks[1].setVal('inbus', BusDef('mixer1'));
+ProtoDef('glu2_mainMixer').tracks[1].setVal('sendbus0', BusDef('sendbus0'));
+ProtoDef('glu2_mainMixer').tracks[1].setVal('sendbus2', BusDef('sendbus2'));
+ProtoDef('glu2_mainMixer').tracks[1].setVal('sendbus7', BusDef('sendbus7'));
+ProtoDef('glu2_mainMixer').tracks[1].setVal('sendbus1', BusDef('sendbus1'));
+ProtoDef('glu2_mainMixer').tracks[1].setVal('sendbus6', BusDef('sendbus6'));
+ProtoDef('glu2_mainMixer').tracks[1].setVal('sendbus3', BusDef('sendbus3'));
+ProtoDef('glu2_mainMixer').tracks[1].setVal('sendbus4', BusDef('sendbus4'));
+ProtoDef('glu2_mainMixer').tracks[1].setVal('sendbus5', BusDef('sendbus5'));
+ProtoDef('glu2_mainMixer').tracks[1].outBus = 0;
+
+ProtoDef('glu2_mainMixer').tracks[2].setVal('inbus', BusDef('mixer2'));
+ProtoDef('glu2_mainMixer').tracks[2].setVal('sendbus0', BusDef('sendbus0'));
+ProtoDef('glu2_mainMixer').tracks[2].setVal('sendbus2', BusDef('sendbus2'));
+ProtoDef('glu2_mainMixer').tracks[2].setVal('sendbus7', BusDef('sendbus7'));
+ProtoDef('glu2_mainMixer').tracks[2].setVal('sendbus1', BusDef('sendbus1'));
+ProtoDef('glu2_mainMixer').tracks[2].setVal('sendbus6', BusDef('sendbus6'));
+ProtoDef('glu2_mainMixer').tracks[2].setVal('sendbus3', BusDef('sendbus3'));
+ProtoDef('glu2_mainMixer').tracks[2].setVal('sendbus4', BusDef('sendbus4'));
+ProtoDef('glu2_mainMixer').tracks[2].setVal('sendbus5', BusDef('sendbus5'));
+ProtoDef('glu2_mainMixer').tracks[2].outBus = 0;
+
+ProtoDef('glu2_mainMixer').tracks[3].setVal('inbus', BusDef('mixer3'));
+ProtoDef('glu2_mainMixer').tracks[3].setVal('sendbus0', BusDef('sendbus0'));
+ProtoDef('glu2_mainMixer').tracks[3].setVal('sendbus2', BusDef('sendbus2'));
+ProtoDef('glu2_mainMixer').tracks[3].setVal('sendbus7', BusDef('sendbus7'));
+ProtoDef('glu2_mainMixer').tracks[3].setVal('sendbus1', BusDef('sendbus1'));
+ProtoDef('glu2_mainMixer').tracks[3].setVal('sendbus6', BusDef('sendbus6'));
+ProtoDef('glu2_mainMixer').tracks[3].setVal('sendbus3', BusDef('sendbus3'));
+ProtoDef('glu2_mainMixer').tracks[3].setVal('sendbus4', BusDef('sendbus4'));
+ProtoDef('glu2_mainMixer').tracks[3].setVal('sendbus5', BusDef('sendbus5'));
+ProtoDef('glu2_mainMixer').tracks[3].outBus = 0;
+
+ProtoDef('glu2_mainMixer').tracks[4].setVal('inbus', BusDef('mixer4'));
+ProtoDef('glu2_mainMixer').tracks[4].setVal('sendbus0', BusDef('sendbus0'));
+ProtoDef('glu2_mainMixer').tracks[4].setVal('sendbus2', BusDef('sendbus2'));
+ProtoDef('glu2_mainMixer').tracks[4].setVal('sendbus7', BusDef('sendbus7'));
+ProtoDef('glu2_mainMixer').tracks[4].setVal('sendbus1', BusDef('sendbus1'));
+ProtoDef('glu2_mainMixer').tracks[4].setVal('sendbus6', BusDef('sendbus6'));
+ProtoDef('glu2_mainMixer').tracks[4].setVal('sendbus3', BusDef('sendbus3'));
+ProtoDef('glu2_mainMixer').tracks[4].setVal('sendbus4', BusDef('sendbus4'));
+ProtoDef('glu2_mainMixer').tracks[4].setVal('sendbus5', BusDef('sendbus5'));
+ProtoDef('glu2_mainMixer').tracks[4].outBus = 0;
+
+ProtoDef('glu2_mainMixer').tracks[5].setVal('inbus', BusDef('mixer5'));
+ProtoDef('glu2_mainMixer').tracks[5].setVal('sendbus0', BusDef('sendbus0'));
+ProtoDef('glu2_mainMixer').tracks[5].setVal('sendbus2', BusDef('sendbus2'));
+ProtoDef('glu2_mainMixer').tracks[5].setVal('sendbus7', BusDef('sendbus7'));
+ProtoDef('glu2_mainMixer').tracks[5].setVal('sendbus1', BusDef('sendbus1'));
+ProtoDef('glu2_mainMixer').tracks[5].setVal('sendbus6', BusDef('sendbus6'));
+ProtoDef('glu2_mainMixer').tracks[5].setVal('sendbus3', BusDef('sendbus3'));
+ProtoDef('glu2_mainMixer').tracks[5].setVal('sendbus4', BusDef('sendbus4'));
+ProtoDef('glu2_mainMixer').tracks[5].setVal('sendbus5', BusDef('sendbus5'));
+ProtoDef('glu2_mainMixer').tracks[5].outBus = 0;
+
+ProtoDef('glu2_mainMixer').tracks[6].setVal('inbus', BusDef('mixer6'));
+ProtoDef('glu2_mainMixer').tracks[6].setVal('sendbus0', BusDef('sendbus0'));
+ProtoDef('glu2_mainMixer').tracks[6].setVal('sendbus2', BusDef('sendbus2'));
+ProtoDef('glu2_mainMixer').tracks[6].setVal('sendbus7', BusDef('sendbus7'));
+ProtoDef('glu2_mainMixer').tracks[6].setVal('sendbus1', BusDef('sendbus1'));
+ProtoDef('glu2_mainMixer').tracks[6].setVal('sendbus6', BusDef('sendbus6'));
+ProtoDef('glu2_mainMixer').tracks[6].setVal('sendbus3', BusDef('sendbus3'));
+ProtoDef('glu2_mainMixer').tracks[6].setVal('sendbus4', BusDef('sendbus4'));
+ProtoDef('glu2_mainMixer').tracks[6].setVal('sendbus5', BusDef('sendbus5'));
+ProtoDef('glu2_mainMixer').tracks[6].outBus = 0;
+
+ProtoDef('glu2_mainMixer').tracks[7].setVal('inbus', BusDef('mixer7'));
+ProtoDef('glu2_mainMixer').tracks[7].setVal('sendbus0', BusDef('sendbus0'));
+ProtoDef('glu2_mainMixer').tracks[7].setVal('sendbus2', BusDef('sendbus2'));
+ProtoDef('glu2_mainMixer').tracks[7].setVal('sendbus7', BusDef('sendbus7'));
+ProtoDef('glu2_mainMixer').tracks[7].setVal('sendbus1', BusDef('sendbus1'));
+ProtoDef('glu2_mainMixer').tracks[7].setVal('sendbus6', BusDef('sendbus6'));
+ProtoDef('glu2_mainMixer').tracks[7].setVal('sendbus3', BusDef('sendbus3'));
+ProtoDef('glu2_mainMixer').tracks[7].setVal('sendbus4', BusDef('sendbus4'));
+ProtoDef('glu2_mainMixer').tracks[7].setVal('sendbus5', BusDef('sendbus5'));
+ProtoDef('glu2_mainMixer').tracks[7].outBus = 0;
+
+ProtoDef('glu2_mainMixer').tracks[8].setVal('inbus', BusDef('mixer8'));
+ProtoDef('glu2_mainMixer').tracks[8].setVal('sendbus0', BusDef('sendbus0'));
+ProtoDef('glu2_mainMixer').tracks[8].setVal('sendbus2', BusDef('sendbus2'));
+ProtoDef('glu2_mainMixer').tracks[8].setVal('sendbus7', BusDef('sendbus7'));
+ProtoDef('glu2_mainMixer').tracks[8].setVal('sendbus1', BusDef('sendbus1'));
+ProtoDef('glu2_mainMixer').tracks[8].setVal('sendbus6', BusDef('sendbus6'));
+ProtoDef('glu2_mainMixer').tracks[8].setVal('sendbus3', BusDef('sendbus3'));
+ProtoDef('glu2_mainMixer').tracks[8].setVal('sendbus4', BusDef('sendbus4'));
+ProtoDef('glu2_mainMixer').tracks[8].setVal('sendbus5', BusDef('sendbus5'));
+ProtoDef('glu2_mainMixer').tracks[8].outBus = 0;
+
+ProtoDef('glu2_mainMixer').tracks[9].setVal('inbus', BusDef('mixer9'));
+ProtoDef('glu2_mainMixer').tracks[9].setVal('sendbus0', BusDef('sendbus0'));
+ProtoDef('glu2_mainMixer').tracks[9].setVal('sendbus2', BusDef('sendbus2'));
+ProtoDef('glu2_mainMixer').tracks[9].setVal('sendbus7', BusDef('sendbus7'));
+ProtoDef('glu2_mainMixer').tracks[9].setVal('sendbus1', BusDef('sendbus1'));
+ProtoDef('glu2_mainMixer').tracks[9].setVal('sendbus6', BusDef('sendbus6'));
+ProtoDef('glu2_mainMixer').tracks[9].setVal('sendbus3', BusDef('sendbus3'));
+ProtoDef('glu2_mainMixer').tracks[9].setVal('sendbus4', BusDef('sendbus4'));
+ProtoDef('glu2_mainMixer').tracks[9].setVal('sendbus5', BusDef('sendbus5'));
+ProtoDef('glu2_mainMixer').tracks[9].outBus = 0;

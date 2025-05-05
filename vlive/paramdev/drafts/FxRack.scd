@@ -19,7 +19,7 @@
 				self.proxySynthDef = proxy;
 				self.proxy = Pdef(name,
 					Pmono(proxy,
-						\out, Pfunc({ self.parentRack.inBus }),
+						\out, Pfunc({ self.parentRack.internalBus }),
 						\group, GroupDef.pattern(name, self.parentRack.groupDefPattern, \addToTail),
 					),
 				);
@@ -129,6 +129,24 @@
 			self.changed(\fxList);
 		},
 
+		inputProxy: { arg self;
+
+			var first;
+			var group;
+			var grouplist;
+
+			if(self[\inputProxy_obj].isNil) {
+				self[\inputProxy_obj] = EventPatternProxy.new.source_(Pmono(\ifx_infeedback,
+					\out, Pfunc({ self.internalBus }),
+					\inbus, Pfunc({ self.inBus }),
+					\group, self.groupDefPattern,
+					//\group, group,
+					\addAction, \addBefore,
+				));
+			};
+			self[\inputProxy_obj]
+		},
+
 		monitorProxy: { arg self;
 
 			var first;
@@ -147,14 +165,14 @@
 					GroupDef.pattern(b, a, \addAfter) 
 				});
 			} {
-				group = 1;
+				group = Pn(1);
 			};
 			self.groupStack = group;
 			
 			if(self[\monitorProxy_obj].isNil) {
 				self[\monitorProxy_obj] = EventPatternProxy.new.source_(Pmono(\ifx_out,
 					\out, Pfunc({ self.outBus }),
-					\inbus, Pfunc({ self.inBus }),
+					\inbus, Pfunc({ self.internalBus }),
 					\mkg, Plazy({ arg ev;
 						//~group = group;
 						self.groupStack;
@@ -177,9 +195,9 @@
 				self.proxy = EventPatternProxy.new;
 			};
 			if(self.fxList.size == 0) {
-				self.proxy.source = self.monitorProxy;
+				self.proxy.source = Ppar([self.inputProxy, self.monitorProxy]);
 			} {
-				self.proxy.source = Ppar(self.fxList.collect(_.asPattern) ++ self.monitorProxy);
+				self.proxy.source = Ppar([self.inputProxy] ++ self.fxList.collect(_.asPattern) ++ [self.monitorProxy]);
 			};
 		},
 		play: { arg self;
@@ -197,6 +215,10 @@
 
 		inBus: { arg self;
 			BusDef(self.rackKey, \audio, 2)
+		},
+
+		internalBus: { arg self;
+			BusDef("%_internal".format(self.rackKey).asSymbol, \audio, 2)
 		},
 
 		isPlaying: { arg self;
@@ -415,14 +437,34 @@ NoteTimeline(\hoho).edit
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(
-			\type, \locator,
 			\instrument, \default,
 			\freq, 200,
 			\dur, 1,
 			\amp, 0.1,
+			\out, BusDef(\fx, \audio, 2),
+		),
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\freq, 200,
+			\dur, 1,
+			\amp, 0.1,
+			\out, BusDef(\fx, \audio, 2),
+		),
+		Pmono(\ifx_infeedback,
+			\inbus, BusDef(\fx, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\dur, 1,
 		),
 	])
 )).play;
 );
 
 ClipTimeline(\haz).edit
+BusDef(\fx, \audio, 2)

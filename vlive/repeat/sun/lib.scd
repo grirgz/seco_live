@@ -8,9 +8,9 @@ FileSystemProject.load("libdef/MainProject.scd");
 
 FileSystemProject.load("libdef/pmodenv.scd");
 FileSystemProject.load("sndlib/buflib.scd"); // ~buflib
-FileSystemProject.load("libdef/synthplayrec.scd"); // playersec
-FileSystemProject.load("capsule/fxsimple.scd"); // fx
-FileSystemProject.load("cavern/ifxsimple.scd"); // fx
+FileSystemProject.load("sndlib/synthplayrec.scd"); // playersec
+FileSystemProject.load("sndlib/fxsimple.scd"); // fx
+FileSystemProject.load("sndlib/ifxsimple.scd"); // fx
 //FileSystemProject.load("capsule/draftsynth.scd");
 //FileSystemProject.load("holis/synthdef.scd"); 
 

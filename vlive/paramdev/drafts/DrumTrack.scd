@@ -347,7 +347,7 @@ WindowDef(\DrumTrackPart, (
 			),
 			BasicButton.new.string_("Add param").action_({
 				var exc = self.part.getExistingStepSeqParams.collect({ arg pa; pa.propertyRoot });
-				var pbindprop = [\degree, \note, \octave, \strum];
+				var pbindprop = [\degree, \note, \octave, \strum, \lag, \legato, \sustain, \mtranspose, \ctranspose, \root];
 				var pbindpg;
 				synthdef = self.part.parentTrack.score.source.at(\instrument).source;
 				pg = score.asParamGroup(synthdef).rejectByProperty(exclude);

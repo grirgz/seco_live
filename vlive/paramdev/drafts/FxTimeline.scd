@@ -1916,6 +1916,14 @@ ProtoClassDef(\FxTimeline, ProtoClass(( // can't use ProtoTemplateDef, clash wit
 		self;
 	},
 
+	refCompileString: { arg self, name;
+		if(name.isNil) {
+			name = self.key.asCompileString
+		};
+		"ProtoInst(\\FxTimeline, %)".format(name)
+	},
+
+
 	addInstance: { arg self, key;
 		self.key = key;
 		self.all[key] = self;
@@ -1961,6 +1969,7 @@ ProtoClassDef(\FxTimeline, ProtoClass(( // can't use ProtoTemplateDef, clash wit
 		//self.clipList = ProtoClassDef(\ClipTimelineClipList).new(self) !? { arg x; {x} };
 		//"=============clipTimeline: end init".debug;
 
+		TagSpecDef('FxTimeline').addUnique(self.key -> self);
 		self;
 	},
 
@@ -2049,10 +2058,11 @@ ProtoClassDef(\FxTimeline, ProtoClass(( // can't use ProtoTemplateDef, clash wit
 			);
 			pat = Ppar([
 				pat, 
-				Pfindur(dur, self.fxRack.monitorProxy)
+				Pfindur(dur, self.fxRack.monitorProxy),
+				Pfindur(dur, self.fxRack.inputProxy), // don't know why should be after monitorProxy
 			]);
 
-			"houou".debug;
+			self.fxRack.inputProxy.debug("houou");
 			pat.embedInStream;
 
 		}
@@ -2204,6 +2214,7 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 
 	colors: (
 		selected: ParamViewToolBox.color_ligth,
+		semiselected: ParamViewToolBox.color_ligth.complementary,
 		deselected: Color.gray(0.7),
 		
 	),
@@ -2485,6 +2496,7 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 
 	selectTrackAction: { arg self;
 		var color_selected = self.colors.selected;
+		var color_semiselected = self.colors.semiselected;
 		var color_deselected = self.colors.deselected;
 		{ arg subself, idx;
 			var view;
@@ -2493,7 +2505,6 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 			var key;
 			debug("----#### selectTrackAction start");
 			view = subself.views[ridx]; // view are reversed
-			view.background_(color_selected);
 			// views are reversed but view 0 at bottom still mean fx 0
 			self.selectedFx = self.timeline_model.tracks[idx]; 
 
@@ -2535,6 +2546,11 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 				self.selectedModulatorType = self.eventModel.getModulatorType(self.selectedEvent, key);
 			};
 
+			if(self.selectedParam == self.selectedTrackParam) {
+				view.background_(color_semiselected);
+			} {
+				view.background_(color_selected);
+			};
 			//debug("selectTrackAction send changed");
 			//debug("selectTrackAction finish");
 		};
@@ -2766,6 +2782,21 @@ ProtoTemplateDef(\FxTimelinePanelView, (
 	},
 
 ));
+
+//// GlobalLibrary
+
+TagSpecDef('GlobalLibrary.category.Timeline').addUnique(\FxTimeline);
+TagSpecDef('GlobalLibrary.type').addUnique(\FxTimeline);
+ProtoDef(\GlobalLibrary).clipFactories[\fxTimeline] = (
+	key: \fxTimeline,
+	libIdKey: \FxTimeline,
+	parent: ProtoDef(\GlobalLibrary).clipFactories_timeline_parent,
+	classObject: "{ ProtoClassDef(%) }".format(\FxTimeline.asCompileString).interpret,
+);
+
+
+///////////////// test and debug
+
 Spec.add(\time, ControlSpec(0.01,1,\exp));
 Spec.add(\lpf, \freq);
 Spec.add(\dry, \unipolar);
@@ -2832,8 +2863,59 @@ WindowDef(\testmodstrip, { arg def;
 //WindowDef(\testmodstrip).front;
 );
 
+//////////////////////////////////////////////////////////////////////
 // END
 
+ProtoInst(\FxTimeline, \bla2).edit;
+ProtoInst(\FxTimeline, \bla1).fxRack.inputProxy.play
+ProtoInst(\FxTimeline, \bla3).edit;
+ProtoInst(\FxTimeline, \bla1)[\refCompileString].asCompileString
+ProtoInst(\FxTimeline, \bla1).refCompileString
+ProtoInst(\FxTimeline, \bla2).edit;
+ProtoInst(\FxTimeline, \bla1).fxRack.edit
+WindowDef(\testmodstrip).front;
+
+ClipTimeline(\test).edit;
+ProtoClassDef(\FxTimeline).new(\aze).edit
+~lib = ProtoDef(\GlobalLibrary)
+~id = [ \FxTimeline, \bla1 -> ProtoInst(\FxTimeline, \bla1) ]
+~w = ProtoDef(\GlobalLibrary).libIdToWrapper([ \FxTimeline, \bla1 -> ProtoInst(\FxTimeline, \bla1) ])
+~w.classObject.new(\bla1).edit
+~w.getEvent.timeline
+~ev = ~w.getEvent
+~w.eventToLibId(~ev)
+~lib.eventToLibId(~ev)
+~lib.lib
+~lib.clipFactories_keys
+~lib.clipFactories.keys.asArray.sort
+~lib[\clipFactories_keys]
+
+~w.getTarget.edit
+ClipTimeline(\test).presetCompileString.editorInsert
+~ev = ClipTimeline(\test).eventList[1]
+
+(
+ClipTimeline('test').tracks = [ ( 'index': 0, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+{
+ClipTimeline('test').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 2.0, \label: 'start', \playDur: 2.0, \relDur: 2.0, \sustain: 0, \type: 'start', ),
+	PatternEvent((\absTime: 2.0, \dur: 6.0, \legato: 1, \midinote: 2.0, \playDur: 6.0, \relDur: 6.0, \sustain: 3.75, \timeline: { ProtoInst(\FxTimeline, 'bla1') }, \type: 'pattern', )),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ }.value;
+
+
+
+
+);
+
+(
+TagSpecDef('FxTimeline').addUnique(\bla1 -> ProtoInst(\FxTimeline, \bla1));
+)
+
+WindowDef(\GlobalLibrary_select).front(nil, {}, \Timeline)
+WindowDef(\GlobalLibrary_select).front(nil, {})
+WindowDef(\ClipTimelineContextMenu).source.asCompileString
 ~mod.proto.areasize
 ~mod.proto.viewport
 ~mod.proto.cellWidth
@@ -2928,6 +3010,7 @@ Pdef(\chainout,
 );
 
 (
+// AUGUSTO !!!
 Pdef(\augusto, 
 	Pbind(
 		\instrument, \playersec,
@@ -2940,10 +3023,13 @@ Pdef(\augusto,
 		]+0,1),2).loop / Pkey(\st),
 		\dur, 1/8,
 		\gain, 1/8,
+		\out, BusDef(\bla1_fxRack, \audio),
 	),
 );
 );
 
+Pdef(\augusto).play
+Pdef(\augusto).edit
 (
 Pdef(\help, 
 	Pbind(
