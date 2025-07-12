@@ -1,3 +1,5 @@
+~t = 185/4/60; TempoClock.default.tempo = ~t;
+FileSystemProject.load("capsule/fxheavy.scd");
 
 (
 ~master = {
@@ -9,7 +11,7 @@
 };
 ~master.();
 )
-~t = 185/4/60; TempoClock.default.tempo = ~t;
+
 
 (
 SynthDef(\pwbass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
@@ -915,7 +917,8 @@ Pdef(\part, Pdef(\sec1,
 		Pbind(
 			\instrument, \playersec,
 			\bufnum, ~buflib.hat[1064].value,
-			\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\bufnum, ~buflib.hat[849].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
 			\isRest, Pseq([
 				1,1,0,0, 1,0,1,0,
 				1,1,0,0, 1,0,1,0,
@@ -928,7 +931,8 @@ Pdef(\part, Pdef(\sec1,
 		Pbind(
 			\instrument, \playersec,
 			\bufnum, ~buflib.snare[1719].value,
-			\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[2328].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
 			\isRest, Pseq([
 				0,0,1,0, 0,0,1,0,
 				0,0,1,1, 0,1,1,0,
@@ -936,7 +940,7 @@ Pdef(\part, Pdef(\sec1,
 				0,0,1,1, 0,0,1,0,
 			],inf).coin.not,
 			\dur, 1/8,
-			\gain, 0.61,
+			\gain, 1/6,
 		),
 		
 	])
@@ -1031,7 +1035,8 @@ Pdef(\part, Pdef(\zed,
 		Pbind(
 			\instrument, \playersec,
 			\bufnum, ~buflib.hat[1064].value,
-			\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\bufnum, ~buflib.hat[1905].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
 			\isRest, Pseq([
 				1,1,0,0, 1,0,1,0,
 				1,1,0,0, 1,0,1,0,
@@ -1044,7 +1049,8 @@ Pdef(\part, Pdef(\zed,
 		Pbind(
 			\instrument, \playersec,
 			\bufnum, ~buflib.snare[1719].value,
-			\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\bufnum, ~buflib.snare[750].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
 			\isRest, Pseq([
 				0,0,1,0, 0,0,1,0,
 				0,0,1,0, 0,0,1,0,

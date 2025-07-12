@@ -2433,3 +2433,122 @@ Pdef(\part, Pdef(\ck,
 	])
 )).play;
 );
+
+/////////////// tump2
+
+
+(
+SynthDef(\tump2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = FSinOsc.ar(freq* (1..8) * [ \chord.kr([1,3/2]) ]) * (LFNoise1.kr(6!2!8) * ( 1/( (1..8)**(\harm.kr(1))+1 ) ) * 0.8).max(0);
+	sig = sig.mean;
+	sig.debug("sig");
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.3,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig * amp;
+	sig.debug("sig");
+	Out.ar(out, sig);
+}).add;
+);
+TempoClock.default.tempo = 1.4/2;
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \tump2,
+			\chord, Pseq([
+				[[1.01,1]],
+				[[1/2,2]],
+				[[2,1]],
+				[[1,3.midiratio]],
+			],inf),
+			\note, Pstep(Pseq([0,-1, 0,-6, -9,-1, -10,-9],inf),Pseq([3,1],inf))+8,
+			\harm, Pseg(Pseq([0,0.01,1,10],inf),8),
+			\harm, Pseq([0.01,10,10],inf),
+			\octave, 3,
+			//\freq, 70,
+			\legato,1,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.01,0.4,2.1) ],
+				[ Env.adsr(0.01,0.21,0.4,0.1) ],
+			],inf),
+			\dur, Plazy({ Pseq([3,3,2].scramble/8,8) }).loop,
+			\amp, 2.8,
+		),
+		Pbind(
+			\instrument, \tump2,
+			\chord, Pseq([
+				[[1.01,1]],
+				[[1/2,2]],
+				[[2,1]],
+				[[1,3.midiratio]],
+			],inf),
+			\note, Pstep(Pseq([0,-1, 0,-6, -9,-1, -10,-9],inf),Pseq([3,1],inf))+8,
+			\harm, Pseg(Pseq([1,10],inf),8),
+			//\harm, Pseq([10,10],inf),
+			\octave, 5,
+			//\freq, 70,
+			\legato,1,
+			\adsr, Pseq([
+				//[ Env.adsr(0.001,0.01,0.4,2.1) ],
+				[ Env.adsr(0.01,0.21,0.4,1.1) ],
+			],inf),
+			\dur, Plazy({ Pseq([3,3,2].scramble/8,8) }).loop,
+			\amp, 2.8,
+		),
+		
+	])
+)).play;
+);
+
+
+(
+SynthDef(\nosepad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+    var sig;
+    var env1, env2, env3, env4, env5, env6, env7, env8;
+    env1 = XLine.kr(1/freq * \rampstartfac.kr(1),1/freq * \rampendfac.kr(1),\ramptime.kr(8));
+    env2 = XLine.kr(\decaystart.kr(0.1),\decayend.kr(10),\decaytime.kr(1));
+    sig = SinOsc.ar(freq * [ [1,2,1/2] ] * ( SinOsc.ar( ( SinOsc.ar( (1..8) * \fmfreqfac2.kr(1) ) * \fma2.kr(1) + 1 ) * freq * \fmfreqfac.kr(1) ) * \fma.kr(1) + 1 ));
+    sig = sig.flop.mean;
+    sig.debug("sig");
+    sig = CombL.ar(sig, \maxdelay.kr(0.1), env1, \combdecay.kr(10)*env2) + sig;
+    sig = AllpassL.ar(sig, \maxdelay.kr, env1, \combdecay2.kr(10)*env2) + sig;
+    sig = Limiter.ar(sig,1,0.01);
+    sig = sig * \gain.kr(1) * 1/4;
+    sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+    sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+    Out.ar(out, sig);
+}).add;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+    Ppar([
+        Pbind(
+            \instrument, \nosepad,
+            \fma, Pseg(Pseq([0,1,10,100,50],inf),8),
+            \fma2, Pseg(Pseq([0,1,10,100,50],inf),10),
+            \note, Pstep(Pseq([
+                [0,4,7],
+                [0,3,7,10-12]+4,
+            ],inf),1),
+            \rampendfac, Pseq([
+                1,1,1,1,2,1,1,1,1/2,
+            ],inf).stutter(14),
+            \ramptime, 0.01,
+            \combdecay, Pseg(Pseq([0,1,10],inf),11),
+            \decaytime, 3,
+            \octave, 4,
+            \legato, Pseq([
+                7,0,0,0, 0,0,0,0,
+            ],inf).collect({ arg x; if(x <= 0) { Rest() } {x}  }),
+            \adsr, Pseq([
+                [ Env.adsr(0.01,0.1,0.8,1.01) ],
+            ],inf),
+            \dur, 1/8,
+            \amp, 0.1,
+        ),
+    ])
+)).play;
+);

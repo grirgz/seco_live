@@ -1,7 +1,45 @@
 
+~t = 185/4/60; TempoClock.default.tempo = ~t;
 
-PatKitDef(\newkit).edit
-PatKitDef(\newkit).presetCompileString.editorInsert
+//PatKitDef(\newkit).edit
+//PatKitDef(\newkit).presetCompileString.editorInsert
+
+////////////// lib
+
+(
+SynthDef(\tredrone, { arg lagf=0, freq=200, pan=0, amp=0.1, out=0, gate=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freq = freq.lag(lagf);
+	freq = freq * [1, 5/3];
+	sig = LFPulse.ar(freq * ( 1 + ( CuspL.ar(\cusfreq.kr(10) + [1,2,3],\cus2.kr(1.1),\cus3.kr(1)).lag(0.1) * ( CuspL.ar(0.1)/3 + 0.1+[ [0,0.01] ] ) * \fma.kr(1) ))).mean;
+	sig.debug("kjkj");
+	sig = sig /13;
+	sig1 = sig;
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq.lag(1) * SinOsc.kr(1*~t * [1,3/5]).range(0,1), \rq.kr(0.5));
+	sig = sig + BPF.ar(sig1, freq.lag(1) * 8);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\longbass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([0,1/2,1],[0.3,0.8]), 1);
+	env2 = EnvGen.kr(Env([0,0.01,1],[1.3,0.8]), 1);
+	env3 = EnvGen.kr(Env([0,Rand(1,10.0),0],[0.3,0.8]), 1);
+	env4 = ( SinOsc.kr(2) * 0.3 + 1 ) * ( SinOsc.ar(freq) * 0.91 + 1 );
+	sig = LFPulse.ar(freq * ( SinOsc.ar(freq+env2) * env1 + 1 ));
+	sig = sig + SinOsc.ar(freq * ( SinOsc.ar(freq+env3) * env1 + 1 ));
+	sig = RLPF.ar(sig, \lpf.kr(1000) * env4, \rq.kr(0.5));
+	sig = sig * 3;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+
 (
 PatKitDef(\newkit).targets = [
 	StepEvent.newFrom((instrument: 'playersec', out: BusDef(\sendbus1), gain: 0.22452932564887, bufnum: BufDef('com/Kick/Kick AfroShop 1.wav'))),
@@ -22,9 +60,10 @@ PatKitDef(\newkit).targets = [
 );
 
 
-KitTimeline(\line1, PatKitDef(\newkit)).edit
-KitTimeline(\line1, PatKitDef(\newkit)).presetCompileString.editorInsert
+//KitTimeline(\line1, PatKitDef(\newkit)).edit
+//KitTimeline(\line1, PatKitDef(\newkit)).presetCompileString.editorInsert
 (
+KitTimeline(\line1, PatKitDef(\newkit));
 KitTimeline('line1').eventList = XEventList.newFrom([
 	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
 	(\absTime: 0.0, \dur: 0.125, \kitIndex: 0.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.125, ),
@@ -48,11 +87,28 @@ KitTimeline('line1').eventList = XEventList.newFrom([
 ]);
 );
 
-NoteTimeline(\line1, Pdef(\bass)).edit;
-NoteTimeline(\line1, Pdef(\bass)).postChain
-NoteTimeline(\line1, Pdef(\bass)).clear
-NoteTimeline(\line1, Pdef(\bass)).presetCompileString.editorInsert
+//NoteTimeline(\line1, Pdef(\bass)).edit;
+//NoteTimeline(\line1, Pdef(\bass)).postChain
+//NoteTimeline(\line1, Pdef(\bass)).clear
+//NoteTimeline(\line1, Pdef(\bass)).presetCompileString.editorInsert
 (
+Pdef(\bass, 
+	Pbind(
+		\instrument, \longbass,
+		\note, Pseq([
+			0,
+		],inf),
+		//\lpf, ~pmodenv.(Pseq([100,8000],1), Pn(1/4,1)),
+		\octave, 3,
+		\dur, 1,
+		\amp, 0.1,
+		//\out, BusDef(\sendbus1, \audio),
+	),
+)
+);
+
+(
+NoteTimeline(\line1, Pdef(\bass));
 NoteTimeline('line1').eventList = XEventList.newFrom([
 	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
 	(\absTime: 0.0, \dur: 0.375, \kitIndex: 0.0, \midinote: 34, \playDur: 0.375, \relDur: 0.375, \sustain: 0.375, ),
@@ -64,8 +120,8 @@ NoteTimeline('line1').eventList = XEventList.newFrom([
 ]);
 );
 
-ClipTimeline(\part1).edit
-ClipTimeline(\part1).presetCompileString.editorInsert
+//ClipTimeline(\part1).edit
+//ClipTimeline(\part1).presetCompileString.editorInsert
 (
 ClipTimeline('part1').eventList = XEventList.newFrom([
 	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
@@ -78,62 +134,7 @@ ClipTimeline('part1').eventList = XEventList.newFrom([
 );
 
 
-
-(
-SynthDef(\longbass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([0,1/2,1],[0.3,0.8]), 1);
-	env2 = EnvGen.kr(Env([0,0.01,1],[1.3,0.8]), 1);
-	env3 = EnvGen.kr(Env([0,Rand(1,10.0),0],[0.3,0.8]), 1);
-	env4 = ( SinOsc.kr(2) * 0.3 + 1 ) * ( SinOsc.ar(freq) * 0.91 + 1 );
-	sig = LFPulse.ar(freq * ( SinOsc.ar(freq+env2) * env1 + 1 ));
-	sig = sig + SinOsc.ar(freq * ( SinOsc.ar(freq+env3) * env1 + 1 ));
-	sig = RLPF.ar(sig, \lpf.kr(1000) * env4, \rq.kr(0.5));
-	sig = sig * 3;
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-
-		(
-			Pdef(\bass, 
-				Pbind(
-					\instrument, \longbass,
-					\note, Pseq([
-						0,
-					],inf),
-					//\lpf, ~pmodenv.(Pseq([100,8000],1), Pn(1/4,1)),
-					\octave, 3,
-					\dur, 1,
-					\amp, 0.1,
-					//\out, BusDef(\sendbus1, \audio),
-				),
-			)
-		)
-		Pdef(\bass).stop
-
-(
-Pdef(\part, Pdef(\zed, 
-	Ppar([
-		Pbind(
-			\instrument, \basicbass,
-			\note, Pseq([
-				0,
-			],inf),
-			\octave, 3,
-			\dur, 1,
-			\amp, 0.1,
-			\out, BusDef(\sendbus1, \audio),
-		),
-		
-	])
-)).play;
-);
-Pdef(\part).stop
-ProtoDef(\rdn).presetCompileString.editorInsert
+//ProtoDef(\rdn).presetCompileString.editorInsert
 (
 ProtoDef('rdn').make('deldefault', 'rdn', "6-KUSS-8GNG", BusDef(\sendbus1));
 Ndef('rdn').put(100, \pset -> Pbind(
@@ -174,7 +175,7 @@ Ndef('rdn').put(100, \pset -> Pbind(
 
 
 
-ProtoDef(\rdn2).presetCompileString.editorInsert
+//ProtoDef(\rdn2).presetCompileString.editorInsert
 (
 ProtoDef('rdn2').make('del3full', 'rdn2', "5-BQPG-1CQI", BusDef(\sendbus2));
 Ndef('rdn2').put(100, \pset -> Pbind(
@@ -211,7 +212,7 @@ Ndef('rdn2').put(100, \pset -> Pbind(
 
 );
 
-ProtoDef(\rdn3).presetCompileString.editorInsert
+//ProtoDef(\rdn3).presetCompileString.editorInsert
 (
 ProtoDef('rdn3').make('deldefault', 'rdn3', "5-68FA-6LFG", BusDef(\sendbus3));
 Ndef('rdn3').put(100, \pset -> Pbind(
@@ -241,7 +242,8 @@ Ndef('rdn3').put(100, \pset -> Pbind(
 ).keep(1));
 
 );
-ProtoDef(\rdn4).presetCompileString.editorInsert
+
+//ProtoDef(\rdn4).presetCompileString.editorInsert
 (
 ProtoDef('rdn4').make('deldefault', 'rdn4', "4-5Q5Q-1SIK", BusDef(\sendbus1));
 Ndef('rdn4').put(100, \pset -> Pbind(
@@ -271,20 +273,6 @@ Ndef('rdn4').put(100, \pset -> Pbind(
 ).keep(1));
 
 );
-
-
-
-(
-Pdef(\masterSetup, 
-	Prout({ arg ev;
-		"setup!".postln;
-		ProtoDef(\rdn).play;
-		ProtoDef(\rdn2).play;
-		ProtoDef(\rdn3).play;
-	}),
-).play;
-);
-
 
 (
 Pdef(\ghost, 
@@ -363,3 +351,46 @@ Pdef(\ghost,
 	]),
 ).play;
 );
+
+(
+Pdef(\masterSetup, 
+	Prout({ arg ev;
+		"setup!".postln;
+		ProtoDef(\rdn).play;
+		ProtoDef(\rdn2).play;
+		ProtoDef(\rdn3).play;
+	}),
+).play;
+);
+
+///////////////////////////////////
+
+ClipTimeline(\part1).edit
+ClipTimeline(\part1).play
+
+/////////////////////////////////// draft
+
+		Pdef(\bass).stop
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \basicbass,
+			\note, Pseq([
+				0,
+			],inf),
+			\octave, 3,
+			\dur, 1,
+			\amp, 0.1,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		
+	])
+)).play;
+);
+Pdef(\part).stop
+
+
+
+

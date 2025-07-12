@@ -192,6 +192,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+// note
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 
@@ -214,6 +215,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+// note
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 
@@ -236,6 +238,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+// note at 8
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 
@@ -280,6 +283,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+// note at 4
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 

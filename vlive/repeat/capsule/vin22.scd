@@ -27,6 +27,66 @@ SynthDef(\sidebass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = Pan2.ar(sig, pan, amp).mean;
 	Out.ar(out, sig);
 }).add;
+SynthDef(\bizbiz, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	env1 = EnvGen.kr(\fmamtenv.kr(Env([0,0.451,0],[0.01,1.8])), 1) * \fmamt.kr(1);
+	lfo1 = Duty.kr(\lfo1dur.kr(1/4)/~t, 0, Dseq([
+		Dseq([0,2,6,4,2].midiratio,inf)
+	],inf));
+	sig = SinOsc.ar(freq * [1,lfo1, 2, 2*lfo1] * ( SinOsc.ar(freq *[1,2] * lfo1  +1) * env1 + 1 ));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\bizbiz2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	env1 = EnvGen.kr(\pitchenv.kr(Env([0,1,1,0.1],[0.1,0.8,0.1])), 1);
+	env2 = EnvGen.kr(Env([0,1,0],[0.1,1.8]), 1);
+	lfo1 = Duty.kr(\lfo1dur.kr(1/4)/~t, 0, Dseq([
+		Dseq([0,2,6,4,2].midiratio,inf)
+	],inf));
+	sig = Pulse.ar(freq * [1,lfo1, 2,3,4,5,6,1/2].collect({ arg x; LFNoise1.kr(0.2) * 0.001 + 1 * x }).scramble * (env1 * 0.1 + 1));
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * [lfo1*\lplfoamt.kr(2),1] * (env2 * \lpenvamt.kr(0.2) +1), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\bizbiz3, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	env1 = EnvGen.kr(\pitchenv.kr(Env([0,1,1,0.1],[0.1,0.8,0.1])), 1);
+	env2 = EnvGen.kr(Env([0,1,0],[0.1,1.8]), 1);
+	lfo1 = Duty.kr(\lfo1dur.kr(1/4)/~t, 0, Dseq([
+		Dseq([0,2,6,4,2].midiratio,inf)
+	],inf));
+	sig = Pulse.ar(freq * [1,lfo1, 2,3,4,5,6,1/2].collect({ arg x; LFNoise1.kr(0.2) * 0.001 + 1 * x }).scramble * (env1 * 0.1 + 1));
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * [lfo1*\lplfoamt.kr(2),1] * (env2 * \lpenvamt.kr(0.2) +1), \rq.kr(0.5));
+	lfo2 = TDuty.kr(1/16/~t, 0, Dseq([
+		Drand([
+			Dseq([
+				1,0,1,1, 0,1,0,1,
+			],1),
+			Dseq([
+				1,1,1,1, 1,0,1,0,
+			],1),
+			Dseq([
+				1,0,1,0, 0,0,0,0,
+			],1),
+			Dseq([
+				1,0,0,0, 1,0,0,0,
+			],1),
+		],1),
+	],inf));
+	sig = sig * EnvGen.kr(Env([0,1,0],[0.01,\ienvrel.kr(0.1)]), lfo2) * 2;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
 );
 
 
@@ -220,68 +280,6 @@ Pdef(\part, Pdef(\zed,
 )).play;
 );
 
-(
-SynthDef(\bizbiz, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
-	env1 = EnvGen.kr(\fmamtenv.kr(Env([0,0.451,0],[0.01,1.8])), 1) * \fmamt.kr(1);
-	lfo1 = Duty.kr(\lfo1dur.kr(1/4)/~t, 0, Dseq([
-		Dseq([0,2,6,4,2].midiratio,inf)
-	],inf));
-	sig = SinOsc.ar(freq * [1,lfo1, 2, 2*lfo1] * ( SinOsc.ar(freq *[1,2] * lfo1  +1) * env1 + 1 ));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp).mean;
-	Out.ar(out, sig);
-}).add;
-SynthDef(\bizbiz2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
-	env1 = EnvGen.kr(\pitchenv.kr(Env([0,1,1,0.1],[0.1,0.8,0.1])), 1);
-	env2 = EnvGen.kr(Env([0,1,0],[0.1,1.8]), 1);
-	lfo1 = Duty.kr(\lfo1dur.kr(1/4)/~t, 0, Dseq([
-		Dseq([0,2,6,4,2].midiratio,inf)
-	],inf));
-	sig = Pulse.ar(freq * [1,lfo1, 2,3,4,5,6,1/2].collect({ arg x; LFNoise1.kr(0.2) * 0.001 + 1 * x }).scramble * (env1 * 0.1 + 1));
-	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * [lfo1*\lplfoamt.kr(2),1] * (env2 * \lpenvamt.kr(0.2) +1), \rq.kr(0.5));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
-	Out.ar(out, sig);
-}).add;
-SynthDef(\bizbiz3, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
-	env1 = EnvGen.kr(\pitchenv.kr(Env([0,1,1,0.1],[0.1,0.8,0.1])), 1);
-	env2 = EnvGen.kr(Env([0,1,0],[0.1,1.8]), 1);
-	lfo1 = Duty.kr(\lfo1dur.kr(1/4)/~t, 0, Dseq([
-		Dseq([0,2,6,4,2].midiratio,inf)
-	],inf));
-	sig = Pulse.ar(freq * [1,lfo1, 2,3,4,5,6,1/2].collect({ arg x; LFNoise1.kr(0.2) * 0.001 + 1 * x }).scramble * (env1 * 0.1 + 1));
-	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * [lfo1*\lplfoamt.kr(2),1] * (env2 * \lpenvamt.kr(0.2) +1), \rq.kr(0.5));
-	lfo2 = TDuty.kr(1/16/~t, 0, Dseq([
-		Drand([
-			Dseq([
-				1,0,1,1, 0,1,0,1,
-			],1),
-			Dseq([
-				1,1,1,1, 1,0,1,0,
-			],1),
-			Dseq([
-				1,0,1,0, 0,0,0,0,
-			],1),
-			Dseq([
-				1,0,0,0, 1,0,0,0,
-			],1),
-		],1),
-	],inf));
-	sig = sig * EnvGen.kr(Env([0,1,0],[0.01,\ienvrel.kr(0.1)]), lfo2) * 2;
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
-	Out.ar(out, sig);
-}).add;
-);
 
 (
 	~master.();

@@ -203,6 +203,20 @@ SynthDef(\ifx_rlpf, { arg out=0, gate=1;
 }).add;
 TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_rlpf);
 
+SynthDef(\ifx_rhpf, { arg out=0, gate=1;
+	var sig;
+	var in = In.ar(out, 2); 
+	var env;
+	sig = in;
+	sig = RHPF.ar(sig, \hpf.kr(2301), \rq.kr(0.5));
+	env = EnvGen.ar(\adsr.kr( Env.adsr(0.1, 0, 1, 0.1) ), gate, doneAction:2);
+	sig = sig * env;
+	sig = SelectX.ar(\mix.kr(1), [in, sig]);
+	sig = sig * \gain.kr(1);
+	XOut.ar(out, \wet.kr(0) * env, sig);
+}).add;
+TagSpecDef(\SynthDef_InsertFx).addUnique(\ifx_rhpf);
+
 SynthDef(\ifx_echo, { arg out=0, gate=1;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -251,7 +265,6 @@ SynthDef(\ifx_infeedback, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	var env;
-	in.poll;
 	sig = in;
 	env = EnvGen.ar(\adsr.kr( Env.adsr(0.1, 0, 1, 0.1) ), gate, doneAction:2);
 	sig = sig * env;

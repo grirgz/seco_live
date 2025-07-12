@@ -1,6 +1,7 @@
 
 ~t = 145/2/60; TempoClock.default.tempo = ~t;
 (
+ProtoDef(\rdn3).play;
 Pdef(\part, Pdef(\zed, 
 	Ppar([
 		Pbind(
@@ -11,7 +12,7 @@ Pdef(\part, Pdef(\zed,
 				1,0,0,0, 1,0,0,0,
 			],inf).coin.not,
 			\dur, 1/8,
-			\gain, 0.5,
+			\gain, 1/8,
 			\out, BusDef(\sendbus3, \audio),
 		),
 		Pbind(
@@ -22,7 +23,7 @@ Pdef(\part, Pdef(\zed,
 				0,0,0,0, 1,0,0,0,
 			],inf).coin.not,
 			\dur, 1/8,
-			\gain, 0.61,
+			\gain, 1/8,
 			\out, BusDef(\sendbus3, \audio),
 		),
 		Pbind(
@@ -33,7 +34,7 @@ Pdef(\part, Pdef(\zed,
 				1,0,1,0, 1,0,1,0,
 			],inf).coin.not,
 			\dur, 1/8,
-			\gain, 0.31,
+			\gain, 1/8,
 			\out, BusDef(\sendbus3, \audio),
 		),
 		Pmono(
@@ -41,7 +42,7 @@ Pdef(\part, Pdef(\zed,
 			\bufnum, BufDef('voices/praise.flac'),
 			\loop, 1,
 			\dur, 1,
-			\gain, 1,
+			\gain, 1/8,
 			\out, BusDef(\sendbus3, \audio),
 		),
 	])
@@ -59,7 +60,7 @@ Pdef(\part, Pdef(\zed,
 				1,0,0,0, 1,0,0,0,
 			],inf).coin.not,
 			\dur, 1/8,
-			\gain, 0.5,
+			\gain, 1/8,
 			\out, BusDef(\sendbus3, \audio),
 		),
 		Pbind(
@@ -70,7 +71,7 @@ Pdef(\part, Pdef(\zed,
 				0,0,0,0, 1,0,0,0,
 			],inf).coin.not,
 			\dur, 1/8,
-			\gain, 0.61,
+			\gain, 1/8,
 			\out, BusDef(\sendbus3, \audio),
 		),
 		Pbind(
@@ -82,7 +83,7 @@ Pdef(\part, Pdef(\zed,
 			],inf).coin.not,
 			\dur, 1/8,
 			\out, BusDef(\sendbus3, \audio),
-			\gain, 0.31,
+			\gain, 1/8,
 		),
 		Pbind(
 			\instrument, \playersec,
@@ -100,7 +101,7 @@ Pdef(\part, Pdef(\zed,
 			],inf)) + Pseg(Pseq([0,0.1],inf),8)+10,
 			\legato, 1,
 			\dur, 1/4,
-			\gain, 0.8,
+			\gain, 1/8,
 			\out, BusDef(\sendbus3, \audio),
 		)
 	])
@@ -112,7 +113,7 @@ Pdef(\part, Pdef(\zed,
 	Ppar([
 		Pbind(
 			\instrument, \playersec,
-			\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
 			\bufnum, ~buflib.kick[329].value,
 			\isRest, Pseq([
 				1,0,0,0, 1,0,0,0,
@@ -144,7 +145,7 @@ Pdef(\part, Pdef(\zed,
 		),
 		Pbind(
 			\instrument, \playersec,
-			\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
 			\bufnum, ~buflib.kick[509].value,
 			\isRest, Pseq([
 				1,0,0,0, 1,0,0,0,
@@ -176,7 +177,7 @@ Pdef(\part, Pdef(\zed,
 		),
 		Pbind(
 			\instrument, \playersec,
-			\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
 			\bufnum, ~buflib.snare[2271].value,
 			\isRest, Pseq([
 				0,0,0,0, 1,0,0,0,

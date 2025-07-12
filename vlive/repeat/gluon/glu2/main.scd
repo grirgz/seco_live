@@ -53,7 +53,7 @@ Pdef(\trans1,
 		\instrument, \pschiou,
 		\dur, 2,
 		\time, 2,
-		\amp, 0.1,
+		\amp, 0.07,
 	),
 );
 );
@@ -78,6 +78,20 @@ SynthDef(\fx_nimp, { arg out=0, gate=1;
 (
 Pdef(\fx_nimp1, 
 	Pmono(\fx_nimp,
+		\dur, 1,
+	),
+);
+);
+
+
+
+(
+Pdef(\hipass1, 
+	Pmono(\fx_rhpf,
+		\inbus, BusDef(\fx1, \audio),
+		\hpf, PmodEnv(Pseq([10,200,15000],1), 8).loop,
+		\addAction, \addToTail,
+		\lag, 0.0009,
 		\dur, 1,
 	),
 );

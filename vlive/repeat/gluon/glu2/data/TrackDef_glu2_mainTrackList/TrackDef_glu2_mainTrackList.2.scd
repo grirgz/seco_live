@@ -5,7 +5,7 @@ TrackDef('glu2_mainTrackList').childAt(2).label = "hat";
 TrackDef('glu2_mainTrackList').childAt(2).score = Pbindef('glu2_mainTrackList.2',
 	'instrument', 'DrumTrack_player_stereo',
 	'dur', 0.125,
-	'gain', 0.1,
+	'gain', 0.071269487750557,
 	'bufnum', BufDef('samplekit/com/HiHat/ClosedHH ThirtyThrees 2.wav'),
 );
 

@@ -664,8 +664,8 @@ Pdef(\part, Pdef(\zedpart,
 
 
 
-		Pbindef(\kick, \instrument, \pigabberkick).edit
-		Pbindef(\kick, \instrument, \pigabberkick).play
+Pbindef(\kick, \instrument, \pigabberkick).edit
+Pbindef(\kick, \instrument, \pigabberkick).play
 
 
 ProtoDef(\piano).startControl(Pdef(\melo))

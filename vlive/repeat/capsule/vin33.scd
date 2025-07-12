@@ -1227,7 +1227,7 @@ Pdef(\part, Pdef(\zed,
 			// levels
 
 			makelevel = {
-				var inputs; outputs;
+				var inputs, outputs;
 				//inputs = [freq, freq*2, freq/2];
 				inputs = DC.ar(0)!3;
 				5.do { arg level;

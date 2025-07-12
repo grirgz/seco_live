@@ -4,7 +4,7 @@ FileSystemProject.loadOnce("gluon/main.scd");
 ~t = 210/4/60; TempoClock.default.tempo = ~t;
 )
 
-FileSystemProject('gluon/glu2').open.edit;
+FileSystemProject('gluon/glu1').open.edit;
 
 //// lib
 
@@ -79,3 +79,24 @@ Pdef(\fx_nimp1,
 	),
 );
 );
+
+
+(
+MIDIdef.noteOn(\track1, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug;
+	
+});
+)
+k
+(
+MIDIdef.cc(\track1cc, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug("cc");
+	
+});
+)
+(
+MIDIdef.program(\track1prog, { arg velocity, noteNum, channel, deviceId;
+	[ velocity, noteNum, channel, deviceId ].debug("program");
+	
+});
+)

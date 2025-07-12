@@ -2,6 +2,73 @@
 ~t = 140/4/60; TempoClock.default.tempo = ~t; // trap tempo
 
 (
+SynthDef(\bilinsim, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freq = freq * [1,2,1/2] * (\bilintab.kr({ 1.0.bilinrand }!30) * \fspread.kr(0.01) + 1);
+	sig = sig1 = LFSaw.ar(freq);
+	sig2 = LFPulse.ar(freq);
+	sig3 = SinOsc.ar(freq);
+	sig = SelectX.ar(\oscmix.kr(0.5)*2, [sig1, sig2, sig3]);
+	//sig = LFSaw.ar(freq * [1,2,1/2] * ({ 1.0.bilinrand }!100 * 0.01 + 1)).clump(2).mean;
+	sig = sig.clump(2).mean;
+	sig.debug("sig");
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\bilinenv, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, tsustain=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 =  EnvGen.kr(\mixenv.kr(Env([0,1,0.4,0],[0.01,0.8,0.8].normalizeSum)), gate, timeScale:tsustain);
+	env2 =  EnvGen.kr(\fspreadenv.kr(Env([0.001,0.1,0.04,0.01],[0.01,0.8,0.8].normalizeSum)), gate, timeScale:tsustain);
+	freq = freq * [1,2,1/2] * (\bilintab.kr({ 1.0.bilinrand }!20) * \fspread.kr(0.01) * env2 + 1);
+	sig = sig1 = LFSaw.ar(freq);
+	sig2 = LFPulse.ar(freq);
+	sig3 = SinOsc.ar(freq);
+	sig = SelectX.ar(\oscmix.kr(0.5)*2 * env1, [sig1, sig2, sig3]);
+	//sig = LFSaw.ar(freq * [1,2,1/2] * ({ 1.0.bilinrand }!100 * 0.01 + 1)).clump(2).mean;
+	sig = sig.clump(2).mean;
+	sig.debug("sig");
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\bilinenvligth, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, tsustain=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var chan = { arg sig;
+		(sig.flop.clump(2).mean.flop.debug("2") * [\oc2.kr(1),\oc3.kr(1),\oc1.kr(1)]).debug("3").mean.debug("4");
+	};
+	env1 =  EnvGen.kr(\mixenv.kr(Env([0,1,0.4,0],[0.01,0.8,0.8].normalizeSum)), gate, timeScale:tsustain);
+	env2 =  EnvGen.kr(\fspreadenv.kr(Env([0.001,0.1,0.04,0.01],[0.01,0.8,0.8].normalizeSum)), gate, timeScale:tsustain);
+	freq = freq * [1,2,1/2] *.t (\bilintab.kr({ 1.0.bilinrand }!20) * \fspread.kr(0.01) * env2 + 1);
+	freq.debug("xx");
+	
+	sig = sig1 = chan.(LFSaw.ar(freq));
+	sig2 = chan.(LFPulse.ar(freq));
+	sig3 = chan.(SinOsc.ar(freq));
+	sig = SelectX.ar(\oscmix.kr(0.5)*2 * env1, [sig1, sig2, sig3]);
+	//sig = LFSaw.ar(freq * [1,2,1/2] * ({ 1.0.bilinrand }!100 * 0.01 + 1)).clump(2).mean;
+	//sig = sig.clump(2).mean;
+	sig.debug("sig");
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);
+
+ProtoDef(\simpleMixer).edit
+
+////////////////////
+(
+ProtoDef(\simpleMixer).play;
+ProtoDef(\rdn).play;
 	Pdef(\part, Pdef(\zed, 
 		Ppar([
 			Pbind(
@@ -1675,67 +1742,6 @@ Pdef(\melo,
 ProtoDef(\piano).startControl(Pdef(\melo));
 );
 
-(
-SynthDef(\bilinsim, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	freq = freq * [1,2,1/2] * (\bilintab.kr({ 1.0.bilinrand }!30) * \fspread.kr(0.01) + 1);
-	sig = sig1 = LFSaw.ar(freq);
-	sig2 = LFPulse.ar(freq);
-	sig3 = SinOsc.ar(freq);
-	sig = SelectX.ar(\oscmix.kr(0.5)*2, [sig1, sig2, sig3]);
-	//sig = LFSaw.ar(freq * [1,2,1/2] * ({ 1.0.bilinrand }!100 * 0.01 + 1)).clump(2).mean;
-	sig = sig.clump(2).mean;
-	sig.debug("sig");
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = sig * amp;
-	Out.ar(out, sig);
-}).add;
-SynthDef(\bilinenv, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, tsustain=1;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 =  EnvGen.kr(\mixenv.kr(Env([0,1,0.4,0],[0.01,0.8,0.8].normalizeSum)), gate, timeScale:tsustain);
-	env2 =  EnvGen.kr(\fspreadenv.kr(Env([0.001,0.1,0.04,0.01],[0.01,0.8,0.8].normalizeSum)), gate, timeScale:tsustain);
-	freq = freq * [1,2,1/2] * (\bilintab.kr({ 1.0.bilinrand }!20) * \fspread.kr(0.01) * env2 + 1);
-	sig = sig1 = LFSaw.ar(freq);
-	sig2 = LFPulse.ar(freq);
-	sig3 = SinOsc.ar(freq);
-	sig = SelectX.ar(\oscmix.kr(0.5)*2 * env1, [sig1, sig2, sig3]);
-	//sig = LFSaw.ar(freq * [1,2,1/2] * ({ 1.0.bilinrand }!100 * 0.01 + 1)).clump(2).mean;
-	sig = sig.clump(2).mean;
-	sig.debug("sig");
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = sig * amp;
-	Out.ar(out, sig);
-}).add;
-SynthDef(\bilinenvligth, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, tsustain=1;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	var chan = { arg sig;
-		(sig.flop.clump(2).mean.flop.debug("2") * [\oc2.kr(1),\oc3.kr(1),\oc1.kr(1)]).debug("3").mean.debug("4");
-	};
-	env1 =  EnvGen.kr(\mixenv.kr(Env([0,1,0.4,0],[0.01,0.8,0.8].normalizeSum)), gate, timeScale:tsustain);
-	env2 =  EnvGen.kr(\fspreadenv.kr(Env([0.001,0.1,0.04,0.01],[0.01,0.8,0.8].normalizeSum)), gate, timeScale:tsustain);
-	freq = freq * [1,2,1/2] *.t (\bilintab.kr({ 1.0.bilinrand }!20) * \fspread.kr(0.01) * env2 + 1);
-	freq.debug("xx");
-	
-	sig = sig1 = chan.(LFSaw.ar(freq));
-	sig2 = chan.(LFPulse.ar(freq));
-	sig3 = chan.(SinOsc.ar(freq));
-	sig = SelectX.ar(\oscmix.kr(0.5)*2 * env1, [sig1, sig2, sig3]);
-	//sig = LFSaw.ar(freq * [1,2,1/2] * ({ 1.0.bilinrand }!100 * 0.01 + 1)).clump(2).mean;
-	//sig = sig.clump(2).mean;
-	sig.debug("sig");
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)), gate, doneAction:2);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = sig * amp;
-	Out.ar(out, sig);
-}).add;
-);
 
 
 (

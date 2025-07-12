@@ -32,6 +32,7 @@ NoteTimeline('glu1_mainTrackList.3.0score').eventList = TimelineEventList.newFro
 ]);
 NoteTimeline('glu1_mainTrackList.3.0score').automationRack.paramList = [ Param(Pdef('glu1_mainTrackList.3.instr'), 'envamt') ];
 ParamTimeline('AutomationRack_noteTimeline_glu1_mainTrackList.3.0score_envamt').param = Param(Pdef('glu1_mainTrackList.3.instr'), 'envamt');
+ParamTimeline('AutomationRack_noteTimeline_glu1_mainTrackList.3.0score_envamt').outBus = BusDef('ParamTimeline_AutomationRack_noteTimeline_glu1_mainTrackList.3.0score_envamt');
 ParamTimeline('AutomationRack_noteTimeline_glu1_mainTrackList.3.0score_envamt').eventList = TimelineEventList.newFrom([
 	(\absTime: -0.16889975395816, \dur: 0.075900546749838, \level: 20000.0, \next_absTime: -0.092999207208322, \next_level: 20000.0, \playDur: 0.075900546749838, \relDur: 0.075900546749838, \sustain: 0.075900546749838, ),
 	(\absTime: -0.092999207208322, \dur: 0.007032969125248, \level: 20000.0, \next_absTime: -0.085966238083074, \next_level: 1.148698354997, \playDur: 0.007032969125248, \relDur: 0.007032969125248, \sustain: 0.007032969125248, ),

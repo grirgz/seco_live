@@ -85,6 +85,8 @@ Pdef(\part).reset;
 );
 
 (
+ProtoDef(\rdn).play;
+ProtoDef(\rdn2).play;
 Pdef(\part, Pdef(\zed, 
 	Ppar([
 		Pbind(
@@ -490,7 +492,7 @@ Pdef(\part, Pdef(\zed,
 			]),
 			\octave, 6,
 			\dur, 1/8,
-			\amp, 0.1,
+			\amp, 0.1/2,
 		),
 		Pbind(
 			\instrument, \playersec,
@@ -519,7 +521,8 @@ Pdef(\part, Pdef(\zed,
 (
 SynthDef(\hifm, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
-	sig = SinOsc.ar(freq) * SinOsc.ar(freq * ( SinOsc.kr(0.1 * [1,1.01]) * 0.001 + 1 ));
+	sig = SinOsc.ar(freq) * ( LFSaw.ar(freq/4 * ( SinOsc.kr(0.1 * [1,1.01]) * 0.1 + 1)) * \fma.kr(4.1) + 1 );
+	sig = sig * 0.3;
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan + \pantab.kr([-1,1]), amp).mean;
 	Out.ar(out, sig);
@@ -742,7 +745,7 @@ Pdef(\part, Pdef(\zed,
 			\dur, 1/8,
 			\amp, 0.1 * Pswitch1(
 				Pseg(Pwhite(0,1/2,inf),Pwhite(4,8.0))!8,
-				Pseq((0..7),inf),
+				Pseq((0..7)/7,inf),
 			),
 		),
 
@@ -1259,7 +1262,7 @@ Pdef(\part, Pdef(\zed,
 				[ Env([0,1,0],[0.001,0.08]) ],
 			],inf),
 			\env2, Pseq([
-				Ptuple(~pEnv.(Pwhite(0.0,1,inf)!3,Pwhite(0.001,2))!4),
+				Ptuple(PpatEnv(Pwhite(0.0,1,inf)!3,Pwhite(0.001,2))!4),
 			],inf),
 			\adsr, Pseq([
 				[ Env.adsr(1.1,0.1,0.8,3.1) ],
@@ -1392,7 +1395,7 @@ Pdef(\part, Pdef(\zed,
 		Pbind(
 			\instrument, \playersec,
 			\bufnum, ~buflib.hat[518].value,
-			\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
 			\isRest, Pseq([
 				Prand([
 					Pseq([

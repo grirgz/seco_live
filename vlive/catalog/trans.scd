@@ -465,3 +465,37 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+///////////////// bee swarm
+
+(
+SynthDef(\fmrander, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(
+		( freq * ( ExpRand(0.100,0.7000!16) * 0.007 + 1 ) )
+		* ( SinOsc.ar(ExpRand(0.0100,0.07000!16)/1).round(0.01) * SinOsc.ar(Rand(0.100,0.7!16)/10).range(0,0.9) + 1 )
+		* ( SinOsc.ar(ExpRand(100,7000!16)) * SinOsc.ar(Rand(0.100,0.7!16)).range(0,0.03) + 1 ) 
+	);
+	sig = RLPF.ar(sig, \lpfr.kr(5.1) * freq, \rq.kr(0.5));
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \fmrander,
+			\note, Pseq([
+				0,4,12,
+			],inf),
+			\dur, 4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);

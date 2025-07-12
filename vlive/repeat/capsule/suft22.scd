@@ -1,5 +1,6 @@
 (
 ~t = 138/4/60; TempoClock.default.tempo = ~t; // freedom fighter
+FileSystemProject.load("capsule/fxheavy.scd");
 SynthDef(\melead, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;

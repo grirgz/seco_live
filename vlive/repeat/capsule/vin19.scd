@@ -1,6 +1,12 @@
 ~t = 135/4/60; TempoClock.default.tempo = ~t;
 ~swing = 0.43;
 
+FileSystemProject.load("capsule/draftsynth.scd");
+FileSystemProject.load("capsule/ClipTimeline_vin19.scd")
+SampleTimeline('rec_vin19_t0_200331_223243').buffer = BufDef('cliprec/rec_vin19_t0_200331_223243.wav');
+SampleTimeline('rec_vin19_t0_200331_232041').buffer = BufDef('cliprec/rec_vin19_t0_200331_232041.wav');
+SampleTimeline('rec_vin19_t0_200331_225351').buffer = BufDef('cliprec/rec_vin19_t0_200331_225351.wav');
+
 ClipTimeline(\vin19).edit
 
 (
@@ -536,6 +542,7 @@ SynthDef(\playersec_scratch, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufn
 }).add;
 );
 
+		SampleTimeline('rec_vin19_t0_200331_232041').edit
 (
 Pdef(\part, Pdef(\zed, 
 	Ppar([

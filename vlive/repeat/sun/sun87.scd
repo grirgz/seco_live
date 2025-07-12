@@ -1,6 +1,8 @@
 
+(
 ~t = 185/4/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("sndlib/synthbasic.scd");
+FileSystemProject.loadOnce("sndlib/synthbasic.scd");
+)
 
 ProtoDef(\piano).startControl(Pdef(\melo, Pbind(\instrument, \snappad)))
 

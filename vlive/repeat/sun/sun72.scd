@@ -1,6 +1,8 @@
 
+(
 ~t = 140/4/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("sun/fmgen.scd");
+FileSystemProject.loadOnce("sun/fmgen.scd");
+)
 
 (
 ~swing = 0.4;

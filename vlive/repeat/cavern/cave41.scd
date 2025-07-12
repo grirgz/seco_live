@@ -628,3 +628,41 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('loop/blackbottom.flac'),
+			//\legato, Pseg(Pseq([0.1,0.8,1],inf),8),
+			\legato, 1,
+			\speed, Pseq([
+				Pseq([
+					[0,4,7],
+					[0,4,7],
+					[0,4,7]+5,
+					[0,4,7]+5,
+				],inf),
+				Pseq([
+					0,0,4,7,
+				],1),
+			].midiratio,inf),
+			\isRest, Pseq([
+				Pseq([
+					1,
+				],inf),
+				1,1,1,1, 1,1,0,0,
+				1,1,1,0, 1,1,0,1,
+				1,1,1,1, 1,1,0,0,
+				1,0,1,1, 1,0,0,1,
+			],inf).coin.not,
+			\pos, Pseg(Pseq([0.2,0.4],inf),8).trace,
+			\dur, 1/8,
+			\gain, 1,
+		),
+	])
+)).play;
+);

@@ -1,5 +1,7 @@
+(
 ~t = 183/2/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("capsule/draftsynth.scd");
+FileSystemProject.loadOnce("capsule/draftsynth.scd");
+)
 
 (
 // unison of pulse modulated by pulse width

@@ -674,6 +674,10 @@ WindowDef(\MainProjectContextMenu, { arg def, model, view;
 		MenuAction("Sample Manager", {
 			WindowDef(\SampleTimelineManager).front
 		}),
+		MenuAction("Piano Center", {
+			FileSystemProject.loadOnce("paramdev/drafts/PianoCenter.scd");
+			ProtoDef(\PianoCenter).edit;
+		}),
 
 
 		MenuAction.separator,

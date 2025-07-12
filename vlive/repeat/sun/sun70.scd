@@ -2,11 +2,11 @@
 
 // from fmgen.scd and sun45
 (
+	FileSystemProject.load("sun/fmgen.scd");
 	~sdbank = 10.collect { arg item, idx;
 		~fmgen_ambientchords.(88595.rand,rrand(2,15))
 	};
 )
-FileSystemProject.load("sun/fmgen.scd");
 (
 NoteTimeline('endmelo').param = Param(Pdef('endmelo'), 'midinote');
 NoteTimeline('endmelo').eventList = TimelineEventList.newFrom([

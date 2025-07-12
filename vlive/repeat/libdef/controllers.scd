@@ -56,6 +56,23 @@ ControllerDef(\nektar_piano, { arg def, target;
 		args.debug("nektar off");
 		playergroup.elAt(midinote).stop;
 	}, srcID:~nektar_device_id).fix;
+
+	if(target.isKindOf(Event) and: { target.recorder.notNil }) {
+		MIDIdef.cc(\piano_transport, { arg velocity, num;
+			if(velocity == 127) {
+				if(num == 107) { // record
+					target.isRecording = target.isRecording.not;
+				};
+				if(num == 106) { // play
+					target.isPlaying = target.isPlaying.not;
+				};
+			};
+	   
+		})
+		
+	};
+
+
 }, [ \piano ]);
 
 ControllerDef(\apc40, { arg def, target; 

@@ -1,7 +1,7 @@
 (
 ~t = 135/2/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("capsule/draftsynth.scd");
-FileSystemProject.load("sndlib/synthbasic.scd");
+FileSystemProject.loadOnce("capsule/draftsynth.scd");
+FileSystemProject.loadOnce("sndlib/synthbasic.scd");
 
 SynthDef(\angelchorddetune, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;

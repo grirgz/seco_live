@@ -2,6 +2,7 @@
 
 TrackDef('glu1_mainTrackList').childAt(0, 0).score = NoteTimeline('glu1_mainTrackList.0.0score');
 NoteTimeline('glu1_mainTrackList.0.0score').param = Param(Pdef('glu1_mainTrackList.0.instr'), 'midinote');
+NoteTimeline('glu1_mainTrackList.0.0score').outBus = BusDef('trackMixerDef_glu1_mainTrackList.0');
 NoteTimeline('glu1_mainTrackList.0.0score').eventList = TimelineEventList.newFrom([
 	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
 	(\absTime: 0.0, \clockTime: 1504.1477125698, \dur: 0.0, \legato: 0.8, \midinote: 69.0, \playDur: 0.0, \relDur: 0.0, \sustain: 1.983011104375, \velocity: 67, ),

@@ -130,6 +130,15 @@ TrackTemplateDef(\DrumTrackPart, (
 		);
 		self[\proxy] = PlayerWrapper(self.pchain);
 	},
+
+	outBus: { arg self;
+		self.score.get(\out);
+	},
+
+	outBus_: { arg self, bus;
+		self.score.set(\out, bus);
+	},
+
 	cloneScore: { arg self;
 		var newscore;
 		newscore = Pbindef(self.trackKey).source_(PbindProxy());
@@ -176,6 +185,9 @@ TrackTemplateDef(\DrumTrackPart, (
 		
 	},
 
+	stepDurParam: { arg self;
+		Param(self.score, \dur -> \source);
+	},
 
 	getExistingStepSeqParams: { arg self, exclude;
 		var pg;
@@ -226,6 +238,7 @@ WindowDef(\DrumTrackPartPreview, { arg def, part;
 	modstrip.proto.shouldDrawBarLabel = false;
 	modstrip.fixedHeight_(50);
 	modstrip.proto.stepDur = score.source.at(\dur).source ?? { 1/8 };
+	modstrip.proto.stepDur.debug("DrumTrackPartPreview: stepDur");
 	areasizex.debug("DrumTrackPartPreview areasizex");
 	if(areasizex.notNil and: { areasizex != 0 }) {
 		areasizex.debug("DrumTrackPartPreview areasizex");
@@ -338,8 +351,12 @@ WindowDef(\DrumTrackPart, (
 		toolbar = HLayout (
 			PlayerWrapper(self.part).asView,
 			HLayout (
-				StaticText.new.string_("size:"),
+				StaticText.new.string_("Step count:"),
 				Param(Message(part), \stepCount, ControlSpec(1,64,\lin)).asNumberBox,
+			),
+			HLayout (
+				StaticText.new.string_("Step dur:"),
+				part.stepDurParam.asTextField,
 			),
 			HLayout (
 				StaticText.new.string_("repeats:"),
@@ -383,6 +400,12 @@ WindowDef(\DrumTrackPart, (
 						};
 						self.refresh;
 					}),
+					Param(
+						Message(self.part),
+						\outBus, 
+						TagSpecDef(\BusDef),
+						//MenuSpec([\default -> nil, \0->0] ++ BusDef.all.keys.as(Array).sort.collect({ arg k; k -> BusDef(k) }) )
+					).asMenu("outBus"),
 
 				).front;
 			})

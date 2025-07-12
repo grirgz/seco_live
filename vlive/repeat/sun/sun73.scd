@@ -1,9 +1,10 @@
 
+(
 ~t = 121/2/60; TempoClock.default.tempo = ~t;
+FileSystemProject.loadOnce("holis/synthdef.scd");
+FileSystemProject.loadOnce("sun/fmgen.scd");
+)
 TempoClock.default.setMeterAtBeat(8, TempoClock.default.nextTimeOnGrid(Pdef.defaultQuant));
-
-FileSystemProject.load("holis/synthdef.scd")
-FileSystemProject.load("sun/fmgen.scd")
 
 (
 SynthDef(\transi1, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;

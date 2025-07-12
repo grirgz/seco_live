@@ -1,7 +1,9 @@
 
 // basey bat rap lee scott
+(
 ~t = 160/4/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("sun/fmgen.scd");
+FileSystemProject.loadOnce("sun/fmgen.scd");
+)
 
 (
 Pdef(\part, Pdef(\zedpart, 

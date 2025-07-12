@@ -1,7 +1,7 @@
 
 ~t = 150/2/60; TempoClock.default.tempo = ~t;
 
-FileSystemProject.load("holis/synthdef.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
 
 
 (
@@ -62,6 +62,8 @@ SynthDef(\swirl, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }).add;
 );
 
+/////////////////////////
+
 (
 Pdef(\demo, 
 	Ppar([
@@ -119,7 +121,9 @@ Pdef(\melo,
 )
 );
 
+/////////////////////////
 (
+// drums + bass
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		
@@ -228,6 +232,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+// drums + different bass
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		
@@ -332,6 +337,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+// intro
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		
@@ -429,8 +435,8 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-// with arp
 (
+// arp
 Pdef(\arper, 
 	Pbind(
 		\cnote, Pstep(Pseq([
@@ -507,6 +513,8 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+// drums + bass + arp
+// rising
 Pdef(\arper, 
 	Pbind(
 		\cnote, Pstep(Pseq([
@@ -659,6 +667,166 @@ Pdef(\part, Pdef(\zedpart,
 			],inf).coin.not,
 			//\out, BusDef(\sendbus2, \audio),
 		),
+	])
+)).play;
+);
+
+////////////
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[26].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				Pseq([
+					0,0,1,0, 0,0,1,0,
+				],inf),
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.04,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1403].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				//0,0,0,0, 0,0,0,0,
+				//0,0,0,0, 0,0,0,0,
+				//0,0,0,0, 0,0,0,0,
+				Pseq([
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+				],2),
+				Pseq([
+					1,1,1,1, 1,1,1,1,
+				],inf),
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11 * Pseq([
+				//0.2,0.2,1,
+				//0.2,0.2,1,
+				1,
+				0.2,
+			],inf) * Pseg(Pseq([0,0,1,Pn(1,inf)],inf),Pseq([8,16])),
+		),
+		Pbind(
+			\instrument, \swirl,
+			\note, Pseq([
+				0,5-12,-3,4
+			],inf).stutter(8),
+			\octave, 4,
+			\env1, [ Env([1,1,3,1]/1,[0.1,0.44,0.1]) ],
+			\env2, [ Env([3,1,5,-10]/1,[0.04,0.4,0.1]) ],
+			\env3, [ Env([1,1,1,1],[0.2,0.3,0.3]) ],
+			\env4, [ Env([1,1,1,1]/1143,[0.2,0.1,0.1]) ],
+			\env5, [ Env([1,1,1,1]/2,[0.2,0.1,0.1]) ],
+			\env6, [ Env([1/2,1/2,4,1],[0.2,0.4,0.4]) ],
+			\lpfr, ~pmodenv.(Pseq([1,2,4,8],1), 8).loop,
+			\dur, 1/4,
+			\legato, Pseq([
+				//4,0,0,0, 0,2,0,0,
+				2,0,2,0, 2,0,2,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\fmamp, 0.03,
+			\amp, 0.2
+		),
+		Pbind(
+			\instrument, \swirl,
+			\note, Pseq([
+				0,-5,-8,
+			],inf).stutter(2),
+			\octave, 6,
+			\env1, [ Env([1,1,3,1]/1,[0.01,0.44,0.1]) ],
+			\env2, [ Env([3,1,5,-10]/1,[0.04,0.4,0.1]) ],
+			\env3, [ Env([1,1,1,1],[0.2,0.3,0.3]) ],
+			\env4, [ Env([50,1,1,1]/1143,[0.02,0.1,0.1]) ],
+			\env5, [ Env([1.06,1,1,1]/2,[0.08,0.1,0.1]) ],
+			\env6, [ Env([1,1/2,4,1],[0.02,0.4,0.4]) ],
+			\lpfr, ~pmodenv.(Pseq([1/2,2,4,8],1), 8).loop,
+			\dur, 1/8,
+			\legato, Pseq([
+				1,0,
+				//4,0,0,0, 0,2,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\fmamp, 0.03,
+			\amp, 0.1 * Pseg(Pseq([0,0,1],inf),Pseq([8,16])),
+			//\isRest, true,
+		),
+			Pseq([
+				//Event.silent(8),
+				Plazy({ arg ev;
+					var post = Pbind(
+						\instrument, \pluck,
+						//\lag, 0.04,
+						\note, Pseq([
+							Prand([
+								Pseq([
+									0,-3,-5,
+								],1),
+								Pseq([
+									0,-3,-5,
+								],1),
+								Prand([2,5],1),
+							],1),
+						],inf).stutter(1),
+						\isRest, Pseq([
+							1,0,1,0, 1,0,1,0, 
+						],inf).coin.not,
+						\dur, 1/8,
+						\octave, 7,
+						//\lag, -0.04,
+						//\out, BusDef(\sendbus3, \audio),
+						\amp, 0.1/10,
+					);
+
+					Ptpar([
+						0, Pbind(
+							\instrument, \pluck,
+						) <> post,
+						12, Pbind(
+							\instrument, \basicbass,
+							\note, Pkey(\note) + Pseq([0,-7,5],inf),
+							\note, Pseq([0,-7,5],inf),
+							\lpf, 7000,
+							\amp, 0.1/15,
+							\notRest, Pseq([
+								0,0,0,0,
+								0,0,0,0,
+								Pseq([
+									1,0,0,0,
+									1,0,0,0,
+									Prand([
+										Pseq([
+											1,0,0,0,
+										],1),
+										Pseq([
+											1,0,0,1,
+										],1),
+									],1),
+								],inf),
+							],inf).coin,
+							\isRest, Pfunc({ arg ev;
+								ev[\isRest].not or: ev[\notRest]
+							}).not,
+							\octave, Prand([6,7,8],inf),
+						) <> post,
+					]);
+				}).loop,
+
+			],1),
 	])
 )).play;
 );

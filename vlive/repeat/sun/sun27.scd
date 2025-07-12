@@ -1,7 +1,7 @@
 ~t = 300/4/60; TempoClock.default.tempo = ~t;
 
 
-FileSystemProject.load("holis/synthdef.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
 (
 SynthDef(\hiyay, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;

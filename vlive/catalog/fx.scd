@@ -824,3 +824,239 @@ Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 	sig = Pan2.ar(sig, pan, amp);
 }).play;
 );
+
+///////////// kind of echo reverb chorus
+
+
+(
+SynthDef(\fxhall, { arg out=0, gate=1, pan=0;
+	var sig;
+	var num=8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = AllpassL.ar(sig, \apmaxdelay.kr(0.3),\apdelay.kr(0.3),\apdecay.kr(4)) + sig;
+	sig = DelayL.ar(sig, \maxdelay.kr(0.4), \delay.kr(0.3) * ( LFNoise1.kr(\noisefreq.kr(1/12)!num) * \noiseamp.kr(0.9) + 1 ));
+	sig = sig.clump(2).flop.flat; // apply num/2 delay on each channel and keep order
+	sig.debug("sig");
+	sig = FreqShift.ar(sig, LFNoise1.kr(\fsfreq.kr(1/8)!num) * \freqshift.kr(3.5));
+	sig = Splay.ar(sig, \spread.kr(0.8), 1, pan);
+	sig = \wetgain.kr(1) * sig;
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+SynthDef(\fxhalldist, { arg out=0, gate=1, pan=0;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var num=8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = AllpassL.ar(sig, \apmaxdelay.kr(0.3),\apdelay.kr(0.3),\apdecay.kr(4)) + sig;
+	sig = DelayL.ar(sig, \maxdelay.kr(0.4), \delay.kr(0.3) * ( LFNoise1.kr(\noisefreq.kr(1/12)!num) * \noiseamp.kr(0.9) + 1 ));
+	sig = sig.clump(2).flop.flat; // apply num/2 delay on each channel and keep order
+	sig.debug("sig");
+	sig = FreqShift.ar(sig, LFNoise1.kr(\fsfreq.kr(1/8)!num) * \freqshift.kr(3.5));
+	sig = ( sig*\distamp.kr(80) * ( LFNoise1.kr(0.1!num) * 0.9 + 1 ) ).tanh * \distpostamp.kr(1/2);
+	sig1 = BPF.ar(sig, ( \bpf.kr(10000*1.2)*( LFNoise1.kr(1/8!num) * \bpflfoamp.kr(0.9) + 1 ) ).clip(10,20000),0.9);
+	sig = SelectX.ar(\bpfmix.kr(0.7), [sig, sig1]);
+	sig = Splay.ar(sig, \spread.kr(0.8), 1, pan);
+	sig = \wetgain.kr(1) * sig;
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \oscfmpad,
+			\note, Pseq([
+				[0,4+12,7,12],
+				[0,4+12,8,12],
+				[0,5+12,9,12],
+				[0,5+12,9,12]+2,
+			],inf),
+			\octave, 5,
+			\lpadsr, Pseq([
+				[ Env.adsr(5.1,0.1,0.8,0.1) ],
+			],inf),
+			\fmadsr, Pseq([
+				[ Env.adsr(2.1,5.1,0.1,0.1) ],
+			],inf),
+			\fma, 0.02,
+			\dur, 2,
+			\amp, 0.1/6,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\fxhall,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pmono(
+			 \playersec,
+			\bufnum, BufDef('voices/feynman.flac'),
+			\pos, 0,
+			\legato, 1,
+			\dur, Pn(1,8),
+			\gain, 1,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\fxhall,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\apdelay, PmodEnv(Pseq([0.01,1],1), 8*2).loop,
+			\apmaxdelay, 1.01,
+			\apdecay, 4.7,
+			\wetgain,0.5,
+			\delay, 0.51,
+			//\delay, PmodEnv(Pseq([1,0.01],1), 8*2).loop,
+			\noiseamp, 1,
+			\noisefreq, 0.01,
+			\mix, 0.7,
+			\freqshift, 1,
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \oscfmpad,
+			\note, Pseq([
+				[0,4+12,7,12,7+12,24],
+				[0,4+12,8,12,8+12],
+				[0,5+12,9,12,9+12],
+				[0,5+12,9,12,9+12,24]+2,
+			],inf),
+			\octave, 5,
+			\lpadsr, Pseq([
+				[ Env.adsr(5.1,0.1,0.8,0.1) ],
+			],inf),
+			\fmadsr, Pseq([
+				[ Env.adsr(2.1,5.1,0.1,0.1) ],
+			],inf),
+			\fma, 0.02,
+			\dur, 2,
+			\amp, 0.1/6,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\fxhall,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			//\apdelay, PmodEnv(Pseq([0.01,1],1), 8*2).loop,
+			\apmaxdelay, 1.01,
+			\apdecay, 4.7,
+			\wetgain,0.5,
+			\delay, 0.51,
+			//\delay, PmodEnv(Pseq([1,0.01],1), 8*2).loop,
+			\noiseamp, 1,
+			\noisefreq, 0.01,
+			\mix, 0.7,
+			\freqshift, 1,
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+(
+// bass
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind( // bass
+			\instrument, \sh101,
+			\degree, Pstep(Pseq([
+				0,0,0,-1,
+			],inf),1),
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,1,1,1,
+				1,0,0,0, 1,1,0,0,
+				0,1,1,0, 1,1,1,1,
+			],inf).coin.not,
+			\legato, 0.3,
+			\octave, 3,
+			\dur, 1/8,
+			\amp, 0.1,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\fxhall,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			//\apdelay, PmodEnv(Pseq([0.01,1],1), 8*2).loop,
+			\apmaxdelay, 1.01,
+			\apdecay, 4.7,
+			\wetgain,0.5,
+			\delay, 0.51,
+			//\delay, PmodEnv(Pseq([1,0.01],1), 8*2).loop,
+			\noiseamp, 1,
+			\noisefreq, 0.01,
+			\mix, 0.7,
+			\freqshift, 1,
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				0,4,6,2
+			],inf).stutter(8),
+			\octave, 5,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\amp, 0.1,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\fxhalldist,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			//\apdelay, PmodEnv(Pseq([0.01,1],1), 8*2).loop,
+			\apmaxdelay, 1.01,
+			\apdecay, 4.7,
+			\wetgain,0.5,
+			\delay, 0.51,
+			//\delay, PmodEnv(Pseq([1,0.01],1), 8*2).loop,
+			\noiseamp, 1,
+			\noisefreq, 0.01,
+			\mix, 0.5,
+			\freqshift, 1,
+			\dur, 1,
+		),
+	])
+)).play;
+);

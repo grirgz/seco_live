@@ -29,7 +29,7 @@ NoteTimeline(\bassline).play
 Pdef('bass', Pbind(
 	\instrument, \saw,
 )).setVal(
-))ds)dsds'lpfr', 2.05,
+'lpfr', 2.05,
 ).setVal(
 	'out', BusDef(\sendbus1,\audio,2),
 );

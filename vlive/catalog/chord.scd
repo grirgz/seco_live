@@ -1213,3 +1213,95 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+/////////////
+// fspread controlled by env
+// some simple fm
+// env on filter
+
+(
+SynthDef(\convergechord, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var num = 7;
+	env1 = EnvGen.kr(\fspreadenv.kr(Env([1,0.05,0.001]/4,[0.1,3.0])), 1, levelScale:\fspread.kr(1), timeScale:\fspreadts.kr(1));
+	env2 = EnvGen.kr(\lpadsr.kr(Env.adsr(1.1,0.1,0.8,2.1)), gate);
+	sig = SinOsc.ar(freq * ((0..num)/num - 0.5 * env1 + 1) * ( SinOsc.ar(freq*\fmfr.kr(1/2)) * \fma.kr(4) + 1 ));
+	sig = RLPF.ar(sig, \lpf.kr(200) * ( env2 * \envamt.kr(4) + 1 ), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \convergechord,
+			\envamt, PmodEnv(Pseq([0,4],1), 8).loop,
+			\fspread, PmodEnv(Pseq([0,1],1), 32).loop,
+			\fmfr, Pseq([1,2,1/2],inf),
+			\fma, PmodEnv(Pseq([0,4],1), 16).loop,
+			\note, Pseq([
+				[0,4,7],
+				[-1,4,7],
+			],inf),
+			\dur, 2,
+			\amp, 0.1/3,
+		),
+		
+	])
+)).play;
+);
+
+///////////////
+
+(
+SynthDef(\beechord, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var num= 10;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	lfo1 = EnvGen.kr(Env([0.01,1/2,1],[10.1,10.8]), 1);
+	lfo2 = EnvGen.kr(Env([0.4,0.01,1/2,1],[4,10.1,10.8]), 1);
+	lfo3 = EnvGen.kr(Env([0.001,0.01,1/2,1],[0.4,4.1,30.8]), 1);
+	sig = Blip.ar(
+		freq 
+			* Select.kr( LFNoise1.kr(1/1!num).exprange(0.1,1), [  exprand(0.98,1!num),1]) 
+			,
+		SinOsc.ar( SinOsc.ar(exprand(1/19,10!num)).range(1/3,10)/10  ).range(1, SinOsc.ar(exprand(1/30,10!num)).exprange(1,200) )
+	);
+	sig1 = sig;
+	sig1 = LPF.ar(sig1, 800);
+	sig1 = HPF.ar(sig1, 400);
+
+	sig2 = sig;
+	sig2 = RLPF.ar(sig2, 1200 * ( SinOsc.kr([ 1/2,1/3,1/5 ]) * 0.1 + 1 ), 0.1);
+	sig2 = HPF.ar(sig2, 900);
+	sig = ( sig1 * lfo2 ) + ( sig * lfo3 ) + ( sig2 * lfo1 );
+	sig = sig.debug("sig") * 5;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, SinOsc.kr(exprand(0.1,1!num)), amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+Pdef(\part).clear;
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \beechord,
+			\note, Pseq([
+				[0,3,7],
+				[0,3,7]-1,
+			],inf),
+			\octave, 5,
+			\dur, 4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);

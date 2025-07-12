@@ -4,6 +4,8 @@
 ~milkratio = ~t * 1/8/(1/12.57);
 );
 
+SampleTimeline('rec_vin36_mainTimeline_t0_201119_164209').buffer = BufDef('cliprec/rec_vin36_mainTimeline_t0_201119_164209.wav')
+
 (
 ~master = {
 	ProtoDef(\simpleMixer).play;

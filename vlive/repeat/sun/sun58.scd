@@ -79,7 +79,7 @@ SynthDef(\Piano_rhodeySC, {
 //By Nathan Ho aka Snappizz
 //http://sccode.org/1-522
 }).add;
-)
+);
 
 //ProtoDef(\rdn).presetCompileString.editorInsert
 (
@@ -741,7 +741,8 @@ Pdef(\part, Pdef(\apart1intro,
 );
 
 (
-	ProtoDef(\FxManager).play;
+///////////////// main //////////
+ProtoDef(\FxManager).play;
 Pdef(\part, Pdef(\main, 
 	Pseq([
 		Pfindur(32, Pdef(\apart1intro)),
@@ -1061,15 +1062,33 @@ Pdef(\part, Pdef(\zedpart,
 			\amp, 0.1,
 		),
 		Pbind(
-			\instrument, \sawfm,
+			\instrument, \sh101,
 			\lpfr, 1,
 			\octave, 6,
+			\envampt, PmodEnv(Pseq([1,8],1), 16).loop,
+			\lpf, Pseg(Pseq([150,1000],inf),3),
+			\pan, Pseg(Pwhite(-1,1,inf),Prand([1/4,1/2,1,2,3],inf)),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
 			\note, Pseq([
 				Pstep(Prand([5,8,12,15,17] +.x [-12,0,12],4*4),4),
 				Pstep(Prand([4,8,12,15,16] +.x [-12,0,12],4*4),1/8),
 			],inf),
 			\dur, 1/8,
-			\amp, 0.1/2,
+			\amp, 0.1/4 * Pseq([
+				1,0.5,0.8,0.4,
+			],inf).linlin(0,1, Pseg(Pseq([0,1],inf),9),1),
+			\out, BusDef(\fx1, \audio),
+		),
+		Pmono(\simpletrackmixer,
+			\inbus, BusDef(\fx1),
+			\pregain, 1,
+			\postgain, 1,
+			\delay, 0,
+			\send0, PmodEnv(Pwhite(0,1,inf), Pwhite(0.1,4,inf)).loop,
+			\sendbus0, BusDef(\sendbus3, \audio, 2),
+			\dur, 1,
 		),
 		
 	])

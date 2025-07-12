@@ -10,6 +10,6 @@ Pbindef('glu1_mainTrackList.3.instr',
 	'lpadsr', [ Env([ 0.0, 1.0, 0.58484846353531, 0.0 ], [ 0.34308990859987, 0.058412923771233, 0.80849718528677 ], [ -1.1, -4.0, -4.0 ], 2.0) ],
 );
 Pdef('glu1_mainTrackList.3.instr').set(
-	'envamt', 'c2'
+	'envamt', 'c3'
 );
 

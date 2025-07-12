@@ -1,5 +1,49 @@
 
-ClipTimeline(\bla).edit
+ClipTimeline(\bla4).edit
+ClipTimeline(\bla2).soloTracks
+ClipTimeline(\bla2).is_track_bypassed(0)
+ClipTimeline(\bla4).eventList.changed(\list)
+ClipTimeline(\bla).presetCompileString.editorInsert
+ClipTimeline(\bla).soloTracks
+
+Pdef(\abcd_rerer_jiji_soso_xxx_tre, Pbind())
+
+[0,]
+~li = (0..12)
+~li.insert(0,123)
+
+(
+(
+ClipTimeline('bla').tracks = [ ( 'index': 0, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+{
+ClipTimeline('bla').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 1.875, \label: 'start', \playDur: 1.875, \relDur: 1.875, \sustain: 0, \type: 'start', ),
+	PatternEvent((\absTime: 1.875, \dur: 0.75, \legato: 1, \midinote: 2.0, \pattern: Pdef('metronome'), \playDur: 0.75, \relDur: 0.75, \sustain: 1.25, \type: 'pattern', )),
+	PatternEvent((\absTime: 2.625, \dur: 1.25, \legato: 1, \midinote: 1.0, \pattern: Pdef('metronome'), \playDur: 1.25, \relDur: 1.25, \sustain: 1.375, \type: 'pattern', )),
+	PatternEvent((\absTime: 3.875, \dur: 4.125, \legato: 1, \midinote: 0.0, \pattern: Pdef('metronome'), \playDur: 4.125, \relDur: 4.125, \sustain: 1.625, \type: 'pattern', )),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ }.value;
+
+
+
+
+);
+ClipTimeline('bla').tracks = [ ( 'index': 0, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+{
+ClipTimeline('bla').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 1.875, \label: 'start', \playDur: 1.875, \relDur: 1.875, \sustain: 0, \type: 'start', ),
+	PatternEvent((\absTime: 1.875, \dur: 0.75, \legato: 1, \midinote: 2.0, \pattern: Pdef('metronome'), \playDur: 0.75, \relDur: 0.75, \sustain: 1.25, \type: 'pattern', )),
+	PatternEvent((\absTime: 2.625, \dur: 1.25, \legato: 1, \midinote: 1.0, \pattern: Pdef('metronome'), \playDur: 1.25, \relDur: 1.25, \sustain: 1.375, \type: 'pattern', )),
+	PatternEvent((\absTime: 3.875, \dur: 4.125, \legato: 1, \midinote: 0.0, \pattern: Pdef('metronome'), \playDur: 4.125, \relDur: 4.125, \sustain: 1.625, \type: 'pattern', )),
+	(\absTime: 8, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ }.value;
+
+
+
+
+);
 ClipTimeline(\bla10).edit
 NoteTimeline(\bla3).edit
 NoteTimeline(\bla3).eventList
@@ -468,3 +512,95 @@ Pdef(\rrr,
 	)
 ).edit;
 );
+
+
+
+(
+// each Pseq or PstepSeq will become a graphical sequencer
+Pbindef(\myseq,
+	\instrument, \saw,
+	\degree, Pseq(0!8,inf),
+	\lpfr, PstepSeq(1!8,inf),
+	\rq, Pseq(0.1!8,inf),
+	\muteseq, Pseq(false!8,inf),
+	\muter, Pif(Pkey(\muteseq), \rest, 0),
+	\dur, 1/8,
+	\amp, 0.1,
+).play;
+
+// add some specs
+SynthDesc(\saw).addSpec(\lpfr,ControlSpec(0.1,4,\lin) );
+Spec.add(\muteseq, ParamBoolSpec(reverse:true));
+Spec.add(\degree, ControlSpec(0,14,\lin,1));
+)
+
+(
+WindowDef(\PbindefSeq, { arg def, target;
+	VLayout (
+		PlayerWrapper(target),
+		VLayout (*
+			// we retrieve each [key,val] of the Pbindef
+			target.source.pairs.clump(2).collect({ arg pair;
+				pair.debug("pair");
+				if(pair[1].source.isKindOf(ListPattern)) {
+					// if it's a ListPattern, build a param with special key \stepseq to point to the list
+					var param = Param(target, pair[0] -> \stepseq);
+					HLayout (
+						param.asStaticTextLabel.fixedWidth_(60),
+						param.asMultiSlider.attachContextMenu, // add right-click menu allowing you to change number of steps
+					)
+				}
+			}).select(_.notNil)
+		)
+	)
+	
+}).front(Pdef(\myseq));
+);
+
+
+
+
+(
+// each Pseq or PstepSeq will become a graphical sequencer
+Pbindef(\myseq,
+	\instrument, \saw,
+	\degree, Pseq(0!8,inf),
+	\lpfr, PstepSeq(1!8,inf),
+	\rq, Pseq(0.1!8,inf),
+	\muteseq, Pseq(1!8,inf),
+	\dur, 1/8,
+	\amp, 0.1,
+).play;
+
+// add some specs
+SynthDesc(\saw).addSpec(\lpfr,ControlSpec(0.1,4,\lin) );
+Spec.add(\muteseq, TagSpec([\rest, 1]));
+Spec.add(\degree, ControlSpec(0,14,\lin,1));
+)
+
+(
+WindowDef(\PbindefSeq, { arg def, target;
+	VLayout (
+		PlayerWrapper(target),
+		VLayout (*
+			// we retrieve each [key,val] of the Pbindef
+			target.source.pairs.clump(2).collect({ arg pair;
+				pair.debug("pair");
+				if(pair[1].source.isKindOf(ListPattern)) {
+					// if it's a ListPattern, build a param with special key \stepseq to point to the list
+					var param = Param(target, pair[0] -> \stepseq);
+					HLayout (
+						param.asStaticTextLabel.fixedWidth_(60),
+						param.asMultiSlider.attachContextMenu, // add right-click menu allowing you to change number of steps
+					)
+				}
+			}).select(_.notNil)
+		)
+	)
+	
+}).front(Pdef(\myseq));
+);
+
+
+NoteTimeline(\aze).edit
+NoteTimeline(\aze).edit

@@ -86,6 +86,7 @@ SynthDef(\hurle, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = HPF.ar(sig, ( freq * \hpfr.kr(1/8) ).clip(10,19900));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
+	sig = sig * 0.1;
 	Out.ar(out, sig);
 }).add;
 Pdef(\zed).reset;

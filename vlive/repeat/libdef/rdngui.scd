@@ -397,7 +397,7 @@ WindowDef(\ProtoDef_rdn_savePreset, { arg def, model;
 		listview.selectionAction_(selectAction),
 		HLayout (
 			BasicButton.new.string_("Save").action_({
-				var name = textfield.value.trim();
+				var name = textfield.value.stripWhiteSpace;
 				if(name != "") {
 					name = name.asSymbol;
 					if(listitems.any({ arg x; x.key == name })) {
@@ -434,7 +434,7 @@ WindowDef(\ProtoDef_rdn_loadPreset, { arg def, model;
 		[view, x, y, modifiers, buttonNumber, clickCount].debug("mouseDownAction");
 		if(clickCount == 2 and: {view.items.size > 0}) {
 			textfield.value = listitems[view.value].key;
-			model.loadFromPresetLib(textfield.value.trim());
+			model.loadFromPresetLib(textfield.value.stripWhiteSpace);
 		}
 	};
 	var listitems = TagSpecDef(\ProtoDef_rdn_preset).list.sort({ arg a, b; a.key.asString < b.key.asString });
@@ -446,8 +446,8 @@ WindowDef(\ProtoDef_rdn_loadPreset, { arg def, model;
 		listview.selectionAction_(selectAction).mouseDownAction_(doubleAction),
 		HLayout (
 			BasicButton.new.string_("Load").action_({
-				if(textfield.value.trim() != "") {
-					model.loadFromPresetLib(textfield.value.trim());
+				if(textfield.value.stripWhiteSpace != "") {
+					model.loadFromPresetLib(textfield.value.stripWhiteSpace);
 					def.closeWindow;
 				} {
 					"invalid name".debug;

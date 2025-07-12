@@ -1,4 +1,4 @@
-
+FileSystemProject.load("algokit/kits/PatKitDef_sample1.scd");
 (
 SynthDef(\sibass, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -163,122 +163,122 @@ SynthDef(\chord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 
 
 (
-	Pdef(\rdndrums, 
-		Ppar([
-			Pmono( \rdnfx,
-				\inbus, BusDef(\fx1, \audio),
-				[\delay1, \delay2, \delay3, \delay4], Pseq([
-					[ 0.00086844078036751, 0.00027572244550975, 0.00060387408080565, 0.00064495210183222 ]
-				],inf).stutter(8),
-				[\delay5, \delay6, \delay7, \delay8], Pseq([
-					//				exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
-					[ 0.0033127010079837, 0.0018962804466777, 0.0014975064715848, 8.7199981151866e-05 ],
-					[ 0.0033127010079837, 0.0038962804466777, 0.0054975064715848, 8.7199981151866e-05 ],
-					//				[ 1.4776361881311e-05, 0.00021369755079883, 0.0021610913869225, 0.00065371045821454 ]
-					//rrand(0.01,0.08!4).asCompileString.editorInsert
-				],inf).stutter(1)*1 * Pseq([1,1,1,1/8],inf),
-				\mideq1b, 100,
-				\middb1b, -94,
-				\mideq2b, 110,
-				\middb2b, -94,
-				\midrq2b, 0.4,
-				\ehpf, 150,
-				\gain, 0.4,
-				\distamp, Pseq([
-					1,10,10,10,
-					100,100,1,1,
-				],inf),
-				\fb, Pseq([
-					0.01, 0.01,0.02,0.04,
-					0.01, 0.01,0.1,0.1,
-				],inf),
-				\dur, 1/4,
-			),
-			Pmono( \rdnfx,
-				\inbus, BusDef(\fx2, \audio),
-				[\delay1, \delay2, \delay3, \delay4], Pseq([
-					[ 0.0010934792433603, 3.6772602228283e-05, 0.00059252833428699, 0.007612796284198 ]
-				],inf).stutter(8),
-				[\delay5, \delay6, \delay7, \delay8], Pseq([
-					//				exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
-					[ 0.0004953161768388, 3.2359682764214e-05, 1.4364910591105e-05, 3.2158973656053e-05 ],
-					[ 0.00049008475438402, 9.6585073207509e-05, 0.0011638308203766, 0.00039246305281146 ],
-				],inf).stutter(1)*1 ,
-				\mideq1b, 100,
-				\middb1b, -94,
-				\mideq2b, 110,
-				\middb2b, -94,
-				\midrq2b, 0.4,
-				\ehpf, 200,
-				\gain, 0.4,
-				\distamp, Pseq([
-					0,0,0,0,
-					1,1,1,10,
-				],inf),
-				\fb, Pseq([
-					0.01, 0.01,0.02,0.01,
-				],inf),
-				\dur, 1/2,
-			),
-			Pbind(
-				\instrument, \chord,
-				\out, BusDef(\fx2, \audio),
-				\octave, 6,
-				\degree, Pseq([
-					\r,\r,\r,\r,
-					[0,2,4],
-					[0,2,4],
-					[0,2,4],
-					[-1,2,4],
-				],inf),
-				\legato, Pseq([
-					0.3,0.3,0.3,0.9,
-				],inf),
-				\dur, 1/8,
-				\amp, 0.1
-			),
-			PatKitDef(\sample1).asPattern(Pbind(
-				\out, BusDef(\fx1, \audio),
-				\kitIndex, 0,
-				\isRest, Pseq({[
-					1,0,1,0, 0,0,0,0,
-					1,0,0,1, 0,0,0,0,
-					1,0,0,0, 0,0,0,0,
-					1,0,0,0, 0,0,1,0,
-				].clump(8).choose}.dup(8).flat,inf).coin.not,
-				\sustain, 0.1,
-				\dur, 1/8,
-				\amp, 0.1,
-			)),
-			PatKitDef(\sample1).asPattern(Pbind(
-				\out, BusDef(\fx1, \audio),
-				\kitIndex, 4,
-				\isRest, Pseq({[
-					0,0,0,0, 1,0,0,0,
-				].clump(8).choose}.dup(8).flat,inf).coin.not,
-				\sustain, 0.1,
-				\dur, 1/8,
-				\amp, 0.1,
-			)),
-			PatKitDef(\sample1).asPattern(Pbind(
-				\out, BusDef(\fx1, \audio),
-				\kitIndex, 8,
-				\isRest, Pseq({[
-					1,1,1,1, 1,1,1,1,
-					1,0,1,0, 1,0,1,0,
-					1,0,0,0, 1,0,0,0,
-					0,0,1,0, 0,0,1,0,
-				].clump(8).choose}.dup(8).flat,inf).coin.not,
-				\sustain, 0.1,
-				\adsr, Pseq([
-					[ Env.adsr(0.01,0.1,0.4,0.4) ],
-				],inf),
-				\dur, 1/8,
-				\gain, 1/2,
-				\amp, 0.1,
-			)),
-		])
-	).play;
+Pdef(\rdndrums, 
+	Ppar([
+		Pmono( \rdnfx,
+			\inbus, BusDef(\fx1, \audio),
+			[\delay1, \delay2, \delay3, \delay4], Pseq([
+				[ 0.00086844078036751, 0.00027572244550975, 0.00060387408080565, 0.00064495210183222 ]
+			],inf).stutter(8),
+			[\delay5, \delay6, \delay7, \delay8], Pseq([
+				//				exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
+				[ 0.0033127010079837, 0.0018962804466777, 0.0014975064715848, 8.7199981151866e-05 ],
+				[ 0.0033127010079837, 0.0038962804466777, 0.0054975064715848, 8.7199981151866e-05 ],
+				//				[ 1.4776361881311e-05, 0.00021369755079883, 0.0021610913869225, 0.00065371045821454 ]
+				//rrand(0.01,0.08!4).asCompileString.editorInsert
+			],inf).stutter(1)*1 * Pseq([1,1,1,1/8],inf),
+			\mideq1b, 100,
+			\middb1b, -94,
+			\mideq2b, 110,
+			\middb2b, -94,
+			\midrq2b, 0.4,
+			\ehpf, 150,
+			\gain, 0.4,
+			\distamp, Pseq([
+				1,10,10,10,
+				100,100,1,1,
+			],inf),
+			\fb, Pseq([
+				0.01, 0.01,0.02,0.04,
+				0.01, 0.01,0.1,0.1,
+			],inf),
+			\dur, 1/4,
+		),
+		Pmono( \rdnfx,
+			\inbus, BusDef(\fx2, \audio),
+			[\delay1, \delay2, \delay3, \delay4], Pseq([
+				[ 0.0010934792433603, 3.6772602228283e-05, 0.00059252833428699, 0.007612796284198 ]
+			],inf).stutter(8),
+			[\delay5, \delay6, \delay7, \delay8], Pseq([
+				//				exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
+				[ 0.0004953161768388, 3.2359682764214e-05, 1.4364910591105e-05, 3.2158973656053e-05 ],
+				[ 0.00049008475438402, 9.6585073207509e-05, 0.0011638308203766, 0.00039246305281146 ],
+			],inf).stutter(1)*1 ,
+			\mideq1b, 100,
+			\middb1b, -94,
+			\mideq2b, 110,
+			\middb2b, -94,
+			\midrq2b, 0.4,
+			\ehpf, 200,
+			\gain, 0.4,
+			\distamp, Pseq([
+				0,0,0,0,
+				1,1,1,10,
+			],inf),
+			\fb, Pseq([
+				0.01, 0.01,0.02,0.01,
+			],inf),
+			\dur, 1/2,
+		),
+		Pbind(
+			\instrument, \chord,
+			\out, BusDef(\fx2, \audio),
+			\octave, 6,
+			\degree, Pseq([
+				\r,\r,\r,\r,
+				[0,2,4],
+				[0,2,4],
+				[0,2,4],
+				[-1,2,4],
+			],inf),
+			\legato, Pseq([
+				0.3,0.3,0.3,0.9,
+			],inf),
+			\dur, 1/8,
+			\amp, 0.1
+		),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\out, BusDef(\fx1, \audio),
+			\kitIndex, 0,
+			\isRest, Pseq({[
+				1,0,1,0, 0,0,0,0,
+				1,0,0,1, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,1,0,
+			].clump(8).choose}.dup(8).flat,inf).coin.not,
+			\sustain, 0.1,
+			\dur, 1/8,
+			\amp, 0.1,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\out, BusDef(\fx1, \audio),
+			\kitIndex, 4,
+			\isRest, Pseq({[
+				0,0,0,0, 1,0,0,0,
+			].clump(8).choose}.dup(8).flat,inf).coin.not,
+			\sustain, 0.1,
+			\dur, 1/8,
+			\amp, 0.1,
+		)),
+		PatKitDef(\sample1).asPattern(Pbind(
+			\out, BusDef(\fx1, \audio),
+			\kitIndex, 8,
+			\isRest, Pseq({[
+				1,1,1,1, 1,1,1,1,
+				1,0,1,0, 1,0,1,0,
+				1,0,0,0, 1,0,0,0,
+				0,0,1,0, 0,0,1,0,
+			].clump(8).choose}.dup(8).flat,inf).coin.not,
+			\sustain, 0.1,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.4,0.4) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 1/2,
+			\amp, 0.1,
+		)),
+	])
+).play;
 )
 
 
@@ -286,53 +286,53 @@ SynthDef(\chord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 
 
 (
-	SynthDef(\rdnfx, { arg out=0, gate=1;
-		var sig;
-		var si, env = ();
-		var in = InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio)), 2); 
+SynthDef(\rdnfx, { arg out=0, gate=1;
+	var sig;
+	var si, env = ();
+	var in = InFeedback.ar(\inbus.kr(BusDef(\fx1, \audio)), 2); 
 
 
-		sig = LocalIn.ar(2) * \fb.kr(0.1) + in;
-		si = sig;
+	sig = LocalIn.ar(2) * \fb.kr(0.1) + in;
+	si = sig;
 
-		sig = { arg si, env;
-			si = DelayL.ar(si, 0.8,  \delay1.kr) + si;
-			si = DelayL.ar(si, 0.8,  \delay2.kr) + si;
-			si = [
-				{ arg si, env;
-					si = DelayL.ar(si, 0.8,  \delay3.kr) + si;
-					si = DelayL.ar(si, 0.8, \delay4.kr) + si;
-					si = (si * 1 * \distamp.kr).tanh / 2;
-				}.value(si, env);
-				,
-				{ arg si, env;
-					si = DelayL.ar(si, 0.8,   \delay5.kr) + si;
-					si = DelayL.ar(si, 0.8,   \delay6.kr) + si;
-					si = FreqShift.ar(si, \shift1.kr(1)) + si;
-				}.value(si, env);
+	sig = { arg si, env;
+		si = DelayL.ar(si, 0.8,  \delay1.kr) + si;
+		si = DelayL.ar(si, 0.8,  \delay2.kr) + si;
+		si = [
+			{ arg si, env;
+				si = DelayL.ar(si, 0.8,  \delay3.kr) + si;
+				si = DelayL.ar(si, 0.8, \delay4.kr) + si;
+				si = (si * 1 * \distamp.kr).tanh / 2;
+			}.value(si, env);
+			,
+			{ arg si, env;
+				si = DelayL.ar(si, 0.8,   \delay5.kr) + si;
+				si = DelayL.ar(si, 0.8,   \delay6.kr) + si;
+				si = FreqShift.ar(si, \shift1.kr(1)) + si;
+			}.value(si, env);
 
-			].mean;
-			si = DelayL.ar(si, 0.8,  \delay7.kr) + si;
-			si = DelayL.ar(si, 0.8,  \delay8.kr) + si;
-			si = LeakDC.ar(si);
-			si = MidEQ.ar(si, \eqmid1.kr(12000), \eqrq1.kr(1), \eqdb1.kr(1));
-			si = MidEQ.ar(si, \eqmid2.kr(7000), \eqrq2.kr(1), \eqdb2.kr(1));
-		}.value(si, env);
-		sig = Limiter.ar(sig);
-		LocalOut.ar(sig);
+		].mean;
+		si = DelayL.ar(si, 0.8,  \delay7.kr) + si;
+		si = DelayL.ar(si, 0.8,  \delay8.kr) + si;
+		si = LeakDC.ar(si);
+		si = MidEQ.ar(si, \eqmid1.kr(12000), \eqrq1.kr(1), \eqdb1.kr(1));
+		si = MidEQ.ar(si, \eqmid2.kr(7000), \eqrq2.kr(1), \eqdb2.kr(1));
+	}.value(si, env);
+	sig = Limiter.ar(sig);
+	LocalOut.ar(sig);
 
-		sig = MidEQ.ar(sig, \eqmid1b.kr(12000), \eqrq1b.kr(1), \eqdb1b.kr(1));
-		sig = MidEQ.ar(sig, \eqmid2b.kr(7000), \eqrq2b.kr(1), \eqdb2b.kr(1));
-		sig = HPF.ar(sig, \ehpf.kr(140), \ehprq.kr(1));
-		sig = LPF.ar(sig, \elpf.kr(10000), \elprq.kr(1));
-		sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
-		sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0));
-		sig = sig * \gain.kr(1);
-		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:2);
-		sig;
-		Out.ar(out, sig);
+	sig = MidEQ.ar(sig, \eqmid1b.kr(12000), \eqrq1b.kr(1), \eqdb1b.kr(1));
+	sig = MidEQ.ar(sig, \eqmid2b.kr(7000), \eqrq2b.kr(1), \eqdb2b.kr(1));
+	sig = HPF.ar(sig, \ehpf.kr(140), \ehprq.kr(1));
+	sig = LPF.ar(sig, \elpf.kr(10000), \elprq.kr(1));
+	sig = SelectX.ar(\mix.kr(0.5), [DelayC.ar(in,0.04,0.04), sig]);
+	sig = Splay.ar(sig, \spread.kr(1), 1, \pan.kr(0));
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:2);
+	sig;
+	Out.ar(out, sig);
 
-	}).add;
+}).add;
 
 );
 
@@ -354,13 +354,13 @@ Pdef(\rdndrums,
 		Pmono( \rdnfx,
 			\inbus, BusDef(\fx1, \audio),
 			[\delay1, \delay2, \delay3, \delay4], Pseq([
-[ 0.00086844078036751, 0.00027572244550975, 0.00060387408080565, 0.00064495210183222 ]
+				[ 0.00086844078036751, 0.00027572244550975, 0.00060387408080565, 0.00064495210183222 ]
 			],inf).stutter(8)*0.001,
 			[\delay5, \delay6, \delay7, \delay8], Pseq([
-//				exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
-[ 3.238652694767e-05, 0.00080209852492222, 0.0041152555585199, 0.00093911567881822 ],
-[ 1.238652694767e-05, 0.00080209852492222, 0.0041152555585199, 0.00093911567881822 ]
-//				[ 1.4776361881311e-05, 0.00021369755079883, 0.0021610913869225, 0.00065371045821454 ]
+				//exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
+				[ 3.238652694767e-05, 0.00080209852492222, 0.0041152555585199, 0.00093911567881822 ],
+				[ 1.238652694767e-05, 0.00080209852492222, 0.0041152555585199, 0.00093911567881822 ]
+				//[ 1.4776361881311e-05, 0.00021369755079883, 0.0021610913869225, 0.00065371045821454 ]
 				//rrand(0.01,0.08!4).asCompileString.editorInsert
 			],inf).stutter(1)*0.001,
 			//\mideq1b, 100,
@@ -385,13 +385,13 @@ Pdef(\rdndrums,
 		Pmono( \rdnfx,
 			\inbus, BusDef(\fx2, \audio),
 			[\delay1, \delay2, \delay3, \delay4], Pseq([
-[ 0.00086844078036751, 0.00027572244550975, 0.00060387408080565, 0.00064495210183222 ]
+				[ 0.00086844078036751, 0.00027572244550975, 0.00060387408080565, 0.00064495210183222 ]
 			],inf).stutter(8)*0.001,
 			[\delay5, \delay6, \delay7, \delay8], Pseq([
-//				exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
-[ 3.238652694767e-05, 0.00080209852492222, 0.0041152555585199, 0.00093911567881822 ],
-[ 1.238652694767e-05, 0.00080209852492222, 0.0041152555585199, 0.00093911567881822 ]
-//				[ 1.4776361881311e-05, 0.00021369755079883, 0.0021610913869225, 0.00065371045821454 ]
+				//exprand(0.00001,0.008!4).asCompileString.editorInsert(false)
+				[ 3.238652694767e-05, 0.00080209852492222, 0.0041152555585199, 0.00093911567881822 ],
+				[ 1.238652694767e-05, 0.00080209852492222, 0.0041152555585199, 0.00093911567881822 ]
+				//[ 1.4776361881311e-05, 0.00021369755079883, 0.0021610913869225, 0.00065371045821454 ]
 				//rrand(0.01,0.08!4).asCompileString.editorInsert
 			],inf).stutter(1)*0.001,
 			//\mideq1b, 100,
@@ -414,48 +414,48 @@ Pdef(\rdndrums,
 			\dur, 1/4,
 		),
 		//Pbind(
-			//\instrument, \chord,
-			//\out, BusDef(\fx2, \audio),
-			//\octave, 6,
-			//\degree, Pseq([
-				//\r,\r,\r,\r,
-				//[0,2,4],
-				//[0,2,4],
-				//[0,2,4],
-				//[-1,2,4],
-			//],inf),
-			//\legato, Pseq([
-				//0.3,0.3,0.3,0.9,
-			//],inf),
-			//\dur, 1/8,
-			//\amp, 0.1
+		//\instrument, \chord,
+		//\out, BusDef(\fx2, \audio),
+		//\octave, 6,
+		//\degree, Pseq([
+		//\r,\r,\r,\r,
+		//[0,2,4],
+		//[0,2,4],
+		//[0,2,4],
+		//[-1,2,4],
+		//],inf),
+		//\legato, Pseq([
+		//0.3,0.3,0.3,0.9,
+		//],inf),
+		//\dur, 1/8,
+		//\amp, 0.1
 		//),
-			Pbind(
-				\instrument, \noisybass,
-				\degree, Pseq([
-					Pseq([
-						-3,-5,-3,r, 0,r,r,-3,
-						0,-3,0,r, r,r,r,-3,
-					],2),
-					Pseq([
-						-2,-4,-2,r, 1,r,r,-2,
-						1,-2,1,r, r,r,r,-3,
-					],1),
-					Pseq([
-						-3,-5,-3,r, 0,r,r,-3,
-						0,-3,0,r, r,r,r,-3,
-					],1),
-				],inf),
-				\legato, Pseq([
-					Pseq([ 2,4,2,1, ]/4,1), 3,1,1,1,
-					1/2,1/2,1.52,1, 3,1,1,1,
-				],inf)* 0.9,
-				\ctranspose, 7,
-				\octave, 3,
-				\out, BusDef(\fx2, \audio),
-				\dur, 1/8,
-				\amp, 0.1/1,
-			),
+		Pbind(
+			\instrument, \noisybass,
+			\degree, Pseq([
+				Pseq([
+					-3,-5,-3,r, 0,r,r,-3,
+					0,-3,0,r, r,r,r,-3,
+				],2),
+				Pseq([
+					-2,-4,-2,r, 1,r,r,-2,
+					1,-2,1,r, r,r,r,-3,
+				],1),
+				Pseq([
+					-3,-5,-3,r, 0,r,r,-3,
+					0,-3,0,r, r,r,r,-3,
+				],1),
+			],inf),
+			\legato, Pseq([
+				Pseq([ 2,4,2,1, ]/4,1), 3,1,1,1,
+				1/2,1/2,1.52,1, 3,1,1,1,
+			],inf)* 0.9,
+			\ctranspose, 7,
+			\octave, 3,
+			\out, BusDef(\fx2, \audio),
+			\dur, 1/8,
+			\amp, 0.1/1,
+		),
 		PatKitDef(\sample1).asPattern(Pbind(
 			\out, BusDef(\fx1, \audio),
 			\kitIndex, 0,

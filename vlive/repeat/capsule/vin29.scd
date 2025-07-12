@@ -1,6 +1,7 @@
 ~t = 172/4/60; TempoClock.default.tempo = ~t;
 BufDef(\amen, "vipere/amenbreak.wav");
 
+Pdef(\part).clear;
 (
 Pdef(\part, Pdef(\zed, 
 	Ppar([

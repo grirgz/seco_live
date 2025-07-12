@@ -46,8 +46,11 @@ sig1 = PanAz.ar(freq.size, sig1, {LFNoise1.kr(( 1/2 ).rand).range(-1,1)} ! sig1.
 // Pan act like .dup(2) when pan==0
 [1,2,3].collect(_.dup(2));
 Pan2.ar([sig1, sig2, sig3]) == [[sig1, sig1], [sig2, sig2], [sig3, sig3]]
+Pan2.ar([sig1, sig2, sig3]).flop == [[sig1, sig2, sig3], [sig1, sig2, sig3]]
 //when summed or meaned, it remains only the pan
 Pan2.ar([sig1, sig2, sig3]).sum == [sig1+sig2+sig3, sig1+sig2+sig3]
+Pan2.ar([sig1, sig2, sig3]).flop.sum == [sig1+sig1, sig2+sig2, sig3++sig3]
+Pan2.ar([sig1, sig2]).flop.sum == [sig1+sig1, sig2+sig2]
 // if you want a two channel signal to be left and right with Pan2
 Pan2.ar([sig1, sig2], [-1,1]).sum; // assign each channel a pan
 Pan2.ar([sig1, sig2]).flop.sum; // or flop it

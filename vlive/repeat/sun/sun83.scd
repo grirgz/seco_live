@@ -1,8 +1,10 @@
 
+(
 ~t = 155/2/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("sndlib/synthbasic.scd");
-FileSystemProject.load("holis/synthdef.scd");
-FileSystemProject.load("capsule/fxheavy.scd");
+FileSystemProject.loadOnce("sndlib/synthbasic.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
+FileSystemProject.loadOnce("capsule/fxheavy.scd");
+)
 
 (
 SynthDef(\harpsichord_pluck, {
@@ -1382,6 +1384,7 @@ Pdef(\part, Pdef(\zedpart,
 (
 // chord draft 3
 // 4-note melody
+// nice!
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(
@@ -3707,7 +3710,7 @@ Pdef(\part, Pdef(\drumsdraft3,
 				[ Env.adsr(0.01,0.1,0.8,0.1) ],
 			],inf),
 			\gain, 0.11/2,
-		),)dsr
+		)
 	])
 )).play;
 );

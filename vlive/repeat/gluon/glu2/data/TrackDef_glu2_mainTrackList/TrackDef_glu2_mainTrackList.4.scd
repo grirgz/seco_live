@@ -6,8 +6,10 @@ TrackDef('glu2_mainTrackList').childAt(4).source = Pdef('glu2_mainTrackList.4.in
 Pbindef('glu2_mainTrackList.4.instr',
 	'instrument', 'sh101',
 	'envamt', 3.3792762636848,
+	'amp', 0.050237812128419,
+	'lpf', 1950.105956474,
 );
 Pdef('glu2_mainTrackList.4.instr').set(
-	'lpf', 'c4'
+	'lpf', 'c7'
 );
 

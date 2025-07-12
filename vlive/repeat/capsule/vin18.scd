@@ -2,11 +2,12 @@
 ~t = 135/4/60; TempoClock.default.tempo = ~t;
 ~swing = 0.43;
 
+SampleTimeline('rec_vin18_t0_200329_203022').buffer = BufDef('cliprec/rec_vin18_t0_200329_203022.wav')
 
 (
 SynthDef(\bassco, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
-	sig = LFSaw.ar(freq * ( LFSaw.ar(freq+1.01) * 0.1 + 1 ));
+	sig = LFSaw.ar(freq * ( LFSaw.ar(freq+1.01) * \fma.kr(0.1) + 1 ));
 	sig = RLPF.ar(sig, \lpfr.kr(4.1) * freq, \rq.kr(0.5));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
@@ -126,6 +127,9 @@ SynthDef(\boulyharm2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 );
 
 (
+// nice!!!
+ProtoDef(\rdn).play;
+ProtoDef(\rdn2).play;
 Pdef(\part, Pdef(\zed, 
 	Ppar([
 		Pbind(
@@ -337,7 +341,7 @@ Pdef(\part, Pdef(\break2,
 	Ppar([
 		Pbind(
 			\instrument, \playersec,
-			\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
 			\bufnum, ~buflib.hat[1094].value,
 			\isRest, Pseq([
 				1,0,0,0, 0,0,0,1,
@@ -349,7 +353,7 @@ Pdef(\part, Pdef(\break2,
 		),
 		Pbind(
 			\instrument, \playersec,
-			\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
 			\bufnum, ~buflib.hat[705].value,
 			\isRest, Pseq([
 				0,0,0,0, 0,0,0,0,
@@ -690,9 +694,12 @@ Pdef(\part, Pdef(\part2,
 				\octave, 3,
 				\distfac,100,
 				\distmix, 1,
-				\lpfr, 4.3,
+				\lpfr, Pseg(Pseq([1,8],inf),8*2),
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				],inf),
 				\dur, 1/8,
-				\amp, 0.1,
+				\amp, 0.2,
 			),
 			Pbind(
 				\instrument, \playersec,
@@ -2462,6 +2469,7 @@ Pdef(\part, Pdef(\main,
 ////////////////////////////// samples
 
 ClipTimeline(\vin18).edit
+
 
 (
 Pdef(\part, Pdef(\zed, 

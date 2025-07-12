@@ -5,7 +5,7 @@ TrackDef('glu2_mainTrackList').childAt(6).label = "clap";
 TrackDef('glu2_mainTrackList').childAt(6).score = Pbindef('glu2_mainTrackList.6',
 	'instrument', 'DrumTrack_player_stereo',
 	'dur', 0.125,
-	'gain', 0.1,
-	'bufnum', BufDef.stereo('samplekit/com/Clap/Clap RZ1 V2.wav'),
+	'gain', 0.082405345211581,
+	'bufnum', BufDef('samplekit/com/Clap/Clap RZ1 V2.wav'),
 );
 

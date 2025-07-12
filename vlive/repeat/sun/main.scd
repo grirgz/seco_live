@@ -638,3 +638,414 @@ ParamTimeline('AutomationRack_noteTimeline_glu1_mainTrackList.3.0score_envamt').
 
 
 TrackDef(\house1, \TrackList).edit
+TrackDef(\house1, \TrackList).childAt(0,1).presetCompileString
+TrackDef(\house1, \TrackList).childAt(4).presetCompileString
+TrackDef(\house1, \TrackList).childAt(4,0).outBus = BusDef(\fx2)
+TrackDef(\house1, \TrackList).childAt(4).outBus 
+TrackDef(\house1, \TrackList).childAt(0,0).outBus 
+TrackDef(\house1, \TrackList).childAt(0,0).cloneScore.outBus
+TrackDef(\house1, \TrackList).childAt(4,2).outBus 
+TrackDef(\house1, \TrackList).childAt(0,2).outBus 
+TrackDef(\house1, \TrackList).childAt(0,2).presetCompileString
+NoteTimeline(\tyy).edit
+NoteTimeline(\tyy).outBus
+
+Pdef(\fqr).get(\out)
+(
+( Pmono(\default,
+	\dur, 1,
+) <> Pbind(\freq, Pseq([100,300],inf))).play
+)
+(
+	( 
+		PmonoArtic(\default, \dur, 1,) 
+		<> Pbind(\freq, Pseq([100,300],inf), \legato, Pseq([1,0.5],inf)) 
+	).play
+)
+
+~t = 120/2/60; TempoClock.default.tempo = ~t;
+
+
+(
+Pdef(\hpfrise, 
+	Pmono(\fx_rhpf,
+		\inbus, BusDef(\fx1, \audio),
+		\hpf, PmodEnv(Pseq([10,700,14000],1), 8).loop,
+		\addAction, \addToTail,
+		\lag, 0.0009,
+		\dur, 1,
+	),
+).play;
+);
+
+ProtoInst(\FxTimeline, \roh).edit
+ProtoInst(\FxTimeline, \roh).edit
+
+
+(
+Pbind(
+    \dur, 0.5, 
+    \test, Pseq([\fb1]),
+).trace.play(t);
+)
+\fb1.asPattern.asStream.next
+\c4.asPattern.asStream.next
+\c4.asStream.next
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				\c,\d,\e,
+			],inf),
+			\octave, 4,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+/////////
+
+
+// allocate and fill the buffers to be used by VOsc
+(
+s.waitForBoot({
+
+    var numBufs = 8;
+
+    // allocate table of consecutive buffers
+    ~bufs = Buffer.allocConsecutive(numBufs, s, 1024, 1);
+    s.sync;
+
+    ~bufs.do({ arg buf, i;
+        var n, a;
+
+        // generate array of harmonic amplitudes
+        n = (i+1)**2;
+        a = Array.fill(n, { arg j; ((n-j)/n).squared.round(0.001) });
+
+        // fill table
+        // argument '7': flag for the \sine1 wave fill method
+        // see "Wave Fill Commands" in the Server Command Reference
+        s.performList(\sendMsg, \b_gen, buf.bufnum, \sine1, 7, a);
+
+        s.sync;
+    });
+    "Buffers prepared.".postln;
+})
+)
+
+// play the synth, indexing into the buffers with MouseX
+(
+x = SynthDef("help-VOsc",{ arg out = 0, bufoffset = 0;
+    // mouse x controls the wavetable position
+    var bufindex = MouseX.kr(0, ~bufs.size+5) + bufoffset;
+
+    Out.ar(out,
+        VOsc.ar(bufindex.poll, [120, 121], 0, 0.3)
+    )
+}).play(s,[\out, 0, \bufoffset, ~bufs.first.bufnum]);
+)
+
+// fill the buffers with new harmonics on-the-fly
+(
+~bufs.do({ arg buf, i;
+    var a;
+    a = Array.fill(i, 0) ++ [0.5, 1, 0.5];
+    s.performList(\sendMsg, \b_gen, buf.bufnum, \sine1, 7, a);
+});
+)
+
+// new harmonics...
+(
+~bufs.do({ arg buf, i;
+    var a = Array.fill(32,0);
+    12.do({ arg i; a.put(32.rand, 1) });
+    s.performList(\sendMsg, \b_gen, buf.bufnum, \sine1, 7, a);
+});
+)
+
+// new harmonics...
+(
+~bufs.do({ arg buf, i;
+    var a = Array.fill((i+1)**2, { arg j; 1.0.rand2 });
+    s.performList(\sendMsg, \b_gen, buf.bufnum, \sine1, 7, a);
+});
+)
+
+// cleanup
+(
+x.free;
+~bufs.do(_.free);
+)
+
+
+
+(
+Routine({
+var tableMovements, signals;
+
+~tablesBuffers.do { arg bu; bu.free; };
+~tableBuffers = nil;
+s.sync;
+tableMovements = [Array.interpolation(16, 0.5, 0.8), Array.interpolation(16, 0.7, 0), Array.interpolation(16, 0.1, 1)];
+
+signals = 16.collect{|i|Signal.sineFill(1025, [tableMovements[0][i], tableMovements[1][i], tableMovements[2][i]])};
+s.sync;
+~tablesBuffers = Buffer.allocConsecutive(16, s, 1024, 1, bufnum:0);
+s.sync;
+~tablesBuffers = signals.size.collect{|i|Buffer.loadCollection(s, signals[i].asWavetableNoWrap)};
+"hh".debug;
+}).play;
+)
+{VOsc.ar(SinOsc.ar(0.1).range(0, 15-0.01), 200) * -12.dbamp !2}.play;
+{VOsc.ar(SinOsc.ar(0.1).range(0, 15)+ ~tablesBuffers.first.bufnum, 200)  * -12.dbamp !2}.play;
+{VOsc.ar(SinOsc.kr(0.1).range(0, 15)+ ~tablesBuffers.first.bufnum, 200) * -12.dbamp !2}.play;
+
+~tablesBuffers
+
+
+(   // snare drumsss
+{
+    var harm = LFNoise2.kr(0.5).range(0,0.5);
+    var timbre = 0.173;
+    var morph = 0.827;
+    var trigger = Impulse.kr(8);
+    var lev = TRand.kr(trig: trigger).squared;
+    MiPlaits.ar(47, 14, harm, timbre, morph, trigger, lev, fm_mod: 0.2, timb_mod: 0.43, decay: 0.4)
+}.play
+)
+
+
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = LFSaw.ar(freq).linexp(-1,1,0.01,2) - 1;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq).linexp(-1,1,0.01,2) - 1;
+	sig = LeakDC.ar(sig);
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+ClipTimeline(\bla).edit
+ParamProto.init
+
+Constraint
+trim
+
+editorInsert
+
+
+Ndef(\f1,{SinOscFB.ar(freq:142, feedback:Saw.ar(20 * SinOsc.ar(20)) + SinOsc.ar(0.1)).dup * 0.1}).play;
+
+(
+Ndef(\f2,{
+    var freq = MouseX.kr(100, 400);
+    var input = SinOsc.ar(freq, 0, 0.1);
+    var response = WeaklyNonlinear.ar(input);
+    var filt = RLPF.ar(response, XLine.kr(500, 5000, 10), 0.3);
+    Pan2.ar(0.1 * filt, 0);
+}).play;
+)
+
+Ndef(\f3,{WeaklyNonlinear.ar(SinOsc.ar(70), Impulse.kr(20), ratex:0.1, ratey:20, freq:440, initx:10 + SinOsc.kr(40), inity:20 + SinOsc.kr(20), alpha:SinOsc.kr(1), xexponent:0, beta:0, yexponent:0).dup * 0.1}).play;
+
+(
+ClipTimeline('azzz').tracks = [ ( 'index': 0, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+{
+ClipTimeline('azzz').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	PlayerEvent((\absTime: 0.0, \dur: 4.0, \legato: 1, \midinote: 0.0, \playDur: 4.0, \receiver: PlayerWrapper(Ndef('f1')), \relDur: 4.0, \sustain: 4.0, \type: 'player', )),
+	PlayerEvent((\absTime: 4.0, \dur: 4.0, \legato: 1, \midinote: 1.0, \playDur: 4.0, \receiver: PlayerWrapper(Ndef('f2')), \relDur: 4.0, \sustain: 4.0, \type: 'player', )),
+	PlayerEvent((\absTime: 8.0, \dur: 4.0, \legato: 1, \midinote: 2.0, \playDur: 4.0, \receiver: PlayerWrapper(Ndef('f3')), \relDur: 4.0, \sustain: 4.0, \type: 'player', )),
+	(\absTime: 12.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ }.value;
+);
+
+ClipTimeline(\azzz).edit
+ClipTimeline(\azzz).presetCompileString.editorInsert
+(
+ClipTimeline('azzz').tracks = [ ( 'index': 0, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 1, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 2, 'recordArmed': false, 'recordBus': 0, 'muted': false ), ( 'index': 3, 'recordArmed': false, 'recordBus': 0, 'muted': false ) ];
+{
+ClipTimeline('azzz').eventList = TimelineEventList.newFrom([
+	(\absTime: 0, \playDur: 8, \relDur: 8, \sustain: 0, \type: 'start', ),
+	(\absTime: 8, \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+ }.value;
+
+
+
+
+);
+ScIDE 
+ClipTimeline(\azzz).play
+Platform.ideName == "scvim"
+
+PatKitDef(\eeee).edit
+KitTimeline(\azzz).edit
+ClipTimeline(\aaa).edit
+NoteTimeline(\bla2).edit
+
+TrackDef(\hello, \TrackList).edit
+
+ParamProto.init;
+TrackDef(\hello2, \TrackList).edit;
+
+
+
+(
+Pbind(
+	\instrument, \saw,
+	\lpf, 400,
+) <>
+Pseq([
+(midinote: 60, dur: 1/2),
+(midinote: 72, dur: 1),
+])
+).play
+
+
+~datatree = (
+	new: { arg self; (parent: self) },
+	setData: { arg self, key, val;
+		self.data = self.data ?? { IdentityDictionary.new };
+		self.data[key] = val;
+	},
+	add: { "hello".postln }
+	set: { "xhello".postln }
+);
+~dt = ~datatree.new;
+~dt.setData(\hello, 123);
+~dt.data
+~dt.play
+~dt.add
+~dt.set
+
+Klank
+{ Klank.ar(`[[800, 1071, 1153, 1723], nil, [1, 1, 1, 1]], Impulse.ar(2, 0, 0.1)) }.play;
+
+s.options.bindAddress
+s.options.protocol
+s.options.maxLogins
+
+
+s.options.bindAddress ="0.0.0.0"; //accept from anywhere
+s.options.protocol = \tcp;
+s.options.maxLogins = 8;
+s.boot;
+s.reboot;
+Server.killAll
+s.quit
+
+
+s.boot
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+oting server 'localhost' on address 127.0.0.1:57110.
+NetAddr-Connect failed with exception: connect: Connexion refusée [system:111 at /home/ggz/build/sc_boost_1.80.0/external_libraries/boost/boost/asio/detail/reactive_socket_service.hpp:587 in function 'connect']
+Found 267 LADSPA plugins
+NetAddr-Connect failed with exception: connect: Connexion refusée [system:111 at /home/ggz/build/sc_boost_1.80.0/external_libraries/boost/boost/asio/detail/reactive_socket_service.hpp:587 in function 'connect']
+JackDriver: client name is 'SuperCollider'
+SC_AudioDriver: sample rate = 44100.000000, driver's block size = 512
+JackDriver: connected  system:capture_1 to SuperCollider:in_1
+JackDriver: connected  system:capture_2 to SuperCollider:in_2
+JackDriver: connected  SuperCollider:out_1 to system:playback_1
+JackDriver: connected  SuperCollider:out_2 to system:playback_2
+SuperCollider 3 server ready.
+JackDriver: max output latency 46.4 ms
+Requested notification messages from server 'localhost'
+localhost: server process's maxLogins (8) matches with my options.
+localhost: keeping clientID (0) as confirmed by server process.
+Shared memory server interface initialized
+/notify : already registered
+
+
+
+
+
+
+(
+Ndef(\hey, {
+    var n = 32;
+    var mix = Mix.fill(n, {
+        var osc1, osc2, osc3, freqS, freqE, line, fx;
+
+        // Random frequency parameters with wider range
+        freqS = 1000;
+        freqE = rrand(100, 4000);
+
+        // Frequency line with slower movement and more variation
+        line = Line.kr(freqS, freqE, rrand(240.0, 480.0)/8) *
+            LFNoise1.kr(rrand(0.05, 0.2), mul: 0.1, add: 1);
+
+        // Oscillators with more detuning and varied waveforms
+        osc1 = SinOsc.ar(line * rrand(0.95, 1.05),
+            phase: LFNoise1.kr(0.1) * 2pi,
+            mul: 0.15);
+
+        osc2 = Saw.ar(line * rrand(0.9, 1.1),
+            mul: 0.1 * LFNoise1.kr(0.05, add: 0.9));
+
+        osc3 = Pulse.ar(line * rrand(0.85, 1.15),
+            width: SinOsc.kr(rrand(0.01, 0.1), mul: 0.2, add: 0.5),
+            mul: 0.1);
+
+        // Mix with amplitude modulation
+        mix = (osc1 + osc2 + osc3) * LFNoise1.kr(rrand(0.03, 0.1), mul: 0.2, add: 0.8);
+
+        // More elaborate effects chain
+		fx = mix;
+        //fx = CombC.ar(
+            //in: mix,
+            //maxdelaytime: 1.0,
+            //delaytime: [rrand(0.08, 0.15), rrand(0.15, 0.22)],
+            //decaytime: rrand(3.0, 6.0)
+        //).sum;
+
+        //fx = FreeVerb.ar(
+            //in: fx,
+            //mix: rrand(0.3, 0.5),
+            //room: rrand(0.7, 0.95),
+            //damp: rrand(0.2, 0.5),
+            //mul: 0.8
+        //);
+
+        // Panning with slower, more irregular movement
+        Pan2.ar(
+            in: fx,
+            pos: LFNoise2.kr(rrand(0.02, 0.1), mul: 0.8),
+            level: 1/n.sqrt
+        );
+    });
+
+    // Master processing
+    mix = LPF.ar(
+        in: mix,
+        freq: LFNoise2.kr(0.1, mul: 2000, add: 3000)
+    );
+
+    mix = MoogFF.ar(
+        in: mix,
+        freq: LFNoise2.kr(0.1, mul: 1000, add: 2000),
+        gain: 2.0
+    );
+
+	mix.debug("mix");
+	mix = mix * 1.9;
+    //mix = Mix(mix) * 0.5; // prevent clipping
+
+    Out.ar(0, mix);
+}).play(fadeTime: 10); // smooth fade in
+)

@@ -1,0 +1,50 @@
+
+
+TrackDef('glu2_mainTrackList').childAt(3, 3).score = NoteTimeline('glu2_mainTrackList.3.3score');
+NoteTimeline('glu2_mainTrackList.3.3score').param = Param(Pdef('glu2_mainTrackList.3.instr'), 'midinote');
+NoteTimeline('glu2_mainTrackList.3.3score').outBus = 0;
+NoteTimeline('glu2_mainTrackList.3.3score').eventList = TimelineEventList.newFrom([
+	(\absTime: -0.063138181499994, \clockTime: 838.1368618185, \dur: 0.40283333981244, \legato: 0.8, \midinote: 60, \playDur: 0.40283333981244, \relDur: 0.40283333981244, \sustain: 0.11030305258328, \velocity: 82, ),
+	(\absTime: 0.33969515831245, \clockTime: 838.53969515831, \dur: 0.08172307783343, \legato: 0.8, \midinote: 60, \playDur: 0.08172307783343, \relDur: 0.08172307783343, \sustain: 0.11318259377083, \velocity: 87, ),
+	(\absTime: 0.42141823614588, \clockTime: 838.62141823615, \dur: 0.289889362125, \legato: 0.8, \midinote: 48, \playDur: 0.289889362125, \relDur: 0.289889362125, \sustain: 0.24563343858335, \velocity: 96, ),
+	(\absTime: 0.71130759827088, \clockTime: 838.91130759827, \dur: 0.41832804333322, \legato: 0.8, \midinote: 60, \playDur: 0.41832804333322, \relDur: 0.41832804333322, \sustain: 0.17646464960421, \velocity: 102, ),
+	(\absTime: 1.1296356416041, \clockTime: 839.3296356416, \dur: 0.0829653158334, \legato: 0.8, \midinote: 60, \playDur: 0.0829653158334, \relDur: 0.0829653158334, \sustain: 0.11174656595836, \velocity: 96, ),
+	(\absTime: 1.2126009574375, \clockTime: 839.41260095744, \dur: 0.2516441749167, \legato: 0.8, \midinote: 48, \playDur: 0.2516441749167, \relDur: 0.2516441749167, \sustain: 0.2589086531666, \velocity: 98, ),
+	(\absTime: 1.4642451323542, \clockTime: 839.66424513235, \dur: 0.2452930447501, \legato: 0.8, \midinote: 60, \playDur: 0.2452930447501, \relDur: 0.2452930447501, \sustain: 0.28086492029149, \velocity: 99, ),
+	(\absTime: 1.7095381771043, \clockTime: 839.9095381771, \dur: 0.2730034524373, \legato: 0.8, \midinote: 48, \playDur: 0.2730034524373, \relDur: 0.2730034524373, \sustain: 0.12478290622914, \velocity: 54, ),
+	(\absTime: 1.9825416295416, \clockTime: 840.18254162954, \dur: 0.3832184080209, \legato: 0.8, \midinote: 40, \playDur: 0.3832184080209, \relDur: 0.3832184080209, \sustain: 0.16934684320825, \velocity: 116, ),
+	(\absTime: 2.3657600375625, \clockTime: 840.56576003756, \dur: 0.3683185573542, \legato: 0.8, \midinote: 41, \playDur: 0.3683185573542, \relDur: 0.3683185573542, \sustain: 0.19847661329175, \velocity: 37, ),
+	(\absTime: 2.7340785949167, \clockTime: 840.93407859492, \dur: 0.4826817224583, \legato: 0.8, \midinote: 41, \playDur: 0.4826817224583, \relDur: 0.4826817224583, \sustain: 0.19251270045834, \velocity: 117, ),
+	(\absTime: 3.216760317375, \clockTime: 841.41676031738, \dur: 0.2516385671041, \legato: 0.8, \midinote: 53, \playDur: 0.2516385671041, \relDur: 0.2516385671041, \sustain: 0.13828023027077, \velocity: 104, ),
+	(\absTime: 3.4683988844791, \clockTime: 841.66839888448, \dur: 0.2471362930209, \legato: 0.8, \midinote: 53, \playDur: 0.2471362930209, \relDur: 0.2471362930209, \sustain: 0.19598939158334, \velocity: 102, ),
+	(\absTime: 3.7155351775, \clockTime: 841.9155351775, \dur: 4.2844648225, \legato: 0.8, \midinote: 41, \playDur: 4.2844648225, \relDur: 4.2844648225, \sustain: 0.14214198579168, \velocity: 98, ),
+	(\absTime: 8.0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	(\absTime: 8.0, \clockTime: 846.15439332394, \dur: 0.25, \legato: 0.8, \midinote: 60.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.12116363868756, \velocity: 93, ),
+	(\absTime: 8.25, \clockTime: 846.57768047573, \dur: 0.125, \legato: 0.8, \midinote: 48.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.125, \velocity: 93, ),
+	(\absTime: 8.375, \clockTime: 846.51385615098, \dur: 0.375, \legato: 0.8, \midinote: 60.0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.078796332354273, \velocity: 84, ),
+	(\absTime: 8.75, \clockTime: 846.86763812521, \dur: 0.25, \legato: 0.8, \midinote: 60.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.16141358070843, \velocity: 103, ),
+	(\absTime: 9.0, \clockTime: 847.30844380113, \dur: 0.25, \legato: 0.8, \midinote: 60.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.091420496479031, \velocity: 95, ),
+	(\absTime: 9.25, \clockTime: 847.38188249262, \dur: 0.125, \legato: 0.8, \midinote: 48.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.125, \velocity: 114, ),
+	(\absTime: 9.375, \clockTime: 847.63466288204, \dur: 0.25, \legato: 0.8, \midinote: 60.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.125, \velocity: 98, ),
+	(\absTime: 9.625, \clockTime: 847.87753030083, \dur: 0.125, \legato: 0.8, \midinote: 48.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.13535656118756, \velocity: 113, ),
+	(\absTime: 9.75, \dur: 0.25, \midinote: 60.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.125, ),
+	(\absTime: 10.0, \clockTime: 848.1505390751, \dur: 0.25, \legato: 0.8, \midinote: 53.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.1514462516875, \velocity: 87, ),
+	(\absTime: 10.25, \clockTime: 848.63039969865, \dur: 0.125, \legato: 0.8, \midinote: 41.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.125, \velocity: 119, ),
+	(\absTime: 10.375, \clockTime: 848.52425353517, \dur: 0.375, \legato: 0.8, \midinote: 53.0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.13787450137511, \velocity: 96, ),
+	(\absTime: 10.75, \clockTime: 848.8916717484, \dur: 0.25, \legato: 0.8, \midinote: 53.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.14315199868736, \velocity: 102, ),
+	(\absTime: 11.0, \dur: 0.25, \midinote: 56.0, \playDur: 0.25, \relDur: 0.25, \sustain: 0.125, ),
+	(\absTime: 11.25, \clockTime: 849.39458777802, \dur: 0.125, \legato: 0.8, \midinote: 56.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.125, \velocity: 103, ),
+	(\absTime: 11.375, \clockTime: 849.62951647296, \dur: 0.375, \legato: 0.8, \midinote: 44.0, \playDur: 0.375, \relDur: 0.375, \sustain: 0.125, \velocity: 119, ),
+	(\absTime: 11.75, \clockTime: 849.89243209894, \dur: 0.125, \legato: 0.8, \midinote: 56.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.125, \velocity: 126, ),
+	(\absTime: 11.875, \dur: 0.125, \midinote: 64.0, \playDur: 0.125, \relDur: 0.125, \sustain: 0.125, ),
+	(\absTime: 12.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
+NoteTimeline('glu2_mainTrackList.3.3score').automationRack.paramList = [ Param(Pdef('glu2_mainTrackList.3.instr'), 'lpenvamt') ];
+ParamTimeline('AutomationRack_noteTimeline_glu2_mainTrackList.3.3score_lpenvamt').param = Param(Pdef('glu2_mainTrackList.3.instr'), 'lpenvamt');
+ParamTimeline('AutomationRack_noteTimeline_glu2_mainTrackList.3.3score_lpenvamt').outBus = BusDef('ParamTimeline_AutomationRack_noteTimeline_glu2_mainTrackList.3.3score_lpenvamt');
+ParamTimeline('AutomationRack_noteTimeline_glu2_mainTrackList.3.3score_lpenvamt').eventList = TimelineEventList.newFrom([
+	(\absTime: 8.0, \dur: 0.0, \label: 'start', \playDur: 0.0, \relDur: 0.0, \sustain: 0, \type: 'start', ),
+	(\absTime: 8.0, \dur: 16.0, \legato: 1, \level: 0.70773494583018, \next_absTime: 24.0, \next_level: 3.1965459015004, \playDur: 16.0, \relDur: 16.0, \sustain: 16.0, ),
+	(\absTime: 24.0, \curve: 0, \dur: 0.0, \legato: 1, \level: 3.1965459015004, \playDur: 0.0, \relDur: 0.0, ),
+	(\absTime: 24.0, \dur: 0, \label: 'end', \playDur: 0, \relDur: 0, \type: 'end', ),
+]);
