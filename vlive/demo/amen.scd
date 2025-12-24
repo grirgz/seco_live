@@ -1,4 +1,24 @@
 (
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('vipere/amenbreak.wav'),
+			\legato, 1,
+			\st, 137/4/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 2,
+			],1),2).loop / Pkey(\st) + 0.1,
+			\dur, 1/8,
+			\gain, 1/8,
+		)
+		
+	])
+)).play;
+);
+//////////////
+(
 BufDef(\amen, "vipere/amenbreak.wav");
 Pdef(\amen, Pbind(
 	\instrument, \playersec,

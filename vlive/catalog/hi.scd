@@ -2552,3 +2552,117 @@ Pdef(\part, Pdef(\zedpart,
     ])
 )).play;
 );
+
+////////////////
+
+(
+SynthDef(\waw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	freq = freq * \fmul.kr(1);
+	lfo4 = XLine.kr(1,0.90,2);
+	lfo1 = Pulse.kr(\amf.kr(3*~t)).range(0,1).lag(0.01);
+	lfo3 = XLine.kr(1/10,10,4);
+	lfo2 = LFNoise1.kr(1!4) * \fspread.kr(0.001)  + 1;
+	lfo6 = EnvGen.kr(Env([0,1,0],[0.01,0.1]), \xtrig.tr(1));
+	lfo7 = EnvGen.kr(Env([0,1,0],[0.05,\xtrigrel.kr(1.4)]), \xtrig.tr(1));
+	lfo5 = ( SinOsc.ar(freq* \fmr.kr(1/2)) * \fmamp.kr(7.5) * lfo7 + 1 );
+	sig = LFSaw.ar(freq  * lfo2 * lfo5);
+	sig = RLPF.ar(sig, \lpf.kr(100) * ( lfo7 * 14 + 1 ), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pmono(
+			 \waw,
+			\note, Pstep(Pseq([
+				0,5,4,3,
+			],inf),2),
+			\xtrig, Pseq([
+				1,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				1,0,0,1, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,1,0, 0,0,1,0,
+				0,0,0,0, 1,0,1,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,1, 1,0,1,0,
+			],inf),
+			\dur, Pn(1/16,8*8*8),
+			\amp, 0.1/2,
+		),
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\demox, 
+	Ppar([
+		
+		Pmono(
+			 \waw,
+			\note, Pstep(Pseq([
+				0,5,2,7,
+			],inf),2),
+			\octave, 3,
+			\fspread, Pseg(Pseq([0.00001,0.001,0.01],inf),8),
+			\fmamp, PmodEnv(Pseq([1,24],1), 8*4).loop,
+			\fmr, Pseq([1,1/2,2,3],inf).stutter(4),
+			\xtrig, Pseq([
+				1,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				1,0,0,1, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,1,0, 0,0,1,0,
+				0,0,0,0, 1,0,1,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,1, 1,0,1,0,
+			],inf),
+			\dur, Pn(1/16,8*8*8),
+			\amp, 0.1/2,
+		),
+		Pmono(
+			 \waw,
+			\note, Pstep(Pseq([
+				-3,-1,
+				-3,-1,
+				0,-1,
+				0,-1,
+			],inf),1),
+			\octave,6,
+			\fspread, Pseg(Pseq([0.00001,0.001,0.01],inf),8),
+			\fmamp, PmodEnv(Pseq([1,24],1), 8*4).loop,
+			\fmr, Pseq([1,1/2,2,3],inf).stutter(1),
+			\xtrigrel, Pseq([
+				0.1,
+				0.1,
+				0.1,
+				1,
+			],inf),
+			\xtrig, Pseq([
+				0,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,1, 0,0,0,0,
+				0,0,0,0, 0,1,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,1,0, 0,1,0,1,
+			],inf),
+			\dur, Pn(1/16,8*8*8),
+			\amp, 0.1/2,
+		),
+	])
+)).play;
+);

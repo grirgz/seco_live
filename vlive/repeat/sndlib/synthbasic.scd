@@ -57,7 +57,7 @@ SynthDef(\sh101fx, { arg out=0, gate=1, crusher=0, reverb=0, delay=0;
 	delaytime: ControlSpec(0.001,1,\exp),
 ))).add;
 
-SynthDef(\rolandsupersaw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, det=0.75, midside=0;
+SynthDef(\rolandsupersaw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, det=0.75, midside=0.6;
 	var detuneCurve = { |x|
 		(10028.7312891634*x.pow(11)) -
 		(50818.8652045924*x.pow(10)) +
@@ -94,8 +94,8 @@ SynthDef(\rolandsupersaw, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, det=0.7
 
 	var sig = (center * centerGain.(mix)) + (side * sideGain.(mix));
 
-	sig = LPF.ar(sig, \lpf.kr(100));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = LPF.ar(sig, \lpf.kr(7000));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.5)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
@@ -389,3 +389,24 @@ SynthDef(\formant, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 ))).add;
 
 );
+
+////////////////
+
+
+SynthDef(\kick808, {arg out = 0, freq1 = 240, freq2 = 60, amp = 0.1, ringTime = 100, rel = 10000, dist = 1.5, pan = 0, tott=0.1, durr=0.001, gate=1;
+	var snd, env;
+	snd = Ringz.ar(
+		in: Impulse.ar(0), // single impulse
+		freq: XLine.ar(freq1, freq2, \glisdur.kr(0.1)),
+		decaytime: ringTime);
+	//env = EnvGen.ar(Env.perc(0.001, rel, amp), doneAction: 2);
+	env = EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	snd = (1.0 - dist) * snd + (dist * (snd.distort));
+	snd = snd * env * \gain.kr(0.2);
+	snd = Limiter.ar(snd, tott, durr) * 1.5 *(1/tott);
+	snd = snd * EnvGen.kr(\adsr2.kr(Env.adsr(0.01,0.1,1,0.01)), gate, doneAction:0);
+	//snd = Clip.ar(snd, -1 * tott, tott);
+	//	snd = Fold.ar(snd, -1 * tott, tott);
+	//	snd = Wrap.ar(snd, -1 * tott, tott);
+	Out.ar(out, Pan2.ar(snd, pan, amp));
+}).add;

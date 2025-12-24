@@ -247,177 +247,177 @@ Pdef(\part, Pdef(\plop,
 			],inf),
 			\lpf, 302,
 			\legato, Pseq([
-					3,0,0, 0,0,0,  0,0,0, 0,0,0,
-					0,0,1, 2,0,1,  2,0,1, 3,0,0,
+				3,0,0, 0,0,0,  0,0,0, 0,0,0,
+				0,0,1, 2,0,1,  2,0,1, 3,0,0,
 			],inf)*0.8,
 			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
 			\octave, 3,
 			\dur, 1/12,
 			\amp, 0.1,
 		),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					0,0,0, 0,0,0,  1,0,0, 0,0,0,
-				],inf).coin.not,
-				\sustain, 0.1/4,
-				\adsr, Pseq([
-					[ Env.adsr(0.01,0.1,0.8,0.4) ],
-				],inf),
-				\dur, 1/12,
-				\gain, 0.4 * Pseq([
-					1,0.8,1,1,0.9,
-				],inf),
-				\out, BusDef(\fx1, \audio),
-			)),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 5,
-				\isRest, Pseq([
-					0,0,0, 0,0,0,  0,0,0, 0,0,0,
-					0,0,0, 0,0,0,  0,0,0, 0,0,1,
-					0,0,0, 0,0,0,  0,0,0, 0,0,0,
-					0,0,0, 0,0,0,  0,0,1, 0,0,0,
-					0,0,0, 0,0,0,  0,0,0, 0,0,0,
-					0,0,1, 0,0,0,  0,0,0, 0,0,0,
-					0,0,0, 0,0,0,  0,0,0, 0,0,0,
-					1,0,1, 0,0,0,  0,0,0, 0,0,0,
-				],inf).coin.not,
-				\sustain, 0.1/4,
-				\adsr, Pseq([
-					[ Env.adsr(0.01,0.1,0.8,0.2) ],
-				],inf),
-				\dur, 1/12,
-				\gain, 0.2 * Pseq([
-					1,0.8,1,1,0.9,
-				],inf),
-				\out, BusDef(\fx1, \audio),
-			)),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 9,
-				\isRest, Pseq([
-					0,0,0, 1,0,1, 0,0,0, 1,0,0,
-					0,0,0, 1,0,1, 0,0,0, 1,0,1,
-					1,1,0, 1,0,1, 0,0,0, 1,0,1,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\dur, 1/12,
-				\gain, 0.2 * Pseq([
-					1,0.7,0.2, 1,0.7,0.2, 1,0.7,0.2, 1,0.7,0.9,
-					1,0.7,0.2, 1,0.7,0.2, 1,0.7,0.8, 1,0.7,0.2,
-				],inf),
-				\amp, 0.1,
-				\out, BusDef(\fx1, \audio),
-			)),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 9,
-				\isRest, Pseq([
-					1,0,1,0,
-					1,1,0,1,
-					1,0,1,0,
-					1,0,1,0,
-				],inf).coin.not,
-				\sustain, 0.1,
-				\dur, 1/16,
-				\gain, 0.2 * Pseq([
-					1,1,1, 0.2,
-				],inf),
-				\amp, 0.1,
-				\out, BusDef(\fx1, \audio),
-				\isRest, true,
-			)),
-			PatKitDef(\ksh2b).asPattern(Pbind(
-				\kitIndex, 9,
-				\isRest, Pseq([
-					1,0,0, 0,0,0, 1,0, 0,0, 1,0, 
-					0,0,1, 1,0,1, 1,0, 0,0, 0,0, 
-				],inf).coin.not,
-				\sustain, 0.1,
-				\dur, 1/24,
-				\gain, 0.2 * Pseq([
-					1,1,1,
-					1,0.2,0.2,
-				],inf),
-				\amp, 0.1,
-				\out, BusDef(\fx1, \audio),
-				\isRest, true,
-			)),
-			Pbind(
-				\instrument, \organ,
-				\out, BusDef(\fx1, \audio),
-				\note, Pseq([
-					Pser([
-						[0,4,7-12]+12,
-					],12*2),
-					Pser([
-						[5,9,12-12]+12,
-					],12*2),
-				],inf),
-				\sustain, 0.04,
-				\isRest, Pseq([
-					0,0,0, 1,0,0, 0,0,0, 1,0,0,
-				],inf).coin.not,
-				\dur, 1/12,
-				\amp, 0.1 * Pseq([
-					1
-				],inf),
-				\isRest, true,
-			),
-			Pbind(
-				\instrument, \organ,
-				\out, BusDef(\fx1, \audio),
-				\note, Pseq([
-					Pser([
-						[0,4,7],
-					],12*2),
-					Pser([
-						[5,9,12],
-					],12*2),
-				],inf),
-				\sustain, 0.01,
-				\isRest, Pseq([
-					0,0,1, 0,0,1, 0,0,1, 0,0,1,
-				],inf).coin.not,
-				\dur, 1/12,
-				\amp, 0.1 * Pseq([
-					1
-				],inf),
-				\isRest, true,
-			),
-			Pbind(
-				\instrument, \perctone,
-				\note, Pseq([
-					Pser([
-						[0,4,7],
-						[0,4,7],
-						[0,4,7-12]+12,
-						[0,4,7],
-					],12*2),
-					Pser([
-						[5,9,0],
-						[5,9,0],
-						[5,9-12,0]+12,
-						[5,9,0],
-					],12*2),
-				],inf),
-				\sustain, Pseq([
-					0.01, 0.01, 0.01, 0.03, 0.01, 0.01,
-					0.01, 0.01, 0.01, 0.07, 0.01, 0.01,
-				],inf),
-				\out, BusDef(\fx1, \audio),
-				\isRest, Pseq([
+		PatKitDef(\ksh2b).asPattern(Pbind( // snare
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,0, 0,0,0,  1,0,0, 0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1/4,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.4) ],
+			],inf),
+			\dur, 1/12,
+			\gain, 0.4 * Pseq([
+				1,0.8,1,1,0.9,
+			],inf),
+			\out, BusDef(\fx1, \audio),
+		)),
+		PatKitDef(\ksh2b).asPattern(Pbind( // ghost snare
+			\kitIndex, 5,
+			\isRest, Pseq([
+				0,0,0, 0,0,0,  0,0,0, 0,0,0,
+				0,0,0, 0,0,0,  0,0,0, 0,0,1,
+				0,0,0, 0,0,0,  0,0,0, 0,0,0,
+				0,0,0, 0,0,0,  0,0,1, 0,0,0,
+				0,0,0, 0,0,0,  0,0,0, 0,0,0,
+				0,0,1, 0,0,0,  0,0,0, 0,0,0,
+				0,0,0, 0,0,0,  0,0,0, 0,0,0,
+				1,0,1, 0,0,0,  0,0,0, 0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1/4,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.2) ],
+			],inf),
+			\dur, 1/12,
+			\gain, 0.2 * Pseq([
+				1,0.8,1,1,0.9,
+			],inf),
+			\out, BusDef(\fx1, \audio),
+		)),
+		PatKitDef(\ksh2b).asPattern(Pbind( // hat
+			\kitIndex, 9,
+			\isRest, Pseq([
+				0,0,0, 1,0,1, 0,0,0, 1,0,0,
+				0,0,0, 1,0,1, 0,0,0, 1,0,1,
+				1,1,0, 1,0,1, 0,0,0, 1,0,1,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\dur, 1/12,
+			\gain, 0.2 * Pseq([
+				1,0.7,0.2, 1,0.7,0.2, 1,0.7,0.2, 1,0.7,0.9,
+				1,0.7,0.2, 1,0.7,0.2, 1,0.7,0.8, 1,0.7,0.2,
+			],inf),
+			\amp, 0.1,
+			\out, BusDef(\fx1, \audio),
+		)),
+		PatKitDef(\ksh2b).asPattern(Pbind( // 4-floor hat, muted
+			\kitIndex, 9,
+			\isRest, Pseq([
+				1,0,1,0,
+				1,1,0,1,
+				1,0,1,0,
+				1,0,1,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\dur, 1/16,
+			\gain, 0.2 * Pseq([
+				1,1,1, 0.2,
+			],inf),
+			\amp, 0.1,
+			\out, BusDef(\fx1, \audio),
+			\isRest, true,
+		)),
+		PatKitDef(\ksh2b).asPattern(Pbind( // muted hat, don't know
+			\kitIndex, 9,
+			\isRest, Pseq([
+				1,0,0, 0,0,0, 1,0, 0,0, 1,0, 
+				0,0,1, 1,0,1, 1,0, 0,0, 0,0, 
+			],inf).coin.not,
+			\sustain, 0.1,
+			\dur, 1/24,
+			\gain, 0.2 * Pseq([
+				1,1,1,
+				1,0.2,0.2,
+			],inf),
+			\amp, 0.1,
+			\out, BusDef(\fx1, \audio),
+			\isRest, true,
+		)),
+		Pbind(
+			\instrument, \organ,
+			\out, BusDef(\fx1, \audio),
+			\note, Pseq([
+				Pser([
+					[0,4,7-12]+12,
+				],12*2),
+				Pser([
+					[5,9,12-12]+12,
+				],12*2),
+			],inf),
+			\sustain, 0.04,
+			\isRest, Pseq([
+				0,0,0, 1,0,0, 0,0,0, 1,0,0,
+			],inf).coin.not,
+			\dur, 1/12,
+			\amp, 0.1 * Pseq([
+				1
+			],inf),
+			\isRest, true,
+		),
+		Pbind(
+			\instrument, \organ,
+			\out, BusDef(\fx1, \audio),
+			\note, Pseq([
+				Pser([
+					[0,4,7],
+				],12*2),
+				Pser([
+					[5,9,12],
+				],12*2),
+			],inf),
+			\sustain, 0.01,
+			\isRest, Pseq([
+				0,0,1, 0,0,1, 0,0,1, 0,0,1,
+			],inf).coin.not,
+			\dur, 1/12,
+			\amp, 0.1 * Pseq([
+				1
+			],inf),
+			\isRest, true,
+		),
+		Pbind(
+			\instrument, \perctone,
+			\note, Pseq([
+				Pser([
+					[0,4,7],
+					[0,4,7],
+					[0,4,7-12]+12,
+					[0,4,7],
+				],12*2),
+				Pser([
+					[5,9,0],
+					[5,9,0],
+					[5,9-12,0]+12,
+					[5,9,0],
+				],12*2),
+			],inf),
+			\sustain, Pseq([
+				0.01, 0.01, 0.01, 0.03, 0.01, 0.01,
+				0.01, 0.01, 0.01, 0.07, 0.01, 0.01,
+			],inf),
+			\out, BusDef(\fx1, \audio),
+			\isRest, Pseq([
 
-						0,0,0, 1,0,0,  0,0,0, 1,0,0,
-						0,0,1, 0,0,0,  0,0,0, 1,0,0,
-						0,0,1, 1,0,0,  0,0,0, 1,0,0,
-						0,0,0, 1,0,1,  0,0,0, 1,0,0,
-						1,0,1, 0,0,0,  0,0,0, 1,0,0,
-						//0.1,0.1,0.1, 0.51,0,0.51,  0,0.1,0.1, 0.51,0,0.51,
-				],inf).coin.not,
-				\dur, 1/12,
-				\octave, 6,
-				\amp, 0.1,
-				\isRest, true,
-			),
+				0,0,0, 1,0,0,  0,0,0, 1,0,0,
+				0,0,1, 0,0,0,  0,0,0, 1,0,0,
+				0,0,1, 1,0,0,  0,0,0, 1,0,0,
+				0,0,0, 1,0,1,  0,0,0, 1,0,0,
+				1,0,1, 0,0,0,  0,0,0, 1,0,0,
+				//0.1,0.1,0.1, 0.51,0,0.51,  0,0.1,0.1, 0.51,0,0.51,
+			],inf).coin.not,
+			\dur, 1/12,
+			\octave, 6,
+			\amp, 0.1,
+			\isRest, true,
+		),
 		Pmono(\dubecho,
 			\delay, 3/4/~t,
 			\sep, 0.0001,

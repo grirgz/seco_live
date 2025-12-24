@@ -1062,7 +1062,7 @@ SynthDef(\prophet5pwmstrings,{|out= 0 freq = 440 amp = 1.0 gate=1 lforate = 10 l
 
 	filter = RLPF.ar(pulse,cutoff,rq);
 
-	env = EnvGen.ar(Env.adsr(0.01,0.0,1.0,0.5),gate,doneAction:2);
+	env = EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.0,1.0,0.5)),gate,doneAction:2);
 
 	Out.ar(out,Pan2.ar(Mix(filter)*env*amp*0.5,pan));
 

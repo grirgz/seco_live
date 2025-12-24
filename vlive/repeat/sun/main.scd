@@ -1050,3 +1050,83 @@ Ndef(\hey, {
 }).play(fadeTime: 10); // smooth fade in
 )
 
+
+s.options.sampleRate = 44100
+s.reboot
+
+
+"nil".interpret
+"dkjfkd".compile
+
+
+(
+SynthDef(\test, {
+    var env;
+    env = \env.ir([0.0001!4, 0.0002!3, 0.0003!3]);
+    env.poll;
+    Out.ar(0, SinOsc.ar *
+        EnvGen.ar(
+            Env.new(
+                env[0],
+                env[1],
+                env[2]
+            ),
+        doneAction:2
+        )
+    );
+}).add;
+)
+
+(
+Synth(\test, [
+    \env: [
+        [0, 1, 1, 0],
+        [0.05, 0.1, 0.2],
+        [-4, 0, 4]
+    ]
+]);
+)
+
+(
+SynthDef(\test, {
+    var env;
+    env = \env.ir(Env(0.0001!4, 0.0002!3, 0.0003!3));
+    env.poll;
+    Out.ar(0, SinOsc.ar * EnvGen.ar(env, doneAction:2));
+}).add;
+)
+(
+Synth(\test, [
+    \env: Env(
+        [0, 1, 1, 0],
+        [0.05, 0.1, 0.2],
+        [-4, 0, 4]
+    )
+]);
+)
+
+
+/////////
+
+(
+// --- This is the path to the SC built-in test image ---
+var path = SCDoc.helpSourceDir +/+ "images/Swamp.png";
+var img = Image.open(path);
+~img = img;
+
+[ "Image loaded:", img ].postln; // <-- This posts correctly! "Image(Swamp.png, 128, 128)"
+
+// 1. THIS WORKS:
+ //img.plot;
+
+// 2. THIS FAILS (shows an empty 128x128 window):
+
+)
+
+(
+	var w, v;
+	w = Window.new("Test", Rect(200, 200, 128, 128)).front;
+	v = View(w, Rect(0, 0, 128, 128));
+	v.backgroundImage = ~img;
+	// v.refresh; // <-- I already tried .refresh, it didn't help.
+)

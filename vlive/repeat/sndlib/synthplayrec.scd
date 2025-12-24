@@ -86,9 +86,22 @@ SynthDef(\playersec_hlpf, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum,
 	//sig = Pan2.ar(sig, pan, 1).sum;
 	Out.ar(out, sig * \gain.kr(1) * velamp);
 }).add;
-MenuSpecFuncDef(\patkitdef_synthdefs).addUnique(\playersec_hlpf);
+TagSpecDef(\patkitdef_synthdefs).addUnique(\playersec_hlpf);
 
-MenuSpecDef(\patkitdef_synthdefs).addUnique(\playersec);
-MenuSpecDef(\patkitdef_synthdefs).addUnique(\playerpansec);
-MenuSpecDef(\patkitdef_synthdefs).addUnique(\playersecmax);
+
+(
+SynthDef(\playersec_grain, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, pitch_stretch=1, pos=0, gdur=0.005, mbufnum=0;
+	var sig;
+	var clk = Impulse.ar(\gfreq.kr(400));
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, pos % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+
+TagSpecDef(\patkitdef_synthdefs).addUnique(\playersec);
+TagSpecDef(\patkitdef_synthdefs).addUnique(\playerpansec);
+TagSpecDef(\patkitdef_synthdefs).addUnique(\playersecmax);
 Spec.add(\lag, ControlSpec(0, 1, 'linear', 0, 0, ""));

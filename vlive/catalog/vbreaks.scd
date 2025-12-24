@@ -63,6 +63,48 @@ Pdef(\part, Pdef(\zedpart,
 		Pdef(\vbreaks_drums),
 		Pbind(
 			\instrument, \playersec,
+			\bufnum, BufDef('vipere/amenbreak.wav'),
+			\legato, 1,
+			\st, 137/4/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 4,
+			],1),4).loop / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+		)
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('vipere/amenbreak.wav'),
+			\legato, 1,
+			\st, 137/4/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 2,
+			],1),2).loop / Pkey(\st) + 0.1,
+			\dur, 1/8,
+			\gain, 1/8,
+		)
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
 			\bufnum, BufDef('vbreaks/Funk Brothers - Home Cookin.wav'),
 			\legato, 1,
 			\st, 110/2/60,
@@ -261,6 +303,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 1*~t/( 176/4/60 )
 (
+// note
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 

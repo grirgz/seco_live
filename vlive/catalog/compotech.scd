@@ -1996,3 +1996,77 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+/////////////////
+// ternary trap
+// sun109
+
+(
+SynthDef(\rise1, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, len=6;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	//freq= 400;
+	lfo1 = EnvGen.kr(Env([100,0.1,0],[0.01,0.8]), 1);
+	lfo1 = SinOsc.ar(freq/2) * XLine.kr(1,30,len/~t);
+	lfo3 = XLine.kr(1,33,len/~t);
+	lfo4 = XLine.kr(1,3,len/~t);
+	sig = SinOsc.ar(freq * ( SinOsc.ar(freq * ( SinOsc.ar(freq/2) * lfo3 + 1 )) * lfo1 + 1 ));
+	sig1 = SinOsc.ar(freq*2 * ( SinOsc.ar(freq) * lfo3 + 1 ));
+	sig = sig + sig1;
+	sig = DelayL.ar(sig, \maxdelay.kr(0.4), \delay.kr(0.001) * lfo3 * [1,1.01]) + sig;
+	sig = DelayL.ar(sig, \maxdelay.kr(0.4), 0.01 * lfo4) + sig;
+	lfo2 = XLine.kr(0.1,1,1);
+	sig = sig * 0.3;
+	sig = sig* EnvGen.kr(Env([0.1,1,0],[len/~t,0.1],2), 1);
+	//sig = HPF.ar(sig,1000);
+	//sig = SelectX.ar(lfo2, [sig1, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset.play;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pdef(\drums1),
+		Pseq([
+			Pbind(
+				\instrument, \rise1,
+				\freq, 2000,
+				\legato, 1,
+				\dur, 4,
+				\amp, 0.1,
+			).keep(1),
+			Pbind(
+				\instrument, \rise1,
+				\freq, 2000,
+				\legato, 1,
+				\dur, Pseq([ 8, 4!4 ].flat/6, 1),
+				// 24 block of 1/6 beats = 4 beats
+				\amp, 0.1,
+			),
+		],inf),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pdef(\drums1),
+		Pbind(
+			\instrument, \rise1,
+			\freq, 2000,
+			\legato, 1,
+			\dur, Pseq([ 8, 4,4,6,2 ].flat/6, inf),
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
