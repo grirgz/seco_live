@@ -1,4 +1,29 @@
+(
 ~t = 185/4/60; TempoClock.default.tempo = ~t;
+
+FileSystemProject.loadOnce("capsule/fxheavy.scd");
+FileSystemProject.loadOnce("capsule/draftsynth.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
+);
+
+(
+SynthDef(\tredrone, { arg lagf=0, freq=200, pan=0, amp=0.1, out=0, gate=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	freq = freq.lag(lagf);
+	freq = freq * [1, 5/3];
+	sig = LFPulse.ar(freq * ( 1 + ( CuspL.ar(\cusfreq.kr(10) + [1,2,3],\cus2.kr(1.1),\cus3.kr(1)).lag(0.1) * ( CuspL.ar(0.1)/3 + 0.1+[ [0,0.01] ] ) * \fma.kr(1) ))).mean;
+	sig.debug("kjkj");
+	sig = sig /13;
+	sig1 = sig;
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq.lag(1) * SinOsc.kr(1*~t * [1,3/5]).range(0,1), \rq.kr(0.5));
+	sig = sig + BPF.ar(sig1, freq.lag(1) * 8);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);
 
 (
 Pdef(\part, Pdef(\pdefgrid0_0, 
@@ -868,23 +893,7 @@ Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
 }).play;
 );
 
-(
-SynthDef(\tredrone, { arg lagf=0, freq=200, pan=0, amp=0.1, out=0, gate=1;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	freq = freq.lag(lagf);
-	freq = freq * [1, 5/3];
-	sig = LFPulse.ar(freq * ( 1 + ( CuspL.ar(\cusfreq.kr(10) + [1,2,3],\cus2.kr(1.1),\cus3.kr(1)).lag(0.1) * ( CuspL.ar(0.1)/3 + 0.1+[ [0,0.01] ] ) * \fma.kr(1) ))).mean;
-	sig.debug("kjkj");
-	sig = sig /13;
-	sig1 = sig;
-	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq.lag(1) * SinOsc.kr(1*~t * [1,3/5]).range(0,1), \rq.kr(0.5));
-	sig = sig + BPF.ar(sig1, freq.lag(1) * 8);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = sig * amp;
-	Out.ar(out, sig);
-}).add;
+
 (
 Pdef(\demo, PmonoArtic(\tredrone,
 	\legato, 1,
@@ -908,7 +917,6 @@ Pdef(\demo, PmonoArtic(\tredrone,
 	\dur, 1,
 	\amp, 0.4
 )).play;
-);
 );
 
 

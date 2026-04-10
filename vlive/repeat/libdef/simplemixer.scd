@@ -3,6 +3,7 @@ ParamProto.init;
 
 ProtoTemplateDef(\simpleMixer, (
 
+	protoClass: \mixer,
 	sendCount: 8,
 	inbusPrefix: \mixer,
 	sendbusPrefix: \sendbus,
@@ -138,6 +139,10 @@ ProtoTemplateDef(\simpleMixer, (
 		} {
 			"savePresetCompileString: can't save on existing project".error;
 		}
+	},
+
+	isEmpty: { arg self;
+		self.tracks.every(_.isEmpty)
 	},
 ));
 

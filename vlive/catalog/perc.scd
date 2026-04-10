@@ -1,8 +1,4 @@
-~t = 1; TempoClock.default.tempo = ~t;
-
-(
-SynthDef(\snare, { arg out=0,tu=1, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
+~
 	var env = EnvGen.ar(Env.perc(0.01,1));
 	var enf = EnvGen.ar(Env([600,177,230],[0.01,0.01],-4));
 	sig = SinOsc.ar(tu*enf+127,0,0.5)*env;

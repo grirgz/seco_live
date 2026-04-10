@@ -237,7 +237,7 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, 8,
 			\amp, 0.1,
 			//\out, BusDef(\ifx1, \audio),
-			\out, BusDef(\sendbus1, \audio),
+			//\out, BusDef(\sendbus1, \audio),
 		)),		
 	])
 )).play;
@@ -436,7 +436,7 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, 8,
 			\amp, 0.1,
 			//\out, BusDef(\ifx1, \audio),
-			\out, BusDef(\sendbus1, \audio),
+			//\out, BusDef(\sendbus1, \audio),
 		)),		
 	])
 )).play;
@@ -1195,7 +1195,7 @@ SynthDef(\beemutante, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, freqfac=1, 
 	//sig = SinOsc.ar(freq) ;
 	sig = pearlamp.(4, sig);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan + ( pearlfreq.(1) - 1 *4), amp);
+	sig = Pan2.ar(sig, pan + ( pearlfreq.(1) * -0.5 * 2 ).poll, amp);
 	Out.ar(out, sig);
 }).add;
 Pdef(\part).reset;

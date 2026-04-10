@@ -1,7 +1,9 @@
 // play with chord seq
+(
 ~t = 105/4/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("holis/synthdef.scd");
-FileSystemProject.load("holis/partmain.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
+FileSystemProject.loadOnce("holis/partmain.scd");
+)
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -2578,6 +2580,277 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, 1/16,
 			\gain, 1/8,
 		),
+	])
+)).play;
+);
+
+///////////////
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Ppar(
+			2.collect { arg idx;
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					\bufnum, [
+						~buflib.kick[~buflib.kick.size.rand.debug("k")],
+						//~buflib.snare[~buflib.snare.size.rand.debug("k")],
+						//~buflib.hat[~buflib.hat.size.rand.debug("k")],
+						//~buflib.clap[~buflib.clap.size.rand.debug("k")],
+					].choose.value,
+					\isRest, Pseq([
+						Pseq(rrand(0.0,1.0!8)),
+						0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/[4,8,16].choose,
+					\gain, 0.1,
+				)
+			}
+		),
+		Ppar(
+			2.collect { arg idx;
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					\bufnum, [
+						//~buflib.kick[~buflib.kick.size.rand.debug("k")],
+						~buflib.snare[~buflib.snare.size.rand.debug("k")],
+						//~buflib.hat[~buflib.hat.size.rand.debug("k")],
+						//~buflib.clap[~buflib.clap.size.rand.debug("k")],
+					].choose.value,
+					\isRest, Pseq([
+						Pseq(rrand(0.0,1.0!8)),
+						0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/[4,8,16].choose,
+					\gain, 0.1,
+				)
+			}
+		),
+		Ppar(
+			8.collect { arg idx;
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					\bufnum, [
+						//~buflib.kick[~buflib.kick.size.rand.debug("k")],
+						//~buflib.snare[~buflib.snare.size.rand.debug("k")],
+						~buflib.hat[~buflib.hat.size.rand.debug("k")],
+						//~buflib.clap[~buflib.clap.size.rand.debug("k")],
+					].choose.value,
+					\isRest, Pseq([
+						Pseq(rrand(0.0,1.0!8)),
+						0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/[4,8,16].choose,
+					\gain, 0.1,
+				)
+			}
+		)
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Ppar(
+			2.collect { arg idx;
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					\bufnum, [
+						~buflib.kick[~buflib.kick.size.rand.debug("k")],
+						//~buflib.snare[~buflib.snare.size.rand.debug("k")],
+						//~buflib.hat[~buflib.hat.size.rand.debug("k")],
+						//~buflib.clap[~buflib.clap.size.rand.debug("k")],
+					].choose.value,
+					\isRest, Pseq([
+						Pseq([
+							Pseq(rrand(0.0,1.0!2)),
+							Pseq(rrand(0.0,1.0!2)),
+							Pseq(rrand(0.0,1.0!2)),
+							Pseq(rrand(0.0,1.0!2)),
+							Pseq([ 0,0, ],1),
+							Pseq([ 0,0, ],1),
+							Pseq([ 0,0, ],1),
+							Pseq([ 0,0, ],1),
+						].scramble,1),
+						//0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/[4,8,16].choose,
+					\gain, 0.1,
+				)
+			}
+		),
+		Ppar(
+			2.collect { arg idx;
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					\bufnum, [
+						//~buflib.kick[~buflib.kick.size.rand.debug("k")],
+						~buflib.snare[~buflib.snare.size.rand.debug("k")],
+						//~buflib.hat[~buflib.hat.size.rand.debug("k")],
+						//~buflib.clap[~buflib.clap.size.rand.debug("k")],
+					].choose.value,
+					\isRest, Pseq([
+						Pseq([
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq([ 0,0,0,0, 1,0,0,0 ].scramble),
+							Pseq([ 1,0,0,0, 1,0,0,0 ].scramble),
+						].scramble,1),
+						//0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/[4,8,16].choose,
+					\gain, 0.1,
+				)
+			}
+		),
+		Ppar(
+			8.collect { arg idx;
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					\bufnum, [
+						//~buflib.kick[~buflib.kick.size.rand.debug("k")],
+						//~buflib.snare[~buflib.snare.size.rand.debug("k")],
+						~buflib.hat[~buflib.hat.size.rand.debug("k")],
+						//~buflib.clap[~buflib.clap.size.rand.debug("k")],
+					].choose.value,
+					\isRest, Pseq([
+						Pseq([
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq(0!4),
+							Pseq(0!4),
+							Pseq(0!4),
+							Pseq(0!4),
+						].scramble),
+						//0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/[4,8,16].choose,
+					\gain, 0.1,
+				)
+			}
+		)
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Ppar(
+			2.collect { arg idx;
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					\bufnum, [
+						~buflib.kick[~buflib.kick.size.rand.debug("k")],
+						//~buflib.snare[~buflib.snare.size.rand.debug("k")],
+						//~buflib.hat[~buflib.hat.size.rand.debug("k")],
+						//~buflib.clap[~buflib.clap.size.rand.debug("k")],
+					].choose.value,
+					\isRest, Pseq([
+						Pseq([
+							Pseq([ rrand(0.0,1.0), rrand(0.0,1.0) * [0,0,1].choose]),
+							Pseq([ rrand(0.0,1.0), rrand(0.0,1.0) * [0,0,1].choose]),
+							Pseq([ rrand(0.0,1.0), rrand(0.0,1.0) * [0,0,1].choose]),
+							Pseq([ rrand(0.0,1.0), rrand(0.0,1.0) * [0,0,1].choose]),
+							Pseq([ 0,0, ],1),
+							Pseq([ 0,0, ],1),
+							Pseq([ 0,0, ],1),
+							Pseq([ 0,0, ],1),
+						].scramble,1),
+						//0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/[4,8,16].choose,
+					\gain, 0.1,
+				)
+			}
+		),
+		Ppar(
+			2.collect { arg idx;
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					\bufnum, [
+						//~buflib.kick[~buflib.kick.size.rand.debug("k")],
+						~buflib.snare[~buflib.snare.size.rand.debug("k")],
+						//~buflib.hat[~buflib.hat.size.rand.debug("k")],
+						//~buflib.clap[~buflib.clap.size.rand.debug("k")],
+					].choose.value,
+					\isRest, Pseq([
+						Pseq([
+							Pseq([ rrand(0.0,1.0) * [0,0,1].choose, rrand(0.0,1.0)]),
+							Pseq([ rrand(0.0,1.0) * [0,0,1].choose, rrand(0.0,1.0)]),
+							Pseq([ rrand(0.0,1.0) * [0,0,1].choose, rrand(0.0,1.0)]),
+							Pseq([ rrand(0.0,1.0) * [0,0,1].choose, rrand(0.0,1.0)]),
+							Pseq([ 0,0, ],1),
+							Pseq([ 0,0, ],1),
+							Pseq([ 0,0, ],1),
+							Pseq([ 0,0, ],1),
+						].scramble,1),
+						//0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/[4,8,16].choose,
+					\gain, 0.1,
+				)
+			}
+		),
+		Ppar(
+			8.collect { arg idx;
+				Pbind(
+					\instrument, \playersec,
+					\bufnum, ~buflib.kick[1010].value,
+					\bufnum, [
+						//~buflib.kick[~buflib.kick.size.rand.debug("k")],
+						//~buflib.snare[~buflib.snare.size.rand.debug("k")],
+						~buflib.hat[~buflib.hat.size.rand.debug("k")],
+						//~buflib.clap[~buflib.clap.size.rand.debug("k")],
+					].choose.value,
+					\isRest, Pseq([
+						Pseq([
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq(rrand(0.0,1.0!4)),
+							Pseq(0!4),
+							Pseq(0!4),
+							Pseq(0!4),
+							Pseq(0!4),
+						].scramble),
+						//0,0,0,0, 0,0,0,0,
+						//0,0,0,0, 0,0,0,0,
+					],inf).coin.not,
+					\dur, 1/[4,8,16].choose,
+					\gain, 0.1,
+				)
+			}
+		)
 	])
 )).play;
 );

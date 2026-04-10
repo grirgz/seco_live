@@ -1,6 +1,6 @@
 
 ~t = 171/4/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("libdef/macros.scd");
+FileSystemProject.loadOnce("libdef/macros.scd");
 
 (
 SynthDef(\bignoisebass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
@@ -49,6 +49,7 @@ Pdef('bignoisebass').setVal('panspread', 0.9971139260073);
 
 
 (
+ProtoDef(\simpleMixer).play;
 Pdef(\part, Pdef(\drums1, 
 	Ppar([
 		Pdef(\bignoisebass, Pbind(\instrument, \bignoisebass)) <>
@@ -240,6 +241,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+ProtoDef(\FxManager).play;
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(

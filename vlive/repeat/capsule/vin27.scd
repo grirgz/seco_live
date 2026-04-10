@@ -2,6 +2,34 @@
 ~t = 82/2/60; TempoClock.default.tempo = ~t;
 
 (
+SynthDef(\pwbass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(\fadsr.kr(Env.adsr(1.1,1.1,0.4,1.1, 1, -2)), gate, doneAction:0);
+	env2 = SinOsc.ar(freq/2); 
+	env3 = EnvGen.kr(\triadsr.kr(Env.adsr(3.1,2.1,1,1.1)), gate, doneAction:0);
+	env4 = SinOsc.ar(freq * SinOsc.ar(freq*3/2, Rand(0,1.0),0.2,1), Rand(0,1.0)).range(1/2,2);
+	env5 = EnvGen.ar(Env.triangle(0.1,1.1),gate,doneAction:0);
+	env6 = SinOsc.ar(1/113, Rand(0,1.0))* env3;
+	sig1 = Pulse.ar(freq * [0.003, -0.003].midiratio, SinOsc.ar(0.01)+[0.4,0.8* env6]  );
+	sig2 = LFTri.ar(freq * ( env4 * env5 * 0.11 *Rand(0.9,1.1) + 1 )) * env3;
+	sig2 = BPF.ar(sig2, freq, 0.7);
+	sig2 = FreqShift.ar(sig2, 0.2) * 0.4 + sig2;
+	sig3 = SinOsc.ar(freq);
+	sig1 = RLPF.ar(sig1, \lpfr.kr(1.1/2) * freq * (env1 * 5 + 1) * (env2 * env1 * 0.4 + 1), \rq.kr(0.5));
+	sig = [sig1*1,sig2 * 0.7, sig3 * 0.71].sum;
+	sig = Latch.ar(sig, Impulse.ar(1440)) * 0.4 + sig;
+	//sig = [sig2];
+	//sig = Pulse.ar(freq, SinOsc.ar(0.01)+0.4 );
+	//pan = pan + ( [-1,1]*0.3 );
+	sig = sig * 2;
+	sig = Pan2.ar(sig, pan, amp).mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
+);
+(
 	~swing = 0.4;
 Pdef(\part, Pdef(\zed, 
 	Ppar([

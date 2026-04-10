@@ -2,6 +2,31 @@
 ~t = 185/4/60; TempoClock.default.tempo = ~t;
 
 (
+SynthDef(\accordeon, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, stepfreqfac=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	env1 = EnvGen.kr(Env([0,1,2],[0.01,0.8]), 1);
+	lfo1 = Duty.kr(1/8/~t * stepfreqfac * LFNoise1.kr(1/2).range(0.1,2.0), 0, Dseq([
+		0,7-12,3,7,
+	],inf)).midiratio;
+	lfo2 = Duty.kr(1/8/~t *  stepfreqfac *LFNoise1.kr(1/2).range(0.1,2.0), 0, Dseq([
+		1,10,0,4,0,9
+	],inf))/10;
+	sig1 = SinOsc.ar(freq * lfo1 * [1,1.0001]);
+	sig2 = LFSaw.ar(freq * lfo1 * [1,1.0001]);
+	sig = SelectX.ar(lfo2, [sig1, sig2]);
+	sig = CombL.ar(sig, 1/freq, 1/freq * lfo1) + sig;
+	sig = (sig * 1).tanh;
+	sig = sig * 0.9;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, [1,-1], amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
 Pdef(\part, Pdef(\pdefgrid0_0, 
 	Ppar([
 		Pbind(

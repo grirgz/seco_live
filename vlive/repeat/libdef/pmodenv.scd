@@ -17,6 +17,12 @@ SynthDef(\modenvmono, { arg out=0, gate=1;
 	sig = sig * EnvGen.kr(Env([1,1,1],[0.1,0.8], releaseNode:1), gate, doneAction:2);
 	Out.kr(out, sig);
 }).store;
+SynthDef(\modstepmono, { arg out=0, gate=1;
+	var sig;
+	sig = \level.kr(0).lag(\lagamt.kr(0));
+	sig = sig * EnvGen.kr(Env([1,1,1],[0.1,0.8], releaseNode:1), gate, doneAction:2);
+	Out.kr(out, sig);
+}).store;
 SynthDef(\simplefm, { arg out=0, amp=0.1, gate=1, pan=0;
 	var sig;
 	sig = LFSaw.ar(\freq.ar(200) * ( 1 + ( SinOsc.ar(\fmf.kr(1) * [1,1+\fmfmul.kr(0.001)]) * \fma.kr(1) )));
@@ -410,8 +416,122 @@ SynthDef(\sinlfo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, range=1, center
 		~pmodenv.(Pseq([start,end],1), time)
 	],repeats)
 };
-)
+);
 
+///////
+// level pattern is steps instead of env
+
+(
+~pmodstep = { arg valpat, timepat=1, lagpat=0, repeat=1;
+	// return a pattern that append a function to \finish which start a Pmono of modenvmono synth outputing an env curve according to patterns from function parameters
+	repeat = repeat.clip(1,inf); // prevent infinite loop when puting negative curve in repeat
+	Prout({ arg ev;
+		var bus = Bus.control(s, 1);
+		var timestr;
+		var running = true;
+		var cleanup = EventStreamCleanup.new;
+		var patplayer;
+		var finish_fun;
+		var cleanup_fun = {
+			patplayer.stop;
+			running = false;
+			//"pmodenv: CLEANUP".debug;
+			{
+				2.wait;
+				if(bus.index.notNil) {
+					bus.free;
+				}
+			}.fork;
+		};
+
+		timepat = timepat ??  { Plazy({ ev[\dur] }).loop };
+		lagpat = lagpat ??  { 0 };
+
+		cleanup.addFunction(ev, cleanup_fun);
+
+		CmdPeriod.doOnce({ 
+			if(bus.index.notNil) {
+				bus.free 
+			}
+		});
+
+		ev = PnoteEnv.makePayload(ev, { arg iev;
+			patplayer = Pmono(\modstepmono,
+				\out, bus,
+				\itrig, 1,
+				[ \dur, \level,\lagamt ], Prout({ arg monoev;
+					var valstr = valpat.asStream;
+					var timestr = timepat.asStream;
+					var lagstr = lagpat.asStream;
+					var val, time, lagval;
+					var nextval, nexttime, nextlag;
+					//var prev = valstr.next;
+
+					block { arg break;
+						val = valstr.next;
+						time = timestr.next;
+						lagval = lagstr.next;
+						inf.do {
+							nexttime = timestr.next;
+							nextlag = lagstr.next;
+							nextval = valstr.next;
+							// break if a pattern has ended
+							if(val.isNil) { 
+								//time = 2;
+								//monoev[\dur] = time;
+								break.value;
+							};
+							if(time.isNil) { 
+								//time = 2;
+								//monoev[\dur] = time;
+								break.value;
+							};
+							if(lagval.isNil) { 
+								//time = 2;
+								//monoev[\dur] = time;
+								break.value;
+							};
+
+
+							if(nextval.isNil or: { nextlag.isNil } or: { nexttime.isNil }) {
+								running = false;
+							};
+							//[val, time, lagval, nextval].debug("pmodstep val");
+
+							monoev = [time, val, lagval].yield;
+							val = nextval;
+							time = nexttime;
+							lagval = nextlag;
+
+						};
+					};
+					//"running false bottom inside".debug;
+					running = false;
+					monoev;
+				}),
+				\legato, 1,
+			).play;
+			bus.asMap;
+		});
+
+		while{ running == true } {
+			var ret;
+			//"pmodenv running".debug;
+			ev = PnoteEnv.makePayload(ev, { arg iev;
+				cleanup.update(iev);
+				bus.asMap;
+			});
+			//ev.debug("ev");
+			if(ev.isNil) {
+				"pmodenv: pattern ends".debug; // this never happen
+				cleanup_fun.value;
+			}
+		};
+		//"bottom".debug;
+		ev;
+	}).repeat(repeat)
+};
+);
 
 
 // END
@@ -642,3 +762,609 @@ Pdef(\testmod, Pfindur(1,Pbind(
 
 
 
+///////////////////////// PmodStep
+
+(
+~pmodstep = { arg valpat, timepat=1, lagpat=0, repeat=1;
+	// return a pattern that append a function to \finish which start a Pmono of modenvmono synth outputing an env curve according to patterns from function parameters
+	repeat = repeat.clip(1,inf); // prevent infinite loop when puting negative curve in repeat
+	Prout({ arg ev;
+		var bus = Bus.control(s, 1);
+		var timestr;
+		var running = true;
+		var cleanup = EventStreamCleanup.new;
+		var patplayer;
+		var finish_fun;
+		var cleanup_fun = {
+			patplayer.stop;
+			running = false;
+			"pmodenv: CLEANUP".debug;
+			{
+				2.wait;
+				if(bus.index.notNil) {
+					bus.free;
+				}
+			}.fork;
+		};
+
+		timepat = timepat ??  { Plazy({ ev[\dur] }).loop };
+		lagpat = lagpat ??  { 0 };
+
+		cleanup.addFunction(ev, cleanup_fun);
+
+		CmdPeriod.doOnce({ 
+			if(bus.index.notNil) {
+				bus.free 
+			}
+		});
+
+		finish_fun = {
+			patplayer = Pmono(\modstepmono,
+				\out, bus,
+				\itrig, 1,
+				[ \dur, \level,\lagamt ], Prout({ arg monoev;
+					var valstr = valpat.asStream;
+					var lagstr = lagpat.asStream;
+					var timestr = timepat.asStream;
+					//var prev = valstr.next;
+
+					block { arg break;
+						valstr.do { arg val;
+							var lagval;
+							var time;
+							time = timestr.next;
+							lagval = lagstr.next;
+							[time, val, lagval].debug("pmodstep val");
+							if(time.isNil) { 
+								//time = 2;
+								//monoev[\dur] = time;
+								break.value;
+							};
+							if(lagval.isNil) { 
+								//time = 2;
+								//monoev[\dur] = time;
+								break.value;
+							};
+
+							monoev = [time, val, lagval].yield;
+
+						};
+					};
+					"running false bottom inside".debug;
+					running = false;
+					monoev;
+				}),
+				\legato, 1,
+			).play;
+		};
+
+		if(ev[\finish].isKindOf(AbstractFunction)) {
+			var oldfun = ev[\finish];
+			ev[\finish] = { arg ev; finish_fun.value(ev); oldfun.value(ev) };
+		} {
+			ev[\finish] = finish_fun;
+		};
+
+		while{ running == true } {
+			var ret;
+			"pmodenv running".debug;
+			ret = bus.asMap;
+			cleanup.update(ev);
+			ret.debug("ret");
+			ev = ret.yield;
+			ev.debug("ev");
+			if(ev.isNil) {
+				"pmodenv: pattern ends".debug; // this never happen
+				cleanup_fun.value;
+			}
+		};
+		"bottom".debug;
+		ev;
+	}).repeat(repeat)
+};
+)
+
+
+//// test
+
+
+(
+// should restart correctly betwean each note
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, ~pmodstep.(Pser([1000,400,4010],4),1/8,0.3).loop.trace,
+			\octave, 5,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+~t = 185/4/60; TempoClock.default.tempo = ~t;
+
+
+(
+~pat = Pbind(
+	\instrument, \sh101,
+	\note, Pseq([
+		0,7,10,12,
+	],inf),
+	\lpf, ~pmodstep.(Pser([1000,400,4010],4),1/8,0.3).loop.trace,
+	\octave, 5,
+	\dur, 1/2,
+	\amp, 0.1,
+);
+)
+~pat.play;
+
+~ps = ~pat.asStream
+~ps.next(())
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, Pseq([
+				~pmodstep.(Pseq([1000,400],1),1/2,0.3),
+				3600
+			],inf).trace,
+			\octave, 5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, Pseq([
+				~pmodstep.(Pseq([1000],1),1,0.3),
+				3600
+			],inf).trace,
+			\octave, 5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, Pseq([
+				~pmodstep.(Pseq([1000,4000],inf), Pseq([1/2],2),0.3),
+				3600
+			],1).trace,
+			\octave, 5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+				~pat = ~pmodstep.(Pseq([1000],1),1,0.3)
+~ps = ~pat.asStream
+~ps.next(())
+
+(
+~pat = Pbind(
+	\instrument, \sh101,
+	\note, Pseq([
+		0,7,10,12,
+	],inf),
+	\lpf, ~pmodstep.(Pseq([1000],4),1,0.3).trace,
+	\octave, 5,
+	\dur, 1/2,
+	\amp, 0.1,
+);
+)
+
+/////////////
+// use makePayload
+// still the bug
+
+
+(
+~pmodstep = { arg valpat, timepat=1, lagpat=0, repeat=1;
+	// return a pattern that append a function to \finish which start a Pmono of modenvmono synth outputing an env curve according to patterns from function parameters
+	repeat = repeat.clip(1,inf); // prevent infinite loop when puting negative curve in repeat
+	Prout({ arg ev;
+		var bus = Bus.control(s, 1);
+		var timestr;
+		var running = true;
+		var cleanup = EventStreamCleanup.new;
+		var patplayer;
+		var finish_fun;
+		var cleanup_fun = {
+			patplayer.stop;
+			running = false;
+			"pmodenv: CLEANUP".debug;
+			{
+				2.wait;
+				if(bus.index.notNil) {
+					bus.free;
+				}
+			}.fork;
+		};
+
+		timepat = timepat ??  { Plazy({ ev[\dur] }).loop };
+		lagpat = lagpat ??  { 0 };
+
+		cleanup.addFunction(ev, cleanup_fun);
+
+		CmdPeriod.doOnce({ 
+			if(bus.index.notNil) {
+				bus.free 
+			}
+		});
+
+		ev = PnoteEnv.makePayload(ev, { arg iev;
+			patplayer = Pmono(\modstepmono,
+				\out, bus,
+				\itrig, 1,
+				\timingOffset, -0.01,
+				[ \dur, \level,\lagamt ], Prout({ arg monoev;
+					var valstr = valpat.asStream;
+					var lagstr = lagpat.asStream;
+					var timestr = timepat.asStream;
+					//var prev = valstr.next;
+
+					block { arg break;
+						valstr.do { arg val;
+							var lagval;
+							var time;
+							time = timestr.next;
+							lagval = lagstr.next;
+							[time, val, lagval].debug("pmodstep val");
+							if(time.isNil) { 
+								//time = 2;
+								//monoev[\dur] = time;
+								break.value;
+							};
+							if(lagval.isNil) { 
+								//time = 2;
+								//monoev[\dur] = time;
+								break.value;
+							};
+
+							monoev = [time, val, lagval].yield;
+
+						};
+					};
+					"running false bottom inside".debug;
+					running = false;
+					monoev;
+				}),
+				\legato, 1,
+			).play;
+			bus.asMap.debug("first ret");
+		});
+
+		while{ running == true } {
+			var ret;
+			"pmodenv running".debug;
+			ev = PnoteEnv.makePayload(ev, { arg iev;
+				cleanup.update(iev);
+				bus.asMap.debug("ret");
+			});
+			ev.debug("ev");
+			if(ev.isNil) {
+				"pmodenv: pattern ends".debug; // this never happen
+				cleanup_fun.value;
+			}
+		};
+		"bottom".debug;
+		ev;
+	}).repeat(repeat)
+};
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, Pseq([
+				~pmodstep.(Pseq([1000,4000],inf), Pseq([1/2],2),0.3),
+				3600
+			],1).trace,
+			\octave, 5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, Pseq([
+				~pmodstep.(Pseq([1000,4000,400],inf), Pseq([1/3],3),0.3),
+				3600
+			],1).trace,
+			\octave, 5,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, Pseq([
+				~pmodstep.(Pseq([1000,4000],inf), Pseq([1/4],8),0.3),
+			],inf).trace,
+			\octave, 5,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+/////////////
+// use makePayload
+// release before last value
+// this works!!!! i don't know why this is necessary
+// copied to top of file
+
+
+(
+~pmodstep = { arg valpat, timepat=1, lagpat=0, repeat=1;
+	// return a pattern that append a function to \finish which start a Pmono of modenvmono synth outputing an env curve according to patterns from function parameters
+	repeat = repeat.clip(1,inf); // prevent infinite loop when puting negative curve in repeat
+	Prout({ arg ev;
+		var bus = Bus.control(s, 1);
+		var timestr;
+		var running = true;
+		var cleanup = EventStreamCleanup.new;
+		var patplayer;
+		var finish_fun;
+		var cleanup_fun = {
+			patplayer.stop;
+			running = false;
+			//"pmodenv: CLEANUP".debug;
+			{
+				2.wait;
+				if(bus.index.notNil) {
+					bus.free;
+				}
+			}.fork;
+		};
+
+		timepat = timepat ??  { Plazy({ ev[\dur] }).loop };
+		lagpat = lagpat ??  { 0 };
+
+		cleanup.addFunction(ev, cleanup_fun);
+
+		CmdPeriod.doOnce({ 
+			if(bus.index.notNil) {
+				bus.free 
+			}
+		});
+
+		ev = PnoteEnv.makePayload(ev, { arg iev;
+			patplayer = Pmono(\modstepmono,
+				\out, bus,
+				\itrig, 1,
+				[ \dur, \level,\lagamt ], Prout({ arg monoev;
+					var valstr = valpat.asStream;
+					var timestr = timepat.asStream;
+					var lagstr = lagpat.asStream;
+					var val, time, lagval;
+					var nextval, nexttime, nextlag;
+					//var prev = valstr.next;
+
+					block { arg break;
+						val = valstr.next;
+						time = timestr.next;
+						lagval = lagstr.next;
+						inf.do {
+							nexttime = timestr.next;
+							nextlag = lagstr.next;
+							nextval = valstr.next;
+							// break if a pattern has ended
+							if(val.isNil) { 
+								//time = 2;
+								//monoev[\dur] = time;
+								break.value;
+							};
+							if(time.isNil) { 
+								//time = 2;
+								//monoev[\dur] = time;
+								break.value;
+							};
+							if(lagval.isNil) { 
+								//time = 2;
+								//monoev[\dur] = time;
+								break.value;
+							};
+
+
+							if(nextval.isNil or: { nextlag.isNil } or: { nexttime.isNil }) {
+								running = false;
+							};
+							//[val, time, lagval, nextval].debug("pmodstep val");
+
+							monoev = [time, val, lagval].yield;
+							val = nextval;
+							time = nexttime;
+							lagval = nextlag;
+
+						};
+					};
+					//"running false bottom inside".debug;
+					running = false;
+					monoev;
+				}),
+				\legato, 1,
+			).play;
+			bus.asMap;
+		});
+
+		while{ running == true } {
+			var ret;
+			//"pmodenv running".debug;
+			ev = PnoteEnv.makePayload(ev, { arg iev;
+				cleanup.update(iev);
+				bus.asMap;
+			});
+			//ev.debug("ev");
+			if(ev.isNil) {
+				"pmodenv: pattern ends".debug; // this never happen
+				cleanup_fun.value;
+			}
+		};
+		//"bottom".debug;
+		ev;
+	}).repeat(repeat)
+};
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, Pseq([
+				~pmodstep.(Pseq([1000,4000],inf), Pseq([1/2],2),0.3),
+				3600
+			],1).trace,
+			\octave, 5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, Pseq([
+				~pmodstep.(Pseq([1000,4000,400],inf), Pseq([1/3],3),0.3),
+				3600
+			],1).trace,
+			\octave, 5,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, Pseq([
+				~pmodstep.(Pseq([1000,4000],4), Pseq([1/4],inf),0.3),
+			],inf),
+			\octave, 5,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, Pseq([
+				~pmodstep.(Pseq([1000,4000],16), Pseq([1/4],inf),Pseq([0.1,0.3,0.7,2],inf)),
+			],inf),
+			\octave, 5,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,10,12,
+			],inf),
+			\lpf, Pseq([
+				~pmodstep.(Pseq([1000,4000],16), Pseq([1/4],inf),Pseg(Pseq([0.1,2],inf),8)),
+			],inf),
+			\octave, 5,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);

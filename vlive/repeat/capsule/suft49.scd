@@ -1,6 +1,6 @@
 
 (
-	ProtoDef(\simpleMixer).play;
+ProtoDef(\simpleMixer).play;
 ProtoDef(\rdn).play;
 ProtoDef(\rdn2).play;
 )
@@ -8,9 +8,9 @@ ProtoDef(\rdn2).play;
 ~master=	{
 	"yay".debug;
 	ProtoDef(\simpleMixer).play;
-ProtoDef(\rdn).play;
-ProtoDef(\rdn2).play;
-	}
+	ProtoDef(\rdn).play;
+	ProtoDef(\rdn2).play;
+}
 )
 (
 Pdef(\part, Pdef(\part1, 

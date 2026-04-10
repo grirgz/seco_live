@@ -17,7 +17,23 @@ SynthDef(\largechord, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 );
 
 (
-Pdef(\part, Pdef(\zedpart, 
+SynthDef(\lporgan, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lpenv, lpfreq;
+	sig = LFPulse.ar(Vibrato.kr(freq, 4*~t) * [1,4]) * [0.1,1];
+	sig = sig.mean;
+	//sig = Resonz.ar(sig, 1890) + sig;
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.01,0.4,0.1,0.2)), gate, doneAction:0) * \lpadsramt.kr(1) + 1;
+	lpfreq = freq * \kbamt.kr(0) + 1;
+	sig = RLPF.ar(sig, ( \lpf.kr(330) * lpenv * lpfreq ).clip(20,20000), \rq.kr(0.8));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\odrums1, 
 	Ppar([
 		Pbind(
 			\instrument, \playersec,
@@ -606,3 +622,222 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\odrums1),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				5,11,10,
+			],inf),
+			\octave, 2,
+			\lpf, PmodEnv(Pseq([400,1200,4000,8000],1), 8,\exp).loop,
+			\legato, 0.91,
+			\dur, Pseq([1.5,1/4,1/4],inf),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \lporgan,
+			\octave, 4,
+			\lpf, PmodEnv(Pseq([700,2000,4000],1), 8,\exp).loop,
+			\dur, 1/8,
+			\legato, Pseg(Pseq([0.3,0.7,0.2,0.5,1],inf),8),
+			\amp, 0.1,
+			\note, Pseq([
+				Pser([
+					10,5,3,
+				],16*2),
+				Pser([
+					11,5,3,
+				],16*2),
+			],inf),
+		),
+		
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\odrums1),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				5,11,10,
+			],inf),
+			\octave, 2,
+			\lpf, PmodEnv(Pseq([400,1200,4000,8000],1), 8,\exp).loop,
+			\legato, 0.91,
+			\dur, Pseq([1.5,1/4,1/4],inf),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \lporgan,
+			\octave, 4,
+			\lpf, PmodEnv(Pseq([700,2000,4000],1), 8,\exp).loop,
+			\dur, 1/8,
+			\legato, Pseg(Pseq([0.3,0.7,0.2,0.5,1],inf),8),
+			\legato, 0.3 * Pseq([
+				1,1,1,1, 1,3,1,1,
+				1,1,3,1, 1,1,1,1,
+			],inf) * Ptuple(Pwhite(0.9,1)!3),
+			\strum, Pwhite(0.0001,0.01),
+			\amp, 0.1,
+			\note, Pseq([
+				[ 10,5,3, ],
+				Pseq([
+					Pser([
+						[ 10-12,5,3, ].reverse,
+						[ 11-12,5,3, ]+12,
+					],16*2),
+					Pser([
+						[ 11-12,5,3, ].reverse,
+						[ 11-12,5,3, ]+12,
+					],16*2),
+				],inf),
+			],inf),
+			\isRest, Pseq([
+				0,1,1,1, 0,1,1,1,
+			],inf).coin.not,
+		),
+		
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\odrums1),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				5,11,10,
+			],inf),
+			\octave, 2,
+			\lpf, PmodEnv(Pseq([400,1200,4000,8000],1), 8,\exp).loop,
+			\legato, 0.91,
+			\dur, Pseq([1.5,1/4,1/4],inf),
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \lporgan,
+			\octave, 4,
+			\lpf, PmodEnv(Pseq([700,2000,4000],1), 8,\exp).loop,
+			\dur, 1/8,
+			\legato, Pseg(Pseq([0.3,0.7,0.2,0.5,1],inf),8),
+			\legato, 0.3 * Pseq([
+				1,1,1,1, 1,3,1,1,
+				1,1,3,1, 1,1,1,1,
+			],inf) * Ptuple(Pwhite(0.9,1)!3),
+			\strum, Pexprand(0.0001,0.01),
+			\amp, 0.1,
+			\note, Pseq([
+				Pseq([
+					Pser([
+						[ 10-12,5,3, ].reverse,
+						[ 10-12,5,3, ].reverse,
+						[ 10-12,5,3, ].reverse,
+						[ 11-12,5,3, ]+12,
+					],16*2),
+					Pser([
+						[ 11-12,5,3, ].reverse,
+						[ 11-12,5,3, ].reverse,
+						[ 11-12,5,3, ].reverse,
+						[ 11-12,5,3, ]+12,
+					],16*2),
+				],inf),
+			],inf),
+			\isRest, Pseq([
+				0,1,1,1, 0,1,1,0,
+			],inf).coin.not,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				Pser([
+					0,1,
+				],16),
+				Pser([
+					-1,0,
+				],16),
+				//0,-1,
+				Pser([
+					0,3,
+				],16),
+				Pser([
+					1,3,
+				],12),
+				Pser([
+					5,8,
+				],4),
+			],inf),
+			\lpf, PmodEnv(Pseq([300,200,5002,504],1), 8).loop,
+			//\envamt, PmodEnv(Pseq([1,8,4],1), 8).loop,
+			\envamt, Pseg(Pseq([8,1],inf),1/5),
+			//\legato, 0.3,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.2,0.1) ],
+				[ Env.adsr(0.01,0.1,0.2,0.1) ],
+				[ Env.adsr(0.1,0.1,0.2,0.1) ],
+				[ Env.adsr(0.01,0.1,0.2,0.1) ],
+				[ Env.adsr(0.01,0.1,0.2,0.1) ],
+				[ Env.adsr(0.01,0.1,0.2,0.1) ],
+				[ Env.adsr(0.01,0.1,0.2,0.1) ],
+				[ Env.adsr(0.1,0.1,0.2,0.1) ],
+			],inf),
+			\octave, 5,
+			\dur, 1/8,
+			\amp, 0.1,
+			\out, BusDef(\sh1, \audio),
+		),
+		Pmono(\fx_hpf,
+			\inbus, BusDef(\sh1, \audio),
+			\addAction, \addToTail,
+			\hpf, 300,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+
+
+(
+// sympa mais pas l'esprit
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \default,
+			\octave, 6,
+			\dur, 1/8,
+			\amp, 0.1,
+			\note, Pseq([
+				Pser([
+					10,5,3,
+				],16*2),
+				Pser([
+					11,5,3,
+				],16*2),
+				Pser([
+					10,6,3,
+				],16*2),
+				Pser([
+					10,7,3,
+				],16*2),
+				Pser([
+					11,7,3,
+				],16*2),
+				Pser([
+					12,7,3,
+				],16*2),
+				Pser([
+					12,8,3,
+				],16*2),
+			],inf),
+		),
+	])
+)).play;
+);

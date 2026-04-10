@@ -1,3 +1,4 @@
+~t = 119/4/60; TempoClock.default.tempo = ~t;
 
 (
 Ndef(\drone1, { arg freq=200, pan=0, amp=0.1, fac1=2, modamp=1, freq2=1/100, lpfr=1.1, rq=0.5, siglag=0.1;

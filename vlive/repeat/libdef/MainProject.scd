@@ -668,6 +668,9 @@ WindowDef(\MainProjectContextMenu, { arg def, model, view;
 		MenuAction("InputManager", {
 			WindowDef(\InputManager).front;
 		}),
+		MenuAction("Project Preview", {
+			WindowDef(\ProjectPreview).front;
+		}),
 		MenuAction("Workspace", {
 			WindowDef(\WorkspaceView).front;
 		}),

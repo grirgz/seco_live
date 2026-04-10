@@ -2071,89 +2071,6 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		
-		Pbind(
-			\instrument, \organ_tonewheel0,
-			\note, Pseq([
-				[6,10,15,13],
-				[5,10,15,13],
-				[4,10,15,13],
-				[3,9,15,12],
-				//[4,9,15,13],
-			].stutter(2).flat,inf),
-			\octave, 4,
-			\dur, 1/8,
-			\amp, 0.1,
-		),
-		Pbind(
-			\instrument, \prophet5pwmstrings,
-			\instrument, \Piano_rhodeySC,
-			\modIndex, PmodEnv(Pseq([0,1],1), 8).loop,
-			\note, Pseq([
-				Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
-				Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
-				Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
-				Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
-			],inf),
-			\lpf, PmodEnv(Pseq([8000,200],1), 8).loop,
-			\octave, 5,
-			\dur, 1/16,
-			\amp, 0.1/2 * Pseq([
-				1,1,1,Plazy({ Pn([0.5,0.2,0.7,1,0].choose,rrand(1,3)) }),
-			],inf),
-		),
-		Pbind(
-			\instrument, \prophet5pwmstrings,
-			\instrument, \Piano_rhodeySC,
-			\modIndex, PmodEnv(Pwhite(0,1,8), 8).loop,
-			\note, Pseq([
-				Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
-				Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
-				Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
-				Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
-			],inf),
-			\lpf, PmodEnv(Pseq([8000,200],1), 8).loop,
-			\octave, 6,
-			\dur, 1/16,
-			\amp, 0.1/2 * Pseq([
-				0,Plazy({ Pn(rrand(0.1,1),rrand(1,5)) }),
-			],inf),
-		),
-		Pbind(
-			\instrument, \prophet5pwmstrings,
-			\note, Pseq([
-				Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
-				Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
-				Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
-				Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
-			],inf),
-			\cutoff, PmodEnv(Prand([8000,200,14000,4000,16000],8), 2).loop,
-			\octave, Pseq([7,7,Prand([7,7,7,6,Pseq([7,7,6,6])])],inf),
-			\dur, 1/16,
-			\adsr, Pseq([
-				[ Env.adsr(0.7,0.1,0.8,0.7) ],
-			],inf),
-			\legato, Pseq([
-				3,0,0,6, 0,0,0,0,
-				7,0,0,0, 0,0,0,0,
-				2,0,0,0, 4,0,0,0,
-				7,0,0,0, 0,0,0,1,
-				4,0,0,0, 0,3,0,0,
-			],inf),
-			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-			\amp, 0.1/2 * Pseq([
-				Plazy({ Pn(rrand(0.1,1),rrand(1,5)) }),
-			],inf),
-		),
-		Pdef(\smpdrums4),
-		//Pdef(\smpdrums1),
-		Pdef(\smpdrums3),
-	])
-)).play;
-);
 
 (
 Pdef(\part, Pdef(\smpdrums1, 
@@ -2297,7 +2214,6 @@ Pdef(\part, Pdef(\smpdrums2, // cropped
 )).play;
 );
 
-
 (
 SynthDef(\drumloopfx, { arg out=0, gate=1;
 	var sig;
@@ -2371,6 +2287,126 @@ Pdef(\part, Pdef(\smpdrums3,
 	])
 )).play;
 );
+(
+Pdef(\part, Pdef(\smpdrums4, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('vipere/amenbreak.wav'),
+			\legato, 1,
+			\st, 137/8/60,
+			\speed, 0.9 * ~t / Pkey(\st),
+			\pos, Pseq([
+				(0..15)/8,
+				(0..15)/8,
+
+				(0..3)/8,
+				(0..3)/8+0.5,
+				Prand((0..3),4)/8+1,
+				(0..3)/8+1.5,
+
+				//Prand((0..3),4)/8,
+				(0..3)/8,
+				Prand((0..3),4)/8+0.5,
+				//(0..3)/8+0.5,
+				//Prand((0..3),4)/8+1,
+				(0..3)/8+1,
+				Prand((0..3),4)/8+1.5,
+			].flat,inf) / Pkey(\st) + 0.01,
+			\dur, 1/8,
+			\gain, 1/8,
+		)
+
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \organ_tonewheel0,
+			\note, Pseq([
+				[6,10,15,13],
+				[5,10,15,13],
+				[4,10,15,13],
+				[3,9,15,12],
+				//[4,9,15,13],
+			].stutter(2).flat,inf),
+			\octave, 4,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \prophet5pwmstrings,
+			\instrument, \Piano_rhodeySC,
+			\modIndex, PmodEnv(Pseq([0,1],1), 8).loop,
+			\note, Pseq([
+				Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
+				Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
+				Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
+				Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
+			],inf),
+			\lpf, PmodEnv(Pseq([8000,200],1), 8).loop,
+			\octave, 5,
+			\dur, 1/16,
+			\amp, 0.1/2 * Pseq([
+				1,1,1,Plazy({ Pn([0.5,0.2,0.7,1,0].choose,rrand(1,3)) }),
+			],inf),
+		),
+		Pbind(
+			\instrument, \prophet5pwmstrings,
+			\instrument, \Piano_rhodeySC,
+			\modIndex, PmodEnv(Pwhite(0,1,8), 8).loop,
+			\note, Pseq([
+				Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
+				Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
+				Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
+				Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
+			],inf),
+			\lpf, PmodEnv(Pseq([8000,200],1), 8).loop,
+			\octave, 6,
+			\dur, 1/16,
+			\amp, 0.1/2 * Pseq([
+				0,Plazy({ Pn(rrand(0.1,1),rrand(1,5)) }),
+			],inf),
+		),
+		Pbind(
+			\instrument, \prophet5pwmstrings,
+			\note, Pseq([
+				Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
+				Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
+				Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
+				Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
+			],inf),
+			\cutoff, PmodEnv(Prand([8000,200,14000,4000,16000],8), 2).loop,
+			\octave, Pseq([7,7,Prand([7,7,7,6,Pseq([7,7,6,6])])],inf),
+			\dur, 1/16,
+			\adsr, Pseq([
+				[ Env.adsr(0.7,0.1,0.8,0.7) ],
+			],inf),
+			\legato, Pseq([
+				3,0,0,6, 0,0,0,0,
+				7,0,0,0, 0,0,0,0,
+				2,0,0,0, 4,0,0,0,
+				7,0,0,0, 0,0,0,1,
+				4,0,0,0, 0,3,0,0,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\amp, 0.1/2 * Pseq([
+				Plazy({ Pn(rrand(0.1,1),rrand(1,5)) }),
+			],inf),
+		),
+		Pdef(\smpdrums4),
+		//Pdef(\smpdrums1),
+		Pdef(\smpdrums3),
+	])
+)).play;
+);
+
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
@@ -2456,36 +2492,447 @@ Pdef(\part, Pdef(\zedpart,
 
 
 (
-Pdef(\part, Pdef(\smpdrums4, 
+Pdef(\part, Pdef(\zedpart, 
 	Ppar([
-		
+
+		Ptpar([
+			0, 
+			Ppar([
+				Pbind(
+					\instrument, \organ_tonewheel0,
+					\note, 
+					Pseq([
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,9,15,12], [3,9,\r,12],
+						].flat,1),
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,\r,15,\r], [3,\r,15,\r],
+						].flat,1),
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,9,15,12], [3,9,15,\r],
+						].flat,1),
+						Pseq([
+							[6,10,15,13],
+							[5,10,15,13],
+							[4,10,15,13],
+							\r!4
+						].stutter(2).flat,1),
+					],inf),
+					\octave, 4,
+					\dur, 1/8,
+					\amp, 0.1,
+				),
+				Pbind(
+					\instrument, \organ_tonewheel0,
+					\note, Pseq([
+						Pseq([
+							Pser([\r],8*3),
+							3,9,15,12,
+							3,9,15,12,
+						],1),
+						Pseq([
+							Pser([\r],8*3),
+							Pseq(\r!4,1),
+							3,9,15,12,
+						],1),
+					],inf),
+					\isRest, Pseq([
+						0,1, 0,1, 0,0, 0,1,
+					],inf).coin.not,
+					\octave, 4,
+					\dur, 1/8/2,
+					\amp, 0.05,
+				),
+
+			]),
+			0, Ppar([
+				Pbind(
+					\instrument, \Piano_rhodeySC,
+					\modIndex, PmodEnv(Pseq([0,1],1), 8).loop,
+					\note, Pseq([
+						Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
+						Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
+						Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
+						Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
+					],inf),
+					\lpf, PmodEnv(Pseq([8000,200],1), 8).loop,
+					\octave, 5,
+					\dur, 1/16,
+					\amp, 0.1/2 * Pseq([
+						1,1,1,Plazy({ Pn([0.5,0.2,0.7,1,0].choose,rrand(1,3)) }),
+					],inf),
+					\out, BusDef(\piano0, \audio),
+				),
+				Pmono(\simpletrackmixer,
+					\inbus, BusDef(\piano0),
+					\pregain, 1,
+					\postgain, PmodEnv(Pseq([0,0,0,1,1,1,1],1), Pseq([1,6,1,20],inf)).loop,
+					\delay, 0,
+					\send0, PmodEnv(Pseq([0,0,1,1,0,0,0,0],1), Pseq([1,1,5,1,20],inf)).loop,
+					\sendbus0, BusDef(\piano1, \audio, 2),
+					\dur, 1,
+				),
+				Pmono(\fx_freeverb2,
+					\inbus, BusDef(\piano1, \audio),
+					\addAction, \addToTail,
+					\room, 3,
+					\lag, 0.0009,
+					\dur, 1,
+					\out, BusDef(\piano2, \audio),
+				),
+				Pmono(\fx_echodiff,
+					\inbus, BusDef(\piano2, \audio),
+					\addAction, \addToTail,
+					\delay, 1/8/~t,
+					\lag, 0.0009,
+					\dur, 1,
+					\out, BusDef(\piano3, \audio),
+				),
+				Pmono(\fx_rlpfrhpf,
+					\inbus, BusDef(\piano3, \audio),
+					\addAction, \addToTail,
+					\lpf, PmodEnv(Pseq([1000,20000],1), 8,\exp).loop,
+					\hpf, PmodEnv(Pseq([510,20000],1), 8,\exp).loop,
+					\lag, 0.0009,
+					//\gain, PmodEnv(Pseq([0,1,1,1],1), 8).loop,
+					\dur, 1,
+				),
+			]),
+			12, Pbind(
+				\instrument, \Piano_rhodeySC,
+				\modIndex, PmodEnv(Pwhite(0,1,8), 8).loop,
+				\note, Pseq([
+					Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
+					Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
+					Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
+					Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
+				],inf),
+				\lpf, PmodEnv(Pseq([8000,200],1), 8).loop,
+				\octave, 6,
+				\dur, 1/16,
+				\amp, 0.1/2 * Pseq([
+					0,Plazy({ Pn(rrand(0.1,1),rrand(1,5)) }),
+				],inf),
+			),
+			16, Pbind(
+				\instrument, \prophet5pwmstrings,
+				\note, Pseq([
+					Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
+					Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
+					Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
+					Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
+				],inf),
+				\cutoff, PmodEnv(Prand([8000,200,14000,4000,16000],8), 2).loop,
+				\octave, Pseq([7,7,Prand([7,7,7,6,Pseq([7,7,6,6])])],inf),
+				\dur, 1/16,
+				\adsr, Pseq([
+					[ Env.adsr(0.7,0.1,0.8,0.7) ],
+				],inf),
+				\legato, Pseq([
+					3,0,0,6, 0,0,0,0,
+					7,0,0,0, 0,0,0,0,
+					2,0,0,0, 4,0,0,0,
+					7,0,0,0, 0,0,0,1,
+					4,0,0,0, 0,3,0,0,
+				],inf),
+				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+				\amp, 0.1/2 * Pseq([
+					Plazy({ Pn(rrand(0.1,1),rrand(1,5)) }),
+				],inf),
+			),
+			16, Pbind(
+					\instrument, \organ_tonewheel0,
+					\note, Pseq([
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,9,15,12], [3,9,\r,12],
+						].flat,1),
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,\r,15,\r], [3,\r,15,\r],
+						].flat,1),
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,9,15,12], [3,9,15,\r],
+						].flat,1),
+						Pseq([
+							[6,10,15,13],
+							[5,10,15,13],
+							[4,10,15,13],
+							\r!4
+						].stutter(2).flat,1),
+					],inf).stutter(2),
+					\legato, 1.5,
+					\isRest, Pseq([
+						1,0,0,0, 1,0,0,0,
+						1,1,1,0, 1,0,1,0,
+						1,0,1,0, 1,0,1,0,
+						1,0,1,0, 1,1,0,1,
+						1,0,0,1, 0,0,1,0,
+					],inf).coin.not,
+					\octave, 3,
+					\dur, 1/8/2,
+					\amp, 0.1,
+				),
+		]),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Ptpar([
+			0, 
+			Ppar([
+				Pbind(
+					\instrument, \organ_tonewheel0,
+					\note, 
+					Pseq([
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,9,15,12], [3,9,\r,12],
+						].flat,1),
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,\r,15,\r], [3,\r,15,\r],
+						].flat,1),
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,9,15,12], [3,9,15,\r],
+						].flat,1),
+						Pseq([
+							[6,10,15,13],
+							[5,10,15,13],
+							[4,10,15,13],
+							\r!4
+						].stutter(2).flat,1),
+					],inf),
+					\octave, 4,
+					\dur, 1/8,
+					\amp, 0.1,
+				),
+				Pbind(
+					\instrument, \organ_tonewheel0,
+					\note, Pseq([
+						Pseq([
+							Pser([\r],8*3),
+							3,9,15,12,
+							3,9,15,12,
+						],1),
+						Pseq([
+							Pser([\r],8*3),
+							Pseq(\r!4,1),
+							3,9,15,12,
+						],1),
+					],inf),
+					\isRest, Pseq([
+						0,1, 0,1, 0,0, 0,1,
+					],inf).coin.not,
+					\octave, 4,
+					\dur, 1/8/2,
+					\amp, 0.05,
+				),
+
+			]),
+			0, Ppar([
+				Pbind(
+					\instrument, \Piano_rhodeySC,
+					\modIndex, PmodEnv(Pseq([0,1],1), 8).loop,
+					\note, Pseq([
+						Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
+						Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
+						Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
+						Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
+					],inf),
+					\lpf, PmodEnv(Pseq([8000,200],1), 8).loop,
+					\octave, 5,
+					\dur, 1/16,
+					\amp, 0.1/2 * Pseq([
+						1,1,1,Plazy({ Pn([0.5,0.2,0.7,1,0].choose,rrand(1,3)) }),
+					],inf),
+					\out, BusDef(\piano0, \audio),
+				),
+				Pmono(\simpletrackmixer,
+					\inbus, BusDef(\piano0),
+					\pregain, 1,
+					\postgain, PmodEnv(Pseq([0,0,0,1,1,1,1],1), Pseq([1,6,1,20],inf)).loop,
+					\delay, 0,
+					\send0, PmodEnv(Pseq([0,0,1,1,0,0,0,0],1), Pseq([1,1,5,1,20],inf)).loop,
+					\sendbus0, BusDef(\piano1, \audio, 2),
+					\dur, 1,
+				),
+				Pmono(\fx_freeverb2,
+					\inbus, BusDef(\piano1, \audio),
+					\addAction, \addToTail,
+					\room, 3,
+					\lag, 0.0009,
+					\dur, 1,
+					\out, BusDef(\piano2, \audio),
+				),
+				Pmono(\fx_echodiff,
+					\inbus, BusDef(\piano2, \audio),
+					\addAction, \addToTail,
+					\delay, 1/8/~t,
+					\lag, 0.0009,
+					\dur, 1,
+					\out, BusDef(\piano3, \audio),
+				),
+				Pmono(\fx_rlpfrhpf,
+					\inbus, BusDef(\piano3, \audio),
+					\addAction, \addToTail,
+					\lpf, PmodEnv(Pseq([1000,20000],1), 8,\exp).loop,
+					\hpf, PmodEnv(Pseq([510,20000],1), 8,\exp).loop,
+					\lag, 0.0009,
+					//\gain, PmodEnv(Pseq([0,1,1,1],1), 8).loop,
+					\dur, 1,
+				),
+			]),
+			12, Pbind(
+				\instrument, \Piano_rhodeySC,
+				\modIndex, PmodEnv(Pwhite(0,1,8), 8).loop,
+				\note, Pseq([
+					Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
+					Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
+					Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
+					Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
+				],inf),
+				\lpf, PmodEnv(Pseq([8000,200],1), 8).loop,
+				\octave, 6,
+				\dur, 1/16,
+				\amp, 0.1/2 * Pseq([
+					0,Plazy({ Pn(rrand(0.1,1),rrand(1,5)) }),
+				],inf),
+			),
+			16, Pbind(
+				\instrument, \prophet5pwmstrings,
+				\note, Pseq([
+					Pfin(8*2, Pseq([ 3,Prand([1,0,Pseq([1,0])]) ],inf) ),
+					Pfin(8*2, Pseq([ 5,Prand([3,1,0],2) ],inf) ),
+					Pfin(8*2, Pseq([ 6,Prand([5,3,1,0,Pseq([1,0])],2) ],inf) ),
+					Pfin(8*2, Pseq([ 3,Prand([-3,3,9,15,12,0],2) ],inf) ),
+				],inf),
+				\cutoff, PmodEnv(Prand([8000,200,14000,4000,16000],8), 2).loop,
+				\octave, Pseq([7,7,Prand([7,7,7,6,Pseq([7,7,6,6])])],inf),
+				\dur, 1/16,
+				\adsr, Pseq([
+					[ Env.adsr(0.7,0.1,0.8,0.7) ],
+				],inf),
+				\legato, Pseq([
+					3,0,0,6, 0,0,0,0,
+					7,0,0,0, 0,0,0,0,
+					2,0,0,0, 4,0,0,0,
+					7,0,0,0, 0,0,0,1,
+					4,0,0,0, 0,3,0,0,
+				],inf),
+				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+				\amp, 0.1/2 * Pseq([
+					Plazy({ Pn(rrand(0.1,1),rrand(1,5)) }),
+				],inf),
+			),
+			0, Pbind(
+					\instrument, \organ_tonewheel0,
+					\note, Pseq([
+						Pseq([
+							[6,10,15,13].scramble!2,
+							[5,10,15,13].scramble!2,
+							[4,10,15,13].scramble!2,
+							[3,9,15,12].scramble, [3,9,\r,12],
+						].flat,1),
+						Pseq([
+							10,6,15,13
+						],inf),
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,9,15,12], [3,9,\r,12],
+					],inf),
+					\legato, 0.7,
+					\isRest, Pseq([
+						1,1,
+					],inf).coin.not,
+					\octave, 3,
+					\dur, 1/8,
+					\amp, 0.1,
+					\isRest, true,
+				),
+				8, Pbind(
+					\instrument, \organ_tonewheel0,
+					\note, 
+					Pseq([
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,9,15,12], [3,9,\r,12],
+						].flat,1),
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,\r,15,\r], [3,\r,15,\r],
+						].flat,1),
+						Pseq([
+							[6,10,15,13]!2,
+							[5,10,15,13]!2,
+							[4,10,15,13]!2,
+							[3,9,15,12], [3,9,15,\r],
+						].flat,1),
+						Pseq([
+							[6,10,15,13],
+							[5,10,15,13],
+							[4,10,15,13],
+							\r!4
+						].stutter(2).flat,1),
+					],inf),
+					\octave, 3,
+					\isRest, Pseq([
+						1,0.8, 1,0.8,
+						1,0.8, 1,0.8,
+						1,0.5, 1,0.5,
+						1,0.5,0.5,0.5,
+					],inf).coin.not,
+					\dur, 1/8,
+					\amp, 0.1,
+				),
+		]),
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
 		Pbind(
-			\instrument, \playersec,
-			\bufnum, BufDef('vipere/amenbreak.wav'),
-			\legato, 1,
-			\st, 137/8/60,
-			\speed, 0.9 * ~t / Pkey(\st),
-			\pos, Pseq([
-				(0..15)/8,
-				(0..15)/8,
-
-				(0..3)/8,
-				(0..3)/8+0.5,
-				Prand((0..3),4)/8+1,
-				(0..3)/8+1.5,
-
-				//Prand((0..3),4)/8,
-				(0..3)/8,
-				Prand((0..3),4)/8+0.5,
-				//(0..3)/8+0.5,
-				//Prand((0..3),4)/8+1,
-				(0..3)/8+1,
-				Prand((0..3),4)/8+1.5,
-			].flat,inf) / Pkey(\st) + 0.01,
-			\dur, 1/8,
-			\gain, 1/8,
-		)
-
+			\type, \phrase,
+			\instrument, \smpdrums4,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
 	])
 )).play;
 );

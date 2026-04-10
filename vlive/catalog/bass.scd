@@ -2029,6 +2029,53 @@ Pdef(\demo,
 	)
 ).play;
 );
+
+////
+
+(
+// add dist
+// from sun73
+SynthDef(\superpwdist, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var num=8;
+	var lpenv;
+	var sigo;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig = LFPulse.ar(freq, 0, LFNoise1.kr(1.1!num, mul:1, add:0).unipolar);
+	sig = sig + LFPulse.ar(freq*2, 0, LFNoise1.kr(1.1, mul:1, add:0).unipolar, mul:0.2);
+	//lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.04,0.4,0.2,4.1,4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.perc(1.6,0.4,curve:4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	sig1 = RLPF.ar(sig, \lpf.kr(400) * lpenv, \rq.kr(0.5));
+	sig2 = BPF.ar(sig, \bpf.kr(400) * lpenv, \brq.kr(0.5), mul:\bpfgain.kr(1));
+	sig2 = ( sig2*\distamp.kr(10) ).tanh * \distpostamp.kr(1/2);
+	sig = [sig1, sig2].mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+// nice subtle dist!
+Pdef(\demo, 
+	Pmono(
+		 \superpwdist,
+		\degree, Pseq([0,-5,3,2],inf),
+		\itrig, 1,
+		\lpenvamt, 1,
+		\lpf, PmodEnv(Pseq([400,1200,4000],1), 8, \exp).loop,
+		\bpf, PmodEnv(Pseq([40,100,50],4), 6).loop,
+		\brq, 0.5,
+		\rq, PmodEnv(Pseq([0.5,0.3,0.1],1), 8*2).loop,
+		\bpfgain, 8,
+		\octave, 3,
+		\dur, 2,
+		\amp, 0.1,
+	)
+).play;
+);
+
+
 //////////
 
 
@@ -2110,3 +2157,306 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+////////////////////// bassdel
+// sin into delay modulated by LFSaw
+
+
+
+(
+SynthDef(\bassdel, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var delay;
+	sig = SinOsc.ar(freq);
+
+	delay = 1/freq * \delfac.kr(1);
+	lfo1 = LFSaw.ar(1/delay);
+	sig = DelayL.ar(sig, \maxdelay.kr(0.1), lfo1 * delay * SinOsc.ar(\lfof.kr(2), mul:\lfoa.kr(0.1), add:1)) + sig;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\bassdelf, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var lpenv;
+	var delay;
+	sig = SinOsc.ar(freq);
+
+	delay = 1/freq * \delfac.kr(1);
+	lfo1 = LFSaw.ar(1/delay);
+	sig = DelayL.ar(sig, \maxdelay.kr(0.1), lfo1 * delay * SinOsc.ar(\lfof.kr(2), mul:\lfoa.kr(0.1), add:1)) + sig;
+	lpenv = EnvGen.kr(\lpenv.kr(Env([1,2,1],[0.04,0.2])), 1) * \lpenva.kr(2.7) + 1;
+	sig = RLPF.ar(sig, ( \lpfr.kr(4.1) * freq * lpenv ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\bassdelfrae, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var lpenv;
+	var delay;
+	sig = SinOsc.ar(freq);
+
+	delay = 1/freq * \delfac.kr(1);
+	lfo1 = LFSaw.ar(1/delay);
+	sig = DelayL.ar(sig, \maxdelay.kr(0.1), lfo1 * delay * SinOsc.ar(\lfof.kr(2), mul:\lfoa.kr(0.1), add:1)) + sig;
+	lpenv = EnvGen.kr(\lpenv.kr(Env([1,2,1],[0.04,0.2])), 1) * \lpenva.kr(2.7) + 1;
+	sig = RLPF.ar(sig, ( \lpf.kr(400) * lpenv ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\bassdelfrae2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var lpenv;
+	var delay;
+	sig = SinOsc.ar(freq);
+
+	delay = 1/freq * \delfac.kr(1);
+	lfo1 = LFSaw.ar(1/delay);
+	sig = DelayL.ar(sig, \maxdelay.kr(0.1), lfo1 * delay * SinOsc.ar(freq * \lfofac.kr(1), mul:\lfoa.kr(0.1), add:1)) + sig;
+	lpenv = EnvGen.kr(\lpenv.kr(Env([1,2,1],[0.04,0.2])), 1) * \lpenva.kr(2.7) + 1;
+	sig = RLPF.ar(sig, ( \lpf.kr(400) * lpenv ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bassdel,
+			\note, Pseq([
+				0,-4,0,-3,0,-1,
+			],inf),
+			\octave, 3,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bassdelf,
+			\note, Pseq([
+				0,-4,0,-3,0,-1,
+			],inf),
+			\octave, 3,
+			\lpfr, PmodEnv(Pseq([1/2,4],1), 8).loop,
+			\rq, PmodEnv(Pseq([0.7,0.1,0.02,0.3],1), 13).loop,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bassdelfrae,
+			\note, Pseq([
+				0,-4,0,-3,0,-1,
+			],inf),
+			\octave, 3,
+			\lpf, PmodEnv(Pseq([100,400,4000,14000],1), 8).loop,
+			\rq, PmodEnv(Pseq([0.7,0.1,0.02,0.3],1), 13).loop,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bassdelfrae,
+			\note, Pseq([
+				0,-4,0,-3,0,-1,
+			],inf),
+			\octave, 4,
+			\lpf, PmodEnv(Pseq([100,400,4000,14000],1), 16).loop,
+			\rq, 0.4,
+			\lfof, PmodEnv(Pseq([0.01,2,20,200,2000],1), 14).loop,
+			\delfac, Pseq([1,1/2,2],inf).stutter(2),
+			//\lfof, Pkey(\freq)*4,
+			\lfoa, PmodEnv(Pseq([0,2,1,4],1), 15).loop,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bassdelfrae2,
+			\note, Pseq([
+				0,-4,0,-3,0,-1,
+			],inf),
+			\octave, 3,
+			\lpf, PmodEnv(Pseq([100,400,4000,14000],1), 16).loop,
+			\rq, 0.4,
+			\lfofac, Pseq([ 1,2,4,8 ],inf),
+			\delfac, Pseq([1,1/2,2,1/4,1/8],inf).stutter(2),
+			//\lfof, Pkey(\freq)*4,
+			\lfoa, PmodEnv(Pseq([0,2,1,4],1), 15).loop,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+// blabla
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bassdelfrae2,
+			\note, Pseq([
+				0,-4,0,-3,0,-1,
+			],inf),
+			\octave, 3,
+			\lpf, PmodEnv(Pseq([100,400,4000,14000],1), 16).loop,
+			\lpenva, 1,
+			\lpenv, [ Env([0,1,0],[0.08,0.12],[5]) ],
+			\rq, 0.4,
+			\lfofac, 2,
+			\delfac, 1,
+			//\lfof, Pkey(\freq)*4,
+			\lfoa, PmodEnv(Pseq([0,2,1,4],1), 15).loop,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bassdelfrae2,
+			\note, Pseq([
+				0,-4,0,-3,0,-1,
+			],inf),
+			\octave, 3,
+			//\lpf, PmodEnv(Pseq([100,400,4000,14000],1), 16).loop,
+			\lpf, 100,
+			\lpenva, PmodEnv(Pseq([1,2,8],1), 8).loop,
+			\lpenv, [ Env([0,1,0],[0.08,0.12],[5]) ],
+			\rq, 0.4,
+			\lfofac, 2,
+			\delfac, 1/2,
+			//\lfof, Pkey(\freq)*4,
+			\lfoa, PmodEnv(Pseq([0,2,1,4],1), 15).loop,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+
+(
+SynthDef(\bassbla, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	// sin into delay with lfo, xfade harms
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var lpenv;
+	var delay;
+	var lfoharms = [1,1/2,2,3,4];
+	var delayharms = [1,2,1/2,1/3,1/4];
+	//var lfoharms = [1,1,1];
+	//var delayharms = [1,1,1];
+	var voices;
+	sig = SinOsc.ar(freq);
+
+	voices = lfoharms.collect { arg lfoharm, idx;
+		delayharms.collect { arg delayharm;
+			var isig;
+			delay = 1/freq * delayharm * \delayfac.kr(1);
+			lfo1 = LFSaw.ar(1/delay);
+			isig = DelayL.ar(sig, \maxdelay.kr(0.1), lfo1 * delay * SinOsc.ar(freq * lfoharm * \lfofac.kr(1), mul:\lfoa.kr(0.1), add:1)) + sig;
+			isig;
+		}
+	};
+	sig = SelectX.ar(\delayselect.kr(0) * ( lfoharms.size - 1 ), SelectX.ar(\lfoselect.kr(0) * ( delayharms.size - 1 ), voices));
+	lpenv = EnvGen.kr(\lpenv.kr(Env([1,2,1],[0.04,0.2])), 1) * \lpenva.kr(2.7) + 1;
+	sig = RLPF.ar(sig, ( \lpf.kr(400) * lpenv ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * 0.5;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bassbla,
+			\note, Pseq([
+				0,-4,0,-3,0,-1,
+			],inf),
+			\octave, 3,
+			\lpf, PmodEnv(Pseq([100,400,4000,14000],1), 16).loop,
+			//\lpf, 100,
+			//\lpenva, PmodEnv(Pseq([1,2,8],1), 8).loop,
+			//\lpenv, [ Env([0,1,0],[0.08,0.12],[5]) ],
+			\rq, 0.7,
+			\lfofac, 1,
+			\delayfac, 1,
+			\lfoselect, Pseg(Pseq([0,1],inf),18),
+			\delayselect, Pseg(Pseq([0,1],inf), 15),
+			//\delayselect, 1,
+			//\lfof, Pkey(\freq)*4,
+			\lfoa, PmodEnv(Pseq([0,2,1,4],1), 15).loop,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bassbla,
+			\note, Pseq([
+				[0,4,7],
+				[0,4,7]+5,
+			],inf),
+			\octave, 5,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,1.1) ],
+			],inf),
+			\lpf, PmodEnv(Pseq([100,400,4000,14000],1), 16).loop,
+			\lfoselect, Pseg(Pseq([0,1],inf),18),
+			\delayselect, Pseg(Pseq([0,1],inf), 15),
+			\dur, 2,
+			\amp, 0.1/3,
+		),
+		
+	])
+)).play;
+);
+

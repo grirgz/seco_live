@@ -4,7 +4,7 @@
 FileSystemProject.loadOnce("sndlib/synthbasic.scd");
 FileSystemProject.loadOnce("holis/synthdef.scd");
 FileSystemProject.loadOnce("capsule/fxheavy.scd");
-)
+);
 
 (
 SynthDef(\harpsichord_pluck, {
@@ -20,7 +20,53 @@ SynthDef(\harpsichord_pluck, {
 //By Zé Craum
 
 }).add;
-)
+);
+
+(
+~gen_transi_snappad = { arg seed=1234, num=12;
+
+	var name = \transi_snappad_v+++seed+++\_n+++num;
+	fork {
+		SynthDef(name, { arg gate=1, timeScale=1, freqfac=1, rel=3;
+			var snd, freq;
+			var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+			thisThread.randSeed = seed;
+			freq = \freq.kr(440);
+			lfo1 = XLine.kr(0.1,0.01,2/~t * timeScale);
+			lfo2 = XLine.kr(2,0.001,2/~t * timeScale);
+			lfo3 = XLine.kr(0.2,0.9,1/~t * timeScale);
+			snd = num.collect { arg item, idx;
+				var harms = [1,2,4,1/2,1/4];
+				var isig;
+				var fenv, rqenv;
+				var hpenv;
+				var env;
+				var noisefac = rrand(0.4,2);
+				isig = Pulse.ar(
+					freq * LFNoise2.kr(rrand(0.4,10)).range(-0.05 * noisefac, 0.05 * noisefac).midiratio * harms.choose,
+					LFNoise2.kr(rrand(0.4,10)).range(0.3, 0.7)
+				);
+				fenv = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2) + rel),gate,doneAction:0, levelScale: rrand(0.5,3), timeScale:timeScale);
+				hpenv = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2) + rel),gate,doneAction:0, timeScale:timeScale);
+				rqenv = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2) + rel),gate,doneAction:0, timeScale:timeScale);
+				env = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2) + rel),gate,doneAction:0, timeScale:timeScale);
+				isig = RLPF.ar(isig, ( \lpf.kr(1000) * lfo3 * ( fenv + 1 ) ).clip(20,20000), ( \rq.kr(0.5) * (rqenv + 1) ).clip(0.1,1));
+				isig = RHPF.ar(isig, ( \hpf.kr(100) * ( hpenv + 1 ) ).clip(20,20000), ( \rq.kr(0.5) * (rqenv + 1) ).clip(0.1,1));
+				isig = isig * env;
+				isig;
+			};
+			// Spread across stereo field
+			snd = Splay.ar(snd);
+			// Sharp hi cut made by cascading three lowpass filters
+			//3.do { snd = LPF.ar(snd, \ffreq.kr(1500)); };
+			snd = snd * Env.asr(\at.kr(3), \sustainlevel.kr(1), rel, -4).ar(Done.freeSelf, gate);
+			Out.ar(\out.kr(0), Balance2.ar(snd[0], snd[1], \pan.kr(0), \amp.kr(0.1)));
+		}).add;
+	};
+	name;
+}
+);
+//////////////////////
 
 (
 Pdef(\part, Pdef(\drums1, 
@@ -1288,50 +1334,6 @@ Pdef(\part, Pdef(\zed,
 )
 
 
-(
-~gen_transi_snappad = { arg seed=1234, num=12;
-
-	var name = \transi_snappad_v+++seed+++\_n+++num;
-	fork {
-		SynthDef(name, { arg gate=1, timeScale=1, freqfac=1, rel=3;
-			var snd, freq;
-			var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
-			thisThread.randSeed = seed;
-			freq = \freq.kr(440);
-			lfo1 = XLine.kr(0.1,0.01,2/~t * timeScale);
-			lfo2 = XLine.kr(2,0.001,2/~t * timeScale);
-			lfo3 = XLine.kr(0.2,0.9,1/~t * timeScale);
-			snd = num.collect { arg item, idx;
-				var harms = [1,2,4,1/2,1/4];
-				var isig;
-				var fenv, rqenv;
-				var hpenv;
-				var env;
-				var noisefac = rrand(0.4,2);
-				isig = Pulse.ar(
-					freq * LFNoise2.kr(rrand(0.4,10)).range(-0.05 * noisefac, 0.05 * noisefac).midiratio * harms.choose,
-					LFNoise2.kr(rrand(0.4,10)).range(0.3, 0.7)
-				);
-				fenv = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2) + rel),gate,doneAction:0, levelScale: rrand(0.5,3), timeScale:timeScale);
-				hpenv = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2) + rel),gate,doneAction:0, timeScale:timeScale);
-				rqenv = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2) + rel),gate,doneAction:0, timeScale:timeScale);
-				env = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2) + rel),gate,doneAction:0, timeScale:timeScale);
-				isig = RLPF.ar(isig, ( \lpf.kr(1000) * lfo3 * ( fenv + 1 ) ).clip(20,20000), ( \rq.kr(0.5) * (rqenv + 1) ).clip(0.1,1));
-				isig = RHPF.ar(isig, ( \hpf.kr(100) * ( hpenv + 1 ) ).clip(20,20000), ( \rq.kr(0.5) * (rqenv + 1) ).clip(0.1,1));
-				isig = isig * env;
-				isig;
-			};
-			// Spread across stereo field
-			snd = Splay.ar(snd);
-			// Sharp hi cut made by cascading three lowpass filters
-			//3.do { snd = LPF.ar(snd, \ffreq.kr(1500)); };
-			snd = snd * Env.asr(\at.kr(3), \sustainlevel.kr(1), rel, -4).ar(Done.freeSelf, gate);
-			Out.ar(\out.kr(0), Balance2.ar(snd[0], snd[1], \pan.kr(0), \amp.kr(0.1)));
-		}).add;
-	};
-	name;
-}
-)
 
 (
 // chord draft 1
@@ -3001,6 +3003,7 @@ Pdef(\part, Pdef(\bridge,
 )).play;
 );
 
+(
 Pdef(\part, Pdef(\main, 
 	Pseq([
 		Pfindur(32,Pdef(\ppart1)),
@@ -3009,6 +3012,7 @@ Pdef(\part, Pdef(\main,
 		
 	])
 )).play;
+)
 
 ////////// draft
 // explode pblock1
@@ -4395,3 +4399,323 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+/////////////////
+
+
+(
+// variation
+BufDef(\window, 1024, 1).sendCollection(Env([0, 1, 0], [0.5, 0.5], \sin, 1).discretize);
+Pdef(\part, Pdef(\hi1, 
+	Pfindur(64,Ppar([
+		//Pdef(\drums2),
+
+		Pbind(
+			\instrument, \default,
+			\instrument, ~gen_transi_snappad.(1487,7),
+			\note, Pseq([
+				[0+12,4,7,21],
+				[ 4,11,19 ],
+				[ 5,12,21 ],
+				[ 3,12,19 ],
+			],inf),
+			\octave, 4,
+			\legato, 0.4,
+			\timeScale, 4,
+			\dur, 4,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, ~gen_transi_snappad.(1470,7),
+			\note, Pseq([
+				0,4,7,9,12,19,
+			],inf),
+			\timeScale, 0.4,
+			\hpf, 400,
+			\octave, 5,
+			\legato, 1,
+			\dur, Pseq([
+				//1,1,1,1,
+				2,1/2,
+				2,1/2,0.5,1,
+				1/2,1/2,
+				1/2,1/2,1.5,1.5,
+			],inf),
+			\amp, 0.1,
+			\isRest, true,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				[7,12],
+				[12,16],
+				[12,17],
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.4,0.7) ],
+			],inf),
+			\octave, [5,6],
+			\dur, 1/8,
+			\lpf, Ptuple(Pwhite(100,1000.0)!2)* Pseg(Pseq([0.5,2],1),8*2).loop,
+			\isRest, Pseq([
+				1,0,
+				//0,0,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\amp, 0.1/2 * Ptuple(Pwhite(0.7,1)!2),
+			\out, BusDef(\pfx2, \audio),
+		),
+		Pbind(
+			\instrument, \playersec_hlpf,
+			//\bufnum, ~buflib.foley1[~buflib.foley1.size.rand.debug("f")].value,
+			\bufnum, ~buflib.foley1[59].value,
+			\isRest, Pseq([
+				//1,0,1,0, 1,0,1,0,
+				Pseq([
+					0,0,0,0, 0,0,0,0,
+				],4),
+				Pseq([
+					0,0,0,0, 1,0,0,0,
+				],inf),
+			],inf).coin.not,
+			\speed, Pseg(Pseq([1,1,-1.midiratio],1),8).loop,
+			\hpmix, 1,
+			\hpf, 200,
+			\dur, 1/4,
+			\legato, 2,
+			\gain, 0.1/1.5,
+			\out, BusDef(\pfx1, \audio),
+		),
+		Pmono(\fx_greyhole,
+			\inbus, BusDef(\pfx1, \audio),
+			\addAction, \addToTail,
+			\delay, 2/3/~t,
+			'delay', 1.0322580645161,
+			\delay, PmodEnv(Pseq([1,2/3,4/3]/~t,1), 8).loop,
+			'damp', 0.44961025295079,
+			'size', 0.23205358143762,
+			'diff', 2.2798134381265,
+			'mix', 0.31034482758621,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		Pmono(\fx_lpf,
+			\inbus, BusDef(\pfx1b, \audio),
+			\addAction, \addToTail,
+			\lpf, PmodEnv(Pseq([100,8000],1), 8*2, \exp).loop,
+			\lag, 0.0009,
+			\dur, 1,
+			\isRest, true,
+		),
+		Pmono(\fx_resonz,
+			\inbus, BusDef(\pfx1b, \audio),
+			\addAction, \addToTail,
+			\freq, PmodEnv(Pseq([100,8000],1), 8*2, \exp).loop,
+			\bwr, 2.2,
+			\lag, 0.0009,
+			\dur, 1,
+			\isRest, true,
+		),
+		Pmono(\fxgraininbuf,
+			\inbus, BusDef(\pfx2, \audio),
+			\addAction, \addToTail,
+			\gdur, 0.11,
+			\gfreq, 95,
+			\normpos, Pseq([1/4,3/4],inf),
+			\normpos, PmodEnv(Pseq([0.1,0.2],1), 8).loop,
+			\range, 0.1,
+			//\envbufnum, BufDef(\window),
+			\rate, 1,
+			\mix, 1,
+			\lag, 0.0009,
+			\gain, 1,
+			\dur, 1,
+			\out, BusDef(\pfx2b, \audio),
+		),
+		Pmono(\fx_freeverb2,
+			\inbus, BusDef(\pfx2b, \audio),
+			\addAction, \addToTail,
+			\mix, 0.8,
+			\room, 1.1,
+			\damp,1,
+			\gain, 1,
+			\lag, 0.0009,
+			\dur, 1,
+			\out, BusDef(\pfx2c, \audio),
+		),
+		Pmono(\fx_bpf,
+			\inbus, BusDef(\pfx2c, \audio),
+			\addAction, \addToTail,
+			\bpf, PmodEnv(Pseq([100,8000],1), 8*4,\exp).loop,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		//Pmono(\fx_lpfhpf,
+			//\inbus, BusDef(\pfx2c, \audio),
+			//\addAction, \addToTail,
+			//\hpf, 400,
+			//\lpf, 1000,
+			//\lag, 0.0009,
+			//\dur, 1,
+			//\out, BusDef(\pfx2d, \audio),
+		//),
+		//Pmono(\fx_lpfhpf,
+			//\inbus, BusDef(\pfx2d, \audio),
+			//\addAction, \addToTail,
+			//\hpf, 400,
+			//\lpf, 1000,
+			//\lag, 0.0009,
+			//\dur, 1,
+		//),
+
+		
+		Ptpar([
+			8,Pbind(
+				\instrument, \playersec_hlpf,
+				//\bufnum, ~buflib.foley1[~buflib.foley1.size.rand.debug("f")].value,
+				\bufnum, ~buflib.foley1[30].value,
+				\isRest, Pseq([
+					//1,0,1,0, 1,0,1,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,1,0,
+				],inf).coin.not,
+				\speed, Pseg(Pseq([1,1,-1.midiratio],1),8).loop,
+				\hpmix, 1,
+				\hpf, 200,
+				\dur, 1/4,
+				\legato, 2,
+				\gain, 0.1/1.5,
+				\out, BusDef(\pfx1, \audio),
+			),
+			16, Pbind(
+				\instrument, \playersec_hlpf,
+				\bufnum, ~buflib.foley1[~buflib.foley1.size.rand.debug("f")].value,
+				\bufnum, ~buflib.foley1[307].value,
+				\isRest, Pseq([
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+					0,1,0,0, 0,0,0,0,
+					0,0,0,0, 0,0,0,0,
+				],inf).coin.not,
+				\speed, Pseg(Pseq([1,1,-1.midiratio],1),8).loop,
+				\hpmix, 1,
+				\hpf, 200,
+				\dur, 1/4,
+				\legato, 2,
+				\gain, 0.1/1.5,
+				\out, BusDef(\pfx1, \audio),
+			),
+			24, Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[181].value,
+				//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+				\isRest, Pseq([
+					Prand([
+						Pseq([
+							0,0,0,0, 0,0,0,0,
+						],1),
+						Prand([
+							Pseq([
+								1,0,1,0, 1,0,0,0,
+							],1),
+							Pseq([
+								1,0,1,0, 1,0,0,1,
+							],1),
+							Pseq([
+								1,0,1,0, 1,0,1,0,
+							],1),
+							Pseq([
+								1,0,0,1, 1,0,1,1,
+							],1),
+						],1),
+					],1),
+				],inf).coin.not,
+				\dur, 1/8,
+				\adsr, Pseq([
+					[ Env.adsr(0.1,0.1,0.8,0.1) ],
+				],inf),
+				\gain, 0.11/2 * Pwhite(0.01,1,inf),
+			),
+			32,Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[1173].value,
+				\isRest, Pseq([
+					1,0,0,0, 1,1,1,1,
+					1,0,0,0, 1,1,1,1,
+					1,0,0,0, 1,1,1,1,
+					1,0,1,1, 1,0,0,1,
+
+					1,0,0,0, 1,0,1,0,
+					1,0,0,1, 1,0,1,0,
+					1,0,0,0, 1,1,1,0,
+					1,0,1,1, 1,0,0,1,
+				]/2,inf).coin.not,
+				\sustain, 0.1/4,
+				\dur, 1/8,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				],inf),
+				\gain, 0.11/2 * Pwhite(0.01,1,inf),
+			),
+		])
+	]))
+)).play;
+);
+
+(
+// don't see the benefit
+SynthDef(\fxgrainin, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var gtrig = Impulse.ar(\gfreq.kr(90));
+	sig = in;
+	sig = GrainIn.ar(2, gtrig, \gdur.kr(0.2), in.mean);
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+);
+4/~t
+(
+SynthDef(\fxgraininbuf, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var gtrig = Dust.ar(\gfreq.kr(90));
+	var mbufnum = LocalBuf(4/~t * s.sampleRate).clear;
+	var normpos;
+	var pan;
+	sig = in;
+	normpos = \normpos.kr(0) + LFNoise1.kr(\gfreq.kr,mul:\range.kr(0.01));
+	pan = LPF.kr(WhiteNoise.kr, 1); 
+	RecordBuf.ar(sig.mean, mbufnum);
+	sig = GrainBuf.ar(2, gtrig, \gdur.kr(0.2), mbufnum, \rate.kr(1), \normpos.kr(0), pan:pan, envbufnum:\envbufnum.kr(-1));
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+SynthDef(\fxplayinbuf, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var gtrig = Impulse.ar(\gfreq.kr(90));
+	var mbufnum = LocalBuf(1/~t * s.sampleRate).clear;
+	var normpos;
+	sig = in;
+	normpos = \normpos.kr(0) + LFNoise1.kr(\gfreq.kr,mul:\range.kr(0.01));
+	RecordBuf.ar(sig.mean, mbufnum);
+	sig = PlayBuf.ar
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+);
+
+

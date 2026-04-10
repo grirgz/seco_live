@@ -2,6 +2,7 @@
 FileSystemProject.load("libdef/default_specs.scd");
 
 FileSystemProject.load("libdef/MainProject.scd");
+ProtoDef(\FxManager).initRdn;
 
 // resources
 
@@ -16,6 +17,7 @@ FileSystemProject.load("sndlib/ifxsimple.scd"); // fx
 
 FileSystemProject.load("libdef/equalizer.scd");
 
+
 // tools
 
 FileSystemProject.load("libdef/controllers.scd"); 
@@ -27,6 +29,7 @@ FileSystemProject.load("libdef/ModulatorRack.scd");
 FileSystemProject.load("libdef/ParamTimelineRack.scd"); 
 FileSystemProject.load("libdef/WorkspaceView.scd"); 
 FileSystemProject.load("paramdev/drafts/DrumTrack.scd"); 
+FileSystemProject.load("libdef/ProjectPreview.scd"); 
 
 // controller
 

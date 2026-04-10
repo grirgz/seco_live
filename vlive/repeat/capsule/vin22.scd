@@ -1,3 +1,4 @@
+~t = 206/4/60; TempoClock.default.tempo = ~t;
 
 (
 ~master = {
@@ -9,7 +10,6 @@
 ~master.();
 )
 
-~t = 206/4/60; TempoClock.default.tempo = ~t;
 
 (
 SynthDef(\sidebass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;

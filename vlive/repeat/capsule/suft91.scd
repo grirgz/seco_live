@@ -1,4 +1,7 @@
+(
 ~t = 150/4/60; TempoClock.default.tempo = ~t;
+FileSystemProject.loadOnce("capsule/PatKitDef_bat.scd");
+)
 // soul love
 
 (

@@ -171,31 +171,31 @@ Pdef(\hat1,
 );
 
 (
-	Pdef(\drums1, 
-		Ppar([
+Pdef(\drums1, 
+	Ppar([
 
-			Pbind(
-				\instrument, \playersec,
-				\bufnum, ~buflib.hat[1153].value,
-				//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
-				\isRest, Pseq([
-					1,0,1,0, 1,0,1,0,
-				],inf).coin.not,
-				\dur, 1/8,
-				\gain, 0.11,
-			),
-			Pbind(
-				\instrument, \playersec,
-				\bufnum, ~buflib.clap[373].value,
-				//\bufnum, ~buflib.clap[~buflib.clap.size.rand.debug("c")].value,
-				\isRest, Pseq([
-					0,0,1,0, 0,1,0,1,
-				],inf).coin.not,
-				\dur, 1/4,
-				\gain, 0.11,
-			),
-		]),
-	).play;
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1153].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.clap[373].value,
+			//\bufnum, ~buflib.clap[~buflib.clap.size.rand.debug("c")].value,
+			\isRest, Pseq([
+				0,0,1,0, 0,1,0,1,
+			],inf).coin.not,
+			\dur, 1/4,
+			\gain, 0.11,
+		),
+	]),
+).play;
 );
 
 (
@@ -535,3 +535,106 @@ Pdef(\part, Pdef(\zedpart,
 
 Pdef(\bassback).edit
 Pdef(\bassback).asParamGroup.getPbindefCompileString.editorInsert
+
+
+///////////////////
+// sdesign from bassdel
+(
+SynthDef(\bassbla, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	// sin into delay with lfo, xfade harms
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var lpenv;
+	var delay;
+	var lfoharms = [1,1/2,2,3,4];
+	var delayharms = [1,2,1/2,1/3,1/4];
+	//var lfoharms = [1,1,1];
+	//var delayharms = [1,1,1];
+	var voices;
+	sig = SinOsc.ar(freq);
+
+	voices = lfoharms.collect { arg lfoharm, idx;
+		delayharms.collect { arg delayharm;
+			var isig;
+			delay = 1/freq * delayharm * \delayfac.kr(1);
+			lfo1 = LFSaw.ar(1/delay);
+			isig = DelayL.ar(sig, \maxdelay.kr(0.1), lfo1 * delay * SinOsc.ar(freq * lfoharm * \lfofac.kr(1), mul:\lfoa.kr(0.1), add:1)) + sig;
+			isig;
+		}
+	};
+	sig = SelectX.ar(\delayselect.kr(0) * ( lfoharms.size - 1 ), SelectX.ar(\lfoselect.kr(0) * ( delayharms.size - 1 ), voices));
+	lpenv = EnvGen.kr(\lpenv.kr(Env([1,2,1],[0.04,0.2])), 1) * \lpenva.kr(2.7) + 1;
+	sig = RLPF.ar(sig, ( \lpf.kr(400) * lpenv ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * 0.5;
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bassbla,
+			\note, Pseq([
+				[0,4,7],
+				[0,4,7]+5,
+			],inf),
+			\octave, 5,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,1.1) ],
+			],inf),
+			\lpf, PmodEnv(Pseq([100,400,4000,14000],1), 16).loop,
+			\lfoselect, PnoteEnv.adsr(1.1,1.1,0.6,0.5),
+			\delayselect, PnoteEnv.adsr(4.1,1.1,0.6,0.5),
+			\dur, 2,
+			\amp, 0.1/3,
+		),
+		Pbind(
+			\instrument, \bassbla,
+			\note, Pseq([
+				-5,0,
+			],inf),
+			\octave, 6,
+			// slide to note below
+			\detune, Ptuple([ Pseg(Pseq([0,( 60-5+12-1 ).midicps - ( 60-5+12 ).midicps],inf),16),0 ]),
+			\lfoselect, PmodEnv(Pseq([0.4,0.5],1), 8).loop,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+( 60-5+12 ).midicps - ( 60-5+12-1 ).midicps
+( 60-5+12-1 ).midicps - ( 60-5+12 ).midicps
+-1 * ( 60-5+12 ).midicps - ( 60-5+12-1 ).midicps
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \bassbla,
+			\note, Pseq([
+				[0,4,7],
+				[0,4,7]+5,
+				[-1,4,7]+5,
+				[-1,4,8]+3,
+			],inf),
+			\octave, 5,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,1.1) ],
+			],inf),
+			//\delayfac, 1.01,
+			\lfofac, 1*1317,
+			//\lpf, PmodEnv(Pseq([100,400,4000,14000],1), 16).loop,
+			//\lfoselect, PnoteEnv.adsr(1.1,1.1,0.6,0.5),
+			//\delayselect, PnoteEnv.adsr(4.1,1.1,0.6,0.5),
+			\dur, 2,
+			\amp, 0.1/3,
+		),
+		
+	])
+)).play;
+);

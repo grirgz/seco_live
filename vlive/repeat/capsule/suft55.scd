@@ -188,7 +188,7 @@ Pdef(\part, Pdef(\zed,
 					\fmr,1/4 * ( x+1 ),
 					\fmamp, 0.01 * ( x+1 ),
 					\dur, 1/8 * (x+1),
-					\amp, 0.1 * Pseq([1,1,0.7],inf)
+					\amp, 0.1 * Pseq([1,1,0.7],inf) / 4
 				);
 			})
 		),
@@ -198,6 +198,7 @@ Pdef(\part, Pdef(\zed,
 					\kitIndex, pos,
 					\sustain, 0.1,
 					\dur, 1/8 * (x+2),
+					\gain, 0.1,
 				));
 			}
 		)

@@ -342,6 +342,23 @@ Pdef(\part, Pdef(\plop,
 )
 
 
+(
+Pdef(\s7_compander, 
+		Pmono(\fx_compander,
+			\addAction, \addToTail,
+			\lag, 0.0005,
+			\inbus, BusDef(\fxbus2, \audio),
+			\sideinbus, BusDef(\fxbus1, \audio),
+			\mix, 1,
+			\cpbelow, 1,
+			\cpabove, 0.1,
+			\cprelax, 0.1,
+			\cpt,0.05,
+			\dur, 1,
+			\amp, 0.1,
+		),
+)
+)
 
 (
 	Pdef(\s7_compander).play;
@@ -636,23 +653,6 @@ Pdef(\part, Pdef(\s7_drums3,
 )).play;
 )
 
-(
-Pdef(\s7_compander, 
-		Pmono(\fx_compander,
-			\addAction, \addToTail,
-			\lag, 0.0005,
-			\inbus, BusDef(\fxbus2, \audio),
-			\sideinbus, BusDef(\fxbus1, \audio),
-			\mix, 1,
-			\cpbelow, 1,
-			\cpabove, 0.1,
-			\cprelax, 0.1,
-			\cpt,0.05,
-			\dur, 1,
-			\amp, 0.1,
-		),
-)
-)
 
 (
 	Pdef(\s7_compander).play;

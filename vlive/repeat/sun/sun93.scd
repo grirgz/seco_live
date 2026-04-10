@@ -3018,7 +3018,7 @@ SynthDef(\formchord, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
 	sig = LFSaw.ar(freq);
 	sig1 = RLPF.ar(sig, \lpf.kr(100), \rq.kr(0.5));
-	sig2 = RLPF.ar(sig, \lpf2.kr(300), \rq.kr(0.5));
+	sig2 = RLPF.ar(sig, \lpf2.kr(300), \rq2.kr(0.5));
 	sig = [sig1, sig2].mean;
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
@@ -3041,6 +3041,286 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, 4,
 			\amp, 0.1,
 			\octave, 5,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \formchord,
+			\note, Pseq([
+				[0,4,7],
+				[0,4,8],
+				[0,5,9],
+				[0,5,8],
+			],inf),
+			\lpf, PmodEnv(Pseq([100,2000,500],1), 8, \exp).loop,
+			\lpf2, PmodEnv(Pseq([3000,200,900,],1), 8, \exp).loop,
+			\dur, 4,
+			\rq, 0.2,
+			\rq2, 0.4,
+			\amp, 0.1,
+			\octave, 5,
+		),
+	])
+)).play;
+);
+
+/////////////////
+
+(
+// bof
+SynthDef(\fxdelayband, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig = in;
+	sig = BPF.ar(sig.flop, [250,500,1000,2000,4000,8000], 0.1);
+	sig = sig.collect { arg isig, idx;
+		DelayL.ar(isig, 0.4, ( \delayBase.kr(0.01)*( idx+1 ) * \delayFac.kr(1) ).poll);
+	};
+	sig = sig.mean;
+	sig = sig * 14;
+	sig.debug("sig");
+
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \formchord,
+			\note, Pseq([
+				[0,4,7],
+				[0,4,8],
+				[0,5,9],
+				[0,5,8],
+			],inf),
+			\lpf, PmodEnv(Pseq([100,2000,500],1), 8, \exp).loop,
+			\lpf2, PmodEnv(Pseq([3000,200,900,],1), 8, \exp).loop,
+			\dur, 4,
+			\rq, 0.2,
+			\rq2, 0.4,
+			\amp, 0.1/3,
+			\octave, 5,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\fxdelayband,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\delayFac, 4,
+			\delayBase, 0.1,
+			\mix, 0.5,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,12,19,24,31,
+			],inf),
+			\root, Pstep(Pseq([0,3,-4],inf),2),
+			\octave, 3,
+			\dur, 1/8,
+			\amp, 0.1,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\fxdelayband,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\delayFac, 4,
+			\delayBase, 0.1,
+			\mix, 0.5,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+
+
+
+(
+SynthDef(\fxshiftband, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig = in;
+	sig = BPF.ar(sig.flop, [250,500,1000,2000,4000,8000], 0.1);
+	sig = sig.reverse.collect { arg isig, idx;
+		FreqShift.ar(isig, ( \shiftBase.kr(0.01)*( idx+1 ) * \shiftFac.kr(1) ).poll);
+	};
+	sig = sig.mean;
+	sig = sig * 14;
+	sig.debug("sig");
+
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,12,19,24,31,
+			],inf),
+			\root, Pstep(Pseq([0,3,-4],inf),2),
+			\octave, 3,
+			\dur, 1/8,
+			\amp, 0.1,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\fxshiftband,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\shiftFac, 4,
+			\shiftBase, 1.1,
+			\mix, 0.5,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \formchord,
+			\note, Pseq([
+				[0,4,7],
+				[0,4,8],
+				[0,5,9],
+				[0,5,8],
+			],inf),
+			\lpf, PmodEnv(Pseq([100,2000,500],1), 8, \exp).loop,
+			\lpf2, PmodEnv(Pseq([3000,200,900,],1), 8, \exp).loop,
+			\adsr, Pseq([
+				[ Env.adsr(1.1,0.1,0.8,1.1) ],
+			],inf),
+			\dur, 4,
+			\rq, 0.2,
+			\rq2, 0.4,
+			\amp, 0.1/3,
+			\octave, 5,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\fxshiftband,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\shiftFac, 1,
+			\shiftBase, 10.1,
+			\shiftScale, 0.01,
+			\mix, 0,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+(
+SynthDef(\fxshiftband, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig = in;
+	sig = BPF.ar(sig.flop, [250,500,1000,2000,4000,8000], 0.1);
+	sig = sig.reverse.collect { arg isig, idx;
+		var lfo = SinOsc.ar(\lfoFreq.kr(0.1) * ( idx * \lfoScale.kr(1) + 1 )) * \lfoAmp.kr(0.1);
+		FreqShift.ar(isig, ( \shiftBase.kr(0.01)*( idx * \shiftScale.kr(1)+1 ) * \shiftFac.kr(1) * lfo ).poll);
+	};
+	sig = sig.mean;
+	sig = sig * 14;
+	sig.debug("sig");
+
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\xxxx, 
+	Ppar([
+
+		Pdef(\drums1),
+		Pbind(\out, BusDef(\pfx1, \audio)) <>
+		Pfindur(16*2, Ppar([
+			Pbind(
+				\instrument, \sh101,
+				\note, Pseq([
+					0,0,0,4,
+					5,5,5,8,
+				],inf).stutter(4),
+				//\envamt, PmodEnv(Pseq([1,8],1), 16).loop,
+				\lpf, PmodEnv(Pseq([100,2004],1), 8).loop,
+				\octave, Pseq([
+					3,3,4,3,
+				],inf),
+				\dur, 1/8,
+				\amp, 0.1/2,
+			),
+			Pbind(
+				\instrument, \sh101,
+				\note, Pseq([
+					[0,4,7],
+					[0,5,8],
+				],inf).stutter(4*4),
+				\envamt, PmodEnv(Pseq([1,8],1), 16).loop,
+				\lpf, 200,
+				\octave, 5,
+				\dur, 1/8,
+				\amp, 0.1/2,
+			),
+
+			Ptpar([
+				8, Pmono(\evolve2,
+					\dur, 1,
+					\amp, 0.1/3/2,
+				),
+			]),
+		])),
+		Pmono(\fxshiftband,
+			\inbus, BusDef(\pfx1, \audio),
+			\addAction, \addToTail,
+			\shiftFac, 1,
+			\shiftBase, 1.1,
+			\shiftScale, 0.1,
+			\lfoAmp, PmodEnv(Pseq([0.1,10,200],1), 8,\exp).loop,
+			\lfoFreq, 4*~t * Pseq([1,2,1/2],inf),
+			\lfoScale, 0.01,
+			\mix, PmodEnv(Pseq([0,1],3), 8*2).loop,
+			\lag, 0.0009,
+			\dur, 1,
 		),
 	])
 )).play;

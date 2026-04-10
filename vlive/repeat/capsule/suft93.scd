@@ -223,3 +223,164 @@ Ndef('rdn3').put(100, \pset -> Pbind(
 
 );
 
+
+(
+~master.();
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+		Pbind(
+			\instrument, \snapkickx,
+			\bodyfreqenv, [ Env([261, 64, 41], [0.035, 0.08], curve: \exp) ],
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0,0,1, 0,0,1,0,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\amp, 0.1,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		PatKitDef(\bat).asPattern(Pbind(
+			\kitIndex, 4,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\velamp, 1/3,
+			\dur, 1/8,
+			\out, BusDef(\sendbus1, \audio),
+		)),
+		Pbind(
+			\instrument, \phyhat3,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+				0,0,0,0, 1,0,0,1,
+				1,0,1,0, 1,0,1,0,
+				0,0,1,0, 1,0,0,1,
+			],inf).coin.not,
+			\sustain, 0.05,
+			\fac1,0.1,
+			\dur, 1/8,
+			\amp, 0.01 * Pseq([1,0.7],inf),
+			\out, BusDef(\sendbus1, \audio),
+		),
+		PatKitDef(\bat).asPattern(Pbind(
+			\kitIndex, 0,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,1,0, 0,0,1,0,
+				0,0,0,0, 0,0,0,0,
+				0,1,0,0, 0,1,0,0,
+			],inf).coin.not,
+			\sustain, 0.1,
+			\velamp, 1/3,
+			\dur, 1/8,
+			\out, BusDef(\sendbus1, \audio),
+		)),
+		Pbind(
+			\instrument, \basicbass,
+			\note, Pseq([
+				0, 0, 0, 0, 0, 0, 3, 2,
+			],inf),
+			\octave, 3,
+			\lpf, 4000,
+			\legato, Pseq([
+				5,0,0,0, 0,0,1,1,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\amp, 0.1,
+			\out, BusDef(\sendbus2, \audio),
+		),
+		Pbind(\out, BusDef(\sendbus3, \audio)) <>
+		Ppar([
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, BufDef(\march, "vipere/march.flac"),
+				\pos, 0.13,
+				\dur, 1/8,
+				\legato, Pseq([
+					0,0,0,0, 0,0,0,0,
+					0,0,0,1, 4,0,0,1,
+				],inf),
+				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+				\speed, Pseq([
+					0.5,0.6,
+				],inf)+0.961,
+				\gain, 1/4,
+			),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, BufDef(\march, "vipere/march.flac"),
+				\dur, 2,
+				\speed, ~pmodenv.(Pseq([1,1,1,1, 1,1,0.99,1.0],1), 1/4).loop,
+				\gain, 1/10,
+			),
+			Pbind(
+				\instrument, \playersec,
+				\bufnum, BufDef(\march, "vipere/march.flac"),
+				\pos, 0.01,
+				\dur, 2,
+				\speed, ~pmodenv.(Pseq([1,1,1,1, 1,1,1.09,1.0],1), 1/4).loop,
+				\gain, 1/10,
+			),
+		]),
+		Pbind(
+			\instrument, ~fmgen_ambientchordsabs.(430176,5),
+			\note, Pseq([
+				[0,3,7],
+				[4,7,11],
+				[0,5,8],
+				[4,7,11],
+			],inf),
+			\octave, 6,
+			\lpf, 4000,
+			\hpf, 200,
+			\dur, Pseq([3,1],inf),
+			\amp, 0.1,
+			\out, BusDef(\chord, \audio),
+		),
+		Pbind(
+			\instrument, \fx_env,
+			\inbus, BusDef(\chord),
+			\dur, PdurStutter(Pseq([8,4,8,2],inf), 1),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\amp, 0.1 * Pseq([
+				1,0.2,
+				0.71,0.2,
+				
+			],inf),
+		),
+		Pbind(
+			\instrument, ~fmgen_ambientchordsabs.(220151,5),
+			\timeScale, 0.1,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\envamt, 2,
+			\hpf, 500,
+			\freqdiff, 0.01,
+			\fmamt, 0.1,
+			\lpf, PmodEnv(Pseq([7400,1000,4000],1), 8,\exp).loop,
+			\note, Pstep(Pseq([
+				0,3,7,
+			].flat,inf),1/4),
+			\note, Pseq([
+				Pser([
+					0,3,7,
+				],8),
+			],inf),
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf).coin.not,
+			\octave, 5,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+
+		
+	])
+)).play;
+);

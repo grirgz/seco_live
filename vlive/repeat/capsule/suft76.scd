@@ -64,6 +64,7 @@ Pdef(\part, Pdef(\zed,
 			\lfotab, Pseq([
 				[ [ 0.1,0.0234,0.3,0, 0,0,0,0, ] ]
 			],inf),
+			\gain, 0.4,
 			\lfomultab, Pseq([
 				[ [ 0.1,0.0234,1,0, 0,0,0,0, ] ]
 			],inf),
@@ -104,6 +105,7 @@ Pdef(\part, Pdef(\zed,
 				[ 1 ! 8 ]
 			],inf),
 			\fb, 0.09,
+			\gain, 0.4,
 			\dur, 1,
 		),
 		Pmono(\fx_limiter,

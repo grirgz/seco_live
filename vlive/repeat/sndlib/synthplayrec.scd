@@ -9,6 +9,28 @@ SynthDef(\recorder, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum;
 	//sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\recorderMono, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, mbufnum;
+	var sig;
+	var sig1;
+	sig = InFeedback.ar(\inbus.kr(BusDef(\zeromono, \audio, 1)), 1); 
+	sig.poll;
+	sig1 = EnvGen.ar(Env.adsr(0.01,0,1,0.01),gate,doneAction:0);
+	RecordBuf.ar(sig, mbufnum, offset:0, recLevel:1, preLevel:\prelevel.kr(0), run:1, loop:0, trigger:1, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
+SynthDef(\recorderStereoToMono, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, mbufnum;
+	var sig;
+	var sig1;
+	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig.poll;
+	sig1 = EnvGen.ar(Env.adsr(0.01,0,1,0.01),gate,doneAction:0);
+	RecordBuf.ar(sig.mean, mbufnum, offset:0, recLevel:1, preLevel:\prelevel.kr(0), run:1, loop:0, trigger:1, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+
 SynthDef(\player, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, trigger=1;
 	var sig;
 	var sig1;

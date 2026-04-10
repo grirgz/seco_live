@@ -2667,6 +2667,22 @@ SynthDef(\bassdelf2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	Out.ar(out, sig);
 }).add;
 );
+(
+SynthDef(\bassdelf3, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, delay=0.1;
+	var sig;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var lpenv;
+	sig = SinOsc.ar(freq);
+
+	lfo1 = LFSaw.ar(1/delay);
+	sig = DelayL.ar(sig, \maxdelay.kr(0.1), lfo1 * delay * SinOsc.ar(\lfof.kr(2), mul:\lfoa.kr(0.1), add:1)) + sig;
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.1,0.4,0.1,0.2)), gate, doneAction:0) * \lpadsramt.kr(1) + 1;
+	sig = RLPF.ar(sig, ( \lpf.kr(800) * lpenv ).clip(20,20000), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -2712,6 +2728,161 @@ Pdef(\part, Pdef(\zedpart,
 			],inf).coin.not,
 			\dur, 1/8,
 			\gain, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\drums1comp, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1505].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				Pseq([
+					1,0,0,0, 1,0,0,0,
+				],7),
+				1,0,0,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\out, BusDef(\kicktrack, \audio),
+		),
+		Pmono(\simpletrackmixer,
+			\inbus, BusDef(\kicktrack,\audio),
+			\pregain, 1,
+			\postgain, 1,
+			\delay, 0,
+			\send0, 1,
+			\sendbus0, BusDef(\sideinbus, \audio, 2),
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1435].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\legato, 1,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[991].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				Pseq([
+					0,0,1,0, 0,0,0,0,
+				],8*2 - 2),
+				Pseq([
+					1,
+				],8*1),
+				Pseq([
+					0,0,0,0, 0,0,0,1,
+					0,0,1,0, 0,0,1,0,
+				],8),
+				Pseq([
+					0,0,1,1, 0,0,0,1,
+					0,0,1,0, 0,0,1,0,
+				],8),
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.clap[53].value,
+			//\bufnum, ~buflib.clap[~buflib.clap.size.rand.debug("c")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,1,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,1,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,1,1,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+	])
+)).play;
+);
+(
+// comp
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\drums1comp),
+		Pbind(
+			\instrument, \bassdelf3,
+			\note, Pseq([
+
+				5,5,8,8, 2,0,2,0,
+				3,3,3,3, 2,0,2,0,
+				//1,1,1,1, 1,0,0,1,
+				//0,0,0,0, 0,0,0,0,
+				//1,1,1,1, 1,1,1,1,
+				//0,3,2,1
+			],inf),
+			\legato, Pseq([
+				Pseq([
+					1,1,1,1, 1,1,1,1,
+				],7),
+				0,0,0,0, 0,0,0,0,
+				Pseq([
+					1,1,1,1, 1,1,1,1,
+				],7)*0.6,
+				0,0,0,0, 0,0,0,0,
+				//7,0,0,0, 0,0,0,0,
+				//4,0,0,0, 0,0,1,1,
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,0.1) ],
+				Pseq([
+					[ Env.adsr(0.1,0.1,0.8,0.1) ],
+				],7),
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\delay, 1/Pkey(\freq)*Pseq([2,4],inf),
+			\lpf, PmodEnv(Pseq([300,14000],1), 16, \exp).loop,
+			\rq, Pseg(Pseq([0.1,0.61],inf),4),
+			\octave, 4,
+			\dur, 1/8,
+			\amp, 0.1,
+			\out, BusDef(\comp, \audio),
+		),
+		Pmono(\fx_sidechain,
+			\inbus, BusDef(\comp, \audio),
+			\sideinbus, BusDef(\sideinbus, \audio),
+			\cpt, 0.021,
+			\pregain, 1,
+			\cpabove, 0.01,
+			\cpbelow, 1,
+			\cpclamp, 0.01,
+			\cprelax, 0.1,
+			\gain, 1,
+			\dur, 1,
 		),
 	])
 )).play;
@@ -2814,6 +2985,18 @@ Pbindef(\bassline1,
 Spec.add(\lpenv, ParamEnvSpec())
 
 (
+SynthDef(\fxcrossdist, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = CrossoverDistortion.ar(sig, \thres.kr(1), \smooth.kr(0.5));
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+);
+(
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		
@@ -2852,14 +3035,58 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
-SynthDef(\fxcrossdist, { arg out=0, gate=1;
-	var sig;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = in;
-	sig = CrossoverDistortion.ar(sig, 1, \smooth.kr(0.5));
-	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = sig * \gain.kr(1);
-	Out.ar(out, sig);
-}).add;
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		
+		Pbind(
+			\instrument, \bassdelf,
+			\note, Pseq([
+
+				5,5,8,8, 2,0,2,0,
+				3,3,3,3, 2,0,2,0,
+				//1,1,1,1, 1,0,0,1,
+				//0,0,0,0, 0,0,0,0,
+				//1,1,1,1, 1,1,1,1,
+				//0,3,2,1
+			],inf),
+			\legato, Pseq([
+				Pseq([
+					1,1,1,1, 1,1,1,1,
+				],5),
+				0,0,0,0, 0,0,0,0,
+				7,0,0,0, 0,0,0,0,
+				4,0,0,0, 0,0,1,1,
+			],inf)*0.9,
+			\lpfr, PmodEnv(Pseq([1,2],1), 4).loop,
+			\lpenv, [ Env([0,1,0],[0.01,0.2]) ],
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.31) ],
+			],inf),
+			\lfof, 0.1,
+			\lpenva, 2,
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\delay, 1/Pkey(\freq)*Pseq([1/2],inf),
+			\octave, Pseq([3],inf),
+			\dur, 1/8,
+			\amp, 0.1/2,
+			\out, BusDef(\fxdist, \audio),
+		),
+		Pmono(\fxcrossdist,
+			\inbus, BusDef(\fxdist, \audio),
+			\out, BusDef(\fxlpf, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\gain, 0.1,
+			\dur, 1,
+		),
+		Pmono(\fx_rlpf,
+			\inbus, BusDef(\fxlpf, \audio),
+			\addAction, \addToTail,
+			\lpf, PmodEnv(Pseq([200,12000],1), 8, \exp).loop,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+	])
+)).play;
 );

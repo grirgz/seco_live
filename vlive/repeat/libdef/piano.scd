@@ -8,6 +8,10 @@ ProtoDef(\piano, (
 			target = Pdef(\piano_player, Pbind(\instrument, \default));
 			MIDIMap(\apk9,Param(Pdef(\piano_player), \amp).setBusMode);
 		};
+		if(target.isKindOf(Symbol)) {
+			target = Pdef(\piano_player, Pbind(\instrument, target));
+			MIDIMap(\apk9,Param(Pdef(\piano_player), \amp).setBusMode);
+		};
 		self.pianoTarget = target;
 		if(~apro_device_id.notNil) {
 			self.apro(ProtoTemplateDef(\SeqPlayerGroup).new(target, chainingMode));

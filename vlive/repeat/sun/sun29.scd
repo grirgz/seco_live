@@ -1,4 +1,7 @@
+(
 ~t = 127/4/60; TempoClock.default.tempo = ~t;
+FileSystemProject.load("holis/synthdef.scd");
+)
 
 (
 SynthDef(\basicpad, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
@@ -61,8 +64,8 @@ Pdef(\part, Pdef(\zedpart,
 		Pbind(
 			\instrument, \basicpadfm,
 			\note, Pseq([
-				\AM, \AM, \AM7_d, \AM7, \DM, \Dm, \AM, \AM,
-				\Fsm, \Fsm, \FM, \FM, \AM, \AM, \D0M, \AM,
+				\AM, \AM, \AM7_d, \AM7,  \DM, \Dm, \AM, \AM,
+				\Fsm, \Fsm, \FM, \FM,  \AM, \AM, \D0M, \AM,
 			],inf),
 			\det, ~pmodenv.(Pseq([0.00001,0.02,0.0001,0.04],inf), 8),
 			\oscmix, ~pmodenv.(Pseq([0,1,0.51,0.74],inf), 8),
@@ -195,6 +198,7 @@ Ndef(\bla, \pluri).play;
 
 
 (
+ProtoDef(\rdn).play;
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(
@@ -223,6 +227,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+ProtoDef(\rdn).play;
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(

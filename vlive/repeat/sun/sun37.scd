@@ -1680,50 +1680,50 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-		Pdef(\bass1, 
-			Pbind(
-				\instrument, \kick808,
-				\note, Pseq([
-					Pstep(Pseq([
-						0,0,0,1,
-						1,0,1,1,
-						0,0,0,1,
-						0,0,1,1,
-					],1),1/2),
-				],inf),
-				\octave, 3,
-				\freq2, Pkey(\freq),
-				\freq1, Pkey(\freq)*2,
-				\freq1, Pseq([
-					Pstep(Pseq([
-						1,1,1,1,
-						1,1,1,1,
-						1,1,1,1,
-						1,1,2,2,
-					],1),1/2)*2 * Pkey(\freq),
-				],inf),
-				\legato, Pseq([
-					6,0,0,0, 0,0,6,0, 0,0,0,0, 6,0,0,0,
-					0,0,0,0, 4,0,0,0, 2,0,2, 0,2,0,
-				],inf),
-				\glisdur, Pseq([
-					Pstep(Pseq([
-						0.1,0.05,0.2,0.2,
-						0.1,0.05,0.1,0.1,
-						0.1,0.05,0.2,0.2,
-						0.1,0.05,0.2,0.1,
-					],1),1/2),
-				],inf),
-				\dist, 0.5,
-				//\ringTime, 18,
-				//\durr, 0.01,
-				//\lag, -0.01,
-				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
-				\dur, PdurStutter(Pseq([8,8,8,6],inf), 1),
-				\out, BusDef(\chainin, \audio),
-				\amp, 0.1,
-			),
-		),
+Pdef(\bass1, 
+	Pbind(
+		\instrument, \kick808,
+		\note, Pseq([
+			Pstep(Pseq([
+				0,0,0,1,
+				1,0,1,1,
+				0,0,0,1,
+				0,0,1,1,
+			],1),1/2),
+		],inf),
+		\octave, 3,
+		\freq2, Pkey(\freq),
+		\freq1, Pkey(\freq)*2,
+		\freq1, Pseq([
+			Pstep(Pseq([
+				1,1,1,1,
+				1,1,1,1,
+				1,1,1,1,
+				1,1,2,2,
+			],1),1/2)*2 * Pkey(\freq),
+		],inf),
+		\legato, Pseq([
+			6,0,0,0, 0,0,6,0, 0,0,0,0, 6,0,0,0,
+			0,0,0,0, 4,0,0,0, 2,0,2, 0,2,0,
+		],inf),
+		\glisdur, Pseq([
+			Pstep(Pseq([
+				0.1,0.05,0.2,0.2,
+				0.1,0.05,0.1,0.1,
+				0.1,0.05,0.2,0.2,
+				0.1,0.05,0.2,0.1,
+			],1),1/2),
+		],inf),
+		\dist, 0.5,
+		//\ringTime, 18,
+		//\durr, 0.01,
+		//\lag, -0.01,
+		\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+		\dur, PdurStutter(Pseq([8,8,8,6],inf), 1),
+		\out, BusDef(\chainin, \audio),
+		\amp, 0.1,
+	),
+),
 
 
 (

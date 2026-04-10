@@ -475,3 +475,202 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.kick[963].value,
+			\bufnum, ~buflib.kick[225].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				Pser([
+					1,0,1,0,
+				],8*14),
+				Pser([
+					0,0,0,0,
+				],8*2),
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[2218].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,1,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,1,
+
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,1,
+				0,0,1,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 0,0,0,0,
+
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,1, 0,1,1,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,1,0,1, 1,1,0,1,
+
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,1,1,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 1,0,0,0,
+				0,0,0,0, 0,0,0,1,
+			],inf).coin.not,
+			\dur, 1/16,
+			\gain, 0.11,
+		),
+		Ptpar([
+			0, Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[215].value,
+				//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+				\isRest, Pseq([
+					Pser([
+						1,0,0,1,
+						1,0,0,1,
+					],8*7),
+					Pser([
+						0,0,0,0,
+						0,1,1,1,
+					],8*1),
+				],inf).coin.not,
+				\legato, 1.2,
+				\dur, 1/8,
+				\gain, 0.11 * Pseq([
+					0.2,0.7,0.2,0.8
+				],inf),
+			),
+			4, Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[667].value,
+				//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+				\isRest, Pseq([
+					Pser([
+						1,1,1,1,
+					],8*7),
+					Pser([
+						0,
+					],8*1),
+				],inf).coin.not,
+				\legato, 1.2,
+				\dur, 1/8,
+				\gain, 0.15 * Pseq([
+					0.2,0.7,0.2,0.8
+				],inf),
+			),
+			8, Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[686].value,
+				//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+				\isRest, Pseq([
+					Pseq([
+						1,0,1,0, 1,0,1,0,
+					],7),
+					0,0,0,0, 0,0,0,0,
+					Pseq([
+						1,0,1,0, 1,0,1,0,
+					],7),
+					0,0,1,1, 0,1,1,0,
+				],inf).coin.not,
+				\legato, 1.2,
+				\dur, 1/8/2,
+				\gain, 0.11 * Ppatlace([
+					Pseg(Pseq([0,1],inf),9),
+					Pseg(Pseq([0,1],inf),10),
+					Pseg(Pseq([1,0,1],inf),8.3),
+					Pseg(Pseq([0,1],inf),11),
+					Pseg(Pseq([0,1],inf),14),
+					Pseg(Pseq([1,0,1],inf),8),
+					Pseg(Pseq([0,1],inf),13),
+					Pseg(Pseq([0,1],inf),15),
+				],inf),
+			),
+			16, Pbind(
+				\instrument, \playersec,
+				\bufnum, ~buflib.hat[946].value,
+				//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+				\isRest, Pseq([
+					Pseq([
+						0,0,1,0, 0,0,1,0,
+					],7),
+						0,0,1,0, 0,1,1,0,
+					Pseq([
+						0,0,1,0, 0,0,1,0,
+					],6),
+						0,0,0,0, 0,0,0,0,
+						0,1,1,1, 0,1,1,1,
+				],inf).coin.not,
+				\legato, 1.2,
+				\adsr, Pseq([
+					[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				],inf),
+				\dur, 1/8/2,
+				\gain, 0.04,
+			),
+		]),
+
+		Pbind(
+			\instrument, \basicbass,
+			\lpf, ~pmodenv.(Prand([2,4,8,10]*100,10), Prand([2,8,10],inf)).loop,
+			\rq, 0.5,
+			\adsr, [ Env([ 0.0, 1.0, 0.80000001192093, 0.0 ], [ 0.0099999997764826, 0.10000000149012, 0.10000000149012 ], [ -4.0, -4.0, -4.0 ], 2.0) ],
+			\note, Pseq([
+				Pseq((0..11))
+			],inf),
+			\legato,0.95,
+			\octave, 3,
+			\dur, 2,
+			\amp, 0.1/2,
+		),
+		Pbind(
+			\instrument, \grosfilfm,
+			\note, Pseq([
+				0,2,
+			],inf),
+			\fmr, Prand([
+				2
+			],inf).stutter(16),
+			\ff, 3,
+			\ff, ~pmodenv.(Prand([10,30,100,300,0.1,1,2],1), 16).loop,
+			\octave, 5,
+			\dur, Prand([1,2],inf) * 1/8,
+			\amp, 0.1,
+			\out, BusDef(\sendbus1, \audio),
+		),
+		Pbind(
+			\instrument, \grosfilfm,
+			\note, Pseq([
+				Prand([0,4,7] +.x [-12,0,12])
+			],inf),
+			\fmr, Pseq([
+				Prand((0..8)/4)
+			],inf),
+			\ff, ~pmodenv.(Pseq([0.1,1,2],1), 8).loop,
+			\octave, 5,
+			\dur, Prand([1/2,1,1/4,2],inf) * 2,
+			\amp, 0.1/2,
+			\out, BusDef(\sendbus2, \audio),
+		),
+	])
+)).play;
+);

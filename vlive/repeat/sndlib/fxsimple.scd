@@ -32,6 +32,23 @@ SynthDef(\simpletrackmixer, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(\sendbus3.kr(BusDef(\sendbus3, \audio)), sig * \send3.kr(0));
 }).add;
 
+SynthDef(\tracksummer, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig1 = In.ar(\inbus.kr(BusDef(\zero, \audio)), 2) * \ingain1.kr(1); 
+	sig2 = In.ar(\inbus2.kr(BusDef(\zero, \audio)), 2) * \ingain2.kr(1); 
+	sig3 = In.ar(\inbus3.kr(BusDef(\zero, \audio)), 2) * \ingain3.kr(1); 
+	sig4 = In.ar(\inbus4.kr(BusDef(\zero, \audio)), 2) * \ingain4.kr(1); 
+	sig = [sig1, sig2, sig3, sig4].sum * \ingain.kr(1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0,1,0.01)),gate,doneAction:2);
+	sig = sig * \pregain.kr(1);
+	Out.ar(out, DelayL.ar(sig, 0.1, \delay.kr(0)) * \postgain.kr(1));
+	Out.ar(\sendbus0.kr(BusDef(\sendbus0, \audio)), sig * \send0.kr(0));
+	Out.ar(\sendbus1.kr(BusDef(\sendbus1, \audio)), sig * \send1.kr(0));
+	Out.ar(\sendbus2.kr(BusDef(\sendbus2, \audio)), sig * \send2.kr(0));
+	Out.ar(\sendbus3.kr(BusDef(\sendbus3, \audio)), sig * \send3.kr(0));
+}).add;
+
 SynthDef(\fx_greyhole, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -53,7 +70,7 @@ SynthDef(\fx_env, { arg out=0, gate=1;
 SynthDef(\fx_freeverb2, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	sig = in;
+	sig = in * \ingain.kr(1);
 	sig = FreeVerb2.ar(sig[0],sig[1], \verbmix.kr(1), \room.kr(0.5), \damp.kr(0.5));
 	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
@@ -91,7 +108,7 @@ SynthDef(\fx_lpf, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = in;
-	sig = LPF.ar(sig, \lpf.kr(2301), \rq.kr(0.5));
+	sig = LPF.ar(sig, \lpf.kr(2301));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
 	sig = SelectX.ar(\mix.kr(1), [in, sig]);
 	sig = sig * \gain.kr(1);
@@ -101,7 +118,7 @@ SynthDef(\fx_hpf, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
 	sig = in;
-	sig = HPF.ar(sig, \hpf.kr(2301), \rq.kr(0.5));
+	sig = HPF.ar(sig, \hpf.kr(2301));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
 	sig = SelectX.ar(\mix.kr(1), [in, sig]);
 	sig = sig * \gain.kr(1);
@@ -326,6 +343,7 @@ SynthDef(\fx_ring, { arg out=0, gate=1;
 	sig = LPF.ar(sig, \lpf.kr(15000));
 	sig = HPF.ar(sig, \hpf.kr(50));
 	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
 	Out.ar(out, sig);
 }).add;
@@ -335,6 +353,26 @@ SynthDef(\fx_freqshift, { arg out=0, gate=1;
 	sig = in;
 	sig = FreqShift.ar(sig, \shift.kr(0));
 	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fx_freqshiftfb, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = sig + Fb({ arg fb;
+		var isig;
+		isig = ( fb * \fb.kr(1) ) + sig;
+	
+		isig = FreqShift.ar(isig, \shift.kr(0));
+		isig = HPF.ar(isig, \hpf.kr(40));
+		isig = LPF.ar(isig, \lpf.kr(19999));
+		isig = Limiter.ar(isig);
+		isig;
+	},\maxdelay.kr(0.1),\delay.kr(0.1));
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
 	Out.ar(out, sig);
 }).add;
@@ -472,6 +510,23 @@ SynthDef(\fx_expecho, { arg out=0, gate=1,
 	snd = snd * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
 	Out.ar(out, snd);
 }).add;
+SynthDef(\fx_echodiff, { arg out=0, gate=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	//sig = LocalIn.ar(2) * \fb.kr(0.4);
+	//sig = sig + in;
+	sig = in;
+	sig = CombC.ar(sig, \maxdelay.kr(1), \delay.kr(1) * [1,\diffmul.kr(1)] + [0,\diffadd.kr(0)],\decay.kr(1));
+	sig1 = sig;
+	sig1 = LPF.ar(sig1, \lpf.kr(19000));
+	sig1 = HPF.ar(sig1, \hpf.kr(50));
+	sig = SelectX.ar(\pfmix.kr(0.5), [sig, sig1]);
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\fx_limiter, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -490,6 +545,36 @@ SynthDef(\fx_crossfade, { arg out=0, gate=1;
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
+}).add;
+SynthDef(\fx_resonz, { arg out=0, gate=1, freq=400;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = Resonz.ar(sig, freq, \bwr.kr(1));
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+// vocoder 
+SynthDef(\fx_vocoder, { |out=0, freq=100, atk=0.01, rel=0.1, amp=0.5, gate=1|
+	var bands=64;
+    var mod, carrier, freqs, analysis, envelopes, resynth;
+
+	mod = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2).mean; 
+    carrier = LFSaw.ar(freq);
+    freqs = Array.geom(bands, 200, (8000/200).pow(1/(bands-1)));
+    analysis = BPF.ar(mod, freqs, \rq.kr(0.01));
+    envelopes = LagUD.kr(Amplitude.kr(analysis), atk, rel);
+    resynth = BPF.ar(carrier, freqs, \rq.kr) / \rq.kr;
+	\rq.kr.poll;
+	resynth = Mix(resynth * envelopes);
+	resynth = resynth * amp * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), gate, doneAction:2);
+	
+    Out.ar(out, resynth.dup);
 }).add;
 );
 
@@ -611,6 +696,7 @@ SynthDef(\fx_simplecompander, { arg out=0, gate=1;
 	sig = in;
 	sig = sig * \pregain.kr(1);
 	sig = Compander.ar(sig, sig, \cpt.kr(0.1), \cpbelow.kr(1.001), \cpabove.kr(0.01), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	sig = sig * \wetgain.kr(1);
 	sig = SelectX.ar(\mix.kr(1), [in, sig]);
 	sig = sig * \gain.kr(1);
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
@@ -678,6 +764,38 @@ SynthDef(\fx_bandcomp, { arg out=0, gate=1, low = 1200, hi = 10000, lowlevel = -
 }).add;
 );
 
+
+(
+// distortions
+[\tanh,\softclip,\clip2,\wrap2,\fold2].do { arg disttype;
+	SynthDef("fx_%".format(disttype).asSymbol, { arg out=0, gate=1;
+		var sig;
+		var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+		sig = in;
+		sig = ( sig*\distamp.kr(40) ).perform(disttype, \level.kr(1)) * \distpostamp.kr(1/4);
+		sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+		sig = sig * \gain.kr(1);
+		Out.ar(out, sig);
+	}).add;
+};
+);
+
+(
+SynthDef(\fx_vintageDist, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = sig*\distPreGain.kr(1);
+	sig = AnalogVintageDistortion.ar(sig, \drivegain.kr(0.5), \bias.kr(0), \lowgain.kr(0.1), \highgain.kr(0.1), \shelvingfreq.kr(600), \oversample.kr(0));
+	sig = sig * \distPostGain.kr(1);
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+);
+
 (
 SynthDef(\fx_decimator, { arg out=0, gate=1;
 	var sig;
@@ -690,6 +808,9 @@ SynthDef(\fx_decimator, { arg out=0, gate=1;
 	Out.ar(out, sig);
 }).add;
 );
+
+
+
 
 (
 	[

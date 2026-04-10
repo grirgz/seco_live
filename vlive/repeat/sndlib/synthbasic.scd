@@ -327,6 +327,24 @@ SynthDef(\snapbow, {
 	snd = snd * EnvGen.kr(\perc.kr(Env.perc(4, 1, 1, 4)), 1, doneAction:Done.freeSelf);
 	Out.ar(\out.kr(0), Balance2.ar(snd[0], snd[1], \pan.kr(0), \amp.kr(0.1)));
 }).add;
+
+
+SynthDef(\m1_organ2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var lpenv, lpfreq;
+	sig1 = LFTri.ar(freq/2);
+	sig2 = LFPulse.ar(freq*7.midiratio);
+	sig = [ sig1, sig2 ].mean;
+	lpenv = EnvGen.kr(\lpenv.kr(Env([0, 1,0.45,0],[0.001,0.1,0.01])), 1, doneAction:0) * \lpenvamt.kr(8) + 1;
+	lpfreq = freq * \kbamt.kr(0) + 1;
+	sig = RLPF.ar(sig, ( \lpf.kr(180) * lpenv * lpfreq ).clip(20,20000), \rq.kr(0.8));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.4,0.2,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}, metadata:(specs:(
+	lpenv: ParamEnvSpec(\amp!4),
+))).add;
 );
 
 //////////////////
@@ -392,6 +410,7 @@ SynthDef(\formant, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 
 ////////////////
 
+(
 
 SynthDef(\kick808, {arg out = 0, freq1 = 240, freq2 = 60, amp = 0.1, ringTime = 100, rel = 10000, dist = 1.5, pan = 0, tott=0.1, durr=0.001, gate=1;
 	var snd, env;
@@ -410,3 +429,26 @@ SynthDef(\kick808, {arg out = 0, freq1 = 240, freq2 = 60, amp = 0.1, ringTime = 
 	//	snd = Wrap.ar(snd, -1 * tott, tott);
 	Out.ar(out, Pan2.ar(snd, pan, amp));
 }).add;
+
+
+SynthDef(\sinkick, { |out=0, amp=0.1, pan=0, timeScale=1|
+	var env0, env1;
+	var sig;
+
+	env0 = \ampenv.kr(Env([0, 1, 0.5, 0], [0.005, 0.16, 0.2], [-4, -2, -4]));
+	env1 = \freqenv.kr(Env([210, 62, 59], [0.045, 0.29], [-4, -5]));
+	
+	env0 =  EnvGen.ar(env0, doneAction:2, timeScale:timeScale);
+	env1 = EnvGen.ar(env1, timeScale:timeScale);
+	
+	sig = SinOsc.ar(env1, 0.5);
+	sig = sig * env0;
+
+	sig = Pan2.ar(sig, pan, amp);
+	
+	OffsetOut.ar(out, sig);
+}, metadata:(specs:(
+	timeScale: ControlSpec(0.001,4,\lin, 0, 1),
+))).add;
+
+);

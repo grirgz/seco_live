@@ -128,6 +128,43 @@ Pdef(\part,
 ).play;
 );
 
+(
+SynthDef(\guitar0, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,2,1],[0.001,[1,1.2,1.8]]), 1);
+	env2 = EnvGen.kr(Env([1,Rand(0.5,3),1]/3,[0.1,1.8]), 1);
+	sig = LFSaw.ar(freq *  [1,2,1/2] *.t [1,1.0001] * ( 1 + ( SinOsc.kr(Rand(0.0,20)) * Rand(0.0,0.01) )));
+	sig.debug("sig");
+	sig = RLPF.ar(sig, \lpfr.kr(1.2) * [1,1.001,1.1] * env1 * freq, \rq.kr(0.5) * env2);
+	sig.debug("sig");
+	sig = sig.mean;
+	sig.debug("sig");
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.31,0.1,0.8,0.4)),gate,doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\guitar, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var afreq = freq *  [1,2,1/2];
+	env1 = EnvGen.kr(Env([1,2,1],[0.001,[1,1.2,1.8]]), 1);
+	env2 = EnvGen.kr(Env([1,Rand(0.5,3),1]/3,[0.1,1.8]), 1);
+	sig = LFSaw.ar(afreq *.t [1,1.0001] * ( 1 + ( SinOsc.kr(ExpRand(0.00001,20) * [1,1.01]) * ExpRand(0.000001,0.051) )));
+	sig = CombL.ar(sig, 1/20, 1/afreq,0.0) + sig / 1;
+	sig = sig.tanh / 2;
+	sig.debug("sig");
+	sig = RLPF.ar(sig, \lpfr.kr(1.2) * [1,1.001,1.1] * env1 * freq, \rq.kr(0.5) * env2);
+	sig.debug("sig");
+	sig = sig.mean;
+	sig.debug("sig");
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);
 
 
 (
@@ -136,12 +173,12 @@ Pdef(\part,
 		6.collect { arg idx;
 			Pbind(
 				\instrument, \default,
-	\instrument, \guitar0,
-	\adsr, Pseq([
-		{
-			Env.adsr(exprand(0.001,0.3),0.1,0.8,exprand(0.01,1.5)) 
-		}.dup(6)
-	],inf),
+				\instrument, \guitar0,
+				\adsr, Pseq([
+					{
+						Env.adsr(exprand(0.001,0.3),0.1,0.8,exprand(0.01,1.5)) 
+					}.dup(6)
+				],inf),
 				\note, [4,9,2+12,7+12,11+12,4+12+12] + Pseq([
 					Pstep(Pseq([
 						[1,1,3,3,2,1]+4, 
@@ -188,43 +225,6 @@ Pdef(\part,
 ).play;
 );
 
-(
-SynthDef(\guitar0, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = EnvGen.kr(Env([1,2,1],[0.001,[1,1.2,1.8]]), 1);
-	env2 = EnvGen.kr(Env([1,Rand(0.5,3),1]/3,[0.1,1.8]), 1);
-	sig = LFSaw.ar(freq *  [1,2,1/2] *.t [1,1.0001] * ( 1 + ( SinOsc.kr(Rand(0.0,20)) * Rand(0.0,0.01) )));
-	sig.debug("sig");
-	sig = RLPF.ar(sig, \lpfr.kr(1.2) * [1,1.001,1.1] * env1 * freq, \rq.kr(0.5) * env2);
-	sig.debug("sig");
-	sig = sig.mean;
-	sig.debug("sig");
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.31,0.1,0.8,0.4)),gate,doneAction:2);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = sig * amp;
-	Out.ar(out, sig);
-}).add;
-SynthDef(\guitar, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	var afreq = freq *  [1,2,1/2];
-	env1 = EnvGen.kr(Env([1,2,1],[0.001,[1,1.2,1.8]]), 1);
-	env2 = EnvGen.kr(Env([1,Rand(0.5,3),1]/3,[0.1,1.8]), 1);
-	sig = LFSaw.ar(afreq *.t [1,1.0001] * ( 1 + ( SinOsc.kr(ExpRand(0.00001,20) * [1,1.01]) * ExpRand(0.000001,0.051) )));
-	sig = CombL.ar(sig, 1/20, 1/afreq,0.0) + sig / 1;
-	sig = sig.tanh / 2;
-	sig.debug("sig");
-	sig = RLPF.ar(sig, \lpfr.kr(1.2) * [1,1.001,1.1] * env1 * freq, \rq.kr(0.5) * env2);
-	sig.debug("sig");
-	sig = sig.mean;
-	sig.debug("sig");
-	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.1)),gate,doneAction:2);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = sig * amp;
-	Out.ar(out, sig);
-}).add;
-);
 
 ///// sampling a rdn bass sound
 

@@ -1824,3 +1824,120 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\basedrums1),
+
+		Pbind(
+			\instrument, \basicbass,
+			\note, Pseq([
+				0,0,-2,0,
+				0,-12,-2,12,
+			],inf),
+			\octave, 3,
+			//\lpf, ~pmodenv.(Pseg(Pseq([1,4,1/2,2]*100,1),10) + Pseg(Pseq([0,10,3,8]*100,inf),1/2), 1/8).loop,
+			\lpf, ~pmodenv.(Pseq([1,4,1,14]*100,1), 8).loop,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\legato, Pseq([
+				1.4,0.2,1,0.2,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\dur, 1/8,
+			\amp, 0.1,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\fx_sidechain,
+			\inbus, BusDef(\ifx1, \audio),
+			\sideinbus, BusDef(\sidekick, \audio),
+			\lag, 0.0004,
+			\cpt, 0.051,
+			\pregain, 1,
+			\cpabove, 0.001,
+			\cpbelow, 1,
+			\cpclamp, 0.01,
+			\cprelax, 0.1,
+			\gain, 1,
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \betri,
+			\note, Pseq([
+				\r,\r,\r,\r, \r,\r,\r,\r,
+				0,\r,0,\r,0,\r,0,\r,
+			],inf),
+			\fmf, Pseg(Pseq([100,110]/2,1),1,-3).loop,
+			\fmf2, Pseg(Pseq([10,0.1],inf),8*2),
+			\legato, Pseg(Pseq([0.1,1],inf),8*4),
+			\rel, Pseg(Pseq([0.3,0.01],inf),8*6),
+			\adsr, Pseq([
+				Pfunc({ arg ev;
+					[ Env.adsr(0.01,0.1,0.8,ev[\rel]) ]
+				}),
+			],inf),
+			\octave, 5,
+			\dur, 1/8,
+			\amp, 0.1 * Pseq([
+				Plazy({ arg ev;
+					Pseg(Pseq([1,0],1),1,[0,1,-1,-2,-3].choose) * Pwhite(0.5,1.0,inf)
+				}).loop,
+			],inf),
+		),
+		Pbind(
+			\instrument, \betri,
+			\freq, ~pmodenv.(Pseq([1000,802],1), 8).loop,
+			\fmf, Pkey(\freq)*1.01,
+			\fmf2, Pkey(\freq)* Pseg(Pseq([1,1.1],inf),8),
+			\octave, 4,
+			\dur, 1/2,
+			\legato, 0.4,
+			\adsr, Pseq([
+				[ Env.adsr(0.4,0.01,0.1,0.4,1,[-4,0,-4]) ],
+			],inf),
+			\lag, 1/16/~t,
+			\amp, 0.1/4,
+			\out, BusDef(\ifx2, \audio),
+			\out, BusDef(\sendbus5, \audio),
+		),
+		Pmono(\fx_sidechain,
+			\inbus, BusDef(\ifx2, \audio),
+			\sideinbus, BusDef(\sidekick, \audio),
+			\lag, 0.0004,
+			\cpt, 0.011,
+			\pregain, 1,
+			\cpabove, 0.001,
+			\cpbelow, 1,
+			\cpclamp, 0.01,
+			\cprelax, 0.02,
+			\gain, 1,
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \simpleacid,
+			\lpfr, ~pmodenv.(Pseq([1,2,1,4],1) * Pseq((1..32)/32,1)+1, 8).loop,
+			\rq, 0.1,
+			//\freq, ~pmodenv.(Pseq([1,2,1,4]*40,1), 1).loop,
+			\env1, [Env([1,7,1],[0.05,0.8])],
+			\note, Pseq([
+				0,0,0,0+12,
+			],inf),
+			\octave, 5,
+			\dur, 1/4,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.01,0.2,0.4) ],
+			],inf),
+			\legato, Pseq([
+				0.7,
+			],inf),
+			\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			\amp, 0.1/4 * Pseq([
+				0.1,0.3,0.6,0.7,
+				0.1,0.5,0.6,0.5,
+				0.1,0.6,0.5,0.6,
+			],inf),
+		),
+	])
+)).play;
+);

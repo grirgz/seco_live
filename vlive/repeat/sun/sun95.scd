@@ -54,7 +54,7 @@ Pdef(\part, Pdef(\zedpart,
 			\instrument, \sh101,
 			\note, 3,
 			\octave, 3,
-			\lpf, 400,
+			\lpf, Pseg(Pseq([100,401],inf),8),
 			\dur, 1/8,
 			\legato, 0.3,
 			\adsr, Pseq([

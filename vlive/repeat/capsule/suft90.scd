@@ -1,28 +1,22 @@
+(
 ~t = 135/4/60; TempoClock.default.tempo = ~t;
+FileSystemProject.loadOnce("capsule/PatKitDef_ksh.scd");
+)
+
 
 (
-SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = SinOsc.ar(freq);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-	(
-		Spec.add(\gain, ControlSpec(0,1,\lin));
-	ProtoDef(\rdn, ProtoTemplateDef(\rdn)).inbus_(BusDef(\sendbus1));
-	ProtoDef(\rdn2, ProtoTemplateDef(\rdn)).inbus_(BusDef(\sendbus2));
-	ProtoDef(\rdn3, ProtoTemplateDef(\rdn)).inbus_(BusDef(\sendbus3));
-	ProtoDef(\rdn4, ProtoTemplateDef(\rdn)).inbus_(BusDef(\sendbus4));
-	~master = {
-		ProtoDef(\rdn).play;
-		ProtoDef(\rdn2).play;
-		ProtoDef(\rdn3).play;
-		ProtoDef(\rdn4).play;
-	}
-	)
+	Spec.add(\gain, ControlSpec(0,1,\lin));
+ProtoDef(\rdn, ProtoTemplateDef(\rdn)).inbus_(BusDef(\sendbus1));
+ProtoDef(\rdn2, ProtoTemplateDef(\rdn)).inbus_(BusDef(\sendbus2));
+ProtoDef(\rdn3, ProtoTemplateDef(\rdn)).inbus_(BusDef(\sendbus3));
+ProtoDef(\rdn4, ProtoTemplateDef(\rdn)).inbus_(BusDef(\sendbus4));
+~master = {
+	ProtoDef(\rdn).play;
+	ProtoDef(\rdn2).play;
+	ProtoDef(\rdn3).play;
+	ProtoDef(\rdn4).play;
+}
+)
 
 ////////////// control
 
@@ -51,6 +45,16 @@ ProtoDef(\apc40).activate_bank_selector
 	ProtoDef(\rdn4).edit;
 TrackDef(\pdefgrid).childAt(7,0).source = Pdef(\part); Pdef(\part).envir = ()
 
+////
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
 ////////////////// score
 (
 Pdef(\part, Pdef(\pdefgrid0_0, 

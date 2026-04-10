@@ -1,6 +1,6 @@
 ~t = 165/4/60; TempoClock.default.tempo = ~t; // death beast
 
-FileSystemProject.load("holis/synthdef.scd")
+FileSystemProject.loadOnce("holis/synthdef.scd");
 
 (
 SynthDef(\nidi2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;

@@ -4,6 +4,7 @@
 FileSystemProject.loadOnce("libdef/PlayerTracker.scd");
 FileSystemProject.loadOnce("libdef/rdngui.scd");
 ProtoDef(\FxManager, (
+	protoClass: \FxManager,
 	edit: { arg self;
 		WindowDef(\FxManager).front;
 	},
@@ -92,6 +93,18 @@ ProtoDef(\FxManager, (
 		}
 	},
 
+	initDefault: { arg self;
+		FileSystemProject.load("cavern/FxManager_default.scd")
+	},
+
+	initRdn: { arg self;
+		[\rdn, \rdn2, \rdn3, \rdn4].do { arg key;
+			if(ProtoDef(key)[\make].isNil) {
+				ProtoDef(key, ProtoTemplateDef(\rdn));
+			};
+		};
+	},
+
 	play: { arg self;
 		self.playerTracker.play;
 	},
@@ -141,7 +154,7 @@ WindowDef(\FxManager, {
 				)
 			}),
 			BasicButton.new.string_("Init").action_({
-				FileSystemProject.load("cavern/FxManager_default.scd")
+				model.initDefault;
 			}),
 		),
 		*[\rdn, \rdn2, \rdn3, \rdn4].collect({ arg key;

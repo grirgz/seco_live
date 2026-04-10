@@ -28,48 +28,58 @@ ControllerDef(\icon_sliders, { arg def, params;
 
 ControllerDef(\piano_generic, { arg def, target; 
 	var playergroup;
-	playergroup = ProtoTemplateDef(\SeqPlayerGroup).new(target);
-	MIDIdef.noteOn(\piano, { arg ... args;
-		var midinote = args[1];
-		var velocity = args[0];
-		args.debug("generic on");
-		playergroup.elAt(midinote).play((velocity:velocity));
-	}).fix;
-	MIDIdef.noteOff(\piano_off, { arg ... args;
-		var midinote = args[1];
-		args.debug("generic off");
-		playergroup.elAt(midinote).stop;
-	}).fix;
+	if(target.isNil) {
+		MIDIdef.noteOff(\piano).remove;
+		MIDIdef.noteOff(\piano_off).remove;
+	} {
+		playergroup = ProtoTemplateDef(\SeqPlayerGroup).new(target);
+		MIDIdef.noteOn(\piano, { arg ... args;
+			var midinote = args[1];
+			var velocity = args[0];
+			args.debug("generic on");
+			playergroup.elAt(midinote).play((velocity:velocity));
+		}).fix;
+		MIDIdef.noteOff(\piano_off, { arg ... args;
+			var midinote = args[1];
+			args.debug("generic off");
+			playergroup.elAt(midinote).stop;
+		}).fix;
+	};
 }, [ \piano ]);
 
 ControllerDef(\nektar_piano, { arg def, target; 
 	var playergroup;
-	playergroup = ProtoTemplateDef(\SeqPlayerGroup).new(target);
-	MIDIdef.noteOn(\piano, { arg ... args;
-		var midinote = args[1];
-		var velocity = args[0];
-		args.debug("nektar on");
-		playergroup.elAt(midinote).play((velocity:velocity));
-	}, srcID:~nektar_device_id).fix;
-	MIDIdef.noteOff(\piano_off, { arg ... args;
-		var midinote = args[1];
-		args.debug("nektar off");
-		playergroup.elAt(midinote).stop;
-	}, srcID:~nektar_device_id).fix;
+	if(target.isNil) {
+		MIDIdef.noteOff(\piano).remove;
+		MIDIdef.noteOff(\piano_off).remove;
+	} {
+		playergroup = ProtoTemplateDef(\SeqPlayerGroup).new(target);
+		MIDIdef.noteOn(\piano, { arg ... args;
+			var midinote = args[1];
+			var velocity = args[0];
+			args.debug("nektar on");
+			playergroup.elAt(midinote).play((velocity:velocity));
+		}, srcID:~nektar_device_id).fix;
+		MIDIdef.noteOff(\piano_off, { arg ... args;
+			var midinote = args[1];
+			args.debug("nektar off");
+			playergroup.elAt(midinote).stop;
+		}, srcID:~nektar_device_id).fix;
 
-	if(target.isKindOf(Event) and: { target.recorder.notNil }) {
-		MIDIdef.cc(\piano_transport, { arg velocity, num;
-			if(velocity == 127) {
-				if(num == 107) { // record
-					target.isRecording = target.isRecording.not;
+		if(target.isKindOf(Event) and: { target.recorder.notNil }) {
+			MIDIdef.cc(\piano_transport, { arg velocity, num;
+				if(velocity == 127) {
+					if(num == 107) { // record
+						target.isRecording = target.isRecording.not;
+					};
+					if(num == 106) { // play
+						target.isPlaying = target.isPlaying.not;
+					};
 				};
-				if(num == 106) { // play
-					target.isPlaying = target.isPlaying.not;
-				};
-			};
-	   
-		})
-		
+
+			})
+
+		};
 	};
 
 
@@ -81,17 +91,22 @@ ControllerDef(\apc40, { arg def, target;
 }, [ \launchpad ]);
 
 ControllerDef(\piano_generic_drumpad, { arg def, target; 
-	MIDIdef.noteOn(\piano, { arg ... args;
-		var midinote = args[1] - 48 % 48;
-		var velocity = args[0];
-		midinote.debug("generic drumpad on");
-		target.wrapper.elAt(midinote).play((velocity:velocity));
-	}).fix;
-	MIDIdef.noteOff(\piano_off, { arg ... args;
-		var midinote = args[1] - 48 % 48;
-		midinote.debug("generic drumpad off");
-		target.wrapper.elAt(midinote).stop;
-	}).fix;
+	if(target.isNil) {
+		MIDIdef.noteOff(\piano).remove;
+		MIDIdef.noteOff(\piano_off).remove;
+	} {
+		MIDIdef.noteOn(\piano, { arg ... args;
+			var midinote = args[1] - 48 % 48;
+			var velocity = args[0];
+			midinote.debug("generic drumpad on");
+			target.wrapper.elAt(midinote).play((velocity:velocity));
+		}).fix;
+		MIDIdef.noteOff(\piano_off, { arg ... args;
+			var midinote = args[1] - 48 % 48;
+			midinote.debug("generic drumpad off");
+			target.wrapper.elAt(midinote).stop;
+		}).fix;
+	}
 }, [ \drumpad ]);
 
 ControllerDef(\launchpad, { arg def, target; 

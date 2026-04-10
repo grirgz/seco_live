@@ -113,10 +113,12 @@ SynthDef(\fmc_ambientchords2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = Splay.ar(sig, \spread.kr(0.1), amp, pan);
 	Out.ar(out, sig);
 }).add;
-)
+);
+
 
 // END
 
+///////////////////////
 
 (
 Pdef(\part, Pdef(\zedpart, 

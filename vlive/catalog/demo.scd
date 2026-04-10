@@ -386,7 +386,7 @@ Pdef(\pluck, Pbind(
 	\octave, 3,
 	\decay, 100,
 	\coef, Pseg(Pseq((1..10)/10,inf),1),
-	\coef, 0.01,
+	//\coef, 0.01,
 	\dur, 4,
 	\amp, 0.1
 )).play;
@@ -491,10 +491,6 @@ SynthDef(\pluck, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, coef=0, decay=10
 (
 Pdef(\pluck, Pbind(
 	\instrument, \pluck,
-	\degree, Pseq([
-		[ 0,2,4 ] + 0,
-		[ 0,2,4 ] + 1,
-	],inf),
 	\freq, Pseq([40,50,20,60],inf)*10,
 	\decay, 0.04,
 	\coef, Pseg(Pseq((1..10)/10,inf),1),

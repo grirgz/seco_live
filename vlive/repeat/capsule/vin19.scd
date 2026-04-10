@@ -10,6 +10,33 @@ SampleTimeline('rec_vin19_t0_200331_225351').buffer = BufDef('cliprec/rec_vin19_
 ClipTimeline(\vin19).edit
 
 (
+SynthDef(\sonar, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = WhiteNoise.ar(1!2);
+	sig = BPF.ar(sig, freq, \rq.kr(0.1));
+	sig = BPF.ar(sig, freq, \rq.kr);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * amp;
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\sonar2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1=  EnvGen.kr(\env.kr(Env([2,0.02,1.01,0.02],[0.01,0.08,0.1].normalizeSum)), gate, timeScale:1);
+	env2 = EnvGen.kr(\adsrf.kr(Env.adsr(0.01,0.1,0.8,1.1)), gate, doneAction:0);
+	env3 = EnvGen.kr(\adsrfrq.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:0);
+	sig = WhiteNoise.ar(1!2);
+	sig = CombL.ar(sig, 1/50, 1/freq,0.501 * env1);
+	sig = RLPF.ar(sig, \lpfr.kr(1.1) * freq * (env2 * \feamt.kr(0.5) + 1), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * amp;
+	//sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+)
+
+(
 Pdef(\part2, Pdef(\zed2, 
 	Ppar([
 

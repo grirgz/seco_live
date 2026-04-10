@@ -274,21 +274,21 @@ Pdef(\devolbass,
 ).play;
 )
 
-	(
-	SynthDef(\cymbalsimple2, { | out = 0, pan = 0.0 |
-		var sig, env;
-		var env1, env2, env3, env4, env5, env6, env7, env8;
-		var freqs;
-		env = EnvGen.ar(Env.perc(0.01, 2, curve: -4), doneAction: 2);
-		env1 = EnvGen.kr(Env([0,1,0],[0.01,0.08]), 1);
-		freqs = {exprand(30, 20000)}.dup(50) ++ {exprand(1020, 10000)}.dup(50);
-		sig = HPF.ar(Ringz.ar(WhiteNoise.ar(0.1), freqs).mean, ( 1.1- env1 )*4000);
-		sig = sig + EnvGen.ar(Env.perc(0.001,0.001,1), levelScale:1/2);
-		sig = sig + LPF.ar(WhiteNoise.ar(0.1),EnvGen.ar(Env.perc(\att.kr(0.5),\rel.kr(5),1))* 20000+10,mul:2);
-		sig = sig / 3;
-		Out.ar(out, Pan2.ar(sig * env, pan));
-	}).add;
-	)
+(
+SynthDef(\cymbalsimple2, { | out = 0, pan = 0.0 |
+	var sig, env;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var freqs;
+	env = EnvGen.ar(Env.perc(0.01, 2, curve: -4), doneAction: 2);
+	env1 = EnvGen.kr(Env([0,1,0],[0.01,0.08]), 1);
+	freqs = {exprand(30, 20000)}.dup(50) ++ {exprand(1020, 10000)}.dup(50);
+	sig = HPF.ar(Ringz.ar(WhiteNoise.ar(0.1), freqs).mean, ( 1.1- env1 )*4000);
+	sig = sig + EnvGen.ar(Env.perc(0.001,0.001,1), levelScale:1/2);
+	sig = sig + LPF.ar(WhiteNoise.ar(0.1),EnvGen.ar(Env.perc(\att.kr(0.5),\rel.kr(5),1))* 20000+10,mul:2);
+	sig = sig / 3;
+	Out.ar(out, Pan2.ar(sig * env, pan));
+}).add;
+)
 
 (
 SynthDef(\devol2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
@@ -1120,28 +1120,28 @@ TrackDef(\keyer, TrackTemplateDef(\keyer)).source
 
 
 (
-	Pdef(\part, Pdef(\zed, 
-		Ppar([
-		Pdef(\evolbass),
-		Pdef(\evoltreb),
-			Plazy({ arg ev;
-				Pfindur([4,2,8,1,6,3].choose,
-					PatKitDef(\rim).asPattern(Pbind(
-						\kitIndex, [0,1,2,4,5,8].choose,
-						\isRest, Pseq([
-							1,
-						],inf).coin.not,
-						\sustain, 0.1,
-						\gain, 0.2,
-						\dur, (1..8).choose/8,
-						\speed, Pseq([
-							rrand(0.4,1.4)
-						],inf),
-					)),
-				);
-			}).loop!8,
-		].flat,20),
-	)).play;
+Pdef(\part, Pdef(\zed, 
+	Ppar([
+	Pdef(\evolbass),
+	Pdef(\evoltreb),
+		Plazy({ arg ev;
+			Pfindur([4,2,8,1,6,3].choose,
+				PatKitDef(\rim).asPattern(Pbind(
+					\kitIndex, [0,1,2,4,5,8].choose,
+					\isRest, Pseq([
+						1,
+					],inf).coin.not,
+					\sustain, 0.1,
+					\gain, 0.2,
+					\dur, (1..8).choose/8,
+					\speed, Pseq([
+						rrand(0.4,1.4)
+					],inf),
+				)),
+			);
+		}).loop!8,
+	].flat,20),
+)).play;
 );
 
 

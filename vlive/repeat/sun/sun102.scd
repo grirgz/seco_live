@@ -9226,12 +9226,14 @@ Pdef(\part, Pdef(\zedpart,
 			\lag, 0.0009,
 			\fb, 1.09,
 			\fb, 0.85,
+			//\fb, 0.4,
 			//\delay, Pwhite(0.1,1,inf)/~t,
 			//\delay, PmodEnv(Pseq([1,0.02]/~t,1), 8*2).loop,
 			\delay, 0.121,
 			\maxdelay, 1/~t,
 			//\freqshift, PmodEnv(Pseq([4001,440],1), 8*2).loop,
-			\freqshift, 400,
+			\freqshift, -10,
+			\freqshift, ~pmodsynth.({ SinOsc.kr(0.48*~t) * 100 }),
 			\mix, 1,
 			\dur, 1,
 			\gain, 0.5,
@@ -9601,6 +9603,23 @@ Pdef(\part).reset;
 );
 
 (
+// env in lpf
+SynthDef(\thickpad2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var num=4;
+	var lpenv;
+	sig = LFSaw.ar(freq * LFNoise1.kr(1/3!num,mul:0.01 * LFNoise1.kr(0.1!num,mul:10,add:1),add:1) * [3,1,2,4]/2 * ( LFSaw.ar(freq * [4,3,2,1]/2* LFNoise1.kr(1/3!num,mul:0.01,add:1)) * 4 + 1 ));
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.01,0.4,0.1,0.2)), gate, doneAction:0) * \lpadsramt.kr(1) + 1;
+	sig = RLPF.ar(sig, ( \lpf.kr(800) * lpenv ).clip(20,20000), \rq.kr(0.5));
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(2.1,0.1,0.8,2.1)), gate, doneAction:2);
+	//sig = AllpassL.ar(sig, 4/~t, 1/( freq+10 ),1/~t) + sig;
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
 // test bass
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
@@ -9641,6 +9660,27 @@ Pdef(\part, Pdef(\zedpart,
 			],inf),
 			\rq, 0.5,
 			\lpfr, 3,
+			\octave, 6,
+			\dur, 4,
+			\amp, 0.1/2,
+		),
+	])
+)).play;
+);
+
+(
+// test chords
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \thickpad2,
+			\note, Pseq([
+				[0,3-12,7,7+12],
+				[0-12,3,6,6+12],
+			],inf),
+			\rq, 0.5,
+			\lpf, PmodEnv(Pseq([100,2000,19000],1), 8*2,\exp).loop,
+			\legato, 1,
 			\octave, 6,
 			\dur, 4,
 			\amp, 0.1/2,

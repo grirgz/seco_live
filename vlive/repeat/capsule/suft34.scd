@@ -1,6 +1,12 @@
 
+(
 ~t = 135/4/60; TempoClock.default.tempo = ~t; // real
-~t = 145/4/60; TempoClock.default.tempo = ~t;
+//~t = 145/4/60; TempoClock.default.tempo = ~t;
+
+FileSystemProject.loadOnce("sndlib/synthaccu.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
+FileSystemProject.loadOnce("capsule/lib.scd");
+)
 
 
 (
@@ -474,23 +480,23 @@ Pdef(\part, Pdef(\rdub_rav,
 ////////////////////////////////////// main
 
 (
-	Pdef(\part, Pdef(\main, 
-		Pseq([
-			Pfindur(2, Pdef(\rdub_drone)),
-			Pfindur(4, Pdef(\rdub_intro)),
-			Pfindur(8, Pdef(\rdub_minimal)),
-			Pfindur(2, Pdef(\rdub_break)),
-			Pfindur(16, Pdef(\rdub_bass)),
-			Pfindur(4, Pdef(\rdub_drums)),
-			Pfindur(4, Pdef(\rdub_begin)),
-			Pfindur(64, Pdef(\rdub_onedrop)),
-			Pfindur(16, Pdef(\rdub_space)),
-			Pfindur(8, Pdef(\rdub_morphing)),
-			Pfindur(8, Pdef(\rdub_bass)),
-			Pfindur(4, Pdef(\rdub_begin)),
-			Pfindur(8, Pdef(\rdub_outro)),
-		])
-	)).play;
+Pdef(\part, Pdef(\main, 
+	Pseq([
+		Pfindur(2, Pdef(\rdub_drone)),
+		Pfindur(4, Pdef(\rdub_intro)),
+		Pfindur(8, Pdef(\rdub_minimal)),
+		Pfindur(2, Pdef(\rdub_break)),
+		Pfindur(16, Pdef(\rdub_bass)),
+		Pfindur(4, Pdef(\rdub_drums)),
+		Pfindur(4, Pdef(\rdub_begin)),
+		Pfindur(64, Pdef(\rdub_onedrop)),
+		Pfindur(16, Pdef(\rdub_space)),
+		Pfindur(8, Pdef(\rdub_morphing)),
+		Pfindur(8, Pdef(\rdub_bass)),
+		Pfindur(4, Pdef(\rdub_begin)),
+		Pfindur(8, Pdef(\rdub_outro)),
+	])
+)).play;
 )
 
 // test

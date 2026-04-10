@@ -1,3 +1,90 @@
+~t = 101/2/60; TempoClock.default.tempo = ~t;
+(
+SynthDef(\phyhat2, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	sig = SinOsc.ar(freq);
+	sig = WhiteNoise.ar;
+	env1 = EnvGen.kr(Env([8210,4100,4051],[0.1,0.8]), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
+	env2 = EnvGen.kr(Env([18210,200,451],[0.1,0.8],-4), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.7,1.1) );
+	sig = BPF.ar(sig, env1, LFNoise1.kr((1..8)/8).range(0.1,0.9));
+	//sig = RLPF.ar(sig, env2, \rq.kr(0.5));
+	sig = HPF.ar(sig, 20000-env2);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.4,1,-4),gate,doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).sum;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\snapkick, { |out = 0, pan = 0, amp = 0.3|
+	var body, bodyFreq, bodyAmp;
+	var pop, popFreq, popAmp;
+	var click, clickAmp;
+	var snd;
+
+	// body starts midrange, quickly drops down to low freqs, and trails off
+	bodyFreq = EnvGen.ar(Env([261, 60, 51], [0.035, 0.08], curve: \exp));
+	bodyAmp = EnvGen.ar(Env.linen(0.005, 0.1, 0.3), doneAction: 2);
+	body = SinOsc.ar(bodyFreq) * bodyAmp;
+	// pop sweeps over the midrange
+	popFreq = XLine.kr(750, 261, 0.02);
+	popAmp = EnvGen.ar(Env.linen(0.001, 0.02, 0.001)) * 0.15;
+	pop = SinOsc.ar(popFreq) * popAmp;
+	// click is spectrally rich, covering the high-freq range
+	// you can use Formant, FM, noise, whatever
+	clickAmp = EnvGen.ar(Env.perc(0.001, 0.01)) * 0.15;
+	click = LPF.ar(Formant.ar(910, 4760, 2110), 3140) * clickAmp;
+
+	snd = body + pop + click;
+	snd = snd.tanh;
+
+	Out.ar(out, Pan2.ar(snd, pan, amp));
+}).add;
+SynthDef(\fm_grain_test, {arg out=1, gate = 1, amp = 1, freq=200, fratio=2, pan=0;
+	var sig = FMGrain.ar(
+		Impulse.ar(200), 0.14, freq, freq*fratio,
+		LFNoise1.ar(500!2).range(1, 10),
+	);
+	sig = sig * EnvGen.kr(
+		Env([0, 1, 0], [1, 1], \sin, 1),
+		gate,
+		timeScale:\timeScale.kr(1),
+		doneAction: 2
+	);
+	sig = Pan2.ar(sig, pan, amp).sum;
+    Out.ar(out, sig);
+}).add;
+SynthDef(\snaretuned, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var pop, popAmp, popFreq;
+	sig = SinOsc.ar(freq);
+	sig = WhiteNoise.ar;
+
+	popFreq = EnvGen.ar(Env([3261, 410, 160], [0.005, 0.01], curve: \exp));
+	popAmp = EnvGen.ar(Env.perc(0.001, 0.11)) * 0.7;
+	pop = SinOsc.ar(popFreq * ( 1 + ( SinOsc.ar(4810) * 0.4 ))) * popAmp;
+	env1 = EnvGen.kr(Env([1840,2010,1831],[0.01,0.4]), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.9,1.1) );
+	env2 = EnvGen.kr(Env([411,150,845],[0.01,0.7],-4), 1, levelScale:LFNoise1.kr((1..8)/8).range(0.9,1.1) );
+	sig = pop + ( sig/2 );
+	sig = BPF.ar(sig, env1, LFNoise1.kr((1..8)/8).range(0.01,0.9)) + LPF.ar(WhiteNoise.ar(0.1), 11300);
+	sig = ( pop/2 ) + ( sig );
+	sig = BPF.ar(sig, [130,220], 0.1).mean + sig; // eq
+
+	// tonal component
+	sig2 = SinOsc.ar([180, 330]*1.2).sum;
+	sig3 = LFTri.ar(111);
+	sig3 = FreqShift.ar(sig3, [175, 224]*1.3).sum;
+	sig4 = sig2 + sig3 / 48;
+
+	sig = sig + sig4 / 1.2;
+	sig = HPF.ar(sig, env2);
+
+
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.001,0.1,0.8,0.4,1,-6)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp).sum;
+	Out.ar(out, sig);
+}).add;
+)
 (
 	SynthDef(\perctone, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 		var sig;
@@ -934,6 +1021,7 @@ Pdef(\part, Pdef(\drums1,
 
 /////////////////////////
 
+~t = 171/4/60; TempoClock.default.tempo = ~t;
 
 (
 	~master.();

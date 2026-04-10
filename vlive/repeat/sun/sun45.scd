@@ -1680,83 +1680,6 @@ Pdef(\part, Pdef(\zedpart,
 
 
 (
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \playersec,
-			\bufnum, ~buflib.kick[1492].value,
-			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
-			\isRest, Pseq([
-				1,0,0,0, 0,0,0,0,
-			],inf).coin.not,
-			\dur, 1/8,
-			\gain, 0.1,
-			\out, BusDef(\ifx1, \audio),
-		),
-		Pmono(\chaosecho,
-			\inbus, BusDef(\ifx1, \audio),
-			\addAction, \addToTail,
-			\lag, 0.0009,
-			\dur, 1,
-		),
-		
-	])
-)).play;
-);
-
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \playersec,
-			\bufnum, ~buflib.kick[1492].value,
-			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
-			\isRest, Pseq([
-				1,0,0,0, 0,0,0,0,
-			],inf).coin.not,
-			\dur, 1/8,
-			\gain, 0.1,
-			\out, BusDef(\ifx1, \audio),
-		),
-		Pbind(
-			\instrument, \playersec,
-			\bufnum, ~buflib.snare[632].value,
-			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
-			\isRest, Pseq([
-				0,0,0,0, 1,0,0,0,
-			],inf).coin.not,
-			\dur, 1/8,
-			\gain, 0.11,
-			\out, BusDef(\ifx1, \audio),
-		),
-		Pbind(
-			\instrument, \playersec,
-			\bufnum, ~buflib.hat[978].value,
-			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
-			\isRest, Pseq([
-				0,0,1,0, 0,0,1,0,
-				0,0,1,0, 0,1,0,1,
-				0,0,1,0, 0,0,1,0,
-				0,0,1,0, 1,1,0,1,
-			],inf).coin.not,
-			\dur, 1/8,
-			\gain, 0.11,
-			\out, BusDef(\ifx1, \audio),
-		),
-		Pmono(\chaosecho,
-			\inbus, BusDef(\ifx1, \audio),
-			\addAction, \addToTail,
-			\mix, 0.09,
-			\fmr, Pseq([1,2,1/4],inf)*~t,
-			\lag, 0.0009,
-			\dur, 4,
-		),
-		
-	])
-)).play;
-);
-
-(
 SynthDef(\chaosecho, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -1925,6 +1848,86 @@ SynthDef(\chaosecho, { arg out=0, gate=1;
 Pdef(\part).reset;
 );
 
+// test
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1492].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\chaosecho,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1492].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[632].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[978].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,0,1,0, 0,0,1,0,
+				0,0,1,0, 0,1,0,1,
+				0,0,1,0, 0,0,1,0,
+				0,0,1,0, 1,1,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\chaosecho,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\mix, 0.09,
+			\fmr, Pseq([1,2,1/4],inf)*~t,
+			\lag, 0.0009,
+			\dur, 4,
+		),
+		
+	])
+)).play;
+);
+
+// test with more instr
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([

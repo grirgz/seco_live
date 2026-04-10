@@ -1961,3 +1961,186 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+////////////// use a note sample
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('notes/trumpet.flac'), // La#
+			\note, Pseq([
+				0,2,
+			],inf),
+			\speed, ( Pkey(\note)+2 ).midiratio, // +2 to get Do
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,0.1) ],
+			],inf),
+			\pos, 0,
+			\legato, 1/8,
+			\dur, 1,
+			\gain, 1,
+		),
+	])
+)).play;
+);
+
+(
+SynthDef(\randgran, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, pos=0, gdur=0.2, pan;
+	var sig;
+	var clk;
+	var phase;
+	clk = Impulse.ar(\gfreq.kr(90));
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = pos + LFNoise0.kr(\gfreq.kr,mul:\range.kr(0.01));
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, phase % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \randgran,
+			\mbufnum, BufDef.mono('notes/trumpet.flac'), // la#
+			\note, Pseq([
+				0,5,2,
+			],inf),
+			\pitch_stretch, ( Pkey(\note)+2 ).midiratio,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,0.3) ],
+			],inf),
+			\pos, PmodEnv(Pseq([0.1,0.21],3), 8).loop,
+			\dur, 8,
+			\gain, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+SynthDef(\notegran, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, normpos=0, gdur=0.2, pan;
+	var sig;
+	var clk;
+	var phase;
+	clk = Impulse.ar(\gfreq.kr(90));
+	pitch_stretch = \freq.kr(200)/60.midicps * pitch_stretch * \samplenote.kr(0).neg.midiratio;
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = ( normpos.fold(0,1) * BufDur.kr(mbufnum) ) + \pos.kr(0) + LFNoise0.kr(\gfreq.kr,mul:\range.kr(0.01));
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, phase , gdur, pan, 1);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \notegran,
+			\mbufnum, BufDef.mono('notes/trumpet.flac'), // la#
+			\note, Pseq([
+				0,
+			],inf),
+			\samplenote, -2,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,0.3) ],
+			],inf),
+			\gain, 0.1,
+			\normpos, PmodEnv(Pseq([0.2,0.8],3), 8).loop,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+
+(
+SynthDef(\notegranrfe, { arg out=0, freq=200, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, normpos=0, gdur=0.2, pan;
+	var sig;
+	var clk;
+	var phase;
+	var lpenv, lpfreq;
+	clk = Impulse.ar(\gfreq.kr(90));
+	pitch_stretch = freq/60.midicps * pitch_stretch * \samplenote.kr(0).neg.midiratio;
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = ( normpos.fold(0,1) * BufDur.kr(mbufnum) ) + \pos.kr(0) + LFNoise0.kr(\gfreq.kr,mul:\range.kr(0.01));
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, phase , gdur, pan, 1);
+
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.01,0.4,0.1,0.2)), gate, doneAction:0) * \lpadsramt.kr(1) + 1;
+	lpfreq = freq * \kbamt.kr(0) + 1;
+	sig = RLPF.ar(sig, ( \lpf.kr(330) * lpenv * lpfreq ).clip(20,20000), \rq.kr(0.8));
+
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \notegranrfe,
+			\mbufnum, BufDef.mono('notes/trumpet.flac'), // la#
+			\note, Pseq([
+				0,
+			],inf),
+			\samplenote, -2,
+			\adsr, Pseq([
+				[ Env.adsr(1.1,0.1,0.8,1.3) ],
+			],inf),
+			\gain, 0.1,
+			\lpadsr, Pseq([
+				[ Env.adsr(5.1/~t,0.1,0.8,1.1) ],
+			],inf),
+			\lpadsramt, 8,
+			\lpf, 100,
+			\normpos, PmodEnv(Pseq([0.2,0.8],3), 8).loop,
+			\dur, 8,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \notegranrfe,
+			\mbufnum, BufDef.mono('notes/violin.flac'), // re
+			\note, Pseq([
+				[0,4,7],
+				[-1,4,7],
+				[0,5,9],
+				[-1,2,7],
+			],inf),
+			\samplenote, 2,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,1.3) ],
+			],inf),
+			\lpadsr, Pseq([
+				[ Env.adsr(5.1/~t,0.1,0.8,1.1) ],
+			],inf),
+			\gdur, 0.2,
+			\lpadsramt, PmodEnv(Pseq([1,8],1), 8*2).loop,
+			\gfreq, 90,
+			\gain, 0.1/3,
+			\normpos, PmodEnv(Pseq([0.05,0.1],3), 8).loop,
+			\dur, 2,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);

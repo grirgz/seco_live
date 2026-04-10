@@ -1,3 +1,8 @@
+(
+FileSystemProject.loadOnce("cavern/main.scd");
+~t = 165/2/60; TempoClock.default.tempo = ~t;
+)
+
 {var a=LFNoise0,b=SinOscFB,c=Pulse;b.ar(a.ar([2,3])*(c.ar([5,7],b.kr([7,5]))*(a.ar([3,2]))*[800,1200]),(c.kr([100,80])*[2,3])) * 0.1}.play
 
 (
@@ -60,7 +65,7 @@ Pdef(\zed,
 		\comblag, 1,
 		\combtrig, 0.1,
 		\decay, 1.01,
-		\amp, 1.8,
+		\amp, 0.1,
 	)
 ).play;
 );
@@ -86,7 +91,7 @@ SynthDef(\hurle, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = HPF.ar(sig, ( freq * \hpfr.kr(1/8) ).clip(10,19900));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
-	sig = sig * 0.1;
+	//sig = sig * 0.1;
 	Out.ar(out, sig);
 }).add;
 Pdef(\zed).reset;
@@ -113,6 +118,7 @@ SynthDef(\hurle, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = HPF.ar(sig, ( freq * \hpfr.kr(1/8) ).clip(10,19900));
 	sig = Compander.ar(sig, sig, \cpt.kr(0.1), \cpbelow.kr(1.001), \cpabove.kr(0.01), \cpclamp.kr(0.01), \cprelax.kr(0.1));
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = sig * 6;
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
@@ -141,6 +147,7 @@ SynthDef(\hurle, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = LPF.ar(sig, ( freq * \lpfr.kr(8) ).clip(10,19900));
 	sig = HPF.ar(sig, ( freq * \hpfr.kr(1/8) ).clip(10,19900));
 	sig = Compander.ar(sig, sig, \cpt.kr(0.1), \cpbelow.kr(1.001), \cpabove.kr(0.01), \cpclamp.kr(0.01), \cprelax.kr(0.1));
+	sig = sig * 6;
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
@@ -161,7 +168,7 @@ Pdef(\zed,
 		\comblag, 1,
 		\combtrig, 1.1,
 		\decay, 1.01,
-		\amp, 1.8,
+		\amp, 0.1,
 	)
 ).play;
 );

@@ -541,6 +541,7 @@ Pdef(\part,
 		\bwfreq, PmodEnv(Pseq([10,100,800,5000],1), 8).loop,
 		\formfreq, PmodEnv(Pseq([10,100,800],1), 8).loop,
 		\octave, 3,
+		\fspread,0.1,
 		\dur, 1/2,
 		\amp, 0.1,
 	)
@@ -596,6 +597,19 @@ SynthDef(\choir, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 }).add;
 );
 (
+SynthDef(\glass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq * [1,2,1.01]).mean;
+	sig = sig + SinOsc.ar(freq/2, mul: XLine.kr(1,0.001,0.05));
+	sig = sig.tanh;
+	sig = Resonz.ar(sig, \cutoff.kr(300));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(
@@ -619,3 +633,61 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\drums1),
+		Pbind(
+			\instrument, \choir,
+			\note, Pseq([
+				[0,4,7,12],
+				[-1,4,7,11],
+			],inf),
+			\dur, 4,
+			//\lpf, PmodEnv(Pseq([100,4000],1), 8*3).loop,
+			//\lpf, 400,
+			\lpspread, PmodEnv(Pseq([3,0.8],1), 8*2).loop,
+			\lpadsr, Pseq([
+				[ Env.adsr(2.1,0.1,0.8,1.1,1,2) ],
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,2.1) ],
+			],inf),
+			\amp, 0.1/3,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				-5,Prand([0,2,-1],1)
+			],inf),
+			\octave, 6,
+			\lpf, PmodEnv(Pseq([300,5000],1), 8*4,\exp).loop,
+			\dur, 1/4,
+			\amp, 0.1/2,
+		),
+		Pbind(
+			\instrument, \glass,
+			\pulse, 1,
+			\saw, 0,
+			\note, Pseq([
+				-5,-8,
+			],inf),
+			\isRest, Pseq([
+				1,1,1,0
+			],inf).coin.not,
+			\octave, 6,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.05,0.6,0.4) ],
+			],inf),
+			\legato, 0.3,
+			\cutoff, PmodEnv(Pseq([300,5000],1), 8*4,\exp).loop,
+			\rq, 0.4,
+			\dur, 1/4,
+			\amp, 0.2 * Pseg(Pseq([0,0.3,1],inf),6),
+		),
+	])
+)).play;
+);
+
+

@@ -1130,3 +1130,1397 @@ var img = Image.open(path);
 	v.backgroundImage = ~img;
 	// v.refresh; // <-- I already tried .refresh, it didn't help.
 )
+
+/////////
+
+
+Message
+Bar( Message(object, \foo) ) 
+
+Ndef(\bla).source = { arg freq=100; SinOsc.ar(freq) }
+Ndef(\bla).play
+Message( Ndef(\bla), \source ).value
+
+
+~bla = ( rah: { arg self, ii=4; ii.debug("ii") } )
+Message( ~bla, \rah ).value(6)
+
+
+//////
+
+
+Param
+
+
+/////
+
+(
+SynthDef("task_efef68ae-1aef-4dc3-9bc3-274765c62cb1", {
+	  arg out=0, gate=1, freq=220, amp=0.3, tempo=1.0;
+	  var env, warmPad, vocalSim, tapeSat, analogFilt, wobble, pan, sig, time, dust;
+	  
+	  // Long evolving envelope
+	  env = EnvGen.kr(Env([0, 0.7, 1, 0.8, 0], [8, 25, 30, 15] / tempo, [2, -2, 3, -4]), gate, doneAction: 2);
+	  time = SinOsc.kr(0.02 * tempo);
+	  
+	  // Warm analog-style pad
+	  warmPad = Mix.ar([
+		  Saw.ar(freq * [0.99, 1.01, 1.503]) * 0.4,
+		  Pulse.ar(freq * [0.5, 0.752], LFNoise1.kr(0.3).range(0.3, 0.7)) * 0.3
+	  ]);
+	  
+	  // Simulated children's vocal formants
+	  vocalSim = Formant.ar(
+		  freq * [0.7, 0.9] + LFNoise1.kr(2).range(-5, 5),
+		  [800, 1200] + (time * 200),
+		  [100, 150],
+		  LFNoise1.kr(0.1).range(0.05, 0.15)
+	  );
+	  
+	  // Analog filter with slow modulation
+	  wobble = SinOsc.kr([0.07, 0.05] * tempo).range(0.3, 1.2);
+	  analogFilt = RLPF.ar(warmPad + vocalSim, 
+		  (400 + (time * 600) + LFNoise1.kr(0.3).range(0, 300)) * wobble, 
+		  0.4 + LFNoise1.kr(0.2).range(0, 0.3)
+	  );
+	  
+	  // Tape saturation simulation
+	  tapeSat = (analogFilt * 2.5).tanh * 0.6;
+	  
+	  // Nostalgic dust and crackle
+	  dust = Dust.ar([0.5, 0.7] * tempo) * Decay.ar(Impulse.ar(0), 0.05) * 0.02;
+	  
+	  // Slow stereo movement
+	  pan = SinOsc.kr(0.03 * tempo);
+	  sig = Balance2.ar(tapeSat[0] + dust[0], tapeSat[1] + dust[1], pan);
+	  
+	  // Final processing
+	  sig = HPF.ar(sig, 30);
+	  sig = Compander.ar(sig, sig, 0.3, 1, 0.3, 0.01, 0.3);
+	  sig = LeakDC.ar(sig * amp * env).clip(-0.95, 0.95);
+	  
+	  Out.ar(out, sig);
+  }).add;
+)
+
+Synth("task_efef68ae-1aef-4dc3-9bc3-274765c62cb1")
+
+"+P"
+"+P"
+
+(
+SynthDef("task_efc57239-5d3d-49fe-9b37-9bf8301cad55", {
+	  arg out=0, gate=1, freq=220, amp=0.25, tempo=1.0;
+	  var env, timer, gran, perc1, perc2, seq1, seq2, chaos, filt1, filt2, pan, sig;
+	  var bassEnv, bass1, bass2, bassFilter, bassLFO, subBass, bassMix, bassChorus;
+	  
+	  env = EnvGen.kr(Env([0, 0.3, 1, 0.7, 0], [5, 20, 25, 10], \sin), gate, timeScale: tempo.reciprocal, doneAction: 2);
+	  timer = LFSaw.kr(tempo * 0.02);
+	  
+	  // Deep cinematic bass foundation - Zimmer style
+	  bassEnv = EnvGen.kr(Env([0, 0.1, 0.8, 1, 0.9, 0], [8, 15, 20, 15, 7], [\sin, \sin, \lin, \sin, \sin]), timeScale: tempo.reciprocal);
+	  bassLFO = LFNoise1.kr([0.08, 0.12]).range(0.85, 1.15);
+	  
+	  // Massive low-end with evolving harmonics
+	  bass1 = SinOsc.ar(freq * [0.25, 0.251] * bassLFO, 0, 0.6);
+	  bass2 = Saw.ar(freq * 0.5 * LFNoise2.kr(0.05).range(0.95, 1.05), 0.4);
+	  subBass = SinOsc.ar(freq * 0.125 * LFNoise1.kr(0.03).range(0.98, 1.02), 0, 0.8);
+	  
+	  // Bass filtering with movement
+	  bassFilter = RLPF.ar(
+		  bass1 + LPF.ar(bass2, 300) + subBass,
+		  LFNoise1.kr(0.04).range(40, 180) + (timer.range(0, 60)),
+		  LFNoise2.kr(0.06).range(0.6, 0.95)
+	  );
+	  
+	  // Subtle chorus/phasing for width
+	  bassChorus = bassFilter + DelayL.ar(bassFilter, 0.02, LFNoise2.kr([0.3, 0.35]).range(0.005, 0.015)) * 0.3;
+	  bassMix = bassChorus * bassEnv * 0.35;
+	  
+	  // Original granular texture (reduced slightly to make room for bass)
+	  gran = SinOsc.ar(
+		  freq * [1, 1.618] * LFNoise1.kr([0.1, 0.13]).range(0.5, 2),
+		  0,
+		  Decay.ar(Dust.ar([3, 5, 7] * tempo), 0.05)
+	  ).sum * 0.15;
+	  
+	  // Polyrhythmic percussion layers
+	  perc1 = Ringz.ar(
+		  Decay.ar(Impulse.ar([4, 7] * tempo * LFNoise0.kr(0.05).range(0.7, 1.2)), 0.01) * PinkNoise.ar(0.3),
+		  [400, 800] + LFNoise2.kr(0.3).range(-100, 200),
+		  0.1
+	  ).sum * 0.35;
+	  
+	  perc2 = HPF.ar(
+		  Decay.ar(Impulse.ar([11, 13] * tempo * 0.3), 0.08) * Crackle.ar(1.9, 0.2),
+		  300 + LFNoise1.kr(0.2).range(0, 300)
+	  ) * 0.25;
+	  
+	  // Algorithmic sequences
+	  chaos = LFNoise0.kr(0.08 * tempo).range(0.5, 1.5);
+	  
+	  seq1 = SinOsc.ar(freq * [0.5, 0.75] * chaos, 0,
+		  LFPulse.ar([3, 5] * tempo, 0, 0.3)
+	  ) * 0.12;
+	  
+	  seq2 = Saw.ar(freq * 2 * LFNoise1.kr(0.1).range(0.8, 1.3), 
+		  LFPulse.ar([8, 12] * tempo * chaos, 0, 0.2)
+	  ) * 0.08;
+	  
+	  // Complex filtering with movement
+	  filt1 = RLPF.ar(
+		  gran + perc1 + seq1.sum,
+		  LFNoise1.kr(0.15).range(200, 2000) + (timer.range(0, 800)),
+		  LFNoise2.kr(0.1).range(0.2, 0.8)
+	  );
+	  
+	  filt2 = BPF.ar(
+		  perc2 + seq2 + (gran * 0.5),
+		  LFNoise0.kr(0.12).range(400, 1800) + (chaos.range(0, 400)),
+		  0.4
+	  );
+	  
+	  // Spatial movement
+	  pan = SinOsc.kr([0.03, 0.05] * tempo, [0, 1.57]) * 0.7;
+	  
+	  // Mix bass with existing elements
+	  sig = [filt1 * pan[0] + filt2 + bassMix.sum, filt1 * pan[1] + filt2 + bassMix.sum];
+	  sig = sig * amp * env;
+	  sig = LeakDC.ar(sig).clip(-0.9, 0.9);
+	  
+	  Out.ar(out, sig);
+  }).add;
+)
+
+
+Synth("task_efc57239-5d3d-49fe-9b37-9bf8301cad55");
+
+/// Kicks and Bassdrums
+
+
+///SinOsc Kick
+
+(
+	SynthDef("kicksin", {
+	arg
+	pitchkick=40, pitchrel=0.17, pitchmod=5, pitchcrv=(-7),
+
+	                             amprel=0.76, ampcrv=(-2),amposc=1,
+
+	                                     clickrel=0.18, clickamp=0.31,clickcrv=(-9),
+
+	                                                     dist=4, pan=(0),amp=0.41, out=0;
+
+		var env0, env1, envclick, click, sig;
+
+			env0 = EnvGen.kr(Env.perc(0.01,amprel,amposc,ampcrv), doneAction:2);
+
+		env1 = EnvGen.kr(Env.perc(0.01,pitchrel,pitchmod,pitchcrv),1,1,1);
+
+			envclick=EnvGen.kr(Env.perc(0.0001,clickrel,clickamp,clickcrv));
+
+			click = LPF.ar(WhiteNoise.ar(1),((env1/pitchmod)*10000)+40,envclick);
+
+		sig = click + SinOsc.ar(env1*pitchkick, pi/2, env0);
+
+	sig = LeakDC.ar(sig,0.996);
+
+	sig = (sig*dist).tanh;
+
+	sig = Pan2.ar(sig,pan,amp);
+
+	Out.ar(out,sig);
+
+}).play;
+)
+
+///TriOsc Kick
+
+(
+	SynthDef("kicktri", {
+	arg
+	pitchkick=49, pitchrel=0.17, pitchmod=4, pitchcrv=(-7),
+
+	                             amprel=0.66, ampcrv=(-3),amposc=1,
+
+	                                     clickrel=0.28, clickamp=0.41,clickcrv=(-8),
+
+	                                                     dist=4, pan=(0),amp=0.41, out=0;
+
+		var env0, env1, envclick, click, sig;
+
+			env0 = EnvGen.kr(Env.perc(0.01,amprel,amposc,ampcrv), doneAction:2);
+
+		env1 = EnvGen.kr(Env.perc(0.01,pitchrel,pitchmod,pitchcrv),1,1,1);
+
+			envclick=EnvGen.kr(Env.perc(0.0001,clickrel,clickamp,clickcrv));
+
+			click = LPF.ar(WhiteNoise.ar(1),((env1/pitchmod)*10000)+40,envclick);
+
+		sig = click + LFTri.ar(env1*pitchkick, 1, env0);
+
+	sig = LeakDC.ar(sig,0.996);
+
+	sig = (sig*dist).tanh;
+
+	sig = Pan2.ar(sig,pan,amp);
+
+	Out.ar(out,sig);
+
+}).play;
+)
+
+
+///Square Kick
+
+(
+	SynthDef("kicksqr", {
+	arg
+	pitchkick=49, pitchrel=0.23, pitchmod=3, pitchcrv=(-7),
+
+	                             amprel=1.26, ampcrv=(-3),amposc=1,
+
+	                                     clickrel=0.38, clickamp=0.71,clickcrv=(-8),
+
+	                                                     dist=2, pan=(0),amp=0.71, out=0;
+
+		var env0, env1, envclick, click, sig;
+
+			env0 = EnvGen.kr(Env.perc(0.01,amprel,amposc,ampcrv), doneAction:2);
+
+		env1 = EnvGen.kr(Env.perc(0.01,pitchrel,pitchmod,pitchcrv),1,1,1);
+
+			envclick=EnvGen.kr(Env.perc(0.0001,clickrel,clickamp,clickcrv));
+
+			click = LPF.ar(WhiteNoise.ar(1),((env1/pitchmod)*10000)+40,envclick);
+
+		sig = click + LFPulse.ar(env1*pitchkick, 0.5,0.5,env0);
+
+	sig = LPF.ar(sig,pitchkick*((env0**3*225)+1));
+
+	sig = LeakDC.ar(sig,0.996);
+
+	sig = (sig*dist).tanh * 0.5;
+
+	sig = Pan2.ar(sig,pan,amp);
+
+	Out.ar(out,sig);
+
+}).play;
+)
+
+
+///Para Kick
+(
+	SynthDef("kickpara", {
+	arg
+	pitchkick=49, pitchrel=0.23, pitchmod=4, pitchcrv=(-7),
+
+	                             amprel=0.91, ampcrv=(-5),amposc=1,
+
+	                                     clickrel=0.11, clickamp=0.14,clickcrv=(-9),
+
+	                                           dist=7, wet=0.5, pan=(0),amp=1, out=0;
+
+		var env0, env1, envclick, click, sig;
+
+			env0 = EnvGen.kr(Env.perc(0.001,amprel,amposc,ampcrv), doneAction:2);
+
+		env1 = EnvGen.kr(Env.perc(0.001,pitchrel,pitchmod,pitchcrv),1,1,1);
+
+			envclick=EnvGen.kr(Env.perc(0.0001,clickrel,clickamp,clickcrv));
+
+	click = LPF.ar(WhiteNoise.ar(0.71)+Crackle.ar(1.9,1),(11000*(((env1/pitchmod))**3)),envclick);
+
+		sig = click + LFPar.ar(env1*pitchkick,2,env0);
+
+	sig = LeakDC.ar(sig,0.996);
+
+	sig = Balance2.ar(sig,(sig*dist).tanh/2,(wet*2)-1);
+
+	sig = Mix.ar(sig/2) * 0.5;
+
+	sig = Pan2.ar(sig,pan,amp);
+
+	Out.ar(out,sig);
+
+}).play;
+)
+
+(
+Ndef(\valuenoise, {
+    var sig = 0;
+    var note = Demand.kr(Impulse.kr(1/8), 0, Dseq([0, 12, 0, 10, 0], inf));
+    var freq = (110 + (24 + note).midicps).lag(1/2);
+
+    var trig = Impulse.kr(1) + Impulse.kr(1/9, 1/2);
+    var dm = SinOsc.ar(
+        freq: Env.perc(0, 0.01).kr(0, trig).exprange(freq*4, freq/4),
+        mul: 0.5*Env.perc(0.01, 0.5).kr(0, trig),
+    ) + BPF.ar(WhiteNoise.ar(Env.perc(0, 0.01, 0.1).kr(0, trig)), 6000);
+
+    var hh = BPF.ar(WhiteNoise.ar(
+        0.03 * Env.perc(0, 1/8 + SinOsc.kr(1, mul: 1/12)).kr(0, Impulse.kr(4))
+    ), 9000);
+
+    var noise = PinkNoise.ar(
+        LFTri.kr([3, 3.01]).range(0.2, 0.01)
+        * LFPulse.kr(3).lag(0.1)
+        * LFTri.kr(1/4)
+    );
+
+    var offset = Demand.kr(Impulse.kr(1/2), 0, Dseq([5, 6, 4], inf));
+    var shift = LFPulse.kr(1/20).range(4, 2);
+    var glass = SinOsc.ar(
+        freq: freq*[4, offset, 12] / shift,
+        mul: 0.7 * Env.perc(0.01, 0.2).kr(0, Impulse.kr(5/2)),
+    ).sum!2;
+
+    var bass = SinOsc.ar(freq, mul: 0.5 * LFTri.kr(1/4).range(0.5, 1));
+    bass = bass * SinOsc.ar(freq * 2 * SinOsc.ar(freq/4));
+    bass = RLPF.ar(bass, LFTri.kr(1/3, 2).exprange(freq/2, freq*4), 0.9);
+    bass = (bass * 4).tanh * 0.5;
+    bass = LPF.ar(bass, freq*2);
+
+    bass = Pan2.ar(bass);
+    bass = bass.blend(NHHall.ar(HPF.ar(bass, freq*2), 3), 1/4);
+
+    glass = (glass * 10).tanh * 0.15 * LFTri.kr(1/8);
+    glass = LPF.ar(glass, 6000);
+    glass = glass.blend([
+        CombL.ar(glass[0], 1, 3/4 + SinOsc.kr(1).range(0.01, 0.02)),
+        CombL.ar(glass[1], 1, 4/4),
+    ]);
+    glass = glass.blend(NHHall.ar(glass, 2 + LFTri.kr(1/4).range(0, 4)), 1/6);
+    glass = Rotate2.ar(glass[0], glass[1], SinOsc.kr(1/2));
+
+    noise = noise.blend(NHHall.ar(noise));
+
+    dm = (dm * 3).tanh * 0.5;
+    dm = dm.blend(CombL.ar(dm, 1, 1/4, 2), 1/4);
+
+    hh = hh.blend(CombL.ar(hh, 1, [1/9, 1/3], 2), 1/4);
+    hh = Rotate2.ar(hh[0], hh[1], LFTri.kr(1/4));
+
+    if (true) {
+        bass = bass * Env.asr().delay(0).kr;
+        dm = dm * Env.asr().delay(0).kr;
+        hh = hh * Env.asr().delay(4).kr;
+        noise = noise * Env.asr().delay(10).kr;
+        glass = glass * Env.asr(4, curve: 8).delay(12).kr;
+    };
+
+    sig = sig + bass;
+    sig = sig + glass;
+    sig = sig + noise;
+    sig = sig + dm;
+    sig = sig + hh;
+	sig = sig * 0.5;
+
+    sig = Limiter.ar(sig);
+}).play;
+)
+
+
+    init {  arg aadvance, aname, aclock, aquant;
+		advance = aadvance;
+		name = aname;
+		clock = aclock;
+		quant = aquant;
+
+        loopIndex = 0;
+        charIndex = 0;
+        quant = 0;
+        skipSectionBool = false;
+    }
+
+
+(
+SynthDef(\panSpinner2ch, {
+    | spinFreq = 1 |
+    
+    var spinner = Phasor.kr(rate: spinFreq/ControlRate.ir);
+	var in = In.ar(\inbus.kr, 1);
+	var sig;
+    sig = PanAz.ar(2, in, spinner);
+	Out.ar(\out.kr(0), sig);
+}).add;
+)
+
+
+~bus = ~bus ?? { Bus.audio(s, 1) }; // create bus or reuse ~bus if existing
+Synth(\otherSynth, [\out, ~bus]);
+Synth(\panSpinner2ch, [ \inbus, ~bus ], addAction:\addToTail);
+
+
+Synth(\otherSynth);
+
+(
+SynthDef(\panSpinner2ch, { arg out=0, gate=1, spinFreq=1;
+	var sig;
+	var in = In.ar(\inbus.kr, 1); 
+    var spinner = Phasor.kr(rate: spinFreq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+    sig = PanAz.ar(2, in);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+SynthDef(\otherSynth, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+);
+
+
+(
+p{ arg in;
+	loop { 
+		in = ( in+10 ).rand.yield;
+	}
+}
+)
+(
+r = Routine { |inval|
+    inval.postln;
+    inval = 123.yield;
+    inval.postln;
+	4;
+}
+)
+
+r.value("hello routine");
+r.value("goodbye routine");
+e = (instrument: \zed, freq:230).play
+e.release
+
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(Env.perc, gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+(
+SynthDef.new(name:\simple, ugenGraphFunc:{
+    | out, freq = 440|
+    var source = SinOsc.ar(freq) * Env.perc(0.1,0.3,curve:-8).ar(doneAction: Done.freeSelf) *0.1;
+    Out.ar(bus:out, channelsArray:source)
+}, rates:nil, prependArgs:nil, variants:nil, metadata:nil).add;
+
+r = p({
+    var currentStateIndex = 0;
+    var states = [440, 880];
+    var stateCount = states.size;
+    var transitionMatrix = [
+        [0.1,0.9],
+        [1,0]
+    ];
+    var indexArray = Array.series(stateCount,0,1);
+    loop {
+        currentStateIndex = indexArray.wchoose(transitionMatrix[currentStateIndex]);
+        states[currentStateIndex].yield;
+    };
+});
+
+p = Routine(
+    {
+        var delta = 1/4;
+        var pitchStream = r.asStream;
+        loop {
+            Synth(\simple, [\freq, pitchStream.next]);
+            delta.yield;
+        }
+    }
+);
+
+p.play;
+)
+
+(
+SynthDef.new(name:\simple, ugenGraphFunc:{
+    | out, freq = 440|
+    var source = SinOsc.ar(freq) * Env.perc(0.1,0.3,curve:-8).ar(doneAction: Done.freeSelf) *0.1;
+    Out.ar(bus:out, channelsArray:source)
+}, rates:nil, prependArgs:nil, variants:nil, metadata:nil).add;
+
+r = p({
+    var currentStateIndex = 0;
+    var states = [440, 200, 880];
+    var stateCount = states.size;
+    var transitionMatrix = [
+        [0.1,0.9,0.4],
+        [0.1,0.2,0.7],
+        [1,0,0.2],
+    ];
+    var indexArray = Array.series(stateCount,0,1);
+    loop {
+        currentStateIndex = indexArray.wchoose(transitionMatrix[currentStateIndex].normalizeSum);
+        states[currentStateIndex].yield;
+    };
+});
+
+p = Tdef(\rout,(
+    {
+        var delta = 1/16;
+        var pitchStream = r.asStream;
+        loop {
+			s.bind{
+				Synth(\simple, [\freq, pitchStream.next]);
+			};
+            delta.yield;
+        }
+    }
+));
+
+p.play;
+)
+
+
+///////////
+
+(
+SynthDef(\additiveGrains, {
+    | parts = 1, freq = 0.3, amp = 0.3, mcAdamsA = 1, grainDur = 10|
+
+    var maxParts = 16, partAmps, partFreqs, sig;
+
+    freq = freq.linlin(0, 1, 50.cpsmidi, 10000.cpsmidi);
+    partFreqs = ((1..maxParts/2) ** mcAdamsA) ++ ((2..maxParts/2) ** mcAdamsA * -1);
+
+	//(freq.midicps * partFreqs).poll;
+	(partFreqs).poll;
+
+    partAmps = Array.fill(maxParts-1, { | i | (i < parts.linlin(0, 1, 1, maxParts).floor).asInteger});
+
+    //partAmps.poll;
+
+
+    mcAdamsA = mcAdamsA.linexp(0, 1, 0.01, 5);
+
+
+    sig = GrainSin.ar(
+        trigger: Impulse.kr(1),
+        dur: 0.1,
+        freq: freq.midicps * partFreqs,
+        mul: partAmps
+    );
+	sig = sig[0..2];
+	sig.debug("sig");
+
+    sig = Pan2.ar(Mix(sig), \pan.kr(0.5).linlin(0, 1, -1, 1), amp.lincurve(0, 1, -96, 0, -4).dbamp);
+
+    Out.ar(0, sig * Env.cutoff(grainDur).kr(gate: \gate.kr(1)));
+}).add;
+Ndef(\ag, \additiveGrains).play;
+)
+
+SynthDefp
+
+(
+Ndef(\zed, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = SinOsc.ar(-1 * freq) + sig;
+	sig = Pan2.ar(sig, pan, amp);
+}).play;
+);
+
+
+(
+p = Pseq([Pseq([
+    Pbind(
+        \instrument, \default,
+        //\buf, b,
+        \amp, Pseg([-24.dbamp, 0.dbamp], [Pwhite(0.5, 2, 1)], \exp, 1),
+        \dur, Pbrown(0.01, 0.1, 0.005),
+        //\rdPos, Pdup(inf,  Pwhite(0, b.numFrames, 1)),
+        \legato, 1,
+        \rel, 0.5
+    ),
+    Pbind(
+        \instrument, \default,
+        \amp, 1,
+        \dur, Pseg([0.02, 0.1], [2], \exp, 1),
+        \legato, 4,
+        //\buf, b,
+        \pan, Pwhite(-1, 1),
+        //\rdPos, Pdup(inf,  Pwhite(0, b.numFrames, 1)),
+    )
+], 4), Rest(2)], inf);
+)
+p.play
+
+(
+var server = Server(\NONrealtime,
+    options: ServerOptions.new
+    .numOutputBusChannels_(2)
+    .numInputBusChannels_(2)
+);
+
+t = p.asScore(20, 0.01);
+
+//t.addSystemSynthDefs;
+
+//t.add([0, [\d_recv, d.asBytes]]);
+//t.add([0, Buffer(server).allocReadMsg("suoni/public 1 2025-06-15.wav")]);
+
+File.mkdir("nrt/");
+
+t.recordNRT(
+    outputFilePath: PathName(thisProcess.nowExecutingPath).parentPath++"nrt/" ++ Date.new.asString ++ ".wav",
+  sampleRate: 48000,
+  headerFormat: "wav",
+  sampleFormat: "int24",
+  options: s.options,
+  duration: 60,
+);
+
+server.remove;
+)
+
+
+(
+x = Pseq([Event.silent(2), Pbind(
+    \freq, Pexprand(200, 800, inf),
+    \dur, Pexprand(0.8, 1.25, inf) * Pgeom(0.01, 1.0143978590819, 400),
+    \legato, 3,
+)]).asScore(10, timeOffset: 0.001);
+
+x.add([0.0, [\d_recv, SynthDescLib.global[\default].def.asBytes]]);
+x.sort;
+
+x.recordNRT(
+    outputFilePath: "~/nrt.wav".standardizePath,
+    sampleRate: 44100,
+    headerFormat: "wav",
+    sampleFormat: "int16",
+    options: ServerOptions.new.numOutputBusChannels_(2),
+    duration: 10
+);
+)
+
+(
+p = Pseq([Pseq([
+	Pbind(
+		\instrument, \default,
+		//\buf, b,
+		\amp, Pseg([-24.dbamp, 0.dbamp], [Pwhite(0.5, 2, 1)], \exp, 1),
+		\dur, Pbrown(0.01, 0.1, 0.005),
+		//\rdPos, Pdup(inf,  Pwhite(0, b.numFrames, 1)),
+		\legato, 1,
+		\rel, 0.5
+	),
+	Pbind(
+		\instrument, \default,
+		\amp, 1,
+		\dur, Pseg([0.02, 0.1], [2], \exp, 1),
+		\legato, 4,
+		//\buf, b,
+		\pan, Pwhite(-1, 1),
+		//\rdPos, Pdup(inf,  Pwhite(0, b.numFrames, 1)),
+	)
+], 4), Rest(2)], inf);
+)
+x = p.asScore(10, timeOffset: 0.001);
+x = p.asScore(10, 0.01);
+
+
+NRT
+
+(
+SynthDef(\bufMonoRead, {
+		| buf = 0 |
+
+		var rdPos = \rdPos.kr(0), sig = PlayBuf.ar(
+			numChannels: 1,
+			bufnum: buf,
+			rate: BufRateScale.kr(buf) * \rate.kr(1),
+			startPos: rdPos,
+			trigger: Changed.kr(rdPos),
+			loop: 1
+		);
+
+		sig = sig * Env.asr(\atk.kr(0.01), 1, \rel.kr(1)).kr(gate: \gate.kr(1), doneAction: Done.freeSelf);
+
+		Out.ar(\out.ir(0), Pan2.ar(sig, \pan.kr(0), \amp.kr(1)));
+	}).asBytes
+)
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				//Pdup(2,Pseq([1,2,3],inf)),
+				Pstutter()
+				Pn(Pseq([1,2,3],1),2),
+			],inf),
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+Pwhite(0,1).asStream.next
+Pwhite(0.0,1).asStream.next
+
+Pseg([0.02, 0.1], [2], \exp, 1).asStream.next
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \default,
+			\freq, Pseg([1000.02, 100.1,3000], [2,1], \exp, 1).trace,
+			\dur, 1/4,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+
+(
+var server = Server(\NONrealtime,
+	options: ServerOptions.new
+	.numOutputBusChannels_(2)
+	.numInputBusChannels_(2)
+),
+buf = Buffer.new(server, 0, 1),
+durSect = 20;
+
+~sd = SynthDef(\bufMonoRead, {
+	| buf = 0 |
+
+	var rdPos = \rdPos.kr(0), sig = PlayBuf.ar(
+		numChannels: 1,
+		bufnum: buf,
+		rate: BufRateScale.kr(buf) * \rate.kr(1),
+		startPos: rdPos.poll * BufFrames.ir(buf),
+		trigger: Changed.kr(rdPos),
+		loop: 1
+	);
+
+	sig = sig * Env.asr(\atk.kr(0.01), 1, \rel.kr(1)).kr(gate: \gate.kr(1), doneAction: Done.freeSelf);
+
+	Out.ar(\out.ir(0), Pan2.ar(sig, \pan.kr(0), \amp.kr(1)));
+});
+~sd.add;
+
+~score = Pseq([Pseq([
+	Pbind(
+		\instrument, \bufMonoRead,
+		\buf, buf,
+		\amp, Pseg([-24.dbamp, 0.dbamp], [Pwhite(0.5, 2, 1)], \exp, 1),
+		\dur, Pbrown(0.01, 0.1, 0.005),
+		\rdPos, Pwhite(0.0, 1),
+		\legato, 1,
+		\rel, 0.5
+	),
+	Pbind(
+		\instrument, \bufMonoRead,
+		\amp, 1,
+		\dur, Pseg([0.02, 0.1], [2], \exp, 1),
+		\legato, 4,
+		\buf, buf,
+		\pan, Pwhite(-1.0, 1),
+		\rdPos, Pwhite(0.0, 1)
+	)
+], 4), Event.silent(2)], inf).asScore(durSect, 0.1);
+
+~score.add([0, buf.allocReadMsg("~/tmp/zouk.wav".standardizePath)]);
+
+~score.add([0, [\d_recv, ~sd.asBytes ]]);
+~score.sort;
+)
+
+
+(
+~score.recordNRT(
+	outputFilePath: "~/nrt.wav".standardizePath,
+	sampleRate: 44100,
+	headerFormat: "wav",
+	sampleFormat: "int16",
+	options: ServerOptions.new.numOutputBusChannels_(2),
+	duration: 10
+);
+)
+
+~score.list
+~score.score.do(_.postln)
+Score
+
+BufDef(\amen, "vipere/amenbreak.wav").path;
+BufDef(\moeten, "voices/02_moeten.flac")
+BufDef(\crepe, "field/crepe.flac");
+BufDef(\oeuf, "field/oeuf.flac");
+BufDef(\ukraine, "bruit1/07_ukraine.flac");
+BufDef(\table, "field/table.flac");
+BufDef(\scream, "vipere/scream.flac");
+BufDef(\rocksteady, "vipere/rocksteady.flac");
+BufDef(\metal, "vipere/metal.flac");
+BufDef(\bomb, "vipere/bomb.flac");
+
+
+pat1 = Pmono(\test,
+    \dur, Pwhite(0.1, 1),
+    \db, -6,
+
+    \freq, 10000,
+
+    \distort, Pwhite(1.0, 16)
+);
+
+pat2 = Pbind(
+    \instrument, \test,
+    \dur, Pwhite(0.05, 1, 1),
+    \legato, 0.01,
+    \rel, 0.1,
+
+    \freq, 150,
+
+    \amp, Pwrand([12.dbamp, 0], [1, 9].normalizeSum, 1)
+);
+
+(
+Pdef(\part,
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				0,4,
+			],inf),
+		),
+		Pmono(\default,
+			\note, Pseq([
+				7,9,
+			],inf),
+		),
+	])
+	<>
+	Pbind(
+		\dur, Pwhite(0.05, 1, inf).stutter(2),
+	)
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+	   	Ppar([
+			Pbind(
+				\instrument, \default,
+				\note, Pseq([
+					0,4,
+				],inf),
+			),
+			Pmono(\default,
+				\note, Pseq([
+					7,9,
+				],inf),
+			),
+		].collect({
+			arg p;
+			p 
+			<>
+			Pbind(
+				\dur, Pseed(1234,Pwhite(0.05, 1, inf)),
+			)
+		}))
+		
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Prout({ arg ev;
+			try {
+				var patlist = [
+					Pbind(
+						\instrument, \default,
+						\note, Pseq([
+							0,4,
+						],inf),
+					),
+					Pmono(\default,
+						\note, Pseq([
+							7,9,
+						],inf),
+					),
+				].collect(_.asStream);
+				var durpat = Pwhite(0.05,1,inf).asStream;
+				var evlist;
+				loop {
+					block { arg break;
+
+						var dur = durpat.next;
+						evlist = patlist.collect({ arg p; p.next(ev) });
+						evlist.do { arg item, idx;
+							if(item.isNil) { break.value }
+							item.debug("item");
+							item[\dur] = durpat.next;
+							if(idx == ( evlist.size-1 )) {
+								ev = item.yield;
+							} {
+								item[\delta] = 0;
+								ev = item.yield;
+							}
+						};
+					}
+				}
+			} { arg error;
+				error.reportError;
+				error.throw;
+			}
+
+			
+		}),
+		
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \default,
+			\degree, Pseq([[ 0,2,4,0 ]],inf) + Pseq([0,3,4],inf),
+			\harmonic, 650/2/60.midicps,
+			\debug, Pfunc{ arg ev; ev.use{ ~freq.value }.debug("freq") },
+			\scale, Scale.minor,
+			\octave, 5,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+SynthDef(\test, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq.poll);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \test,
+			\degree, Pseq([[ 0 ]],inf) + Pseq([0,3,4],inf),
+			//\harmonic, 250/60.midicps,
+			\debug, Pfunc{ arg ev; ev.use{ ~freq.value }.debug("freq") },
+			//\scale, Scale.minor,
+			//\octave, 6,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+60.midicps
+
+
+(
+var bpm = 90, ritmo = [1, 1];
+
+SynthDef(\test, {
+    | out = 0 |
+
+    var sig = SinOsc.ar(\freq.kr(80)) * Env.perc(0.008, \rel.kr(1)).kr(gate: \gate.kr(1), doneAction: Done.freeSelf);
+
+    Out.ar(out, Pan2.ar(sig, \pan.kr(0), \amp.kr(1)));
+}).add;
+
+
+)
+(
+~ritmo = [1];
+Pdef(\ritm, Pbind(
+    \instrument, \test,
+    \dur, Psubdivide(Pseq([ 1, 1, 3 ],inf), Pseq(~ritmo, inf)),
+	//\bla, Pdup(Pseq([ 1, 1, 3 ],inf), Pseq([1,2,3], inf)).trace,
+	\count, Pseries(0,1),
+	\rah, Pfunc({ arg ev;
+		ev[\count].debug("count");
+		1;
+	}),
+	//\freq, Pseq([
+		//400,Pn(180,1).stutter(Pseq(ritmo)-1)
+	//],inf),
+
+    \db, -6,
+    //\freq, 80,
+    \rel, 0.5
+)).play;
+
+)
+
+(
+~ritmo = [1, 0.25, 0.75, 2];
+Pdef(\ritm, Pbind(
+    \instrument, \test,
+    //\dur, Psubdivide(Pseq([ 1, 1, 3 ],inf), Pseq(~ritmo, inf)),
+	//\bla, Pdup(Pseq([ 1, 1, 3 ],inf), Pseq([1,2,3], inf)).trace,
+	\dur, Prout({ arg ev;
+		var parts = Pwhite(1,3).asStream;
+		var ritmo = Pseq(~ritmo,inf).asStream;
+		block { arg break;
+			loop {
+				var durval = ritmo.next;
+				var partsval = parts.next;
+				if(durval.isNil or: { partsval.isNil }) { break.value };
+
+				ev[\accent] = 1;
+				partsval.do {
+					ev = ( durval/partsval ).yield;
+					ev[\accent] = 0;
+				}
+			}
+		}
+	}),
+	\count, Pseries(0,1),
+	\rah, Pfunc({ arg ev;
+		ev[\count].debug("count");
+		1;
+	}),
+	\freq, Pif(Pfunc({ arg ev; ev[\accent] > 0 }), 400,100),
+	//\freq, Pseq([
+		//400,Pn(180,1).stutter(Pseq(ritmo)-1)
+	//],inf),
+
+    \db, -6,
+    //\freq, 80,
+    \rel, 0.5
+)).play;
+
+)
+
+(
+Pdef(\ritm, Pbind(
+    \instrument, \test,
+	\dur, Prout({ arg ev;
+		var parts = Prand([1,2,3,4,8],inf).asStream;
+		var ritmo = Pseq([1/2,1],inf).asStream;
+		block { arg break;
+			loop {
+				var durval = ritmo.next;
+				var partsval = parts.next;
+				if(durval.isNil or: { partsval.isNil }) { break.value };
+
+				ev[\accent] = 1;
+				partsval.do {
+					ev = ( durval/partsval ).yield;
+					ev[\accent] = 0;
+				}
+			}
+		}
+	}),
+	\freq, Pif(Pfunc({ arg ev; ev[\accent] > 0 }), 400,100),
+    \db, -6,
+    \rel, 0.5
+)).play;
+)
+
+(
+// marimba and wood are taken from this blog https://thormagnusson.gitbooks.io/scoring/content/PartII/chapter11.html
+SynthDef(\marimba, {arg out=0, amp=0.1, t_trig=1, freq=100, rq=0.006;
+    var env, signal;
+    var rho, theta, b1, b2;
+    b1 = 1.99 * 0.9889999999 * cos(0.09);
+    b2 = 0.998059.neg;
+    signal = SOS.ar(K2A.ar(t_trig), 0.3, 0.0, 0.0, b1, b2);
+	signal = RHPF.ar(signal*0.8, freq, rq) + DelayC.ar(RHPF.ar(signal*0.9, freq*0.99999, rq*0.999), 0.02, 0.01223);
+	signal = Decay2.ar(signal, 0.4, 0.3, signal)*20;
+	signal = signal * Env([0,1,1,0],[0.03,1,0.01]).kr;
+	signal = HPF.ar(signal,freq);
+    DetectSilence.ar(signal, 0.0001, doneAction:2);
+    Out.ar(out, signal*(amp*0.4)!2);
+}).add;
+SynthDef(\wood, {arg out=0, amp=0.3, pan=0, sustain=0.5, t_trig=1, freq=100, rq=0.06;
+    var env, signal;
+    var rho, theta, b1, b2;
+    b1 = 2.0 * 0.97576 * cos(0.061447);
+    b2 = 0.9754.squared.neg;
+    signal = SOS.ar(K2A.ar(t_trig), 1.0, 0.0, 0.0, b1, b2);
+	signal = Decay2.ar(signal, 0.4, 0.8, signal);
+	signal = Limiter.ar(Resonz.ar(signal, freq, rq*0.5), 0.9);
+	signal = HPF.ar(signal,freq*0.75);
+    env = EnvGen.kr(Env.perc(0.00001, sustain, amp), doneAction:2);
+	DetectSilence.ar(signal, 0.0001, doneAction:2);
+    Out.ar(out, Pan2.ar(signal, pan)*env);
+}).add;
+SynthDef(\naizi, { arg gate=1, decay =0.2, freq = 500;
+	var click;
+	var a = Polar(\aRho.kr(0.5),\aTheta.kr(0.0)).asPoint;
+	var b = Polar(\bRho.kr(0.5),\bTheta.kr(0.0)).asPoint;
+	var nois = WhiteNoise.ar(1)!2*Decay.ar(Env([0,1,0],[0.000001,0.00001]).ar(gate:gate),decay+[0,0.02]);
+	var env = Env([0,1,1,0],[0,decay*3]).kr(gate:gate,doneAction:2);
+	nois = SOS.ar(nois,1,a.x+[0.3,0],a.y+[0.4,0],b.x+[0,0.15],b.y+[0,0.15]);
+	click = nois* -24.dbamp * Env([0,1,0],[0.00001,0.03]).kr(gate:gate);
+	click = DelayC.ar(click,0.1,0.01);
+	click = LPF.ar(click,(freq*8).max(20).min(20000));
+	click = HPF.ar(click,(freq*0.25).max(20).min(20000));
+	nois = Limiter.ar(Resonz.ar(nois, freq+[10,0], \q.kr(0.2)), 0.9) + click;
+	// nois = click;
+	nois = nois + (nois.fold(-0.3,0.4)* -8.dbamp);
+	nois = nois * \amp.kr(1) * env;
+	Out.ar(\out.kr(0),nois);
+}).add;
+~fxBus = Bus.audio(server: s, numChannels: 2);
+TempoClock.default.tempo = 58/60
+);
+Ndef(\fx).play;
+(
+Ndef(\fx)[1] = { |sig, pitch=1, gat=1, dur=1 |
+	var in, verb, snd, lp;
+	in = In.ar(~fxBus,2);
+	snd = in + DelayC.ar(in,0.2,0.001+LFNoise2.kr(0.2!2,0.001),-7.dbamp);
+	snd = snd + BAllPass.ar(snd,600+LFNoise2.kr(0.2!2,200),0.5+LFNoise2.kr(0.2!2,0.4),-8.dbamp);
+	snd = snd + DelayC.ar(snd,0.2,0.002+LFNoise2.kr(0.2!2,0.001),-7.dbamp);
+	snd = snd + BAllPass.ar(snd,700+LFNoise2.kr(0.2!2,200),0.5+LFNoise2.kr(0.2!2,0.4),-9.dbamp);
+	snd = snd + DelayC.ar(snd,0.2,0.0025+LFNoise2.kr(0.2!2,0.0015),-8.dbamp);
+	snd = BAllPass.ar(snd,700+LFNoise2.kr(0.2!2,200),0.5+LFNoise2.kr(0.2!2,0.4));
+	verb = FreeVerb.ar(snd,1,0.8,0.9);
+	snd = snd + HPF.ar(verb * -18.dbamp,250);
+	snd = snd * -14.dbamp;
+	lp = LPF.ar(in,150);
+	lp = LeakDC.ar(lp.clip(-40.dbamp.neg,-35.dbamp))* 10.dbamp;
+	snd = in + (snd* -4.dbamp) + (lp * -9.dbamp);
+	snd;
+};
+);
+(
+~scale = Scale.locrian;
+~chords = [\DM,\Gm,\Cm,\Fm,\DM,\GM,\Em,\Fm,\DM,\Gm,\GM,\Em,\DM,\GM,\CM,\Fm]; // needs ChordSymbol quark to work
+Pdef(\teN,Pbind(
+	\instrument, \naizi,
+	\db, -20,
+	\dur, 0.125,
+	\decay, 0.1,
+	\q, Pseg([0.2,0.4,0.05,0.2],4,\lin,inf),
+	\note, Pstep(~chords.collect({arg b; (b++"7").asSymbol }),2,inf).collect({ arg chord;
+		chord.collect({ arg note;
+			([0,1,2,3].collect(note+(_*12)).select((_>11) && (_<30) )-12).sort
+		}).flatten
+	}),
+	\octave, [2,5,7,10], \db, [-3,-18,-22,-33]+Pseq([[0,0,-50,0],[0,-50,0,0],[-6,-50,0,0]],inf)+Pseq([[0,0,0,-40],[0,0,-20,-40],[0,-5,-10,0],[-6,-10,0,-40]],inf)+Pseq([[2,-2,-10,0],[0,0,0,0]],inf),
+	\aRho, Pseq([0.5,0.7,0.98].scramble,inf),
+	\aTheta, Pseq([0,1,2,3].scramble,inf),
+	\aRho, Pseq([0.0,0.2,0.4,0.6].scramble,inf),
+	\aTheta, Pseq([pi,pi*0.8,pi*0.6,pi*0.4,pi*0.2,0.0].scramble,inf),
+	\scale, ~scale,
+	\out, ~fxBus,
+)).play;
+Pdef(\mari,Pbind(
+    \instrument, \marimba,
+	\note, Pstep(~chords.collect({arg b; (b++"7").asSymbol }),2,inf	).collect({ arg chord;
+		chord.collect({ arg note;
+			[0,1,2,3].collect(note+(_*12)).select((_>6) && (_<25) ).sort
+		}).flatten
+	}),
+	\octave, Prand([6,6,7,[6,7],[7,6],6], inf),
+	\db, -17,
+	\dur, Pseq([0.25,0.5,0.25,0.25,0.125,0.125,0.25,0.25],inf),
+	\out, ~fxBus,
+	\scale, ~scale,
+	\rq, Pseg([0.008,0.015,0.002,0.01,0.008],4,\exp,inf),
+)).play;
+Pdef(\wood,Pbind(
+    \instrument, \wood,
+	\note, Pstep(~chords.collect({arg b; (b++"7").asSymbol }),2,inf	).collect({ arg chord;
+		chord.collect({ arg note;
+			[0,1,2,3].collect(note+(_*12)).select((_>14) && (_<29) ).sort
+		}).flatten
+	}),
+	\octave, Prand([5,4,[4,5],[5,4],5,4,4], inf),
+	\db, -13,
+    \dur, Pseq([0.25,0.375,0.375,0.25,0.375,0.125,0.25],inf),
+	\out, ~fxBus,
+	\rq, Pseg([0.08,0.2,0.02,0.08],4,\exp,inf),
+	\scale, ~scale,
+	\pan, Pwhite(-0.5,0.5,inf),
+)).play;
+);
+
+// patch name: Audrey II
+// patch date: 2026-02-06
+// patch desc: software Audrey II drone synthesizer (Synthux Academy / Fede Repic)
+//             feedback-driven self-oscillating drone machine
+//
+// signal flow:
+//   noise seed (-90dBFS) + fb_return -> KS resonator -> overdrive -> LPF -> HPF -> reverb
+//       ^                                                                            |
+//       +--- feedback delay ("body", 1-100ms, stereo decorrelated) <--- fb_gain <----+
+//                                                                                    |
+//                                                                              echo send
+//                                                                                    v
+//                                                                     echo delay (50ms-5s)
+//                                                                     BPF 800Hz -> tanh
+//                                                                        (tape degradation)
+//
+// no oscillator generates sound -- the feedback loop self-excites when gain > ~0 dB
+
+(
+SynthDef(\audrey2, {
+	|out=0, freq=48, fbGain= -20, body=0.01, lpf=12000, hpf=60,
+	 verbMix=0.3, verbDecay=0.5,
+	 echoSend=0, echoTime=0.3, echoFb=0.5,
+	 vol=0.3|
+	var seed, sigL, sigR, verbL, verbR;
+	var fbRetL, fbRetR, echoRetL, echoRetR;
+	var echoTapeL, echoTapeR, echoOutL, echoOutR;
+	var kFreq = Lag.kr(freq, 0.2).midicps;
+	var kBody = Lag.kr(body, 1.0);
+	var kFbAmp = Lag.kr(fbGain, 0.05).dbamp;
+	var kLpf = Lag.kr(lpf, 0.05);
+	var kHpf = Lag.kr(hpf, 0.05);
+	var kEchoTime = Lag.kr(echoTime, 0.5);
+	var kEchoSend = Lag.kr(echoSend, 0.05);
+	var kEchoFb = Lag.kr(echoFb, 0.05);
+
+	// feedback return: 2 main fb + 2 echo fb
+	#fbRetL, fbRetR, echoRetL, echoRetR = LocalIn.ar(4);
+
+	// === MAIN FEEDBACK LOOP ===
+
+	// white noise seed at -90 dBFS + feedback (independent L/R seeds)
+	sigL = WhiteNoise.ar(-90.dbamp) + (fbRetL * kFbAmp);
+	sigR = WhiteNoise.ar(-90.dbamp) + (fbRetR * kFbAmp);
+
+	// karplus-strong resonator (tuned comb filter + brightness damping)
+	// decay matches original's 0.8 damping factor: ~31 periods to -60dB
+	sigL = OnePole.ar(CombL.ar(sigL, 0.2, kFreq.reciprocal, kFreq.reciprocal * 31), 0.98);
+	sigR = OnePole.ar(CombL.ar(sigR, 0.2, kFreq.reciprocal, kFreq.reciprocal * 31), 0.98);
+
+	// overdrive (soft clipping)
+	sigL = (sigL * 1.5).tanh;
+	sigR = (sigR * 1.5).tanh;
+
+	// feedback loop filters + DC blocker
+	sigL = LeakDC.ar(HPF.ar(LPF.ar(sigL, kLpf), kHpf));
+	sigR = LeakDC.ar(HPF.ar(LPF.ar(sigR, kLpf), kHpf));
+
+	// reverb (inside the feedback loop, as in original)
+	#verbL, verbR = FreeVerb2.ar(sigL, sigR,
+		Lag.kr(verbMix, 0.05), Lag.kr(verbDecay, 0.05), 0.5);
+
+	// === ECHO DELAY (outside the feedback loop) ===
+	// tape-style: each repetition passes through BPF + soft clip,
+	// progressively losing highs and lows (telephone-like degradation)
+
+	// tape degradation on echo feedback return
+	echoTapeL = BPF.ar(echoRetL, 800, 1.0).tanh;
+	echoTapeR = BPF.ar(echoRetR, 800, 1.0).tanh;
+
+	// mix echo input (dry send) with degraded feedback, then delay
+	echoOutL = DelayC.ar((verbL * kEchoSend) + (echoTapeL * kEchoFb), 5, kEchoTime);
+	echoOutR = DelayC.ar((verbR * kEchoSend) + (echoTapeR * kEchoFb), 5, kEchoTime);
+
+	// write all feedback paths
+	LocalOut.ar([
+		// main feedback delay ("body") -- right offset by 4 samples for stereo
+		DelayC.ar(verbL, 0.25, kBody),
+		DelayC.ar(verbR, 0.25, max(SampleDur.ir, kBody - (4 * SampleDur.ir))),
+		// echo delay feedback
+		echoOutL,
+		echoOutR
+	]);
+
+	// final mix: dry + echo wet, then limiter
+	Out.ar(out, Limiter.ar([
+		verbL + echoOutL,
+		verbR + echoOutR
+	] * 0.5 * Lag.kr(vol, 0.05), 0.7));
+}).add;
+)
+
+(
+a = Synth(\audrey2);
+
+w = Window.new("Audrey II", Rect(200, 200, 460, 480)).layout_(
+	VLayout(
+		StaticText().string_("Audrey II -- feedback drone synthesizer").align_(\center),
+		HLayout(
+			VLayout(StaticText().string_("Freq"),
+				Slider().value_([16,72].asSpec.unmap(48))
+				.action_({|x| a.set(\freq, [16,72].asSpec.map(x.value))})),
+			VLayout(StaticText().string_("Fb Gain"),
+				Slider().value_([-60,12].asSpec.unmap(-20))
+				.action_({|x| a.set(\fbGain, [-60,12].asSpec.map(x.value))})),
+			VLayout(StaticText().string_("Body"),
+				Slider().value_([0.001,0.1,\exp].asSpec.unmap(0.01))
+				.action_({|x| a.set(\body, [0.001,0.1,\exp].asSpec.map(x.value))})),
+		),
+		HLayout(
+			VLayout(StaticText().string_("LPF"),
+				Slider().value_([100,18000,\exp].asSpec.unmap(12000))
+				.action_({|x| a.set(\lpf, [100,18000,\exp].asSpec.map(x.value))})),
+			VLayout(StaticText().string_("HPF"),
+				Slider().value_([10,4000,\exp].asSpec.unmap(60))
+				.action_({|x| a.set(\hpf, [10,4000,\exp].asSpec.map(x.value))})),
+		),
+		HLayout(
+			VLayout(StaticText().string_("Verb Mix"),
+				Slider().value_(0.3)
+				.action_({|x| a.set(\verbMix, x.value)})),
+			VLayout(StaticText().string_("Verb Decay"),
+				Slider().value_([0.2,1.0].asSpec.unmap(0.5))
+				.action_({|x| a.set(\verbDecay, [0.2,1.0].asSpec.map(x.value))})),
+		),
+		HLayout(
+			VLayout(StaticText().string_("Echo Send"),
+				Slider().value_([0.001,1.0,\exp].asSpec.unmap(0.001))
+				.action_({|x| a.set(\echoSend, [0.001,1.0,\exp].asSpec.map(x.value))})),
+			VLayout(StaticText().string_("Echo Time"),
+				Slider().value_([0.05,5.0,\exp].asSpec.unmap(0.3))
+				.action_({|x| a.set(\echoTime, [0.05,5.0,\exp].asSpec.map(x.value))})),
+			VLayout(StaticText().string_("Echo Fb"),
+				Slider().value_([0.0,1.5].asSpec.unmap(0.5))
+				.action_({|x| a.set(\echoFb, [0.0,1.5].asSpec.map(x.value))})),
+		),
+		HLayout(
+			VLayout(StaticText().string_("Volume"),
+				Slider().value_([0.001,1.0,\exp].asSpec.unmap(0.3))
+				.action_({|x| a.set(\vol, [0.001,1.0,\exp].asSpec.map(x.value))})),
+		),
+	)
+).front;
+)
+
+
+p = ProxySpace.push
+
+~a = { Bus.control(s, 1) } ! 8;
+~a.edit
+~a
+topEnvironment[\a] = { Bus.control(s, 1) } ! 8;
+topEnvironment[\a]
+a = Environment();
+a[\knobs] = { Bus.control(s, 1) } ! 8;
+a[\knobs]

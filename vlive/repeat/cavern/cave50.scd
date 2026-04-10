@@ -151,6 +151,7 @@ Ndef('rdn2').put(100, \pset -> Pbind(
 );
 
 (
+ProtoDef(\simpleMixer).play;
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(

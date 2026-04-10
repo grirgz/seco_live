@@ -577,7 +577,7 @@ Pdef(\part, Pdef(\zed,
 			\dur, 4,
 			\amp, 0.1,
 			\octave, 4,	
-			\out, BusDef(\sendbus1, \audio),
+			//\out, BusDef(\sendbus1, \audio),
 		);
 		}))
 		
@@ -3051,6 +3051,8 @@ Pdef(\part, Pdef(\zed,
 );
 
 PlayerWrapper(Pdef(\curvescratcher)).edit
+Pdef(\curvescratcher).edit
+Pdef(\curvescratcher).clear
 (
 Pdef(\part3, Pdef(\zed3, 
 	Ppar([

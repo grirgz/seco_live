@@ -74,6 +74,59 @@ SynthDef(\fmbass2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 );
 
 (
+// split an event pattern and repeat the first slice, then the second, etc
+~ploopdur = { arg pattern, dur=1, repeats=1, iterations=inf, tolerance=0.001;
+	Prout({ arg event;
+		var item, delta, elapsed = 0.0, nextElapsed, inevent;
+		var localdurstr = dur.asStream;
+		var localdur;
+		var stream = pattern.asStream;
+		var cleanup = EventStreamCleanup.new;
+		var memory = List.new;
+		var localrepeats = repeats.asStream;
+
+		iterations.do {
+			memory = List.new;
+			elapsed = 0.0;
+			localdur = localdurstr.next;
+
+			block { arg break;
+				loop {
+					inevent = stream.next(event).asEvent ?? { ^event };
+					cleanup.update(inevent);
+					delta = inevent.delta;
+					nextElapsed = elapsed + delta;
+
+					if (nextElapsed.roundUp(tolerance) >= localdur) {
+						// must always copy an event before altering it.
+						// fix delta time and yield to play the event.
+						inevent = inevent.copy.put(\delta, localdur - elapsed);
+						memory.add(inevent.copy);
+						inevent.debug("inevent");
+						inevent = inevent.yield;
+						//event = inevent.yield;
+						//cleanup.exit(inevent);
+						break.value;
+					};
+
+					elapsed = nextElapsed;
+					memory.add(inevent.copy);
+					inevent.debug("inevent");
+					event = inevent.yield;
+
+				};
+			};
+			memory.size.postln;
+			Pseq(memory,localrepeats.next-1).trace.embedInStream;
+		};
+		cleanup.exit(inevent);
+		
+	});
+
+};
+);
+
+(
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(
@@ -307,57 +360,6 @@ Pdef(\zed,
 	}
 )
 
-(
-~ploopdur = { arg pattern, dur=1, repeats=1, iterations=inf, tolerance=0.001;
-	Prout({ arg event;
-		var item, delta, elapsed = 0.0, nextElapsed, inevent;
-		var localdurstr = dur.asStream;
-		var localdur;
-		var stream = pattern.asStream;
-		var cleanup = EventStreamCleanup.new;
-		var memory = List.new;
-		var localrepeats = repeats.asStream;
-
-		iterations.do {
-			memory = List.new;
-			elapsed = 0.0;
-			localdur = localdurstr.next;
-
-			block { arg break;
-				loop {
-					inevent = stream.next(event).asEvent ?? { ^event };
-					cleanup.update(inevent);
-					delta = inevent.delta;
-					nextElapsed = elapsed + delta;
-
-					if (nextElapsed.roundUp(tolerance) >= localdur) {
-						// must always copy an event before altering it.
-						// fix delta time and yield to play the event.
-						inevent = inevent.copy.put(\delta, localdur - elapsed);
-						memory.add(inevent.copy);
-						inevent.debug("inevent");
-						inevent = inevent.yield;
-						//event = inevent.yield;
-						//cleanup.exit(inevent);
-						break.value;
-					};
-
-					elapsed = nextElapsed;
-					memory.add(inevent.copy);
-					inevent.debug("inevent");
-					event = inevent.yield;
-
-				};
-			};
-			memory.size.postln;
-			Pseq(memory,localrepeats.next-1).trace.embedInStream;
-		};
-		cleanup.exit(inevent);
-		
-	});
-
-};
-)
 
 (
 Pdef(\part, Pdef(\zedpart, 

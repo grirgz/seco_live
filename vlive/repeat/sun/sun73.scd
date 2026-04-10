@@ -2508,3 +2508,269 @@ Pdef(\zed,
 	)
 ).play;
 );
+
+(
+Pdef(\zed, 
+	Pmono(
+		 \superpw,
+		\degree, Pseq([0,-5,3,2],inf),
+		\itrig, 1,
+		\lpenvamt, 1,
+		\lpf, PmodEnv(Pseq([400,1200,4000],1), 8, \exp).loop,
+		\rq, PmodEnv(Pseq([0.5,0.3,0.1],1), 8*2).loop,
+		\octave, 3,
+		\dur, 2,
+		\amp, 0.1,
+	)
+).play;
+);
+
+(
+// add bpf
+SynthDef(\superpw2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var num=8;
+	var lpenv;
+	var sigo;
+	sig = LFPulse.ar(freq, 0, LFNoise1.kr(1.1!num, mul:1, add:0).unipolar);
+	sig = sig + LFPulse.ar(freq*2, 0, LFNoise1.kr(1.1, mul:1, add:0).unipolar, mul:0.2);
+	//lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.04,0.4,0.2,4.1,4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.perc(1.6,0.4,curve:4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	sigo = sig;
+	sig = RLPF.ar(sigo, \lpf.kr(400) * lpenv, \rq.kr(0.5));
+	sig = sig + BPF.ar(sigo, \bpf.kr(400) * lpenv, \brq.kr(0.5), mul:\bpfgain.kr(1)) / 2;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+Pdef(\zed).reset;
+);
+
+
+(
+// nice overtones
+Pdef(\zed, 
+	Pmono(
+		 \superpw2,
+		\degree, Pseq([0,-5,3,2],inf),
+		\itrig, 1,
+		\lpenvamt, 1,
+		\lpf, PmodEnv(Pseq([400,1200,4000],1), 8, \exp).loop,
+		\bpf, PmodEnv(Pseq([401,200,50],4), 6).loop,
+		\brq, 0.05,
+		\rq, PmodEnv(Pseq([0.5,0.3,0.1],1), 8*2).loop,
+		\bpfgain, 8,
+		\octave, 3,
+		\dur, 2,
+		\amp, 0.1,
+	)
+).play;
+);
+Pdef(\zed).clear;
+
+
+(
+// add dist
+SynthDef(\superpw3, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var num=8;
+	var lpenv;
+	var sigo;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	sig = LFPulse.ar(freq, 0, LFNoise1.kr(1.1!num, mul:1, add:0).unipolar);
+	sig = sig + LFPulse.ar(freq*2, 0, LFNoise1.kr(1.1, mul:1, add:0).unipolar, mul:0.2);
+	//lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.04,0.4,0.2,4.1,4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.perc(1.6,0.4,curve:4)), \itrig.tr(1), doneAction:0) * \lpenvamt.kr(4) + 1;
+	sig1 = RLPF.ar(sig, \lpf.kr(400) * lpenv, \rq.kr(0.5));
+	sig2 = BPF.ar(sig, \bpf.kr(400) * lpenv, \brq.kr(0.5), mul:\bpfgain.kr(1));
+	sig2 = ( sig2*\distamp.kr(10) ).tanh * \distpostamp.kr(1/2);
+	sig = [sig1, sig2].mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+Pdef(\zed).reset;
+);
+
+(
+// nice subtle dist!
+Pdef(\zed, 
+	Pmono(
+		 \superpw3,
+		\degree, Pseq([0,-5,3,2],inf),
+		\itrig, 1,
+		\lpenvamt, 1,
+		\lpf, PmodEnv(Pseq([400,1200,4000],1), 8, \exp).loop,
+		\bpf, PmodEnv(Pseq([40,100,50],4), 6).loop,
+		\brq, 0.5,
+		\rq, PmodEnv(Pseq([0.5,0.3,0.1],1), 8*2).loop,
+		\bpfgain, 8,
+		\octave, 3,
+		\dur, 2,
+		\amp, 0.1,
+	)
+).play;
+);
+
+//////////
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[914].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 
+				1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\out, BusDef(\kicktrack, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1387].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1387].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,1,
+				0,0,0,0, 0,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\legato, 0.5,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.01) ],
+			],inf),
+			\gain, 0.11/2,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[913].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,0,1,0, 0,0,1,0,
+				0,0,1,0, 0,0,1,0,
+				0,0,1,0, 0,0,1,0,
+				0,0,1,0, 0,0,1,1,
+
+				0,0,1,0, 0,0,1,0,
+				0,0,1,0, 0,0,1,0,
+				0,0,1,0, 0,0,1,0,
+				0,1,1,0, 0,1,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11/2,
+		),
+		Pmono(\simpletrackmixer,
+			\inbus, BusDef(\kicktrack,\audio),
+			\pregain, 1,
+			\postgain, 1,
+			\delay, 0,
+			\send0, 1,
+			\sendbus0, BusDef(\sideinbus, \audio, 2),
+			\dur, 1,
+		),
+		Pmono(\fx_sidechain,
+			\inbus, BusDef(\comp, \audio),
+			\sideinbus, BusDef(\sideinbus, \audio),
+			\cpt, 0.021,
+			\pregain, 1,
+			\cpabove, 0.01,
+			\cpbelow, 1,
+			\cpclamp, 0.01,
+			\cprelax, 0.1,
+			\gain, 1,
+			\dur, 1,
+		),
+		Pmono(
+			\superpw2,
+			\degree, Pseq([0,-5,3,2],inf),
+			\degree, Pseq([
+				//0,-5,3,2,
+				0,-5,3,2,
+				0,-5,3,0,
+			],inf),
+			\itrig, 1,
+			\lpenvamt, 1,
+			\lpf, PmodEnv(Pseq([400,1200,4000],1), 8, \exp).loop,
+			\bpf, PmodEnv(Pseq([401,200,50],4), 6).loop,
+			\brq, 0.05,
+			\rq, PmodEnv(Pseq([0.5,0.3,0.1],1), 8*2).loop,
+			\bpfgain, 8,
+			\octave, 3,
+			\dur, 2,
+			\amp, 0.1,
+			\out, BusDef(\comp, \audio),
+		),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				Prand([4,5,7],inf).stutter(2)
+			],inf),
+			\octave, Pseq([
+				5,6
+			],inf).stutter(8*4*4),
+			\dur, 1/8,
+			\lpf, PmodEnv(Pseq([300,700,2000],1), 8,\exp).loop,
+			\adsr, Pseq([
+				PpatEnv.adsr( Pseg(Pseq([0.1,0.01],inf),8,\exp), 0.1,0.4,0.1),
+			],inf),
+			\amp, 0.1/2,
+		),
+		Pbind(
+			\instrument, \snappad,
+			\note, Pseq([
+				[-5,7,11],
+				[4+12,7,12],
+				[-5,7,12],
+				[5+12,7,12],
+			],inf),
+			\octave, Pseq([
+				6,7
+			],inf).stutter(8),
+			\dur, 1,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \flutepad,
+			\note, Pseq([
+				2,0,
+				4,0,
+				7,0,
+				2,0,
+
+				2,7,
+				-5,0,
+				2,0,
+				4,-5,
+				-5,
+			],inf),
+			\octave, Pseq([
+				7
+			],inf).stutter(8*2),
+			\dur, 2,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+Pdef(\part).clear;

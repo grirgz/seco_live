@@ -2,6 +2,32 @@
 ~t = 160/4/60; TempoClock.default.tempo = ~t;
 
 (
+SynthDef(\corniaud, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var randfm;
+	freq = freq * [1,2**(4/12),1.01,2**(7/12)];
+	randfm = { arg ifreq, in=0, amt=1;
+		var fr = ifreq * ( in * amt + 1 );
+		[
+			{ SinOsc.ar(fr) },
+			{ LFSaw.ar(fr) },
+			{ LFPulse.ar(fr) },
+			{ LFCub.ar(fr) },
+		].choose.value * EnvGen.kr(Env.adsr(rrand(0.01,3),rrand(0.01,1),rrand(0.1,1),rrand(0.01,1)), gate, doneAction:0);
+	};
+	sig = DC.ar(0);
+	8.do {
+		sig = randfm.(freq, sig, rrand(0.0,1) * \fmamt.kr(1));
+	};
+	sig = sig * [1,0.4,0.4,0.4];
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,1.7)), gate, doneAction:2);
+	pan = pan + {randfm.(exprand(0.01,100), randfm.(exprand(0.01,200))) * rrand(0.01,1) }!freq.size;
+	sig = Pan2.ar(sig, pan, amp).mean;
+	Out.ar(out, sig);
+}).add;
+);
+
+(
 Pdef(\part, Pdef(\drums1, 
 	Ppar([
 		Pbind(
@@ -88,6 +114,12 @@ Pdef(\melo1,
 		\fmamt, ~pmodenv.(Pseq([0,1],inf), 8),
 	)
 );
+Pdef(\melo, 
+	Pbind(
+		\instrument, \corniaud,
+		\fmamt, ~pmodenv.(Pseq([0,1],inf), 8),
+	)
+);
 );
 ProtoDef(\piano).startControl(Pdef(\melo, Pbind(\instrument, \corniaudouble4, \amp, 0.6,
 	\fmamt, 0.2,
@@ -97,7 +129,8 @@ ProtoDef(\piano).startControl(Pdef(\melo, Pbind(\instrument, \corniaudouble4, \a
 
 )))
 
-ClipTimeline('vin35_mainTimeline').clear
+ClipTimeline('vin35_mainTimeline').edit;
+//ClipTimeline('vin35_mainTimeline').clear
 SampleTimeline('rec_vin35_mainTimeline_t0_201111_160559').clear
 
 FileSystemProject.current.mainTimeline.eventList[1].out = nil
@@ -129,6 +162,7 @@ SampleTimeline('rec_vin35_mainTimeline_t0_201111_160559').buffer = BufDef('./rec
 NoteTimeline(\vin35_melo2, Pdef(\melo)).edit
 NoteTimeline(\vin35_melo2, Pdef(\melo)).presetCompileString.editorInsert
 (
+NoteTimeline(\vin35_melo2, Pdef(\melo));
 NoteTimeline('vin35_melo2').eventList = TimelineEventList.newFrom([
 	(\absTime: 0.0, \adsr: [ Env([ 0.0, 1.0, 0.8, 0.0 ], [ 0.01, 0.1, 0.1 ], -4.0, 2) ], \amp: 0.3, \clockTime: 28248.133142429, \dur: 0.0, \instrument: 'corniaudouble3', \kitIndex: 98, \midinote: 98.0, \playDur: 0.0, \relDur: 0.0, \sustain: 0.14203486266706, ),
 	(\absTime: 0.0, \dur: 0.5, \label: 'start', \playDur: 0.5, \relDur: 0.5, \sustain: 0, \type: 'start', ),
@@ -233,6 +267,7 @@ NoteTimeline(\vin35_melo1).presetCompileString.editorInsert
 NoteTimeline(\vin35_melo1).clear
 NoteTimeline(\vin35_melo1).composeParamPattern = true
 (
+NoteTimeline(\vin35_melo1, Pdef(\melo1));
 NoteTimeline('vin35_melo1').eventList = TimelineEventList.newFrom([
 	(\absTime: -0.12191611498201, \clockTime: 24842.078083885, \dur: 0.12191611498201, \instrument: 'corniaudouble2', \kitIndex: 89, \midinote: 77, \playDur: 0.12191611498201, \relDur: 0.12191611498201, \sustain: 1.9782156360016, ),
 	(\absTime: 0.0, \dur: 2.0, \instrument: 'corniaudouble2', \label: 'start', \playDur: 2.0, \relDur: 2.0, \sustain: 0, \type: 'start', ),

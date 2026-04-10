@@ -19,7 +19,18 @@ SynthDef(\kick808, {arg out = 0, freq1 = 240, freq2 = 60, amp = 0.1, ringTime = 
 	//	snd = Wrap.ar(snd, -1 * tott, tott);
 	Out.ar(out, Pan2.ar(snd, pan, amp));
 }).add;
-)
+);
+(
+SynthDef(\fousplay, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq * ( SinOsc.ar( LFNoise1.ar(1/8!8) ) * 0.81 + 1 ));
+	sig = sig + SinOsc.ar(freq * 2 * ( SinOsc.ar( LFNoise1.ar(1/8!8) ) * 0.41 + 1 ), mul:0.4);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -154,17 +165,6 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 
-(
-SynthDef(\fousplay, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = SinOsc.ar(freq * ( SinOsc.ar( LFNoise1.ar(1/8!8) ) * 0.81 + 1 ));
-	sig = sig + SinOsc.ar(freq * 2 * ( SinOsc.ar( LFNoise1.ar(1/8!8) ) * 0.41 + 1 ), mul:0.4);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
-	Out.ar(out, sig);
-}).add;
-);
 
 (
 Pdef(\part, Pdef(\zedpart, 

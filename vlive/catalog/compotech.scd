@@ -696,6 +696,76 @@ Pdef(\part, Pdef(\zed,
 )).play;
 );
 
+/////// combine two rest pattern in a chain
+
+
+
+(
+// use (isRest or notRest)
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Plazy({ arg ev;
+			var post = Pbind(
+				\instrument, \pluck,
+				//\lag, 0.04,
+				\note, Pseq([
+					Prand([
+						Pseq([
+							0,-3,-5,
+						],1),
+						Pseq([
+							0,-3,-5,
+						],1),
+						Prand([2,5],1),
+					],1),
+				],inf).stutter(1),
+				\isRest, Pseq([
+					1,0,1,0, 1,0,1,0, 
+				],inf).coin.not,
+				\dur, 1/8/2,
+				\octave, 7,
+				//\lag, -0.04,
+				//\out, BusDef(\sendbus3, \audio),
+				\amp, 0.1/10,
+			);
+		
+			Ptpar([
+				0, Pbind(
+					\instrument, \pluck,
+				) <> post,
+				2, Pbind(
+					\instrument, \basicbass,
+					\note, Pkey(\note) + Pseq([0,-7,5],inf),
+					\note, Pseq([0,-5,7],inf),
+					\lpf, 7000,
+					\amp, 0.1/15,
+					\notRest, Pseq([
+						0,0,0,0,
+						0,0,0,0,
+						Pseq([
+							1,0,0,0,
+							1,0,0,0,
+							Prand([
+								Pseq([
+									1,0,0,0,
+								],1),
+								Pseq([
+									1,0,0,1,
+								],1),
+							],1),
+						],inf),
+					],inf).coin,
+					\isRest, Pfunc({ arg ev;
+						ev[\isRest].not or: ev[\notRest]
+					}).not,
+					\octave, Prand([6,7,8],inf),
+					\octave, 5,
+				) <> post,
+			]);
+		}).loop,
+	])
+)).play;
+);
 
 //////////////// fast cluster of notes become its own sound
 
@@ -1764,6 +1834,93 @@ Pdef(\part, Pdef(\zedpart,
 
 ///////// arpegiator
 
+//// simple arpegiator using Pindex
+
+// Pindex behave strangely, it only call the next list in pattern when index pattern finish
+// Pswitch1 doesn't accept a pattern of lists, only a list of patterns
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pbind(
+			\instrument, \bassfmenkor2,
+			\note, Pseq([
+				Pindex(
+					Pseq([
+						[0,3,7,12],
+						[0,3,7,12]+2,
+					],inf),
+					//Pseq([
+						//Pseq([
+							//\Dm_a, \Dm7, \As, \As7, \G, \G7, \C_e, \C7
+						//].chordProg,1),
+					//],inf).stutter(8).trace,
+					Pseq([
+						0,1,2,3,
+					],1)
+				,inf),
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,1.1) ],
+			],inf),
+			\freqfac3, 4,
+			\freqfac2, 1/4,
+			\freqfac1, 2,
+			\octave, 4,
+			\dur, 1/8,
+			\amp, 0.1/3,
+		),
+	])
+)).play;
+);
+
+//// simple working arpegiator
+// accept \r in index
+(
+Pdef(\part, 
+	Pbind(
+		\instrument, \default,
+		\chord, Pstep(Pseq([
+			Pseq([
+				\Dm_a, \Dm7, \As, \As7, \G, \G7, \C_e, \C7
+			].chordProg,1),
+		],inf),1),
+		\index, Pseq([
+			0,0,0,0, \r,\r,0,0,
+			4,5,4,5,
+			0,1,3,
+		],inf),
+		\note, Pfunc({ arg ev;
+			var x = ev[\index];
+			if(x == \r) {
+				\r;
+			} {
+				ev[\chord].wrapAt(x)
+			};
+		}),
+		\adsr, Pseq([
+			[ Env.adsr(0.01,0.1,0.8,1.1) ],
+		],inf),
+		\freqfac3, 4,
+		\freqfac2, 1/4,
+		\freqfac1, 2,
+		\legato, Pseq([
+			Pser([
+				0.88, 0.18, 0.18, 0.88, 0.18, 0.18, 0.88, 0.18, 
+				0.88, 0.18, 0.8, 0.88, 0.18, 0.18, 0.88, 0.18, 
+				0.88, 0.18, 0.18, 0.88, 0.18, 0.18, 0.1, 0.18, 
+				0.88, 0.18, 0.8, 0.88, 0.18, 0.8, 0.1, 0.18, 
+			],8*4),
+		],inf),
+		\octave, 4,
+		\dur, 1/8,
+		\amp, 0.1/3,
+	),
+).play;
+);
+
+// composable arpegiator
+
 ~t = 145/4/60; TempoClock.default.tempo = ~t;
 (
 Pdef(\arper, 
@@ -2067,6 +2224,253 @@ Pdef(\part, Pdef(\zedpart,
 			\dur, Pseq([ 8, 4,4,6,2 ].flat/6, inf),
 			\amp, 0.1,
 		),
+	])
+)).play;
+);
+
+
+////////////// seq of chords into chord of pmonos
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \default,
+			\note, Pseq([
+				Pseq([
+					[0,4,7],
+					[0,5,9],
+				])
+			],inf),
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+(
+// no problem because it's only rest that can't be arrays in pmonos
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pmono(
+			 \default,
+			\note, Pseq([
+				Pseq([
+					[0,4,7],
+					[0,5,9],
+				])
+			],inf),
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+
+
+////////////////////// stutter the note and use random rest to create beautiful piano pattern
+// each pattern is a note of the chord sequence
+
+~t = 170/4/60; TempoClock.default.tempo = ~t;
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				[0,3,8],
+				[2,5,8],
+				[4,1,10],
+				[0,3,8],
+			],inf),
+			\dur, 1,
+			\amp, 0.1,
+		),
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				8,5,4,3,
+			],inf).stutter(8*2),
+			\octave, 5,
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0.4,0.4,0.4, 0.4,0.4,0.4,0.4,
+			],inf).coin.not,
+			\amp, 0.1/2 * Pseq([
+				1,0.4,0.4,0.4, 0.4,0.4,0.4,0.4,
+			],inf),
+		),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				3,2,1,0,
+			],inf).stutter(8*2),
+			\octave, 5,
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0.4,0.4,0.4, 0.4,0.4,0.4,0.4,
+			],inf).coin.not,
+			\amp, 0.1/2 * Pseq([
+				1,0.4,0.4,0.4, 0.4,0.4,0.4,0.4,
+			],inf),
+		),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				12,8,10,8,
+				//10,11,10,12,
+			],inf).stutter(8*2),
+			\octave, 5,
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0.4,0.4,0.4, 0.4,0.4,0.4,0.4,
+			],inf).coin.not,
+			\amp, 0.1/2 * Pseq([
+				1,0.4,0.4,0.4, 0.4,0.4,0.4,0.4,
+			],inf),
+		),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				15,14,
+				10,11,10,12,11,
+				0,0,8,12,
+			],inf).stutter(1),
+			\octave, 6,
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,0.4,0.4,0.4, 0.4,0.4,0.4,0.4,
+			]/2,inf).coin.not,
+			\amp, 0.1/2 * Pseq([
+				1,0.4,0.4,0.4, 0.4,0.4,0.4,0.4,
+			],inf) * Pseg(Pseq([0,1,0.8],inf),8),
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				[0,3,8],
+				[2,5,8],
+				[4,1,10],
+				[0,3,8],
+			],inf).stutter(8),
+			\dur, 1/8,
+			\octave, Pseq([
+				Ptuple([
+					Pseq([5,5,5,6],inf),
+					Pseq([5,5,5,6,5],inf),
+					Pseq([5,5,5,6,5,5],inf),
+				])
+			],inf),
+			\amp, 0.1 * Pseq([
+				Ptuple (
+					Pseq([
+						Pexprand(0.7,1,1),
+						Pexprand(0.01,0.81,7),
+					],inf)!4,
+				)
+			],inf),
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				[0,3,8],
+				[2,5,8],
+				[4,1,10],
+				[0,3,8],
+			],inf).stutter(8),
+			\dur, 1/8,
+			\octave, Pseq([
+				Ptuple([
+					Pseq([5,5,5,6],inf),
+					Pseq([5,5,5,6,5],inf),
+					Pseq([5,5,5,6,5,5],inf),
+				])
+			],inf),
+			\amp, 0.1 * Pseq([
+				Ptuple (
+					Pfin(8,Pseq([
+						Pwhite(0.4,1,1),
+						Prand([Pwhite(0.0,0.5,1),0],3),
+					],1)).loop!4,
+				)
+			],inf),
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Prout{ arg ev;
+			Pseq([
+				[8,12,15],
+				[10,15,18],
+			],inf).do { arg line, idx;
+				line.debug("line");
+				ev = Pfindur(2,Ppar(
+					line.collect { arg item, idx;
+						Pbind(
+							\instrument, \sh101,
+							\note, Pseq([
+								item,
+							],inf).stutter(8*2),
+							\octave, 4 + rrand(0,2),
+							\dur, 1/8,
+							\lpf, 100,
+							\envamt, 14,
+							\adsr, Pseq([
+								[ Env.adsr(0.01,0.1,0.8,1.1) ],
+							],inf),
+							\isRest, Pseq([
+								1,0.4,0.4,0.4, 0.4,0.4,0.4,0.4,
+							],inf).coin.not,
+							\isRest, Pseq([
+								Prand([
+									1,Pseq([1,0,],1)
+								],1),
+								0,1,0,1,1,0,0,
+							],inf).coin.not,
+							\amp, 0.1/2 * Pseq([
+								1,0.4,0.4,0.4, 0.4,0.4,
+							],inf),
+						)
+					};
+				)).embedInStream;
+			
+			}
+		},
+
 	])
 )).play;
 );

@@ -299,6 +299,7 @@ Pdef(\part, Pdef(\zedpart,
 
 
 (
+ProtoDef(\FxManager).play;
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		
@@ -344,6 +345,7 @@ Pdef(\part, Pdef(\zedpart,
 
 NoteTimeline(\bla).edit
 
+(
 SynthDef(\basicpad, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -360,7 +362,6 @@ SynthDef(\basicpad, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 }).add;
 
 
-(
 SynthDef(\grobass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
 	var env1, env2, env3, env4, env5, env6, env7, env8;
