@@ -1,6 +1,8 @@
 
 (
 ~t = 155/4/60; TempoClock.default.tempo = ~t;
+FileSystemProject.loadOnce("sndlib/synthbasic.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
 //BufDef.reload('vipere/mia.flac');
 SynthDef(\simplegran, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, pos=0, gdur=0.1, pan;
 	var sig;
@@ -869,3 +871,202 @@ Pdef(\part, Pdef(\zedpart,
 
 
 //////////////////:
+// more cut
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1065].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,1,0, 0,0,0,0,
+				0,0,1,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1067].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,1,0,
+				0,1,0,0, 0,0,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1521].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[82].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+				1,0,0,0, 1,1,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[96].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,1, 0,1, 0,1, 0,1,
+				0,1, 0,0, 0,0, 0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vipere/mia.flac'),
+			\legato, 1,
+			\st, 138/4/60,
+			\speed, 0.72 * ~t / Pkey(\st),
+			\pos, Pseq([
+				Pseq([
+					(0..7)/8,
+				].flat.stutter(8),1),
+				//(0..7)/8+1,
+				//(0..7)/8+2,
+				//(0..7)/8+3,
+				//Pstep(Pseq([4,6,2,1],inf),1/4),
+				
+			].flat,inf) / Pkey(\st),
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.1,0.1,0.8,0.1) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 1/8,
+			\out, BusDef(\smp, \audio),
+		),
+		Pmono(\fx_lpfhpf,
+			\inbus, BusDef(\smp, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\hpf, 1000,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1065].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,1,0, 0,0,0,0,
+				0,0,1,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1067].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,1,0,
+				0,1,0,0, 0,0,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1521].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[82].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+				1,0,0,0, 1,1,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[96].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				0,1, 0,1, 0,1, 0,1,
+				0,1, 0,0, 0,0, 0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vipere/mia.flac'),
+			\legato, 1,
+			\st, 138/4/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseq([
+				Pseq([
+					0,5,6,
+				].flat.stutter(8)/8,1),
+				Pseq([
+					7.5,1,
+				].flat.stutter(4)/8,1),
+				//(0..7)/8+1,
+				//(0..7)/8+2,
+				//(0..7)/8+3,
+				//Pstep(Pseq([4,6,2,1],inf),1/4),
+				
+			].flat,inf) / Pkey(\st),
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+				1,1,1,1, 0,0,1,1,
+			],inf).coin.not,
+			//\adsr, Pseq([
+				//[ Env.adsr(0.01,0.3,0.4,0.1) ],
+			//],inf),
+			\dur, 1/8,
+			\gain, 1/8,
+			\out, BusDef(\smp, \audio),
+		),
+		Pmono(\fx_lpfhpf,
+			\inbus, BusDef(\smp, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\hpf, 1000,
+			\lpf, PmodEnv(Pseq([1001,10000],1), 8).loop,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);

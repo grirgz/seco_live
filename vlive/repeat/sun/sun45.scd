@@ -1,5 +1,8 @@
+(
 ~t = 200/4/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("holis/synthdef.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
+FileSystemProject.loadOnce("sun/fmgen.scd");
+)
 (
 	~chanOpener = { arg door, array;
 		array * ( door - ((0..array.size-1)/(array.size) ).postln * array.size ).clip(0,1);
@@ -1133,6 +1136,33 @@ Ndef('rdn').put(100, \pset -> Pbind(
 
 );
 
+(
+SynthDef(\bass_fmek2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
+	var sigo;
+	lfo1 = SinOsc.ar(0.01*(1..10)/100) * 1; 
+	//lfo1 = Duty.kr(1/8/~t, 0, Dseq([
+		//1,2,4,2,
+	//],inf));
+	lfo2 = EnvGen.kr(\fma4env.kr(Env([2,1,1],[0.02,0.1])), 1);
+	sig1 = SinOsc.ar(freq * \freqfac1.kr(1) * ( LFNoise1.ar((1..10)*\noisefreqfac.kr(0.1)) * \fma1.kr(1) + 1 ));
+	sig2 = SinOsc.ar(freq * \freqfac2.kr(1) * ( sig1 * \fma2.kr(1)*lfo1 + 1 ));
+	sig3 = SinOsc.ar(freq * \freqfac3.kr(1) * ( sig2 * \fma3.kr(4) + 1 ));
+	sig4 = SinOsc.ar(freq * ( sig3 * \fma4.kr(0.8) * lfo2 + 1 ));
+	sig = sig4;
+	//sig = sig * SinOsc.ar((1..10)*0.03).clip(0,1); 
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig1 = Ringz.ar(sig, freq * 2) * 0.002;
+	sig2 = Ringz.ar(sig, freq ) * 0.002;
+	sig3 = MidEQ.ar(sig, 100 + freq / 2, rq:0.5, db:14);
+	sig = sig1 + sig2 + sig;
+	sig = sig3;
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -1293,33 +1323,6 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-(
-SynthDef(\bass_fmek2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var lfo1, lfo2, lfo3, lfo4, lfo5, lfo6, lfo7, lfo8;
-	var sigo;
-	lfo1 = SinOsc.ar(0.01*(1..10)/100) * 1; 
-	//lfo1 = Duty.kr(1/8/~t, 0, Dseq([
-		//1,2,4,2,
-	//],inf));
-	lfo2 = EnvGen.kr(\fma4env.kr(Env([2,1,1],[0.02,0.1])), 1);
-	sig1 = SinOsc.ar(freq * \freqfac1.kr(1) * ( LFNoise1.ar((1..10)*\noisefreqfac.kr(0.1)) * \fma1.kr(1) + 1 ));
-	sig2 = SinOsc.ar(freq * \freqfac2.kr(1) * ( sig1 * \fma2.kr(1)*lfo1 + 1 ));
-	sig3 = SinOsc.ar(freq * \freqfac3.kr(1) * ( sig2 * \fma3.kr(4) + 1 ));
-	sig4 = SinOsc.ar(freq * ( sig3 * \fma4.kr(0.8) * lfo2 + 1 ));
-	sig = sig4;
-	//sig = sig * SinOsc.ar((1..10)*0.03).clip(0,1); 
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig1 = Ringz.ar(sig, freq * 2) * 0.002;
-	sig2 = Ringz.ar(sig, freq ) * 0.002;
-	sig3 = MidEQ.ar(sig, 100 + freq / 2, rq:0.5, db:14);
-	sig = sig1 + sig2 + sig;
-	sig = sig3;
-	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
-	Out.ar(out, sig);
-}).add;
-);
 
 
 (
@@ -3192,13 +3195,13 @@ Pdef(\part, Pdef(\zedpart,
 				\dur, 1/4,
 				\amp, 0.1,
 			),
-			//16, NoteTimeline(\sun45monomelo2).asPattern,
+			16, NoteTimeline(\sun45monomelo2).asPattern,
 		]),
 	])
 )).play;
 );
 
-FileSystemProject.load("sun/fmgen.scd");
+FileSystemProject.loadOnce("sun/fmgen.scd");
 (
 Pdef(\melo2, 
 	Pbind(

@@ -2524,3 +2524,125 @@ topEnvironment[\a]
 a = Environment();
 a[\knobs] = { Bus.control(s, 1) } ! 8;
 a[\knobs]
+
+
+(
+// marimba and wood are taken from this blog https://thormagnusson.gitbooks.io/scoring/content/PartII/chapter11.html
+SynthDef(\marimba, {arg out=0, amp=0.1, t_trig=1, freq=100, rq=0.006;
+    var env, signal;
+    var rho, theta, b1, b2;
+    b1 = 1.99 * 0.9889999999 * cos(0.09);
+    b2 = 0.998059.neg;
+    signal = SOS.ar(K2A.ar(t_trig), 0.3, 0.0, 0.0, b1, b2);
+	signal = RHPF.ar(signal*0.8, freq, rq) + DelayC.ar(RHPF.ar(signal*0.9, freq*0.99999, rq*0.999), 0.02, 0.01223);
+	signal = Decay2.ar(signal, 0.4, 0.3, signal)*20;
+	signal = signal * Env([0,1,1,0],[0.03,1,0.01]).kr;
+	signal = HPF.ar(signal,freq);
+    DetectSilence.ar(signal, 0.0001, doneAction:2);
+    Out.ar(out, signal*(amp*0.4)!2);
+}).add;
+SynthDef(\wood, {arg out=0, amp=0.3, pan=0, sustain=0.5, t_trig=1, freq=100, rq=0.06;
+    var env, signal;
+    var rho, theta, b1, b2;
+    b1 = 2.0 * 0.97576 * cos(0.061447);
+    b2 = 0.9754.squared.neg;
+    signal = SOS.ar(K2A.ar(t_trig), 1.0, 0.0, 0.0, b1, b2);
+	signal = Decay2.ar(signal, 0.4, 0.8, signal);
+	signal = Limiter.ar(Resonz.ar(signal, freq, rq*0.5), 0.9);
+	signal = HPF.ar(signal,freq*0.75);
+    env = EnvGen.kr(Env.perc(0.00001, sustain, amp), doneAction:2);
+	DetectSilence.ar(signal, 0.0001, doneAction:2);
+    Out.ar(out, Pan2.ar(signal, pan)*env);
+}).add;
+SynthDef(\naizi, { arg gate=1, decay =0.2, freq = 500;
+	var click;
+	var a = Polar(\aRho.kr(0.5),\aTheta.kr(0.0)).asPoint;
+	var b = Polar(\bRho.kr(0.5),\bTheta.kr(0.0)).asPoint;
+	var nois = WhiteNoise.ar(1)!2*Decay.ar(Env([0,1,0],[0.000001,0.00001]).ar(gate:gate),decay+[0,0.02]);
+	var env = Env([0,1,1,0],[0,decay*3]).kr(gate:gate,doneAction:2);
+	nois = SOS.ar(nois,1,a.x+[0.3,0],a.y+[0.4,0],b.x+[0,0.15],b.y+[0,0.15]);
+	click = nois* -24.dbamp * Env([0,1,0],[0.00001,0.03]).kr(gate:gate);
+	click = DelayC.ar(click,0.1,0.01);
+	click = LPF.ar(click,(freq*8).max(20).min(20000));
+	click = HPF.ar(click,(freq*0.25).max(20).min(20000));
+	nois = Limiter.ar(Resonz.ar(nois, freq+[10,0], \q.kr(0.2)), 0.9) + click;
+	// nois = click;
+	nois = nois + (nois.fold(-0.3,0.4)* -8.dbamp);
+	nois = nois * \amp.kr(1) * env;
+	Out.ar(\out.kr(0),nois);
+}).add;
+~fxBus = Bus.audio(server: s, numChannels: 2);
+TempoClock.default.tempo = 58/60
+);
+Ndef(\fx).play;
+(
+Ndef(\fx)[1] = { |sig, pitch=1, gat=1, dur=1 |
+	var in, verb, snd, lp;
+	in = In.ar(~fxBus,2);
+	snd = in + DelayC.ar(in,0.2,0.001+LFNoise2.kr(0.2!2,0.001),-7.dbamp);
+	snd = snd + BAllPass.ar(snd,600+LFNoise2.kr(0.2!2,200),0.5+LFNoise2.kr(0.2!2,0.4),-8.dbamp);
+	snd = snd + DelayC.ar(snd,0.2,0.002+LFNoise2.kr(0.2!2,0.001),-7.dbamp);
+	snd = snd + BAllPass.ar(snd,700+LFNoise2.kr(0.2!2,200),0.5+LFNoise2.kr(0.2!2,0.4),-9.dbamp);
+	snd = snd + DelayC.ar(snd,0.2,0.0025+LFNoise2.kr(0.2!2,0.0015),-8.dbamp);
+	snd = BAllPass.ar(snd,700+LFNoise2.kr(0.2!2,200),0.5+LFNoise2.kr(0.2!2,0.4));
+	verb = FreeVerb.ar(snd,1,0.8,0.9);
+	snd = snd + HPF.ar(verb * -18.dbamp,250);
+	snd = snd * -14.dbamp;
+	lp = LPF.ar(in,150);
+	lp = LeakDC.ar(lp.clip(-40.dbamp.neg,-35.dbamp))* 10.dbamp;
+	snd = in + (snd* -4.dbamp) + (lp * -9.dbamp);
+	snd;
+};
+);
+(
+~scale = Scale.locrian;
+~chords = [\DM,\Gm,\Cm,\Fm,\DM,\GM,\Em,\Fm,\DM,\Gm,\GM,\Em,\DM,\GM,\CM,\Fm]; // needs ChordSymbol quark to work
+Pdef(\teN,Pbind(
+	\instrument, \naizi,
+	\db, -20,
+	\dur, 0.125,
+	\decay, 0.1,
+	\q, Pseg([0.2,0.4,0.05,0.2],4,\lin,inf),
+	\note, Pstep(~chords.collect({arg b; (b++"7").asSymbol }),2,inf).collect({ arg chord;
+		chord.collect({ arg note;
+			([0,1,2,3].collect(note+(_*12)).select((_>11) && (_<30) )-12).sort
+		}).flatten
+	}),
+	\octave, [2,5,7,10], \db, [-3,-18,-22,-33]+Pseq([[0,0,-50,0],[0,-50,0,0],[-6,-50,0,0]],inf)+Pseq([[0,0,0,-40],[0,0,-20,-40],[0,-5,-10,0],[-6,-10,0,-40]],inf)+Pseq([[2,-2,-10,0],[0,0,0,0]],inf),
+	\aRho, Pseq([0.5,0.7,0.98].scramble,inf),
+	\aTheta, Pseq([0,1,2,3].scramble,inf),
+	\aRho, Pseq([0.0,0.2,0.4,0.6].scramble,inf),
+	\aTheta, Pseq([pi,pi*0.8,pi*0.6,pi*0.4,pi*0.2,0.0].scramble,inf),
+	\scale, ~scale,
+	\out, ~fxBus,
+)).play;
+Pdef(\mari,Pbind(
+    \instrument, \marimba,
+	\note, Pstep(~chords.collect({arg b; (b++"7").asSymbol }),2,inf	).collect({ arg chord;
+		chord.collect({ arg note;
+			[0,1,2,3].collect(note+(_*12)).select((_>6) && (_<25) ).sort
+		}).flatten
+	}),
+	\octave, Prand([6,6,7,[6,7],[7,6],6], inf),
+	\db, -17,
+	\dur, Pseq([0.25,0.5,0.25,0.25,0.125,0.125,0.25,0.25],inf),
+	\out, ~fxBus,
+	\scale, ~scale,
+	\rq, Pseg([0.008,0.015,0.002,0.01,0.008],4,\exp,inf),
+)).play;
+Pdef(\wood,Pbind(
+    \instrument, \wood,
+	\note, Pstep(~chords.collect({arg b; (b++"7").asSymbol }),2,inf	).collect({ arg chord;
+		chord.collect({ arg note;
+			[0,1,2,3].collect(note+(_*12)).select((_>14) && (_<29) ).sort
+		}).flatten
+	}),
+	\octave, Prand([5,4,[4,5],[5,4],5,4,4], inf),
+	\db, -13,
+    \dur, Pseq([0.25,0.375,0.375,0.25,0.375,0.125,0.25],inf),
+	\out, ~fxBus,
+	\rq, Pseg([0.08,0.2,0.02,0.08],4,\exp,inf),
+	\scale, ~scale,
+	\pan, Pwhite(-0.5,0.5,inf),
+)).play;
+);

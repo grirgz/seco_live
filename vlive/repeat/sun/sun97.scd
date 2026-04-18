@@ -464,7 +464,7 @@ Pdef(\part, Pdef(\zedpart,
 			\octave, 6,
 			\dur, 2,
 			\amp, 0.1/3,
-			\out, BusDef(\sendbus1, \audio),
+			//\out, BusDef(\sendbus1, \audio),
 		),
 	])
 )).play;

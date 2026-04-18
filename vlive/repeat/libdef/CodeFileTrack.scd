@@ -1,14 +1,20 @@
 
-FileSystemProject.loadOnce("libdef/CustomTrackList.scd");
 
 (
 
 TrackTemplateDef(\CodeFileGrid, (
 	parent: TrackTemplateDef(\CustomTrackList),
-	childClass: { TrackTemplateDef(\CodeFileTrackVolatil) },
+	childClass: { TrackTemplateDef(\PdefCodeFileTrack) }, // use Pdef as default
 	edit: { arg self;
 		WindowDef(\CodeFileGrid).front(self);
 	},
+
+	codeFilePath: { arg self;
+		if(self.dataPath.notNil) {
+			self.dataPath +/+ "code/"
+		};
+	},
+
 	initTrack: { arg self;
 		64.do { arg idx;
 			var child = self.childAt(idx);
@@ -22,6 +28,7 @@ TrackTemplateDef(\CodeFileGrid, (
 
 ));
 
+// not used
 TrackTemplateDef(\CodeFileTrackVolatil, (
 	parent: TrackTemplateDef(\CodeFileTrack),
 	makeScoreOnInitTrack: false,
@@ -30,19 +37,22 @@ TrackTemplateDef(\CodeFileTrackVolatil, (
 TrackTemplateDef(\CodeFileTrack, (
 	parent: TrackTemplateDef(\CustomInstrumentTrack),
 	childClass: { TrackTemplateDef(\CodeFileTrackPart) },
-	codeFilePath: "~/tmp/testcodefile/".standardizePath,
-	dataPath: "~/tmp/testcodefile/data/".standardizePath,
+	//codeFilePath: "~/tmp/testcodefile/".standardizePath,
+	//dataPath: "~/tmp/testcodefile/data/".standardizePath,
 	initTrack: { arg self;
 		if(self.isEmpty.not) {
 			TrackDef.all[self.codeFilePrefix.asSymbol] = self; // add shortcut to allow TrackDef(~name)
 			self.executeCodeFile;
-			//self.makeScore;
+			if(self.makeScoreOnInitTrack != false) {
+				self.makeScore;
+			};
 			self.loadPresetCompileString;
 		}
 	},
 
 	editInstrument: { arg self;
 		var path = self.codeFileName;
+		File.mkdir(self.codeFilePath);
 		~name = self.codeFilePrefix;
 		//Document.open(path); // should use this, but not supported for the moment
 		"vim --servername scvim --remote-send '<Esc>:tabedit %<Enter>'".format(path).unixCmd;
@@ -63,8 +73,14 @@ TrackTemplateDef(\CodeFileTrack, (
 		self.trackKey;
 	},
 
+	codeFilePath: { arg self;
+		self.parentTrack.codeFilePath;
+	},
+
 	codeFileName: { arg self;
-		self.codeFilePath +/+ self.codeFilePrefix ++ ".scd";
+		if(self.codeFilePath.notNil) {
+			self.codeFilePath +/+ self.codeFilePrefix ++ ".scd";
+		};
 	},
 
 	executeCodeFile: { arg self;
@@ -74,6 +90,9 @@ TrackTemplateDef(\CodeFileTrack, (
 	},
 
 	play: { arg self;
+		if(self.mixer.notNil) {
+			self.mixer.play;
+		};
 		self.proxy.play;
 		self.changed(\play, self.quant);
 		self.changed(\PlayerWrapper, \userPlayed); // the view put directly the ProtoDef so need to simulate PlayerWrapper
@@ -111,33 +130,6 @@ TrackTemplateDef(\CodeFileTrack, (
 		//self.isEmpty = false;
 		//self.proxy = Pdef(self.codeFilePrefix);
 		//PlayerWrapper(Pdef("%_base".format(self.codeFilePrefix).asSymbol));
-	},
-));
-ProtoTemplateDef(\CodeFilePlayer, (
-	isPlaying: { arg self;
-		self.trackPart.parentTrack.proxy.isPlaying and: { self.trackPart.isActive };
-	},
-	label: { arg self;
-		if(self.trackPart.isEmpty.not and: {self.trackPart.presetCompileStringSavePath.notNil}) {
-			PathName(self.trackPart.presetCompileStringSavePath).fileName;
-		} {
-			"-"
-		}
-		
-	},
-	isPlaying_: { arg self, val;
-		val.debug("CodeFilePlayer.isPlaying_");
-		if(val==true) {
-			//self.trackPart.loadPresetCompileString;
-			self.trackPart.executeCodeFile;
-		};
-		self.trackPart.parentTrack.proxy.isPlaying = val;
-	},
-	play: { arg self;
-		self.isPlaying = true;
-	},
-	stop: { arg self;
-		self.isPlaying = false;
 	},
 ));
 TrackTemplateDef(\CodeFileTrackPart, (
@@ -184,6 +176,17 @@ TrackTemplateDef(\CodeFileTrackPart, (
 	stopInternal: { arg self;
 		
 		"stop internal".debug;
+
+		// do not stop parent, only refresh button
+		if(self.isEmpty.not) {
+			self.parentChildStopped;
+			self.changed(\stop, self.quant);
+			self.changed(\PlayerWrapper, \userStopped); 
+			self.proxy.doWithQuant {
+				self.changed(\PlayerWrapper, \stopped); 
+				self.parentChildStopped({ arg me; me.changed(\PlayerWrapper, \stopped) });
+			}
+		} 
 	},
 
 	quant: { arg self;
@@ -191,10 +194,17 @@ TrackTemplateDef(\CodeFileTrackPart, (
 	},
 
 	play: { arg self;
+		var stopchild;
+		"play".debug("play");
 		if(self.isEmpty) {
 			self.stop;
 		} {
-			self.parentTrack.activeIndex = self.index;
+			if(self.parentActiveIndex != self.index) {
+				stopchild = self.parentActiveChild;
+			};
+			self.parentActiveIndex = self.index;
+			[stopchild].debug("stopchild");
+			if(stopchild.notNil) { stopchild.stopInternal }; // changed message but arrive after deselect
 			self.executeCodeFile;
 			self.parentTrack.play;
 			self.changed(\play, self.quant);
@@ -224,6 +234,7 @@ TrackTemplateDef(\CodeFileTrackPart, (
 
 	edit: { arg self;
 		var path = self.codeFileName;
+		File.mkdir(self.parentTrack.codeFilePath);
 		~name = self.parentTrack.codeFilePrefix;
 		~namex = self.codeFilePrefix;
 		//Document.open(path); // should use this, but not supported for the moment
@@ -238,7 +249,52 @@ TagSpecDef(\CustomTrackTemplate).addUnique(\CodeFileTrack -> TrackTemplateDef(\C
 (
 
 TrackTemplateDef(\PdefCodeFileTrack, (
+	parent: TrackTemplateDef(\CodeFileTrack),
 
+	score: { arg self;
+		Pdef(self.codeFilePrefix);
+	},
+
+	score_:{ arg self, val;
+		self[\score] = val;
+		self[\proxy] = PlayerWrapper(self.score);
+		self;
+	},
+
+	proxy: { arg self;
+		self[\proxy] = PlayerWrapper(self.score);
+		self[\proxy];
+	},
+
+	initPdef: { arg self, val;
+		var pre = Pdef(( self.codeFilePrefix ++ \pre ).asSymbol);
+		if(pre.source == nil) { pre.source = Pbind() };
+		Pdef(self.codeFilePrefix,
+			pre <> val
+		);
+		
+	},
+));
+
+TrackTemplateDef(\PdefCodeFileTrackPart, (
+	parent: TrackTemplateDef(\CodeFileTrackPart),
+
+	//score_: { arg self, val;
+		//if(val.notNil) {
+			//self[\score] = val;
+			//self[\pchain] = Pdef( (self.trackKey++\_chain).asSymbol, self.score <> self.parentTrack.score );
+			//self[\proxy] = PlayerWrapper(self.pchain);
+		//} {
+			//self[\score] = nil;
+			//self[\pchain] = nil;
+			//self[\proxy] = nil;
+		//};
+	//},
+	makeScore: { arg self;
+		//self.score = Pdef(self.codeFilePrefix);
+		//Pdef(self.codeFilePrefix, Pbind());
+		//self.proxy.debug("makeScore proxy end");
+	},
 ));
 
 
@@ -319,3 +375,35 @@ WindowDef(\CodeFileGrid, (
 	},
 ));
 )
+
+
+// END
+
+// deprecated ?
+ProtoTemplateDef(\CodeFilePlayer, (
+	isPlaying: { arg self;
+		self.trackPart.parentTrack.proxy.isPlaying and: { self.trackPart.isActive };
+	},
+	label: { arg self;
+		if(self.trackPart.isEmpty.not and: {self.trackPart.presetCompileStringSavePath.notNil}) {
+			PathName(self.trackPart.presetCompileStringSavePath).fileName;
+		} {
+			"-"
+		}
+		
+	},
+	isPlaying_: { arg self, val;
+		val.debug("CodeFilePlayer.isPlaying_");
+		if(val==true) {
+			//self.trackPart.loadPresetCompileString;
+			self.trackPart.executeCodeFile;
+		};
+		self.trackPart.parentTrack.proxy.isPlaying = val;
+	},
+	play: { arg self;
+		self.isPlaying = true;
+	},
+	stop: { arg self;
+		self.isPlaying = false;
+	},
+));

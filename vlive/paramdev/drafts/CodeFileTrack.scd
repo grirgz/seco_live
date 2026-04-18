@@ -190,3 +190,52 @@ nil.source
 )
 
 Pdef(\p1).quant = 4
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////// demo test
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+(
+FileSystemProject.load("libdef/CodeFileTrack.scd");
+TrackDef(\codedemo, \CodeFileGrid).presetCompileStringSavePath = "~/code/sc/seco/vlive/paramdev/tests/codedemo/".standardizePath;
+TrackDef(\codedemo).initTrack;
+TrackDef(\codedemo).edit;
+)
+TrackDef(\codedemo).savePresetCompileString
+TrackDef(\codedemo).presetCompileStringSavePath
+TrackDef(\codedemo).dataPath
+TrackDef(\codedemo).loadedFromPath
+TrackDef(\codedemo).loadedFromPath = TrackDef(\codedemo).presetCompileStringSavePath
+TrackDef(\codedemo).codeFilePath
+{ SinOsc.ar(500) ! 2 * 0.1}.play;
+TrackDef(\codedemo).elAt(0).initTrack
+TrackDef(\codedemo).elAt(0).trackTemplate
+TrackDef(\codedemo).elAt(0).trackTemplate
+TrackDef(\codedemo).elAt(0).isEmpty
+TrackDef(\codedemo).elAt(0).play
+TrackDef(\codedemo).elAt(0)[\play].asCompileString
+TrackDef(\codedemo).elAt(0,0)[\play].asCompileString
+TrackDef(\codedemo).elAt(0).mixer.play
+TrackDef(\codedemo).elAt(0).outBus
+TrackDef(\codedemo).startControl
+~name
+TrackDef(~name).isEmpty
+TrackDef(~name).play
+TrackDef(~name).source
+TrackDef(~name).source
+TrackDef(~name).trackTemplate
+
+
+
+///// BUGS
+// - need to call initTrack to be able to do TrackDef(~name) but not called on creation
+
+~a = (ho:4);
+~a.hook = { arg self; self.ho.debug("1") }
+~a.hook.value(~a)
+~a.hook = ~a[\hook].addFunc({  arg self; self.ho.debug("2")  })

@@ -486,6 +486,7 @@ ProtoDef(\apc40, (
 			self.activate_trackmixer;
 			"12--".debug;
 			self.map_rdn;
+			self.activateHook.value(self);
 			"13--".debug;
 			if(self.grid.notNil) {
 				self.render_grid;
@@ -575,6 +576,7 @@ ProtoDef(\apc40, (
 		};
 		
 	},
+
 	map_quant_chooser: { arg self;
 		self.quant_list = [0, 8, 4, 2,  1, 1/4, 1/8, 1/16];
 		8.do { arg idx;
@@ -599,6 +601,7 @@ ProtoDef(\apc40, (
 								var oldidx = ( self.grid.activeIndex ? 0 ) - self.gridOffset.x;
 								self.grid.activeIndex = self.grid.childAtOffset(iidx).index;
 								self.render_track_selection_button(idx);
+								self.map_track_macros(self.grid.childAtOffset(iidx));
 								//self.action_select_track(idx);
 							},
 							\sends, { 
@@ -638,41 +641,6 @@ ProtoDef(\apc40, (
 			//PlayerWrapper(self.grid.childAtOffset(idx)).stop;
 			//};
 		};
-	},
-
-
-	map_sendMode_fx: { arg self, idx;
-		if(idx.notNil and: { idx > 0 }) {
-			var fxkey = ProtoDef(\FxManager).fxKeys[idx-1];
-			[fxkey.asCompileString, idx, fxkey.asString.contains("rdn")].debug("map_sendMode_fx");
-			if(fxkey.asString.contains("rdn")) {
-				var proxy = Ndef(fxkey);
-				[idx, proxy].debug("mapping sendmode fx");
-				[
-					Param(proxy, \delay),
-					Param(proxy, \delay2),
-					Param(proxy, \fb),
-					Param(proxy, \distamp),
-
-					Param(proxy, \posthpf),
-					Param(proxy, \postlpf),
-					nil,
-					Param(proxy, \gain),
-				].collect({ arg param, idx;
-					self.mapParam([ \kn, \d, 0, idx ], param);
-				});
-
-				self.ktl.elAt(\bt, \device, 0, \detail, \on).action = {
-					{
-						ProtoDef(fxkey).edit;
-					}.defer;
-				};
-				self.ktl.elAt(\bt, \device, 0, \devonoff, \on).mapPlayer(PlayerWrapper(ProtoDef(fxkey)));
-			} {
-
-			}
-		};
-			
 	},
 
 	action_select_track: { arg self, idx;
@@ -740,7 +708,21 @@ ProtoDef(\apc40, (
 		}
 	},
 
+	map_track_macros: { arg self, child;
+		var size = 8;
+		var group = child.paramGroup ?? { nil!size };
+		"map_track_macros".debug;
+		size.do { arg idx;
+			[idx, group[idx]].debug("map macro");
+			if(group[idx].notNil) {
+				group[idx].setBusMode(true);
+			};
+			self.mapParam([\kn, \d, 0, idx], group[idx]);
+		};
+	},
+
 	map_track_mixer_sends: { arg self, send=0;
+		var panel;
 		8.do { arg idx;
 			var mix = self.grid.childAtOffset(idx).mixer;
 			if(mix.notNil) {
@@ -749,7 +731,13 @@ ProtoDef(\apc40, (
 				self.unmapParam([\kn, \t, idx]);
 			}
 		};
-		self.map_sendMode_fx(self.selected_send_idx);
+		if(self.sendMode_panels.isNil) {
+			self[\sendMode_panels] = nil!self.gridsize.x;
+		};
+		panel = self.sendMode_panels[self.selected_send_idx];
+		if(panel.notNil) {
+			panel.value(self, self.selected_send_idx, send);
+		};
 	},
 
 	activate_simplemixer: { arg self;
@@ -786,6 +774,59 @@ ProtoDef(\apc40, (
 		}
 	},
 
+
+
+));
+
+///// custom
+
+// rdn send panels
+
+ProtoDef(\apc40).sendMode_panels = ProtoDef(\apc40).sendMode_panels ?? { nil ! 8 };
+(1..4).do { arg idx;
+	ProtoDef(\apc40).sendMode_panels[idx] = { arg self; self.map_sendMode_fx(idx) };
+};
+ProtoDef(\apc40).putAll((
+
+	map_sendMode_fx: { arg self, idx;
+		if(idx.notNil and: { idx > 0 }) {
+			var fxkey = ProtoDef(\FxManager).fxKeys[idx-1];
+			[fxkey.asCompileString, idx, fxkey.asString.contains("rdn")].debug("map_sendMode_fx");
+			if(fxkey.asString.contains("rdn")) {
+				var proxy = Ndef(fxkey);
+				[idx, proxy].debug("mapping sendmode fx");
+				[
+					Param(proxy, \delay),
+					Param(proxy, \delay2),
+					Param(proxy, \fb),
+					Param(proxy, \distamp),
+
+					Param(proxy, \posthpf),
+					Param(proxy, \postlpf),
+					nil,
+					Param(proxy, \gain),
+				].collect({ arg param, idx;
+					self.mapParam([ \kn, \d, 0, idx ], param);
+				});
+
+				self.ktl.elAt(\bt, \device, 0, \detail, \on).action = {
+					{
+						ProtoDef(fxkey).edit;
+					}.defer;
+				};
+				self.ktl.elAt(\bt, \device, 0, \devonoff, \on).mapPlayer(PlayerWrapper(ProtoDef(fxkey)));
+			} {
+
+			}
+		};
+			
+	},
+));
+
+// rdn
+
+ProtoDef(\apc40)[\activateHook] = ProtoDef(\apc40)[\activateHook].addFunc({ arg self; self.map_rdn });
+ProtoDef(\apc40).putAll((
 	map_rdn_to_bank: { arg self, bankidx, rdnkey, arglist;
 		self.bank_actions[bankidx] = {
 			if(self.shiftModifier) {
@@ -855,8 +896,7 @@ ProtoDef(\apc40, (
 			};
 		};
 	},
-
-
+	
 ));
 
 ///// user panels

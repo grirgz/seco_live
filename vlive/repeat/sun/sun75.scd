@@ -1,7 +1,7 @@
 ~t = 125/2/60; TempoClock.default.tempo = ~t;
 
 // notetimeline au hasard
-FileSystemProject.load("sun/fmgen.scd")
+FileSystemProject.loadOnce("sun/fmgen.scd")
 
 
 (
