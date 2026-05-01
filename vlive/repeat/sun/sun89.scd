@@ -250,6 +250,7 @@ BufDef(\rocksteady, "vipere/rocksteady.flac");
 BufDef(\metal, "vipere/metal.flac");
 BufDef(\bomb, "vipere/bomb.flac");
 (
+BufDef(\amen, "vipere/amenbreak.wav");
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(

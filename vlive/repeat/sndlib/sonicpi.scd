@@ -60,7 +60,7 @@
 		Out.ar(out_bus, snd * amp);
 
 	}).add
-)
+);
 
 
 (
@@ -77,7 +77,7 @@ SynthDef('pigabberkick', {|
 
 	cutoff = 119, cutoff_slide = 0, cutoff_slide_shape = 1, cutoff_slide_curve = 0,
 	res = 0.2, res_slide = 0, res_slide_shape = 1, res_slide_curve = 0,
-	out_bus = 0|
+	out = 0|
 
 	var snd, env;
 	var note;
@@ -106,13 +106,13 @@ SynthDef('pigabberkick', {|
 		).ar * ([-0.1, 0, 0.1]*0).midiratio);
 
 	snd = Mix(snd);
-    //snd = (snd * \distamp1.kr(10)).tanh;
-    //snd = (snd * \distamp2.kr(5.1)).atan;
-    //snd = BPeakEQ.ar(snd, XLine.kr(\eqstart.kr(2000), \eqend.kr(100), \eqdur.kr(0.3)), \eqrq.kr(2.0), boost);
-    //snd = snd + DelayC.ar(snd, \delrange.kr(0.001), SinOsc.ar(\delfreq.kr(1)).range(0.0, \delrange.kr(0.001)));
+	snd = (snd * \distamp1.kr(10)).tanh;
+	snd = (snd * \distamp2.kr(5.1)).atan;
+	snd = BPeakEQ.ar(snd, XLine.kr(\eqstart.kr(2000), \eqend.kr(100), \eqdur.kr(0.3)), \eqrq.kr(2.0), boost);
+	snd = snd + DelayC.ar(snd, \delrange.kr(0.001), SinOsc.ar(\delfreq.kr(1)).range(0.0, \delrange.kr(0.001)));
 	snd = RLPF.ar(snd, cutoff, res);
-	//snd = ((snd * 0.6).clip(-1, 1));
-	snd = snd * 0.00001;
+	snd = ((snd * 0.6).clip(-1, 1));
+	//snd = snd * 0.00001;
 
 	env = Env.new(
 		[0, attack_level, decay_level, sustain_level, 0],
@@ -120,11 +120,13 @@ SynthDef('pigabberkick', {|
 		\lin
 	);
 
-	snd = Pan2.ar(snd * EnvGen.kr(env, doneAction: 2), pan);
-	Out.ar(out_bus, snd * amp * 0.5);
+	snd = Pan2.ar(snd * EnvGen.kr(env,doneAction: 2), pan);
+	Out.ar(out, snd * amp * 0.5);
 
 }).add;
-)
+);
+
+// END
 
 (
 Ndef(\zed, { arg freq=200, pan=0, amp=0.1;

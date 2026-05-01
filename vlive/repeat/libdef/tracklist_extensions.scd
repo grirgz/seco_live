@@ -54,39 +54,52 @@ ProtoDef(\apc40).gridBank = [ TrackDef(\split, \PlayerGrid), TrackDef(\splitdrum
 
 ////// fx pads
 ProtoDef(\apc40).quickfxpad[0] = { arg self, apc, track, point;
-	var fx = track.mixer.insertFxAt(8+point.y);
-	fx.synthName = \ifx_stutter;
-	fx.enabled = true;
-	apc.ktl.elAt(\kn, \t, point.x).mapParam(fx.getParam(\time).withSpec(TagSpec([1,1/2,1/4,1/8]/~t)));
-	fx.getParam(\wet).set(1);
-	fx.getParam(\mix).set(1);
-
-	self[\stop] = {
+	if(track.mixer.notNil) {
 		var fx = track.mixer.insertFxAt(8+point.y);
+		fx.synthName = \ifx_stutter;
+		fx.enabled = true;
+		apc.ktl.elAt(\kn, \t, point.x).mapParam(fx.getParam(\time).withSpec(TagSpec([1,1/2,1/4,1/8]/~t)));
 		fx.getParam(\wet).set(1);
-		fx.getParam(\mix).set(0);
-	}
+		fx.getParam(\mix).set(1);
+
+		self[\stop] = {
+			var fx = track.mixer.insertFxAt(8+point.y);
+			fx.getParam(\wet).set(1);
+			fx.getParam(\mix).set(0);
+		}
+	} {
+		"No mixer enabled on this track".error;
+	};
 };
 ProtoDef(\apc40).quickfxpad[1] = { arg self, apc, track, point;
-	var fx = track.mixer.insertFxAt(8+point.y);
-	fx.synthName = \ifx_rlpf;
-	fx.enabled = true;
-	apc.ktl.elAt(\kn, \t, point.x).mapParam(fx.getParam(\lpf));
-	fx.getParam(\wet).set(1);
-	fx.getParam(\mix).set(1);
-
-	self[\stop] = {
+	if(track.mixer.notNil) {
 		var fx = track.mixer.insertFxAt(8+point.y);
+		fx.synthName = \ifx_rlpf;
+		fx.enabled = true;
+		apc.ktl.elAt(\kn, \t, point.x).mapParam(fx.getParam(\lpf));
 		fx.getParam(\wet).set(1);
-		fx.getParam(\mix).set(0);
-	}
+		fx.getParam(\mix).set(1);
+
+		self[\stop] = {
+			var fx = track.mixer.insertFxAt(8+point.y);
+			fx.getParam(\wet).set(1);
+			fx.getParam(\mix).set(0);
+		}
+	} {
+		"No mixer enabled on this track".error;
+	};
+
 };
 ProtoDef(\apc40).quickfxpad[2] = { arg self, apc, track, point;
-	//track.mixer.getParam(\postfader).set(0.ampdb);
-	track.mixer.getParam(\send5).set(1);
+	if(track.mixer.notNil) {
+		//track.mixer.getParam(\postfader).set(0.ampdb);
+		track.mixer.getParam(\send5).set(1);
 
-	self[\stop] = {
-		track.mixer.getParam(\send5).set(0);
-	}
+		self[\stop] = {
+			track.mixer.getParam(\send5).set(0);
+		}
+	} {
+		"No mixer enabled on this track".error;
+	};
 };
 )

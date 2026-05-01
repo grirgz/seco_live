@@ -305,21 +305,25 @@ Pdef(\part, Pdef(\zedpart,
 			],inf).stutter(2),
 			\octave, 5,
 			\dur, 2,
-			\amp, 0.1,
+			\amp, 0.1/3,
 			\out, BusDef(\ifx1, \audio),
 		),
 		Pmono(\fx_extract,
 			\inbus, BusDef(\ifx1, \audio),
 			\addAction, \addToTail,
 			\lpf, PmodEnv(Pseq([1000,12000,4000,9144],1), 2).loop,
+			\mix, PmodEnv(Pseq([0.1,0.5,0.5],1), 16).loop,
+			\wetgain, 2,
 			\lag, 0.0009,
 			\dur, 1,
 		),
 		Pbind(
-			\instrument, \default,
+			\instrument, \sh101,
 			\note, Pstep(Pseq([
 				5,7,9,7,
 			],inf),4),
+			\envamt, Pseg(Pseq([0.1,2,4],1), 8).loop,
+			\lpf, 300,
 			\octave, 5,
 			\dur, 1/2,
 			\amp, 0.1,
@@ -344,6 +348,7 @@ SynthDef(\fx_extract, { arg out=0, gate=1;
 	sig = sig * 1.4;
 	sig = FreeVerb2.ar(sig.first, sig.last, mix:\verbmix.kr(0.5), room:\room.kr(1.5), damp:\damp.kr(0.5));
 	sig = sig / 8;
+	sig = sig * \wetgain.kr(1);
 	//sig = LPF.ar(sig, \postlpf.kr(8000));
 	sig = HPF.ar(sig, \posthpf.kr(800));
 	sig = SelectX.ar(\mix.kr(0.9), [in, sig]);

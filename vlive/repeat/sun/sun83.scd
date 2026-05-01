@@ -1,3 +1,4 @@
+// nom: Mirage gravitationnel 
 
 (
 ~t = 155/2/60; TempoClock.default.tempo = ~t;
@@ -2648,7 +2649,7 @@ Pdef(\part, Pdef(\main,
 		
 	])
 )).play;
-)
+);
 
 ///////////// draft
 // try to combine idea 1 and idea 2
@@ -2856,7 +2857,7 @@ Pdef(\part, Pdef(\dark,
 
 	]))
 )).play;
-)
+);
 (
 Pdef(\part, Pdef(\light, 
 	Ppar([
@@ -2993,7 +2994,7 @@ Pdef(\part, Pdef(\light,
 		
 	])
 )).play;
-)
+);
 
 (
 Pdef(\part, Pdef(\bridge, 
@@ -3012,7 +3013,7 @@ Pdef(\part, Pdef(\main,
 		
 	])
 )).play;
-)
+);
 
 ////////// draft
 // explode pblock1
@@ -3720,6 +3721,7 @@ Pdef(\part, Pdef(\drumsdraft3,
 );
 
 (
+/////////// main
 Pdef(\part, Pdef(\main, 
 	Pseq([
 		Pfindur(16, Pdef(\pblockdraft1)),
@@ -3728,7 +3730,7 @@ Pdef(\part, Pdef(\main,
 		
 	])
 )).play;
-)
+);
 
 (
 Pdef(\part, Pdef(\pblock1try2, 
@@ -4331,6 +4333,7 @@ Pdef(\zed,
 );
 
 
+(
 Ndef(\fond1p2, { arg freq=200, pan=0, amp=0.1;
 	var sig;
 	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
@@ -4350,6 +4353,7 @@ Ndef(\fond1p2, { arg freq=200, pan=0, amp=0.1;
 
 	sig.debug("sig") * 5;
 }).play;
+);
 
 (
 SynthDef(\beechord, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;

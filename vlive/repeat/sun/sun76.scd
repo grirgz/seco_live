@@ -294,7 +294,7 @@ Pdef(\part, Pdef(\zedpart,
 			],inf),
 			\octave, 5,
 			\dur, 4,
-			\amp, 0.1,
+			\amp, 0.1/4,
 		),
 	])
 )).play;

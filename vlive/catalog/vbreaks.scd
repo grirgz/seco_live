@@ -511,3 +511,69 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Paul Simon - Fifty Ways To Leave Your Lover.wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/2 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 8,
+			]+0,1),2).loop * Pkey(\bufdur) * 1/8,
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Orange Krush - Action (part3).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/4 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 8,
+			]+0,1),4).loop * Pkey(\bufdur) * 1/8,
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		//Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Odetta - Hit Or Miss (cd).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/2 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 8,
+			]+0,1),2).loop * Pkey(\bufdur) * 1/8,
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);

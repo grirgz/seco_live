@@ -2250,7 +2250,7 @@ Pdef(\part, Pdef(\zedpart,
 			\pos, 0,
 			\legato, 1,
 			\dur, Pn(1,8),
-			\gain, 1,
+			\gain, 0.1,
 			\out, BusDef(\ifxvocoder, \audio),
 		).loop,
 		Pbind(
@@ -2806,7 +2806,7 @@ Pdef(\part, Pdef(\zedpart,
 			\adsr, Pseq([
 				[ Env.adsr(0.01,0.1,0.8,0.1) ],
 			],inf),
-			\amp, 0.1 * Pseg(Pseq([0.8,1],inf),8*2),
+			\amp, 0.1 * Pseg(Pseq([0.8,1],inf),8*2)  /1.3,
 			//\out, BusDef(\ifx1, \audio),
 		),
 	])
@@ -2898,7 +2898,7 @@ Pdef(\part, Pdef(\zedpart,
 			\adsr, Pseq([
 				[ Env.adsr(0.01,0.1,0.8,0.1) ],
 			],inf),
-			\amp, 0.1 * Pseg(Pseq([0.8,1],inf),8*2),
+			\amp, 0.1 * Pseg(Pseq([0.8,1],inf),8*2) / 1.3,
 			//\out, BusDef(\ifx1, \audio),
 		),
 		Ptpar([

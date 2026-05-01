@@ -266,3 +266,79 @@ Event.default.use { kk<  }
 Scale.major.degreeToFreq(3,0.midicps,6)
 Scale.major.degreeToFreq(0,60.midicps,1)
 valueEnvir
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1362].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.071,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1576].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				Pseq([
+					0,0,1,0, 0,0,1,0,
+				],3),
+				0,0,0,0, 1,0,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1620].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				//1,0,1,0, 1,0,1,0,
+				//1,1,1,1, 1,1,1,1,
+				//1,1,1,1, 1,0,1,0,
+				Pseq([
+					0,1,0,1, 0,1,0,1,
+				],3),
+				1,0,1,0, 1,1,1,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\gain, 0.10/2,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				Pser([
+					-1,11,
+				],16),
+				Pser([
+					-7,-7+12,
+				],8),
+				Pser([
+					-6,-6+12,
+				],8),
+				//Pser([ 5,\r, ],4),
+				//Pser([ \r,\r, ],4),
+				//Pser([
+					//2,0,
+				//],12),
+				//Pser([ 7,\r, ],4),
+			],inf),
+			\legato, Pseq([
+				Pstep(Pseq([0.8,0.5],inf),Pseq([3,1],inf)),
+			],inf),
+			\octave, 3,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);

@@ -1,7 +1,7 @@
 
 ~t = 164/4/60; TempoClock.default.tempo = ~t;
 
-FileSystemProject.load("sun/fmgen.scd");
+FileSystemProject.loadOnce("sun/fmgen.scd");
 (
 SynthDef(\harpsichord_pluck, {
 	|amp=0.1, freq=440, pan=0, atk=0, rel=0, trig= 1, maxdelaytime= 0.2, decaytime= 7, coef= 0.1|

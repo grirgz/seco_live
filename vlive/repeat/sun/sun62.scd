@@ -1729,6 +1729,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+ProtoDef(\FxManager).play;
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 
@@ -1899,7 +1900,7 @@ Pdef(\part, Pdef(\zedpart,
 			\lag, 1/16/~t,
 			\amp, 0.1/4,
 			\out, BusDef(\ifx2, \audio),
-			\out, BusDef(\sendbus5, \audio),
+			//\out, BusDef(\sendbus5, \audio),
 		),
 		Pmono(\fx_sidechain,
 			\inbus, BusDef(\ifx2, \audio),

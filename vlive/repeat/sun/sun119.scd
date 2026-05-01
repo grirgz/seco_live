@@ -1585,3 +1585,274 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[446].value,
+			\bufnum, ~buflib.kick[235].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 1,0,0,0,
+				1,0,0,0, 1,0,0,0,
+				1,0,0,0, 1,0,0,0,
+				1,0,0,0, 1,0,0,1,
+				1,0,0,0, 1,0,0,0,
+				1,0,0,0, 1,0,0,0,
+				1,0,0,0, 1,0,0,0,
+				1,0,0,1, 1,0,1,0,
+			],inf).coin.not,
+			\dur, 1/8/2,
+			\gain, 0.15,
+		),
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Odetta - Hit Or Miss (cd).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/2 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 4,
+			]+0,1),1/2).loop * Pkey(\bufdur) * 1/8,
+
+			\pos, Pseq([
+				Pseq([
+					5,6,6,7,
+					[ 5,6,6,7 ]+7,
+					5,3,6,7,
+					[ 5,4,6,7 ]+7,
+
+					[ 5,6,6,7 ]+3,
+					[ 5,6,6,7 ]+8,
+					5,3,6,7,
+					[ 5,4,6,7 ]+6,
+					
+				].flat,1),
+				//Pseq([
+					//(0..7)+8,
+					//(0..7)+8,
+
+					//(0..7),
+					//3,5,6,7, 11,1,11,11,
+					
+				//].flat,1),
+				
+			],inf)* Pkey(\bufdur) * 1/8/2,
+			\dur, 1/8/2,
+			\gain, 1/8 * Pseq([
+				2,1,2,0,
+				0,0,2,1,
+				1,1,2,0,
+				0,0,2,0,
+				1,1,2,1,
+				1,1,2,1,
+				1,1,2,1,
+				1,1,2,1,
+				1,1,2,1,
+				1,1,2,1,
+				   //1,1,2,1, 1,1,2,1,
+				   //1,1,2,1, 2,1,2,2,
+			]/3,inf),
+		),
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, BufDef.stereo('vbreaks/Paul Simon - Fifty Ways To Leave Your Lover.wav'),
+			\bufnum, BufDef.stereo('vbreaks/Orange Krush - Action (part3).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/2 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 8,
+			]+0,1),2).loop * Pkey(\bufdur) * 1/8,
+			\pos, Pseq([
+				Pseq([
+					\r!32,
+					\r!16,
+					0,1,0,2,
+					\r!4,
+					[ 11,\r,\r,11 ]-2,
+					[ 5,5,1,5 ]+4,
+
+					\r!32,
+					\r!16,
+					\r!4,
+					0,1,0,2,
+					3,5,6,7,
+					11,1,11,11,
+					
+				].flat,1),
+				
+			],inf)* Pkey(\bufdur) * 1/8/2,
+			\dur, 1/8/2,
+			\gain, 1/8,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[848].value,
+			\isRest, Pseq([
+				1,1,1,0, 1,1,1,1,
+				1,1,1,1, 1,1,1,1,
+				1,1,1,1, 1,1,0,0,
+				0,0,0,0, 1,1,1,1,
+			],inf).coin.not,
+			\dur, 1/8/2,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\speed, Pseq([1,1 * 4.midiratio],inf),
+			\gain, 0.08 * Pseq([1,0.7],inf),
+		),
+		Pbind(
+			\instrument, \organ_tonewheel1,
+			\note, Pseq([
+				Pseq([
+					[0,4,7],
+					[0+12,4+12,7+12],
+				],2),
+			],inf).stutter(1),
+			\ctranspose, Pstep(Pseq([
+				0,5,
+			],inf)),
+			\legato, 0.3,
+			\octave, 4,
+			\isRest, Pseq([
+				0,1,1,1, 0,1,1,1,
+				0,1,1,1, 0,1,1,1,
+				0,0,0,1, 0,0,0,0,
+				0,1,1,1, 0,1,1,1,
+			],inf).coin.not,
+			\legato, Pseq([
+				1/4,2,1/4,1/4,
+				1/4,1,1/4,1/4,
+				1/4,1,1/4,1/4,
+				1/4,1/4,1/4,1,
+				1/4,1/4,1/4,2,
+			],inf)/2,
+			\sus, Pkey(\sustain)/~t,
+			\dur, 1/8,
+			\amp, 0.1/4,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.01,0.4,0.1) ],
+			],inf),
+		),
+		Pbind(
+			\instrument, \simpleorgan,
+			\note, Pseq([
+				Pseq([
+					[0,4,7],
+					[0+12,4,7],
+				],6),
+				Pseq([
+					[0,4-12,7],
+					[0,4,7],
+				],2),
+			],inf).stutter(1),
+			\ctranspose, Pstep(Pseq([
+				0,5,
+			],inf)),
+			\legato, 0.3,
+			\octave, 4,
+			\isRest, Pseq([
+					1,1,1,1,
+					1,1,1,1,
+					1,1,1,1,
+					1,1,1,0,
+
+					1,1,1,1,
+					0,1,0,0,
+					1,1,1,1,
+					1,1,1,1,
+			],inf).coin.not,
+			\legato, Pseq([
+				1/4,1/4,1/4,1/4, 1/4,1/4,1/4,1/4,
+				1/4,1/4,1/4,1/4, 1/4,1/4,1/4,1,
+				1/4,1/4,1/4,1/4, 1/4,1,1/4,1/4,
+			],inf)/2,
+			\dur, 1/8/2,
+			\amp, 0.1/2 * Pseq([
+				1,1,3,1,
+				1,1,3,1,
+				1,1,3,1,
+				1,3,1,3,
+
+				1,1,3,1,
+				1,1,3,1,
+				1,1,3,1,
+			   	1,1,1,3,
+			],inf),
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.01,0.4,0.1) ],
+			],inf),
+		),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,0,0,0, 0,0,0,0,
+				-7,-7,-7,-7,-7,-7,-7,-7,
+				0,0,0,\r, 0,0,0,0,
+				-7,-7,-7,-7,-7,\r,-5,-3,
+				0,0,0,0, 0,0,0,0,
+				-7,-7,-7,-7,-7,\r,5,-7,
+				0,0,0,0, 0,0,0,\r,
+				-7,-7,-7,-7,-7,-7,0,-7,
+			],inf).stutter(2),
+			\octave, 3,
+			\dur, 1/8/2,
+			\legato, 0.9,
+			\isRest, Pseq([
+				0,1,1,1, 0,1,1,1,
+			],inf).coin.not,
+			\rq, PmodEnv(Pseq([0.7,0.3],2), 8).loop,
+			\envamt, PmodEnv(Pseq([0.1,8],1), 16).loop,
+			\lpf, PmodEnv(Pseq([200,100],1), 8,\exp).loop,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\amp, 0.1,
+		),
+		Pmono(
+			 \sh101,
+			\note, Pseq([
+				Pseq([
+					-5,0,
+				],4),
+				Pseq([
+					-7,0,
+				],4),
+			],inf),
+			\octave, 6,
+			\lpf, PmodEnv(Pseq([100,4000],1), 8,\exp).loop,
+			\dur, 1/8,
+			\amp, 0.1/2,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				Pser([
+					7,8,7,0
+				],4),
+				Pseq([
+					7,
+				],4*3),
+				Pseq([
+					5,
+				],4*4),
+			],inf),
+			\octave, 5,
+			\lpf, PmodEnv(Pseq([100,4000],1), 8,\exp).loop,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\legato, 0.4,
+			\envamt, 6,
+			\rq, 0.4,
+			\dur, 1/8/2,
+			\amp, 0.1/2,
+		),
+	])
+)).play;
+);

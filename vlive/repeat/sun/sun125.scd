@@ -1,6 +1,7 @@
 
 // inspir de sun88
 ~t = 154/2/60; TempoClock.default.tempo = ~t;
+Pdef.defaultQuant = 4
 
 (
 SynthDef(\formantbass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
@@ -102,6 +103,21 @@ SynthDef(\glass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 }).add;
 );
 
+(
+SynthDef(\fmnap, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
+	mod1 = SinOsc.ar(freq * [1,1.2,1.4,1.5]* LFNoise1.kr(0.1!4,mul:0.1,add:1)) * LFNoise1.kr(0.1!4,mul:1.8,add:1) * EnvGen.kr(Env([0,1,0],[0.1,0.8]), 1);
+	mod1 = SinOsc.ar(freq * [1,1.02,1.04,1.05]* LFNoise1.kr(0.1!4,mul:0.1,add:1)) * LFNoise1.kr(0.1!4,mul:1.8,add:1) * EnvGen.kr(Env([0,1,0],[1.1,5]), 1);
+	sig = SinOsc.ar(freq, mod1 );
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+Pdef.defaultQuant = 2
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
@@ -522,6 +538,7 @@ Pdef(\part, Pdef(\sec3,
 );
 
 (
+//////// main
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pseq([
@@ -535,19 +552,6 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-(
-SynthDef(\fmnap, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
-	mod1 = SinOsc.ar(freq * [1,1.2,1.4,1.5]* LFNoise1.kr(0.1!4,mul:0.1,add:1)) * LFNoise1.kr(0.1!4,mul:1.8,add:1) * EnvGen.kr(Env([0,1,0],[0.1,0.8]), 1);
-	mod1 = SinOsc.ar(freq * [1,1.02,1.04,1.05]* LFNoise1.kr(0.1!4,mul:0.1,add:1)) * LFNoise1.kr(0.1!4,mul:1.8,add:1) * EnvGen.kr(Env([0,1,0],[1.1,5]), 1);
-	sig = SinOsc.ar(freq, mod1 );
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
-	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
-	Out.ar(out, sig);
-}).add;
-Pdef(\part).reset;
-);
 SynthDescLib.at(\fmnap).controlDict
 
 Synth(\default)

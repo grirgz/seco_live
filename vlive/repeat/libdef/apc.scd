@@ -2,7 +2,24 @@
 // et aussi gerer les \userStopped, etc
 // et adapter modality pour gerer tout ca
 (
+////////// main
+
 ProtoDef(\apc40, (
+	parent: ProtoDef(\apc40_layer_main),
+	layerTemplate_: { arg self, val;
+		self.parent = val;
+	},
+
+	layerTemplate: { arg self;
+		self.parent;
+	},
+
+));
+ProtoDef(\apc40).activateHook = nil; // reset activateHook to avoid piling
+
+////////// main layer
+
+ProtoDef(\apc40_layer_main, (
 	new: { arg self, grid;
 		self = self.deepCopy;
 	
@@ -37,6 +54,7 @@ ProtoDef(\apc40, (
 			amber: 126,
 			off: 0, 
 			disabled: 43,
+			disabled2: 112,
 	)),
 
 	color_modes: (
@@ -49,6 +67,29 @@ ProtoDef(\apc40, (
 	gridsize: Point(8,5),
 
 	/////// utils
+
+	setDisplayMode: { arg self, val;
+		self.displayMode = val;
+		self.displayModeHook.value(self);
+		self.render_displayMode;
+		self.render_grid;
+	},
+
+	defaultDisplayMode: { arg self;
+		\pan
+	},
+
+	displayMode: { arg self;
+		self["%_%".format("displayMode", self.layerName).asSymbol] ?? { self.defaultDisplayMode };
+	},
+
+	displayMode_: { arg self, val;
+		self["%_%".format("displayMode", self.layerName).asSymbol] = val;
+	},
+
+	layerName: { arg self;
+		self.layerTemplate.key;
+	},
 
 	gridOffset_: { arg self, val;
 		self.grid.gridOffset = val;
@@ -97,9 +138,34 @@ ProtoDef(\apc40, (
 		);
 	},
 
+	sectionAtOffset: { arg self, idx;
+		self.grid.sectionAt(idx + self.gridOffset.y);
+	},
+
+	clipStopAtOffset: { arg self, idx;
+		var player = self.grid.childAtOffset(idx);
+		var shiftplayer = ProtoClass((
+			parent: player,
+			play: { arg cellself;
+				if(self.shiftModifier) {
+					player.editInstrument;
+				} {
+					player.play
+				};
+			},
+			stop: { arg cellself;
+				if(self.shiftModifier) {
+					player.editInstrument;
+				} {
+					player.stop
+				};
+			},
+		));
+		shiftplayer;
+	},
 
 	mapParam: { arg self, ktlpath, param, toggleMode;
-		[ktlpath, param].debug("mapParam");
+		//[ktlpath, param].debug("mapParam");
 		self.ktl.elAt(*ktlpath).mapParam(param, toggleMode);
 		//self.ktl.elAt(*ktlpath).value = param.normGet;
 		//if(param.isNil) {
@@ -151,13 +217,13 @@ ProtoDef(\apc40, (
 
 	listenAt: { arg self, pos;
 		var player = PlayerWrapper(self.childAtOffset(pos));
-		pos.debug("listenAt");
+		//pos.debug("listenAt");
 		if(self.controllers[pos.x][pos.y].notNil) {
 			self.controllers[pos.x][pos.y].remove;
 		};
 		self.controllers[pos.x][pos.y] = player.makeListener({ arg me, msg, args;
 			//{
-			[msg, args].debug("listenat!!");
+			//[msg, args].debug("listenat!!");
 				self.render_cell(pos, msg == \play, self.color_modes.blink);
 				player.doWithQuant {
 					self.render_cell(pos);
@@ -197,7 +263,7 @@ ProtoDef(\apc40, (
 	/////// rendering
 
 	render_grid: { arg self;
-		"render_grid a".debug;
+		"render_grid start ===".debug;
 		self.gridsize.x.do { arg x;
 			self.gridsize.y.do { arg y;
 				var pos = Point(x, y);
@@ -211,7 +277,7 @@ ProtoDef(\apc40, (
 		self.render_displayMode;
 
 		self.gridsize.x.do { arg x;
-			x.debug("render_grid, render_trackbutton");
+			//x.debug("render_grid, render_trackbutton");
 			self.render_trackbutton(x);
 			self.render_track_selection_button(x);
 		};
@@ -222,7 +288,7 @@ ProtoDef(\apc40, (
 			self.render_mixer_button(\muteMode, idx, true);
 			self.render_mixer_button(\soloMode, idx);
 		};
-		"render_grid end".debug;
+		"render_grid end ===".debug;
 	},
 
 	refresh: { arg self;
@@ -231,7 +297,7 @@ ProtoDef(\apc40, (
 
 	setColorAt: { arg self, pos, color, mode;
 		mode = mode ? 0;
-		[pos, color, mode].debug("setColorAt");
+		//[pos, color, mode].debug("setColorAt");
 		self.ktl.elAt(\bt, \clipColor, pos.y, pos.x, mode).value = color/127; // disabled new desc
 	},
 
@@ -239,7 +305,7 @@ ProtoDef(\apc40, (
 		// playerWrapper to pad
 		var color;
 		var child = self.childAtOffset(pos);
-		pos.debug("render_cell");
+		//[ pos, child ].debug("render_cell");
 		if(child.padColor.notNil) {
 			color = child.padColor;
 		} {
@@ -259,7 +325,7 @@ ProtoDef(\apc40, (
 				};
 			};
 		};
-		color = self.colors[color];
+		color = self.colors[color] ? color;
 		self.setColorAt(pos, color, mode);
 		0;
 	},
@@ -290,14 +356,14 @@ ProtoDef(\apc40, (
 
 	render_trackbutton: { arg self, idx;
 		var clip = self.grid.childAtOffset(idx);
-		idx.debug("render_trackbutton");
+		//idx.debug("render_trackbutton");
 		//"rtb1".debug;
 		if(clip.isPlaying) {
 			//"rtb2".debug;
 			self.ktl.elAt(\bt, \clipS, idx, \on).value = self.colors.green/127;
 		} {
 			//"rtb3".debug;
-			self.ktl.elAt(\bt, \clipS, idx, \on).value = self.colors.off.debug("color off");
+			self.ktl.elAt(\bt, \clipS, idx, \on).value = self.colors.off;
 		};
 		//"rtb4".debug;
 	},
@@ -322,10 +388,10 @@ ProtoDef(\apc40, (
 		if(idx == self.selectedTrackIndex) {
 			self.ktl.elAt(\bt, \selection, idx, \on).value = self.colors.green/127;
 			if(oldidx != idx) {
-				self.ktl.elAt(\bt, \selection, oldidx, \on).value = self.colors.off.debug("color off");
+				self.ktl.elAt(\bt, \selection, oldidx, \on).value = self.colors.off;
 			};
 		} {
-			self.ktl.elAt(\bt, \selection, idx, \on).value = self.colors.off.debug("color off");
+			self.ktl.elAt(\bt, \selection, idx, \on).value = self.colors.off;
 		};
 	},
 
@@ -380,7 +446,7 @@ ProtoDef(\apc40, (
 			//self.modifier_mixer.debug("mixer mode!");
 			//};
 
-			"1--".debug;
+			"Initializing Apc40 control software".debug;
 
 			self.ktl.sendSpecialMessage(\abletonLiveMode);
 
@@ -396,7 +462,7 @@ ProtoDef(\apc40, (
 
 			"4--".debug;
 
-			self.map_quant_chooser; // disabled because can't find
+			self.map_quant_chooser; 
 
 			"5--".debug;
 
@@ -446,36 +512,13 @@ ProtoDef(\apc40, (
 
 			// debug
 			//self.ktl.elAt(\bt, 0).action = { self.render_grid; "refresh!!!!".debug };
-			move_in_grid = { arg el, offset;
-				el.value.debug("drole!!");
-				if(el.value == 0) {
-
-				} {
-					if(self.shiftModifier) {
-						offset = offset * Point(8,5);
-					};
-					self.gridOffset = self.gridOffset + offset;
-				}
-			};
 
 			"9--".debug;
 			self.ktl.elAt(\bt, \transport, \play,\on).mapPlayer(PlayerWrapper(self.grid));
 
-			[\pan, \sends, \user].do { arg item, idx;
-				var fun;
-				self.ktl.elAt(\bt, \control, item, \on).action = {
-					self.displayMode = item;
-					self.render_displayMode;
-					self.render_grid;
-					//self.modifier_send = true;
-					//self.map_track_mixer_sends(self.selected_send_idx ? 0);
-				};
-			};
+			self.map_displayMode_buttons;
+			self.map_bankselect_buttons;
 
-			self.ktl.elAt(\bt, \bankselect, \up,\on).action = { arg el; move_in_grid.(el, Point(0,-1)) }; // down
-			self.ktl.elAt(\bt, \bankselect, \down,\on).action = { arg el; move_in_grid.(el, Point(0,1)) }; // up
-			self.ktl.elAt(\bt, \bankselect, \left,\on).action = { arg el; move_in_grid.(el, Point(-1,0)) }; // left
-			self.ktl.elAt(\bt, \bankselect, \right,\on).action = { arg el; move_in_grid.(el, Point(1,0)) }; // right
 			self.ktl.elAt(\bt, \tempo, \metronome).mapPlayer(PlayerWrapper(Pdef(\metronome)));
 
 			//self.clearAll;
@@ -485,18 +528,44 @@ ProtoDef(\apc40, (
 			"11--".debug;
 			self.activate_trackmixer;
 			"12--".debug;
-			self.map_rdn;
 			self.activateHook.value(self);
 			"13--".debug;
 			if(self.grid.notNil) {
 				self.render_grid;
 			};
 			"14--".debug;
+			"Apc40 is ready.".debug;
 		};
+	},
+
+	move_in_grid: { arg self, el, offset;
+		if(el.value == 0) {
+
+		} {
+			if(self.shiftModifier) {
+				offset = offset * Point(8,5);
+			};
+			self.gridOffset = self.gridOffset + offset;
+		}
 	},
 
 	startControl: { arg self, model;
 		self.activate(model);
+	},
+
+	map_bankselect_buttons: { arg self;
+		self.ktl.elAt(\bt, \bankselect, \up,\on).action = { arg el; self.move_in_grid(el, Point(0,-1)) }; // down
+		self.ktl.elAt(\bt, \bankselect, \down,\on).action = { arg el; self.move_in_grid(el, Point(0,1)) }; // up
+		self.ktl.elAt(\bt, \bankselect, \left,\on).action = { arg el; self.move_in_grid(el, Point(-1,0)) }; // left
+		self.ktl.elAt(\bt, \bankselect, \right,\on).action = { arg el; self.move_in_grid(el, Point(1,0)) }; // right
+	},
+
+	map_displayMode_buttons: { arg self;
+		[\pan, \sends, \user].do { arg item, idx;
+			self.ktl.elAt(\bt, \control, item, \on).action = {
+				self.setDisplayMode(item);
+			};
+		};
 	},
 
 	map_clip_buttons: { arg self;
@@ -513,21 +582,26 @@ ProtoDef(\apc40, (
 						}.defer;
 					} {
 						var node = self.childAtOffset(point);
-						if(node.playMode == \gate) {
-							point.debug("pad gate play");
-							PlayerWrapper(node).play;
-						} {
-							if(node.playMode == \reset) {
+						switch(node.playMode,
+							\gate, { 
+								point.debug("pad gate play");
+								PlayerWrapper(node).play;
+							},
+							\trig, { 
+								PlayerWrapper(node).play;
+							},
+							\reset, { 
 								point.debug("pad reset play");
 								node.resetPlay;
-							} {
+						   	},
+							{ 
 								point.debug("pad toggle play");
 								PlayerWrapper(node).togglePlay;
 								PlayerWrapper(node).doWithQuant {
 									self.render_scene_buttons;
 								}
-							}
-						}
+							},
+						);
 					}
 				};
 				pad.elAt(\off).action = {
@@ -550,16 +624,23 @@ ProtoDef(\apc40, (
 		self.ktl.elAt(\bt, \scene).do { arg pad, idx;
 			var player;
 			//idx = 4-idx;
-			player = PlayerWrapper(self.grid.sectionAt(idx + self.gridOffset.y));
+			player = PlayerWrapper(self.sectionAtOffset(idx));
 			//pad.elAt(\on).mapPlayer(PlayerWrapper(self.grid.linePlayerAt(idx + self.gridOffset.y)), { self.render_scene_button(idx) }  );
 			pad.elAt(\on).action = {
 				var res = self.callback_scene_button(idx);
+				// callback_scene_button is used to change the action of scene button
+				// for exemple to use shift+scene to call splitAndAssignPattern
 				if(res != false) {
-					player.togglePlay;
+					if(player.target.playMode == \trig) {
+						player.play;
+					} {
+						player.togglePlay;
+					};
 				};
 				self.render_scene_button(idx);
 				player.doWithQuant {
-					self.render_scene_buttons;
+					//self.render_scene_buttons;
+					self.render_grid;
 				}
 			};
 			//pad.elAt(\on).getHalo(\ParamListener) !? _.remove;
@@ -628,14 +709,64 @@ ProtoDef(\apc40, (
 	},
 
 	map_clipStop_buttons: { arg self;
+		self.controllers_dict[\clipStop] = self.controllers_dict[\clipStop] ?? { SparseArray[] };
 		self.ktl.elAt(\bt, \clipS).do { arg pad, idx;
-			var player = self.grid.childAtOffset(idx);
+			var player = self.clipStopAtOffset(idx);
 			//idx = 7-idx;
-			pad.elAt(\on).mapPlayer(PlayerWrapper(player), { 
-				//{self.render_trackbutton(idx)}.defer(player.quant + 1) 
-				"clipS pushed".debug(idx);
-				self.render_trackbutton(idx)
-			})
+			//pad.elAt(\on).mapPlayer(PlayerWrapper(player), { 
+				////{self.render_trackbutton(idx)}.defer(player.quant + 1) 
+				//"clipS pushed".debug(idx);
+				//self.render_trackbutton(idx)
+			//})
+			pad.elAt(\on).action = {
+				switch(player.playMode,
+					\trig, { 
+						player.play;
+					},
+					\gate, { 
+						player.play;
+					},
+					{
+						if(player.isPlaying) {
+							player.stop;
+							
+						} {
+							player.initTrack;
+							player.play;
+						};
+					}
+				);
+				PlayerWrapper(player).doWithQuant {
+					self.render_trackbutton(idx)
+				}
+				
+			};
+			pad.elAt(\off).action = {
+				switch(player.playMode,
+					\trig, { 
+						// NOOP
+					},
+					\gate, { 
+						player.stop;
+					},
+					{
+						// NOOP
+					}
+				);
+				PlayerWrapper(player).doWithQuant {
+					//self.render_trackbutton(idx)
+					self.render_grid;
+				}
+				
+			};
+			//if(self.controllers_dict[\clipStop][idx].notNil) {
+				//self.controllers_dict[\clipStop][idx].remove;
+				//self.controllers_dict[\clipStop][idx] = nil;
+			//};
+			//self.controllers_dict[\clipStop][idx] = player.makeListener({ arg me, msg, args;
+				//"clipStop changed: render".debug;
+				   //self.render_grid;
+			//});
 
 			//pad.elAt(0).action = {
 			//PlayerWrapper(self.grid.childAtOffset(idx)).stop;
@@ -669,7 +800,7 @@ ProtoDef(\apc40, (
 	map_track_mixer_faders: { arg self;
 		8.do { arg idx;
 			var mix = self.grid.childAtOffset(idx).mixer;
-			[idx, mix].debug("map_track_mixer_faders");
+			//[idx, mix].debug("map_track_mixer_faders");
 			if(mix.notNil) {
 				[idx, mix].debug("map_track_mixer_faders notnil");
 				self.mapParam([\sl, 0, idx], mix.asParam(\postfader));
@@ -682,8 +813,46 @@ ProtoDef(\apc40, (
 
 	map_track_mixer_mute: { arg self;
 		8.do { arg idx;
-			var mix = self.grid.childAtOffset(idx).mixer;
-			[idx, mix].debug("map_track_mixer_mute");
+			var child = self.grid.childAtOffset(idx);
+			var mix = child.mixer;
+			//var muteBtn, AbBtn, muteParam;
+			var muteBtn;
+			//[idx, mix].debug("map_track_mixer_mute");
+
+			// mixer enabled button
+			self.mapParam([\bt, \track, \ab, idx], Param(Message(child), \isMixerEnabled, ParamBoolSpec()), true);
+			// FIXME: should put refresh code here
+			// track mute button
+			//muteBtn = self.ktl.elAt(\bt, \track, \activ, idx, \on);
+			//muteBtn.action = {
+				//if(self.shiftModifier) {
+					//child.isMixerEnabled = child.isMixerEnabled.not;
+					//mix = child.mixer;
+					//if(child.isMixerEnabled) {
+
+						//muteParam = mix.asParam(\muteMode);
+						//muteParam.normSet(1 - muteParam.normGet );
+						//muteBtn.value = 0;
+					//} {
+						//muteBtn.value = 0;
+					//};
+				//} {
+					//if(mix.notNil) {
+						//muteParam = mix.asParam(\muteMode);
+						//muteParam.normSet(1 - muteParam.normGet );
+						//muteBtn.value = 1 - muteParam.normGet;
+					//} {
+						//muteBtn.value = 0;
+					//};
+				//};
+			//};
+			//if(mix.notNil) {
+				//muteBtn.value = mix.asParam(\muteMode).normGet;
+			//} {
+				//muteBtn.value = 1;
+			//};
+
+
 			if(mix.notNil) {
 				[idx, mix].debug("map_track_mixer_mute notnil");
 				//self.mapParam([\bt, '5', 0, idx,\on], mix.asParam(\muteMode), true);
@@ -701,6 +870,8 @@ ProtoDef(\apc40, (
 				});
 			} {
 				self.unmapParam([\bt, \track, \activ, idx]);
+				muteBtn = self.ktl.elAt(\bt, \track, \activ, idx, \on);
+				muteBtn.value = 1;
 				self.unmapParam([\bt, \track, \solo, idx]);
 				self.listenAtMixerParam(\muteMode, idx);
 				self.listenAtMixerParam(\soloMode, idx);
@@ -731,6 +902,9 @@ ProtoDef(\apc40, (
 				self.unmapParam([\kn, \t, idx]);
 			}
 		};
+
+		// map sendMode panel to device knobs, like rdn params
+		self.selected_send_idx = self.selected_send_idx ? 0;
 		if(self.sendMode_panels.isNil) {
 			self[\sendMode_panels] = nil!self.gridsize.x;
 		};
@@ -756,7 +930,7 @@ ProtoDef(\apc40, (
 
 	clear_flats: { arg self;
 		self.bank_names.do { arg name;
-			self.ktl.elAt(\bt, \flat, name, \on).value=0;
+			self.ktl.elAt(\bt, \device, 0, name, \on).value=0;
 		}
 	},
 
@@ -778,7 +952,552 @@ ProtoDef(\apc40, (
 
 ));
 
-///// custom
+
+////////// sequencer layer
+
+ProtoDef(\apc40_layer_sequencer, (
+	parent: ProtoDef(\apc40_layer_main),
+
+	defaultDisplayMode: { arg self;
+		\sends
+	},
+
+	displayModeHook: { arg self;
+		var child = self.selectedChild;
+		if(child.notNil) {
+			child.savePresetCompileString;
+		};
+		nil;
+	},
+
+	stepOffset: { arg self;
+		self[\stepOffset] = 0;
+		self[\stepOffset];
+	},
+
+	stepAtOffsetByRole: { arg self, pos;
+		var child = self.selectedChild;
+		if(child.notNil) {
+			[child.trackRole].debug("stepAtOffsetByRole");
+			switch(child.trackRole,
+				\section, { 
+					[child, pos.y, child.childAt(pos.y)].debug("section");
+					self.stepAtOffset(Point(pos.x + self.stepOffset, 0), child.childAt(pos.y + self.gridOffset.y))
+				},
+				\track, {  
+					self.stepAtOffset(Point(pos.x + self.stepOffset, 0), child.childAtOffset(pos.y))
+				},
+				{
+					"hhhh".debug;
+					self[\stepAtOffset].asCompileString.debug("lll");
+					self.stepAtOffset(pos);
+				}
+			)
+		}
+	},
+
+	stepAtOffset: { arg self, pos, child;
+		var idx = pos.y*self.gridsize.x + pos.x;
+		child = child ? self.selectedChild;
+		[idx, child].debug("stepAtOffset");
+		if(child.notNil and: { child.isEmpty.not }) {
+			child.data = child.data ?? { ProtoClass( () ) };
+			child.data.stepSeqSize = child.data.stepSeqSize ?? { 8 };
+			child.data.stepSeq = child.data.stepSeq ?? { List.newFrom(1!child.data.stepSeqSize) };
+			child.data.stepSeq.debug("stepSeq");
+			if(idx < child.data.stepSeqSize) {
+				child.data.stepSeq[idx];
+			} {
+				nil;
+			};
+		};
+	},
+
+	setStepAtOffsetByRole: { arg self, pos, val;
+		var child = self.selectedChild;
+		if(child.notNil) {
+			switch(child.trackRole,
+				\section, { 
+					self.setStepAtOffset(Point(pos.x + self.stepOffset, 0), val, child.childAtOffset(pos.y));
+					// setStepAtOffset have no y, so render here
+					self.render_cell(pos);
+				},
+				\track, {  
+					self.setStepAtOffset(Point(pos.x + self.stepOffset, 0), val, child.childAtOffset(pos.y));
+					// setStepAtOffset have no y, so render here
+					self.render_cell(pos);
+				},
+				{
+					self.setStepAtOffset(pos, val);
+				}
+			)
+		}
+	},
+
+	setStepAtOffset: { arg self, pos, val, child;
+		var idx = pos.y*self.gridsize.x + pos.x;
+		child = child ? self.selectedChild;
+		[idx, child].debug("setStepAtOffset");
+		if(child.notNil and: { child.isEmpty.not }) {
+			child.data = child.data ?? { ProtoClass( () ) };
+			child.data.stepSeqSize = child.data.stepSeqSize ?? { 8 };
+			child.data.stepSeq = child.data.stepSeq ?? { List.newFrom(1!child.data.stepSeqSize) };
+			child.data.stepSeq.debug("stepSeq");
+			if(idx < child.data.stepSeqSize) {
+				if(val == \toggle) {
+					if(child.data.stepSeq[idx] > 0) {
+						child.data.stepSeq[idx] = 0;
+					} {
+						child.data.stepSeq[idx] = 1;
+					};
+				} {
+					child.data.stepSeq[idx] = val;
+				};
+				pos.debug("setStepAtOffset: now render");
+				self.render_cell(pos);
+			} {
+				nil;
+			};
+		};
+	},
+
+	extendStepSeqTo: { arg self, size=8;
+		var child = self.selectedChild;
+		[size, child].debug("extendStepSeqTo");
+		if(child.notNil and: { size.notNil } and: { size > 0 }) {
+			child.data = child.data ?? { ProtoClass( () ) };
+			child.data.stepSeqSize = size;
+			child.data.stepSeq = child.data.stepSeq ?? { List.newFrom(1!child.data.stepSeqSize) };
+			child.data.stepSeq.debug("stepSeq");
+			if(child.data.stepSeq.size < size) {
+				child.data.stepSeq = child.data.stepSeq.foldExtend(size)
+			};
+			self.render_grid;
+		};
+		
+	},
+
+	openSequencer: { arg self, child;
+		self.selectedChild = child; 
+		self.setDisplayMode(\user);
+	},
+
+	childAtOffset: { arg self, point;
+		switch(self.displayMode,
+			\pan, { 
+				self.grid.childAtOffset(point);
+			},
+			\sends, { 
+				var child = self.grid.childAtOffset(point);
+				ProtoClass((
+					parent: child,
+					playMode: \trig,
+					play: { arg cellself;
+						if(cellself.isEmpty.not) {
+							self.openSequencer(child);
+						};
+					},
+					padColor: { arg cellself;
+						if(cellself.isEmpty) {
+							\disabled2
+						} {
+							self.parent.padColor
+						};
+					},
+				));
+			},
+			\user, { 
+				var color;
+				var child = self.stepAtOffsetByRole(point);
+				[child, point].debug("childAtOffset: sequencer: \user");
+				if(child.isNil) {
+					color = \disabled;
+				} {
+					if(child > 0) {
+						color = \green;
+					} {
+						color = \off;
+					};
+				};
+				ProtoClass((
+					isActive: false,
+					isPlaying: false,
+					isEmpty: false,
+					padColor: color,
+					edit: { arg cellself;
+						var idx = point.y*self.gridsize.x + point.x;
+						self.extendStepSeqTo(idx+1)
+					},
+					play: { arg cellself;
+						self.setStepAtOffsetByRole(point, \toggle);
+					},
+				))
+			},
+		);
+	},
+
+	sectionAtOffsetBase: { arg self, idx;
+		self.grid.sectionAt(idx + self.gridOffset.y);
+	},
+
+	sectionAtOffset: { arg self, idx;
+		switch(self.displayMode,
+			\pan, { 
+				self.sectionAtOffsetBase(idx);
+			},
+			\sends, { 
+				var sec = self.sectionAtOffsetBase(idx);
+				ProtoClass((
+					parent: sec,
+					playMode: \trig,
+					play: { arg cellself;
+						if(cellself.isEmpty.not) {
+							self.openSequencer(sec);
+						}
+					},	
+				))
+			},
+			\user, { 
+
+			}
+		);
+	},
+
+	clipStopAtOffset: { arg self, idx;
+		var player = self.grid.childAtOffset(idx);
+		var shiftplayer = ProtoClass((
+			parent: player,
+			play: { arg cellself;
+				if(self.shiftModifier) {
+					player.editInstrument;
+				} {
+					if(self.displayMode == \sends) {
+						if(cellself.isEmpty.not) {
+							self.openSequencer(player);
+						};
+					} {
+						player.play
+					};
+				};
+			},
+			stop: { arg cellself;
+				if(self.shiftModifier) {
+					player.editInstrument;
+				} {
+					if(self.displayMode == \sends) {
+						self.openSequencer(player);
+					} {
+						player.stop
+					}
+				};
+			},
+		));
+		shiftplayer;
+	},
+
+
+));
+ProtoDef(\apc40)[\activateHook] = ProtoDef(\apc40)[\activateHook].addFunc({ arg self;
+	var seq = ProtoDef(\apc40_layer_sequencer);
+	if(self.layerTemplate === seq) {
+		self.ktl.elAt(\bt, \transport, \session, \on).value = 1;
+		self.ktl.elAt(\bt, \transport, \rec, \on).value = 0;
+	} {
+		self.ktl.elAt(\bt, \transport, \session, \on).value = 0;
+	};
+	self.ktl.elAt(\bt, \transport, \session, \on).action = {
+		"session".debug;
+		if(self.layerTemplate === seq) {
+			self.layerTemplate = ProtoDef(\apc40_layer_main);
+			self.ktl.elAt(\bt, \transport, \session, \on).value = 0;
+		} {
+			self.layerTemplate = seq;
+			self.ktl.elAt(\bt, \transport, \session, \on).value = 1;
+			self.ktl.elAt(\bt, \transport, \rec, \on).value = 0;
+		};
+		self.refresh;
+	};
+
+});
+
+////////// copy/paste layer
+
+ProtoDef(\apc40_layer_copypaste, (
+	parent: ProtoDef(\apc40_layer_main),
+	colors: {
+		var diff = -18;
+		ProtoClass((
+			red: 120 + diff,
+			red2: 121 + diff,
+			dimred: 121 + diff,
+			green: 122 + diff,
+			green2: 123 + diff,
+			dimgreen: 123 + diff,
+			yellow: 124 + diff,
+			orange: 125 + diff,
+			amber: 126 + diff,
+			off: 0, 
+			disabled: 43 + diff,
+			disabled2: 117,
+		))
+	},
+
+	childAtOffset: { arg self, point;
+		switch(self.displayMode,
+			\pan, { // copy
+				var child = self.grid.childAtOffset(point);
+				ProtoClass((
+					parent: child,
+					playMode: \trig,
+					play: { arg cellself;
+						var oldpos;
+						if(child.isEmpty.not) {
+							//var old = self.grid.clipboard;
+							child.debug("Copied item");
+							//if(old.notNil) {
+								//[old, old.parentTrack.index, old.index, self.gridOffset].debug("what");
+								//oldpos = Point(old.parentTrack.index, old.index) - self.gridOffset;
+								//[ oldpos ].debug("oldpos");
+							//};
+							self.grid.clipboard = { child };
+						} {
+							"Can't copy, cell is empty".error;
+						};
+						self.render_grid;
+						//self.render_cell(point);
+						//if(oldpos.notNil) {
+							//self.render_cell(oldpos);
+						//};
+					},
+					padColor: { arg cellself;
+						if(self.grid.clipboard === child or: { self.grid.clipboard === child.parentTrack } or: { self.grid.clipboard === child.parentTrack.parentTrack.sectionAt(child.index) }) {
+							if(cellself.isEmpty) {
+								95
+							} {
+								76
+							};
+						} {
+							if(cellself.isEmpty) {
+								55
+								//\off
+							} {
+								self.parent.padColor;
+								60
+							};
+						};
+					},
+				));
+			},
+			\sends, { 
+				ProtoClass((
+					playMode: \trig,
+					play: { arg cellself;
+						debug("Cut item: not implemented");
+					},
+					padColor: \disabled,
+				));
+			},
+			\user, { // paste
+				var color;
+				var child = self.grid.childAtOffset(point);
+				//[child, point].debug("childAtOffset: copypaste: \user");
+				ProtoClass((
+					parent: child,
+					edit: { arg cellself;
+					},
+					padColor: { arg self;
+						if(child.isEmpty) {
+							\green2
+						} {
+							\disabled2
+						};
+					},
+					play: { arg cellself;
+						if(child.isEmpty) {
+							if(self.grid.clipboard.notNil) {
+								var track = child.parentTrack;
+								var newchild;
+								child.debug("Pasted item");
+								[child, child.data].debug("child data");
+								newchild = self.grid.clipboard.clone(child.parentTrack, child.index);
+								[newchild, newchild.data].debug("new child data");
+								[ self.grid.childAtOffset(point), self.grid.childAtOffset(point).data ].debug("new child from grid data");
+								child.parentTrack.changed(\children);
+								self.render_cell(point);
+							} {
+								"Can't paste: clipboard is empty".error;
+							};
+						} {
+							"Can't paste: destination is not empty".error;
+						};
+					},
+				))
+			},
+		);
+	},
+
+	sectionAtOffsetBase: { arg self, idx;
+		self.grid.sectionAt(idx + self.gridOffset.y);
+	},
+
+	sectionAtOffset: { arg self, idx;
+		var player = self.sectionAtOffsetBase(idx);
+		var shiftplayer = ProtoClass((
+			parent: player,
+			playMode: \trig,
+			padColor: { arg cellself;
+				if(self.grid.clipboard === player) {
+					\yellow
+				} {
+					player.padColor
+				};
+			},
+			play: { arg cellself;
+				if(self.shiftModifier) {
+					player.editInstrument;
+				} {
+					switch(self.displayMode,
+						\pan, { // copy
+							if(cellself.isEmpty.not) {
+								self.grid.clipboard = { player };
+								self.render_grid;
+							};
+						},
+						\sends, {  
+						
+						},
+						\user, { // paste
+							if(player.isEmpty) {
+								if(self.grid.clipboard.notNil) {
+									var newplayer;
+									player.debug("Paste destination section");
+									newplayer = self.grid.clipboard.clone(player.parentTrack, player.index);
+									//[player, player.data].debug("player data");
+									//[newplayer, newplayer.data].debug("new player data");
+									//[ self.grid.playerAtOffset(point), self.grid.playerAtOffset(point).data ].debug("new player from grid data");
+									player.parentTrack.changed(\children);
+									self.render_grid;
+								} {
+									"Can't paste: clipboard is empty".error;
+								};
+							} {
+								"Can't paste: destination is not empty".error;
+							};
+						},
+					);
+					if(self.displayMode == \pan) {
+					} {
+						//player.play
+					};
+				};
+			},
+		));
+		shiftplayer;
+		//switch(self.displayMode,
+			//\pan, { 
+				//self.sectionAtOffsetBase(idx);
+			//},
+			//\sends, { 
+				//var sec = self.sectionAtOffsetBase(idx);
+				//ProtoClass((
+					//parent: sec,
+					//playMode: \trig,
+					//padColor: \disabled2,
+					//play: { arg cellself;
+						//if(cellself.isEmpty.not) {
+
+						//}
+					//},	
+				//))
+			//},
+			//\user, { 
+
+			//}
+		//);
+	},
+
+	clipStopAtOffset: { arg self, idx;
+		var player = self.grid.childAtOffset(idx);
+		var shiftplayer = ProtoClass((
+			parent: player,
+			playMode: \trig,
+			padColor: { arg cellself;
+				if(self.grid.clipboard === player) {
+					\yellow
+				} {
+					player.padColor
+				};
+			},
+			play: { arg cellself;
+				if(self.shiftModifier) {
+					player.editInstrument;
+				} {
+					switch(self.displayMode,
+						\pan, { // copy
+							if(cellself.isEmpty.not) {
+								self.grid.clipboard = { player };
+								self.render_grid;
+							};
+						},
+						\sends, {  
+						
+						},
+						\user, { // paste
+							if(player.isEmpty) {
+								if(self.grid.clipboard.notNil) {
+									var newplayer;
+									player.debug("Pasted item");
+									newplayer = self.grid.clipboard.clone(player.parentTrack, player.index);
+									//[player, player.data].debug("player data");
+									//[newplayer, newplayer.data].debug("new player data");
+									//[ self.grid.playerAtOffset(point), self.grid.playerAtOffset(point).data ].debug("new player from grid data");
+									player.parentTrack.changed(\children);
+									self.render_grid;
+								} {
+									"Can't paste: clipboard is empty".error;
+								};
+							} {
+								"Can't paste: destination is not empty".error;
+							};
+						},
+					);
+					if(self.displayMode == \pan) {
+					} {
+						//player.play
+					};
+				};
+			},
+		));
+		shiftplayer;
+	},
+
+
+));
+ProtoDef(\apc40)[\activateHook] = ProtoDef(\apc40)[\activateHook].addFunc({ arg self;
+	var cp = ProtoDef(\apc40_layer_copypaste);
+	var main = ProtoDef(\apc40_layer_main);
+	if(self.layerTemplate === cp) {
+		self.ktl.elAt(\bt, \transport, \rec, \on).value = 1;
+		self.ktl.elAt(\bt, \transport, \session, \on).value = 0;
+	} {
+		self.ktl.elAt(\bt, \transport, \rec, \on).value = 0;
+	};
+	self.ktl.elAt(\bt, \transport, \rec, \on).action = {
+		"record pressed: copy paste layer".debug;
+		if(self.layerTemplate === cp) {
+			self.layerTemplate = main;
+			self.ktl.elAt(\bt, \transport, \rec, \on).value = 0;
+		} {
+			self.layerTemplate = cp;
+			self.ktl.elAt(\bt, \transport, \rec, \on).value = 1;
+			self.ktl.elAt(\bt, \transport, \session, \on).value = 0;
+		};
+		self.refresh;
+	};
+
+});
+
+////////// custom
 
 // rdn send panels
 
@@ -823,7 +1542,7 @@ ProtoDef(\apc40).putAll((
 	},
 ));
 
-// rdn
+// rdn with flat buttons
 
 ProtoDef(\apc40)[\activateHook] = ProtoDef(\apc40)[\activateHook].addFunc({ arg self; self.map_rdn });
 ProtoDef(\apc40).putAll((
@@ -990,7 +1709,7 @@ ProtoDef(\apc40).userPanels[2] = { arg self, point;
 
 //////// debug
 
-//ProtoDef(\apc40).activate(TrackDef(\split)); // debug
+//ProtoDef(\apc40).activate(TrackDef(\codedemo)); // debug
 );
 
 // END
@@ -1016,7 +1735,7 @@ ProtoDef(\apc40).activate; // debug
 ProtoDef(\apc40).ktl.elAt(\bt, \flat)
 ProtoDef(\apc40).grid
 ProtoDef(\apc40).map_track_mixer_mute
-ProtoDef(\apc40).startControl(nil)
+ProtoDef(\apc40).gridsize
 Param.trace = true
 MKtl(\apc).resetActions
 
@@ -1053,6 +1772,8 @@ MKtl(\apc).elAt(\bt, \selection, 0,\on).value = ProtoDef(\apc40).colors.green/12
 MKtl(\apc).elAt(\bt, \selection, 0,\on).value = 120;
 MKtl(\apc).elAt(\bt, \selection, 7,\on).value = 120;
 MKtl(\apc).elAt(\sl, \master)
+MKtl(\apc).elAt(\bt, \transport, \session, \on).action = { "ho".debug }
+MKtl(\apc).elAt(\bt, \transport, \rec)
 MKtl(\apc).trace
 
 
@@ -1076,6 +1797,7 @@ k.elAt(\bt, \left, \on)
 k.elAt(\bt, \stopAll)
 k.elAt(\bt, \clitra)
 k.elAt(\bt, \flat, \bank_left)
+k.elAt(\bt, \device, 8)
 k.elAt(\bt, 8, \clitra)
 k.elAt(\bt, \clipColorxxx)
 k.elAt(\bt, \flat, \shift, \on).action = { "bla".debug }

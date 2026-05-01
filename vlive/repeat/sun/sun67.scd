@@ -29,7 +29,7 @@ Pdef(\melo,
 );
 
 (
-FileSystemProject.load("holis/synthdef.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
 SynthDef(\violin, {
 	| midinote=60, gate=1, amp=0.8 |
 	var env = EnvGen.kr(Env.asr(0.1, 1, 0.1), gate, doneAction:2);
@@ -360,7 +360,7 @@ Pdef(\part, Pdef(\zedpart,
 			\octbal, Pseg(Pwhite(0.0,1,inf),2),
 			\amp, 0.1/2 * Ptuple([Pkey(\octbal) ,1-Pkey(\octbal) ]),
 			//\out, BusDef(\ifx1, \audio),
-			\out, BusDef(\sendbus1, \audio),
+			//\out, BusDef(\sendbus1, \audio),
 		),
 		Pbind(
 			\instrument, \chordgrowp,
@@ -417,7 +417,7 @@ Pdef(\part, Pdef(\zedpart,
 			\octbal, Pseg(Pwhite(0.0,1,inf),2),
 			\amp, 0.1/2 * Ptuple([Pkey(\octbal) ,1-Pkey(\octbal) ]),
 			//\out, BusDef(\ifx1, \audio),
-			\out, BusDef(\sendbus1, \audio),
+			//\out, BusDef(\sendbus1, \audio),
 		),
 		Pbind(
 			\instrument, \chordgrowp,

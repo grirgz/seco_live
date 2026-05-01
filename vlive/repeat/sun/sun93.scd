@@ -1,3 +1,5 @@
+
+// Flash détente
 //////////////:
 // started by trying to destroy drum loop with evolve1
 // nice structuring
@@ -1482,6 +1484,25 @@ Pdef(\part, Pdef(\main,
 )).play;
 );
 
+(
+///////////////// main 2 ////////////
+Pdef(\part, Pdef(\main, 
+	Pseq([
+		//Pfindur(16,Pdef(\secbare)),
+		// todo: connect secbare and secpart1
+		//Pdef(\secpart1),
+		//Pdef(\secpart2),
+		//Pdef(\secair1),
+		//Pdef(\secpart1bis),
+		//Pdef(\secpart1bis2),
+		Pdef(\secpart1bis4),
+		// todo: secpart1bis4 promise big energy but secpart1bis6 is calm
+		Pdef(\secpart1bis6),
+		Pdef(\secother1),
+		Pdef(\secpart1),
+	])
+)).play;
+);
 
 (
 Pdef(\part, Pdef(\zedpart, 

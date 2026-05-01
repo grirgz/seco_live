@@ -738,18 +738,6 @@ Pdef(\part, Pdef(\sec1,
 );
 
 
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pseq([
-			Pfindur(16,Pdef(\sec1intro)),
-			Pfindur(16,Pdef(\sec1)),
-			Pfindur(16,Pdef(\sec2)),
-		],1),
-		
-	])
-)).play;
-);
 
 (
 Pdef(\part, Pdef(\sec2, 
@@ -901,6 +889,20 @@ Pdef(\part, Pdef(\sec2,
 			\dur, 1/8,
 			\amp, 0.1,
 		),
+	])
+)).play;
+);
+
+(
+////// main
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pseq([
+			Pfindur(16,Pdef(\sec1intro)),
+			Pfindur(16,Pdef(\sec1)),
+			Pfindur(16,Pdef(\sec2)),
+		],1),
+		
 	])
 )).play;
 );
@@ -1233,7 +1235,7 @@ Pdef(\part, Pdef(\zedpart,
 			\postlpf, 12000,
 			\room, 0.5,
 			\lrq, 0.3,
-			\posthpf, 10,
+			\posthpf, 80,
 			\distamp, 191,
 			\mix, 0.95,
 			\verbpregain, 8*2,
@@ -1257,7 +1259,7 @@ Pdef(\part, Pdef(\zedpart,
 
 
 /////
-BufDef(\terrorbass, "cliprec/rec_rec_mainTimeline_t0_250420_224140_250420_224140.wav")
+BufDef(\terrorbass, "cliprec/rec_rec_mainTimeline_t0_250420_224140_250420_224140.wav");
 
 
 (
@@ -1596,3 +1598,604 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+(
+// cut bass
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[407].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,1,0,0,
+				1,0,0,0, 0,1,0,0,
+				1,0,0,1, 0,1,0,0,
+				1,0,0,0, 0,1,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[684].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				//0,0,1,0, 0,0,0,0,
+				0,0,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.01) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1004].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 0.8,0.81,1,0.8,
+				1,0,1,0, 1,0,1,1,
+			],inf).coin.not,
+			\dur, 1/8/2,
+			\gain, 0.11,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \playersec_hlpf,
+			\bufnum, BufDef.stereo('vbreaks/The New Mastersounds - Dusty Groove 2.wav'),
+			\legato, 1,
+			//\hpf, PmodEnv(Pseq([15000,10000,20],1), 8).loop,
+			\hpmix, 0,
+			\st, 119/2/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, 
+			Pseq([
+				Pseq([
+					12,17,14,15,
+					12,17,12,19,
+					12,14,12,14,
+					14,15,12,15,
+
+					11,17,12,19,
+					12,17,12,20,
+					3,8.6,3,11,
+					10.3,10.1,11,12,
+
+					12,17,14,15,
+					12,17,12,19,
+					12,14,12,14,
+					14,15,12,15,
+
+					11,17,12,19,
+					12,17,12,20,
+					3,3,3,5,
+					9,10,9,10,
+				]/4,inf),
+				//(0..3)+5/4, (0..3)+0/4,
+				//(0..7)/8,
+				//(0..3)+8/4, (0..3)+4/2,
+				//(0..7)/8,
+				//(0..7)+8+5/4,
+				//(0..7)/4+2,
+				//Pseq([ \r,\r,8,9, 12,13,\r,\r, ]/4,1),
+				//Pseg(Pseq([ 0, 4 ]+0,1),1/2),
+				//Pseg(Pseq([ 0, 2 ]+0,1),1),
+				//Pseg(Pseq([ 6, 2 ]+0,1),1),
+			].flat,inf).loop / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef(\terrorbass),
+			//\pos, Pseq((0..4-1)*2,inf).stutter(4),
+			\pos, Pseq([
+				4,4, 4,4,
+				3.5,3.5, 4,4,
+				2,2, 2,2,
+				1,1, 1,2,
+			],inf),
+			\legato, 1,
+			\dur, 1/4,
+			\gain, 1,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \snappad,
+			\note, Pseq([
+				[0,4,7],
+				[0+12,3,7]-5,
+			],inf),
+			\ffreq, PmodEnv(Pseq([1000,12000,100],1), 4).loop,
+			\dur, 2,
+			\amp, 0.1,
+			\out, BusDef(\bassbus, \audio),
+		),
+
+		Pmono(\fx_hpf,
+			\inbus, BusDef(\bassbus, \audio),
+			\addAction, \addToTail,
+			\hpf, PmodEnv(Pseq([1,1,1000,1000],1), Pseq([15.9,0.1,16])).loop,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+(
+// cut drums with rest
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[407].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				Pseq([
+					1,0,0,0, 0,1,0,0,
+					1,0,0,0, 0,1,0,0,
+					1,0,0,1, 0,1,0,0,
+					1,0,0,0, 0,1,0,1,
+				],4),
+				Pser([
+					0
+				],16*8),
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[684].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				//0,0,1,0, 0,0,0,0,
+				0,0,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.01) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11,
+			\out, BusDef(\snare, \audio),
+		),
+		Pmono(\fx_greyhole,
+			\inbus, BusDef(\snare, \audio),
+			\addAction, \addToTail,
+			\fb, 0.6,
+			\lag, 0.0009,
+			\mix, Pstep(Pseq([0,0.8],inf),16),
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1004].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				Pser([
+					1,0,1,0, 1,0,1,0,
+					1,0,1,0, 1,0,1,0,
+					1,0,1,0, 0.8,0.81,1,0.8,
+					1,0,1,0, 1,0,1,1,
+				],8*16*2),
+				Pser([
+					0,
+				],8*16*2),
+			],inf).coin.not,
+			\dur, 1/8/2,
+			\gain, 0.11,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \playersec_hlpf,
+			\bufnum, BufDef.stereo('vbreaks/The New Mastersounds - Dusty Groove 2.wav'),
+			\legato, 1,
+			//\hpf, PmodEnv(Pseq([15000,10000,20],1), 8).loop,
+			\hpmix, 0,
+			\st, 119/2/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseq([
+				Pseq([
+					12,17,14,15,
+					12,17,12,19,
+					12,14,12,14,
+					14,15,12,15,
+
+					11,17,12,19,
+					12,17,12,20,
+					3,8.6,3,11,
+					10.3,10.1,11,12,
+
+					12,17,14,15,
+					12,17,12,19,
+					12,14,12,14,
+					14,15,12,15,
+
+					11,17,12,19,
+					12,17,12,20,
+					3,3,3,5,
+					9,10,9,10,
+				]/4,inf),
+			].flat,inf).loop / Pkey(\st),
+			\dur, 1/8,
+			\isRest, Pseq([
+				Pser([
+					1
+				],8*16),
+				Pser([
+					0
+				],8*16),
+			],inf).coin.not,
+			\gain, 1/8,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef(\terrorbass),
+			//\pos, Pseq((0..4-1)*2,inf).stutter(4),
+			\pos, Pseq([
+				Pser([
+					4,4, 4,4,
+					3.5,3.5, 4,4,
+					2,2, 2,2,
+					1,1, 1,2,
+				],4*16),
+			],inf),
+			\isRest, Pseq([
+				Pser([
+					1
+				],4*16),
+				//Pser([
+					//0
+				//],4*16),
+			],inf).coin.not,
+			\legato, 1,
+			\dur, 1/4,
+			\gain, 1,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \snappad,
+			\note, Pseq([
+				[0,4,7],
+				[0+12,3,7]-5,
+			],inf),
+			\ffreq, PmodEnv(Pseq([1000,12000,100],1), 4).loop,
+			\dur, 2,
+			\amp, 0.1,
+			\out, BusDef(\bassbus, \audio),
+		),
+
+		Pmono(\fx_hpf,
+			\inbus, BusDef(\bassbus, \audio),
+			\addAction, \addToTail,
+			\hpf, PmodEnv(Pseq([1,1,200,200],1), Pseq([15.9,0.1,16])).loop,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef(\terrorbass),
+			//\pos, Pseq((0..4-1)*2,inf).stutter(4),
+			\pos, Pseq([
+				Pser([
+					4,4, 4,4,
+					3.5,3.5, 4,4,
+					2,2, 2,2,
+					1,1, 1,2,
+				],4*16),
+			],inf) + Pstep(Pseq([
+				0,0,
+				0,0.21,
+				0,0,
+				0,0.91,
+			],inf),Pseq([6/8,2/8]*4,inf)),
+			\isRest, Pseq([
+				Pser([
+					1
+				],4*16),
+				//Pser([
+					//0
+				//],4*16),
+			],inf).coin.not,
+			\legato, 1,
+			\dur, 1/4,
+			\gain, 1,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[684].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				//0,0,1,0, 0,0,0,0,
+				0,0,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.01) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11,
+			\out, BusDef(\snare, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			//\bufnum, ~buflib.hat[1017].value,
+			\bufnum, ~buflib.snare[684].value,
+			\speed, 1 * 2.midiratio,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				Pser([
+					1,0,0,0, 0,1,0,0,
+					1,0,0,1, 0,1,0,0,
+					1,0,0,0, 0,1,0,1,
+					0,1,0,0, 0,0,0,0,
+				],8*16*2),
+				Pser([
+					0,
+				],8*16*2),
+			],inf).coin.not,
+			\sustain, 0.1,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.05 * Pseg(Pseq([0,0.7,1],1),Pseq([8,24])).loop,
+			\out, BusDef(\snare, \audio),
+		),
+		Pbind(
+			\instrument, \playersec_hlpf,
+			\bufnum, ~buflib.hat[1004].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				Pser([
+					1,0,1,0, 1,0,1,0,
+					1,0,1,0, 1,0,1,0,
+					1,0,1,0, 0.8,0.81,1,0.8,
+					1,0,1,0, 1,0,1,1,
+				],8*16*2),
+				Pser([
+					0,
+				],8*16*2),
+			],inf).coin.not,
+			\dur, 1/8/2,
+			\gain, 0.11 * Pseq([
+				0.3,0.2,0.5,0.2,
+			],inf) * Pseg(Pseq([0,0.7,1],1),16).loop,
+			\hpf, 5300,
+		),
+		Pmono(\fx_greyhole,
+			\inbus, BusDef(\snare, \audio),
+			\addAction, \addToTail,
+			\fb, 0.2,
+			//\size, 1.5,
+			\delay, 0.1,
+			\lag, 0.0009,
+			\mix, 0.5,
+			\dur, 1,
+			\out, BusDef(\snare2, \audio),
+		),
+		Pmono(\fx_hpf,
+			\inbus, BusDef(\snare2, \audio),
+			\addAction, \addToTail,
+			\hpf, 2200,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		
+		Pbind(
+			\instrument, \snappad,
+			\note, Pseq([
+				[0,4,7],
+				[0+12,3,7]-5,
+			],inf),
+			\ffreq, PmodEnv(Pseq([1000,12000,100],1), 4).loop,
+			\dur, 2,
+			\amp, 0.1,
+			\out, BusDef(\pad, \audio),
+		),
+		Pmono(\fx_lpfhpf,
+			\inbus, BusDef(\pad, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\hpf, 500,
+			\lpf, 19000,
+			\dur, 1,
+		),
+		Pmono(\fx_hpf,
+			\inbus, BusDef(\bassbus, \audio),
+			\addAction, \addToTail,
+			\hpf, 200,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+(
+// decreasing hpf
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[407].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				Pseq([
+					1,0,0,0, 0,1,0,0,
+					1,0,0,0, 0,1,0,0,
+					1,0,0,1, 0,1,0,0,
+					1,0,0,0, 0,1,0,1,
+				],4),
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[684].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				//0,0,1,0, 0,0,0,0,
+				0,0,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.01) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11,
+			//\out, BusDef(\snare, \audio),
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pmono(\fx_greyhole,
+			\inbus, BusDef(\snare, \audio),
+			\addAction, \addToTail,
+			\fb, 0.6,
+			\lag, 0.0009,
+			\mix, Pstep(Pseq([0,0.8],inf),16),
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1004].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				Pser([
+					1,0,1,0, 1,0,1,0,
+					1,0,1,0, 1,0,1,0,
+					1,0,1,0, 0.8,0.81,1,0.8,
+					1,0,1,0, 1,0,1,1,
+				],8*16*2),
+			],inf).coin.not,
+			\dur, 1/8/2,
+			\gain, 0.11,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \playersec_hlpf,
+			\bufnum, BufDef.stereo('vbreaks/The New Mastersounds - Dusty Groove 2.wav'),
+			\legato, 1,
+			//\hpf, PmodEnv(Pseq([15000,10000,20],1), 8).loop,
+			\hpmix, 0,
+			\st, 119/2/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseq([
+				Pseq([
+					12,17,14,15,
+					12,17,12,19,
+					12,14,12,14,
+					14,15,12,15,
+
+					11,17,12,19,
+					12,17,12,20,
+					3,8.6,3,11,
+					10.3,10.1,11,12,
+
+					12,17,14,15,
+					12,17,12,19,
+					12,14,12,14,
+					14,15,12,15,
+
+					11,17,12,19,
+					12,17,12,20,
+					3,3,3,5,
+					9,10,9,10,
+				]/4,inf),
+			].flat,inf).loop / Pkey(\st),
+			\dur, 1/8,
+			\isRest, Pseq([
+				Pser([
+					1
+				],8*16),
+			],inf).coin.not,
+			\gain, 1/8,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef(\terrorbass),
+			//\pos, Pseq((0..4-1)*2,inf).stutter(4),
+			\pos, Pseq([
+				Pser([
+					4,4, 4,4,
+					3.5,3.5, 4,4,
+					2,2, 2,2,
+					1,1, 1,2,
+				],4*16),
+			],inf),
+			\isRest, Pseq([
+				Pser([
+					1
+				],4*16),
+				//Pser([
+					//0
+				//],4*16),
+			],inf).coin.not,
+			\legato, 1,
+			\dur, 1/4,
+			\gain, 1,
+			\out, BusDef(\bassbus, \audio),
+		),
+		Pbind(
+			\instrument, \snappad,
+			\note, Pseq([
+				[0,4,7],
+				[0+12,3,7]-5,
+			],inf),
+			\ffreq, PmodEnv(Pseq([1000,12000,100],1), 4).loop,
+			\dur, 2,
+			\amp, 0.1,
+			//\out, BusDef(\bassbus, \audio),
+			\out, BusDef(\pad, \audio),
+		),
+		Pmono(\fx_greyhole,
+			\inbus, BusDef(\pad, \audio),
+			\addAction, \addToTail,
+			\mix, Pseq([
+				Pn(0,16),
+				PmodEnv(Pseq([0,0.81,0.3,0],1), Pseq([1,7,8])).loop,
+			],inf),
+			\wetgain, 0.5,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+
+		Pseq([
+			Pmono(\fx_hpf,
+				\hpf, Pn(1,16),
+			),
+			Pmono(\fx_hpf,
+				\hpf, PmodEnv(Pseq([19000,1],1), Pseq([16]),1),
+			)
+		],2) <> Pbind(
+			\inbus, BusDef(\bassbus, \audio),
+			\addAction, \addToTail,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+	])
+)).play;
+);
+
+

@@ -191,6 +191,24 @@ nil.source
 
 Pdef(\p1).quant = 4
 
+///////////////// utils
+
+(
+~color_test = { arg offset=0;
+	var count = 0 + offset;
+	8.do { arg ix;
+		5.do { arg iy, idx;
+			var cur = count;
+			[ count, Point(ix, iy) ].debug("color");
+			ProtoDef(\apc40).ktl.elAt(\bt, \clip, iy, ix,\on).value = count/127;
+			ProtoDef(\apc40).ktl.elAt(\bt, \clip, iy, ix,\on).action = { cur.debug("color") };
+			//ProtoDef(\apc40).ktl.elAt(\bt, \clip, iy, ix,\on).value = 59/127;
+			count = count + 1;
+		};
+	};
+};
+~color_test.(40*0);
+)
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -205,6 +223,7 @@ FileSystemProject.load("libdef/CodeFileTrack.scd");
 TrackDef(\codedemo, \CodeFileGrid).presetCompileStringSavePath = "~/code/sc/seco/vlive/paramdev/tests/codedemo/".standardizePath;
 TrackDef(\codedemo).initTrack;
 TrackDef(\codedemo).edit;
+ProtoDef(\apc40).startControl(TrackDef(\codedemo));
 )
 TrackDef(\codedemo).savePresetCompileString
 TrackDef(\codedemo).presetCompileStringSavePath
@@ -220,17 +239,75 @@ TrackDef(\codedemo).elAt(0).isEmpty
 TrackDef(\codedemo).elAt(0).play
 TrackDef(\codedemo).elAt(0)[\play].asCompileString
 TrackDef(\codedemo).elAt(0,0)[\play].asCompileString
+TrackDef(\codedemo).elAt(0,1).isrest.asStream.nextN(10)
+TrackDef(\codedemo).elAt(0,1).data
+TrackDef(\codedemo).gridOffset = Point(0,0)
+TrackDef(\codedemo).gridOffset
+Pdef('codedemo.0pre').source
+Pdef('codedemo.0pre').asStream.nextN(5,())
+(
+Pdef(\zed, 
+	Pbind(
+		\instrument, \default,
+		\degree, Pseq([0],inf),
+		\isRest, TrackDef(\codedemo).elAt(0,1).isrest,
+		\dur, 1/8,
+		\amp, 0.1,
+	)
+).play;
+);
+TrackDef(\codedemo).elAt(0,1).data.stepSeq = nil
 TrackDef(\codedemo).elAt(0).mixer.play
 TrackDef(\codedemo).elAt(0).outBus
+TrackDef(\codedemo).elAt(7,0)
 TrackDef(\codedemo).startControl
+TrackDef(\codedemo).childAtOffset(0)
+ProtoDef(\apc40).layerTemplate
+ProtoDef(\apc40).ktl.gui
+ProtoDef(\apc40).layerName
+ProtoDef(\apc40).displayMode
+ProtoDef(\apc40)[\displayMode]
+ProtoDef(\apc40).displayMode_apc40_layer_main
+ProtoDef(\apc40).keys
+k
 ~name
 TrackDef(~name).isEmpty
 TrackDef(~name).play
 TrackDef(~name).source
 TrackDef(~name).source
 TrackDef(~name).trackTemplate
+TrackDef(~name).elAt(0)
+TrackDef(~name).elAt(7)
+~name
+~currentTrack.initTrack
+~currentTrack.elAt()
 
+///// test copy
 
+~g = TrackDef(\codedemo);
+~tsrc = ~g.elAt(2);
+~tsrc.cloneHeader(~tsrc.parentTrack, 5);
+~g.elAt(4).proxy
+~g.elAt(4).
+~g.elAt(4).codeFileName
+~currentPart.isrest.asStream.nextN(10)
+~currentPart.data
+
+~tsrc.clone(~tsrc.parentTrack, 4);
+
+~tsrc.cloneHeader(~tsrc.parentTrack, 5);
+~psrc = ~tsrc.elAt(1)
+~tdst = ~g.elAt(5);
+~psrc.clone(~tdst,0)
+~tdst.elAt(0).data
+~psrc.score
+
+~tsrc.cloneHeader(~g, 10);
+~psrc.clone(~g.elAt(10), 0)
+
+~g.sectionAt(0).clone(~g, 4)
+~g.sectionAt(0)[\clone].asCompileString
+~g.se
 
 ///// BUGS
 // - need to call initTrack to be able to do TrackDef(~name) but not called on creation

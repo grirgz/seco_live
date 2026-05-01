@@ -94,6 +94,54 @@ SynthDef(\simplewhitenoise, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
+// dissonant plok
+// i should try a pluck sound
+SynthDef(\displok, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var num = 3;
+	sig = Klang.ar(Ref([ [800, 1000, 1200] ++ exprand(800.0,4000!3), [0.3, 0.3, 0.3] ++ exprand(0.01,0.1!3), [pi, pi, pi]]), \freqscale.kr(1), 0);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\wnpluck, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, coef=0, decay=10;
+	var sig;
+	var ex;
+	ex = WhiteNoise.ar(1);
+	//ex = LFSaw.ar(freq);
+    sig = Pluck.ar(ex, Impulse.ar(0), freq.reciprocal, [1,1.001] * freq.reciprocal, decay, coef:coef);
+	//sig = RLPF.ar(sig, \lpfr.kr(4)*freq, \rq.kr(0.05)) * 1 + ( sig/4 );
+	sig = HPF.ar(sig, 5000);
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,1.4),gate,doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+SynthDef(\rpluck, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, coef=0, decay=10;
+	var sig;
+	var ex;
+	ex = WhiteNoise.ar(1);
+	//ex = LFSaw.ar(freq);
+    sig = Pluck.ar(ex, Impulse.ar(0), freq.reciprocal, [1,1.001] * freq.reciprocal, decay, coef:coef);
+	//sig = RLPF.ar(sig, \lpfr.kr(4)*freq, \rq.kr(0.05)) * 1 + ( sig/4 );
+	sig = HPF.ar(sig, \hpf.kr(500));
+	sig = LPF.ar(sig, \lpf.kr(2500));
+	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,1.4),gate,doneAction:2);
+	//sig = Pan2.ar(sig, pan, amp);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+
+SynthDef(\multilift, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq * [1,1.12,1.43,1.54]);
+	sig = sig.mean;
+	sig = RLPF.ar(sig, \lpf.kr(1800), \rq.kr(0.5));
+	sig = HPF.ar(sig, 400);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
 );
 
 ////////////
@@ -2396,18 +2444,6 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 
-(
-// dissonant plok
-// i should try a pluck sound
-SynthDef(\displok, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var num = 3;
-	sig = Klang.ar(Ref([ [800, 1000, 1200] ++ exprand(800.0,4000!3), [0.3, 0.3, 0.3] ++ exprand(0.01,0.1!3), [pi, pi, pi]]), \freqscale.kr(1), 0);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
 
 (
 Pdef(\part, Pdef(\zedpart, 
@@ -2472,19 +2508,6 @@ Pdef(\part, Pdef(\zedpart,
 
 
 (
-SynthDef(\multilift, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = LFSaw.ar(freq * [1,1.12,1.43,1.54]);
-	sig = sig.mean;
-	sig = RLPF.ar(sig, \lpf.kr(1800), \rq.kr(0.5));
-	sig = HPF.ar(sig, 400);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-(
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pfindur(8,Pmono(
@@ -2501,21 +2524,6 @@ Pdef(\part, Pdef(\zedpart,
 
 
 
-(
-SynthDef(\wnpluck, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, coef=0, decay=10;
-	var sig;
-	var ex;
-	ex = WhiteNoise.ar(1);
-	//ex = LFSaw.ar(freq);
-    sig = Pluck.ar(ex, Impulse.ar(0), freq.reciprocal, [1,1.001] * freq.reciprocal, decay, coef:coef);
-	//sig = RLPF.ar(sig, \lpfr.kr(4)*freq, \rq.kr(0.05)) * 1 + ( sig/4 );
-	sig = HPF.ar(sig, 5000);
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,1.4),gate,doneAction:2);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = sig * amp;
-	Out.ar(out, sig);
-}).add;
-);
 
 
 (
@@ -2535,22 +2543,6 @@ Pdef(\pluck, Pbind(
 );
 
 
-(
-SynthDef(\rpluck, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, coef=0, decay=10;
-	var sig;
-	var ex;
-	ex = WhiteNoise.ar(1);
-	//ex = LFSaw.ar(freq);
-    sig = Pluck.ar(ex, Impulse.ar(0), freq.reciprocal, [1,1.001] * freq.reciprocal, decay, coef:coef);
-	//sig = RLPF.ar(sig, \lpfr.kr(4)*freq, \rq.kr(0.05)) * 1 + ( sig/4 );
-	sig = HPF.ar(sig, \hpf.kr(500));
-	sig = LPF.ar(sig, \lpf.kr(2500));
-	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,1.4),gate,doneAction:2);
-	//sig = Pan2.ar(sig, pan, amp);
-	sig = sig * amp;
-	Out.ar(out, sig);
-}).add;
-);
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([

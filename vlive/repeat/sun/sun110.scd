@@ -2,11 +2,11 @@
 // improvise with synthdef in libs
 
 (
-FileSystemProject.load("sun/main.scd");
+FileSystemProject.loadOnce("sun/main.scd");
 ~t = 130/2/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("sndlib/mysynthdefault.scd");
-FileSystemProject.load("sndlib/synthbasic.scd");
-FileSystemProject.load("sndlib/buflib.scd");
+FileSystemProject.loadOnce("sndlib/mysynthdefault.scd");
+FileSystemProject.loadOnce("sndlib/synthbasic.scd");
+FileSystemProject.loadOnce("sndlib/buflib.scd");
 )
 
 

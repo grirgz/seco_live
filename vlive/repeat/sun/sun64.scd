@@ -1,5 +1,8 @@
 
+(
 ~t = 115/2/60; TempoClock.default.tempo = ~t;
+FileSystemProject.loadOnce("sndlib/sonicpi.scd");
+)
 
 ~foley1path = "/home/ggz/Musique/sc/samplekit/cfoley/Blastwave FX Foley Vol. 1/";
 (
@@ -216,6 +219,7 @@ Pdef(\part, Pdef(\zedpart,
 					Pbind(
 						\instrument, \playersec,
 						\bufnum, ~buflib.kick[875].value,
+						\bufnum, ~buflib.kick[1353].value,
 						//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
 						\isRest, Pseq([
 							1,0, 1,0, 1,0, 1,0,
@@ -662,6 +666,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 
+Pdef(\part).clear;
 
 
 Pbindef(\kick, \instrument, \pigabberkick).edit

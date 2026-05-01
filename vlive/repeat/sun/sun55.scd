@@ -5,8 +5,10 @@
 // load project
 FileSystemProject("sun/sun55").open.edit;
 
-FileSystemProject.load("holis/synthdef.scd");
-FileSystemProject.load("sndlib/mysynthdefault.scd");
+(
+FileSystemProject.loadOnce("holis/synthdef.scd");
+FileSystemProject.loadOnce("sndlib/mysynthdefault.scd");
+)
 (
 SynthDef(\bass_fmek, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 	var sig;
@@ -957,6 +959,8 @@ Ndef('rdn').put(100, \pset -> Pbind(
 
 BufDef(\violinloop8, 8/~t*s.sampleRate, 2)
 (
+// record via rdn
+ProtoDef(\rdn).play;
 Pdef(\arper, 
 	Pbind(
 		\cnote, Pstep(Pseq([

@@ -157,6 +157,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+ProtoDef(\FxManager).play;
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(
