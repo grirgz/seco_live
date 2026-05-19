@@ -148,6 +148,7 @@ Pdef(\part, Pdef(\zedpart,
 			),
 		]),
 		Pmono(\fx_chorus,
+			\inbus, BusDef(\ifx1, \audio),
 			\fb, 0.40000000596046,
 			\maxdelay, 0.20000000298023,
 			\delay, 0.010099999606609,
@@ -159,7 +160,6 @@ Pdef(\part, Pdef(\zedpart,
 			\mix, 0.51,
 			\gain, 1.0,
 			\adsr, [ Env([ 0.0, 1.0, 0.80000001192093, 0.0 ], [ 0.0099999997764826, 0.10000000149012, 0.10000000149012 ], [ -4.0, -4.0, -4.0 ], 2.0) ],
-			\inbus, BusDef(\ifx1, \audio),
 			\addAction, \addToTail,
 			\lag, 0.0009,
 			\dur, 1,
@@ -671,6 +671,150 @@ Pdef(\part, Pdef(\zedpart,
 			\amp, 0.1/2,
 			\out, BusDef(\sendbus2, \audio),
 		),
+	])
+)).play;
+);
+
+////////// bass rise with 8 note scale
+// beaucoup trop dur
+
+~sc = Scale((0..7),8)
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\degree, Pseq([
+				0,2,4,6,
+			],inf),
+			\scale, ~sc,
+			\octave, 3,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\degree, Pseq([
+				0,2,4,6,
+			],inf) + Pseq([0,2,4,6,],inf).stutter(16) % 8,
+			\scale, ~sc,
+			\octave, 5,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\degree, Pseq([
+				0,2,4,6,
+			],inf),
+			\scale, ~sc,
+			\octave, 3,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\degree, Pseq([
+				0,1,2,3,
+			],inf) + Pseq([0,2,4,6,],inf).stutter(16) % 8,
+			\scale, ~sc,
+			\octave, 5,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\degree, Pseq([
+				0,1,2,3,
+			],inf),
+			\scale, ~sc,
+			\octave, 3,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\degree, Pseq([
+				0,1,2,3,
+			],inf) + Pseq([0,1,2,3,],inf).stutter(16) % 8,
+			\scale, ~sc,
+			\octave, 5,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\degree, Pseq([
+				0,1,2,3,
+			],inf),
+			\scale, ~sc,
+			\octave, 3,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\degree, Pseq([
+				0,0,8,7,
+			],inf) + Pseq([0,1,2,3,],inf).stutter(16) % 8,
+			\scale, ~sc,
+			\octave, 5,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\degree, Pseq([
+				0,1,2,3,
+			],inf),
+			\scale, ~sc,
+			\octave, 3,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\degree, Pseq([
+				0,0,8,10,
+			],inf),
+			\scale, ~sc,
+			\octave, 5,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		
 	])
 )).play;
 );

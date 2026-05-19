@@ -3,11 +3,11 @@
 
 
 (
-FileSystemProject.load("sun/main.scd");
+FileSystemProject.loadOnce("sun/main.scd");
 ~t = 128/2/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("sndlib/mysynthdefault.scd");
-FileSystemProject.load("sndlib/synthbasic.scd");
-FileSystemProject.load("sndlib/buflib.scd");
+FileSystemProject.loadOnce("sndlib/mysynthdefault.scd");
+FileSystemProject.loadOnce("sndlib/synthbasic.scd");
+FileSystemProject.loadOnce("sndlib/buflib.scd");
 )
 
 (
@@ -7056,6 +7056,7 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+//////////////////////////////////// other idea
 //////////////////:
 
 
@@ -8371,22 +8372,6 @@ Pdef(\part, Pdef(\full1,
 )).play;
 );
 
-(
-Pdef(\part, Pdef(\seq1, 
-	Ppar([
-		Pseq([
-			Pfindur(32+16, Pdef(\grownap2)),
-			Pfindur(32+16, Pdef(\growhi)),
-			Pfindur(32, Pdef(\gruyere)),
-			Pfindur(32, Pdef(\full1)),
-			Pfindur(32, Pdef(\gruyere)),
-			Pfindur(32, Pdef(\full1)),
-
-		],1),
-		
-	])
-)).play;
-);
 
 (
 Pdef(\part, Pdef(\gruyere, 
@@ -8489,6 +8474,24 @@ Pdef(\part, Pdef(\gruyere,
 				),
 			]),
 		]),
+		
+	])
+)).play;
+);
+
+(
+///////// main
+Pdef(\part, Pdef(\seq1, 
+	Ppar([
+		Pseq([
+			Pfindur(32+16, Pdef(\grownap2)),
+			Pfindur(32+16, Pdef(\growhi)),
+			Pfindur(32, Pdef(\gruyere)),
+			Pfindur(32, Pdef(\full1)),
+			Pfindur(32, Pdef(\gruyere)),
+			Pfindur(32, Pdef(\full1)),
+
+		],1),
 		
 	])
 )).play;

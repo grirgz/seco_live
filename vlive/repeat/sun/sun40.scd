@@ -2,6 +2,7 @@
 //////////
 // rytm with foley
 ~t = 145/4/60; TempoClock.default.tempo = ~t;
+FileSystemProject.loadOnce("libdef/mysynthdefault.scd");
 
 (
 SynthDef(\kick808, {arg out = 0, freq1 = 240, freq2 = 60, amp = 0.1, ringTime = 100, rel = 10000, dist = 1.5, pan = 0, tott=0.1, durr=0.001, gate=1;

@@ -59,7 +59,32 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-FileSystemProject.load("capsule/draftsynth.scd");
+FileSystemProject.loadOnce("capsule/draftsynth.scd");
+
+(
+SynthDef(\whitenoise2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = WhiteNoise.ar(1);
+	sig = LPF.ar(sig, (\lpf.kr(7000) ).clip(20,20000));
+	sig = HPF.ar(sig, (\hpf.kr(3000) ).clip(20,20000));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+SynthDef(\whitenoise2line, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = WhiteNoise.ar(1);
+	sig = LPF.ar(sig, (\lpf.kr(7000) ).clip(20,20000));
+	sig = HPF.ar(sig, (\hpf.kr(3000)  * XLine.kr(1,7.1,1) ).clip(20,20000));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
 (
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
@@ -163,28 +188,4 @@ Pdef(\part, Pdef(\zedpart,
 		
 	])
 )).play;
-);
-
-(
-SynthDef(\whitenoise2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = WhiteNoise.ar(1);
-	sig = LPF.ar(sig, (\lpf.kr(7000) ).clip(20,20000));
-	sig = HPF.ar(sig, (\hpf.kr(3000) ).clip(20,20000));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);
-
-(
-SynthDef(\whitenoise2line, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = WhiteNoise.ar(1);
-	sig = LPF.ar(sig, (\lpf.kr(7000) ).clip(20,20000));
-	sig = HPF.ar(sig, (\hpf.kr(3000)  * XLine.kr(1,7.1,1) ).clip(20,20000));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
 );

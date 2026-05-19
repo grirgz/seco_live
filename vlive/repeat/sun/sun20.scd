@@ -497,6 +497,7 @@ Pdef(\melo, Pbind(
 )
 ProtoDef(\piano).startControl(Pdef(\melo))
 
+// now integrated in libdef/vim_piano_writer.scd
 (
 MIDIdef.noteOn(\vim_writer, { arg velocity, noteNum, channel, deviceId;
 	var note;

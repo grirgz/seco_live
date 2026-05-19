@@ -902,6 +902,9 @@ ProtoDef(\GlobalLibrary).clipFactories[\fxTimeline] = (
 	classObject: "{ ProtoClassDef(%) }".format(\FxTimeline.asCompileString).interpret,
 );
 
+);
+//////////////////////////////////////////////////////////////////////
+// END
 
 ///////////////// test and debug
 
@@ -969,10 +972,8 @@ WindowDef(\testmodstrip, { arg def;
 	).spacing_(0)
 });
 //WindowDef(\testmodstrip).front;
-);
 
-//////////////////////////////////////////////////////////////////////
-// END
+///////////////////////////////////////////////////////
 
 ProtoInst(\FxTimeline, \bla2).edit;
 ProtoInst(\FxTimeline, \bla1).fxRack.inputProxy.play

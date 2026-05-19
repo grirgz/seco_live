@@ -30,6 +30,8 @@ FileSystemProject.load("libdef/ParamTimelineRack.scd");
 FileSystemProject.load("libdef/WorkspaceView.scd"); 
 FileSystemProject.load("paramdev/drafts/DrumTrack.scd"); 
 FileSystemProject.load("libdef/ProjectPreview.scd"); 
+FileSystemProject.load("libdef/vim_piano_writer.scd"); 
+
 
 // controller
 

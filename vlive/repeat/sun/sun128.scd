@@ -97,6 +97,27 @@ SynthDef(\fmpad1, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 }).add;
 );
 (
+SynthDef(\bigcrash, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
+	env1 = EnvGen.kr(Env([15000,10,1],[0.005,0.8]), 1);
+	env2 = EnvGen.kr(Env([10000,10,1],[0.006,0.8]), 1);
+	mod1 = SinOsc.ar(8000) * 10000; 
+	sig = SinOsc.ar(env1 + mod1);
+	sig = RLPF.ar(sig, env2, \rq.kr(0.3));
+	sig = sig * 1;
+	sig = HPF.ar(sig, \hpf.kr(100));
+	sig = Pan2.ar(sig, pan, amp);
+	sig = FreeVerb2.ar(sig[0], sig[1], \mix.kr(0.5), \room.kr(1), \damp.kr(0.4));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.08,0.1,0.8,2.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+//////
+
+(
 Pdef(\part, Pdef(\part1, 
 	Ppar([
 		Pbind(
@@ -2023,25 +2044,6 @@ Pdef(\part, Pdef(\bintro,
 );
 
 (
-SynthDef(\bigcrash, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
-	env1 = EnvGen.kr(Env([15000,10,1],[0.005,0.8]), 1);
-	env2 = EnvGen.kr(Env([10000,10,1],[0.006,0.8]), 1);
-	mod1 = SinOsc.ar(8000) * 10000; 
-	sig = SinOsc.ar(env1 + mod1);
-	sig = RLPF.ar(sig, env2, \rq.kr(0.3));
-	sig = sig * 1;
-	sig = HPF.ar(sig, \hpf.kr(100));
-	sig = Pan2.ar(sig, pan, amp);
-	sig = FreeVerb2.ar(sig[0], sig[1], \mix.kr(0.5), \room.kr(1), \damp.kr(0.4));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.08,0.1,0.8,2.1)), gate, doneAction:2);
-	Out.ar(out, sig);
-}).add;
-Pdef(\part).reset;
-);
-(
 // big crash
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
@@ -2208,7 +2210,7 @@ Pdef(\part, Pdef(\part1br,
 
 (
 // call answer + drums
-Pdef(\part, Pdef(\part3, 
+Pdef(\part, Pdef(\part3d, 
 	Ppar([
 		Pbind(
 			\instrument, \playersec,
@@ -2607,7 +2609,7 @@ Pdef(\part, Pdef(\main,
 		Pfindur(31.5,Pdef(\bintro)),
 		Pfindur(0.5, Pbind(\isRest, true)),
 		Pfindur(32,Pdef(\part4)),
-		Pfindur(32,Pdef(\part3)),
+		Pfindur(32,Pdef(\part3d)),
 	])
 )).play;
 );

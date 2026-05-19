@@ -1,5 +1,6 @@
 
 ~t = 192/4/60; TempoClock.default.tempo = ~t;
+FileSystemProject.loadOnce("capsule/PatKitDef_comkit.scd");
 
 // demo
 (
@@ -528,6 +529,7 @@ Pdef(\part2, Pdef(\zed2,
 Pdef(\part2).stop
 
 (
+ProtoDef(\FxManager).play;
 Pdef(\part, Pdef(\zed, 
 	Ppar([
 		Pbind(

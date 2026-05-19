@@ -5180,7 +5180,7 @@ Pdef(\part).reset;
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(
-			\instrument, \shorthinoise,
+			\instrument, \shorthinoise1,
 			\freq, 200,
 			\legato, 0.9,
 			\timeScale, 1,
@@ -5277,6 +5277,21 @@ SynthDef(\shorthinoise3, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, timeScal
 Pdef(\part).reset;
 );
 
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \shorthinoise3,
+			\freq, 200,
+			\legato, 0.9,
+			\timeScale, 1/1,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
 
 //////////////:
 

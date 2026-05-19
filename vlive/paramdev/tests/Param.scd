@@ -603,3 +603,31 @@ Scale.major == Scale.ionian; // cause of the bug
 Scale.major === Scale.major
 Param.trace = true
 Param(Pdef(\bla), \scale).get
+
+
+/////////////////// test Out.kr spec
+
+(
+SynthDef(\testout, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(0.2); 
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0,1,0.01)), gate, doneAction:2);
+	Out.kr(out, sig);
+}).add;
+);
+
+(
+Pdef(\testout, Pbind(
+	\instrument, \testout,
+	\freq, 2,
+	\out, BusDef(\krbus2, \control),
+));
+)
+Pdef(\testout).play
+Pdef(\testout).stop
+BusDef(\krbus2).plot(2)
+
+Param(Pdef(\testout), \out).spec.dump
+\out.asSpec
+// the spec is determined by name
+// todo: detect kr rate, i don't know where

@@ -1049,3 +1049,84 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+/////////////////////
+///// scary
+(
+// from sun22
+SynthDef(\angelchorddetune, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = LFSaw.ar(freq * ((0..7)/7 - 0.5 * \fspread.kr(0.00001) + 1) * ( LFNoise1.kr(1/2) * 0.2 + 1 )).mean;
+	sig = RLPF.ar(sig, ( \lpfr.kr(4.1) * freq * ( LFNoise1.kr(1/4!4) * 0.8 + 1 ) ).clip(20,20000), \rq.kr(0.5)).mean;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(4.1,0.1,0.8,1.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pmono(
+			 \angelchorddetune,
+			\degree, Pseq([
+				[  -3, 0, 2, 4, 7, 9 ]
+			],inf),
+			\scale, Scale.minor,
+			\dur, 4,
+			\octave, 6,
+			\amp, 0.1/6/2,
+			\out, BusDef(\fxreverb, \audio),
+		),
+		Pmono(\fx_freeverb2,
+			\inbus, BusDef(\fxreverb, \audio),
+			\addAction, \addToTail,
+			\room, 2,
+			\damp, 1,
+			\mix, 1,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+
+////////////// bass drone
+
+(
+// frun sun22
+SynthDef(\whitenoisebass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = WhiteNoise.ar(1);
+	sig = Ringz.ar(sig, \ringzfreq.kr(10),\ringzdecay.kr(0.01)) * \ringzgain.kr(1/10);
+	sig = LPF.ar(sig, (\lpf.kr(7000) ).clip(20,20000));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pmono(
+			\whitenoisebass,
+			\ringzfreq, Pseq([
+				~pmodenv.(Pseq([10,80],1), 8),
+				Pn(80,inf),
+			],inf),
+			\ringzdecay, 0.1,
+			\ringzgain, 1/50,
+			\lpf, Pseq([
+				~pmodenv.(Pseq([20,200],1), 4),
+				Pn(200,inf)
+			],inf),
+			\amp, 1.4,
+		),
+	])
+)).play;
+);

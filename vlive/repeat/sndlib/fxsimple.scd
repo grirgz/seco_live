@@ -78,6 +78,22 @@ SynthDef(\fx_freeverb2, { arg out=0, gate=1;
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\fx_freeverb2fil, { arg out=0, gate=1;
+	var sig;
+	var sig1;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in * \ingain.kr(1);
+	sig = FreeVerb2.ar(sig[0],sig[1], \verbmix.kr(1), \room.kr(0.5), \damp.kr(0.5));
+
+	sig1 = LPF.ar(sig, \lpf.kr(7301));
+	sig1 = HPF.ar(sig1, \hpf.kr(2301));
+	sig = SelectX.ar(\fmix.kr(1), [sig, sig1]);
+
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
 SynthDef(\fx_gain, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	sig = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 

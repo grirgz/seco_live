@@ -214,3 +214,11 @@ PdefAllGui(16);
 
 Pdef(\a).asParamGroup.edit
 param.asMultiSlider
+
+Pfin
+
+~s = Pfin(1,Pseq((0..10)))
+~s = Pfin(Pfunc({ 2 }),Pseq((0..10)))
+~s = Pfin({ 2 },Pseq((0..10)))
+~s = Pseq([Pfin(Pfunc({ 2 }),Pseq((0..10))), 1000]);
+~s.asStream.nextN(10)

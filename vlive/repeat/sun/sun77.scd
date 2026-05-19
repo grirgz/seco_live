@@ -1,8 +1,8 @@
 
 (
 ~t = 124/2/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("paramdev/drafts/arpegiator.scd");
-FileSystemProject.load("libdef/Parp.scd");
+FileSystemProject.loadOnce("paramdev/drafts/arpegiator.scd");
+FileSystemProject.loadOnce("libdef/Parp.scd");
 )
 
 (

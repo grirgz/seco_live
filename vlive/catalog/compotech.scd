@@ -2474,3 +2474,73 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+//////////////////// 3/4 vs 4/3
+
+(
+~testloop = { arg pdur=1;
+	Ppar([
+		Pdef(\kick,Pbind(
+			\instrument, \playersec,
+			\bufnum, topEnvironment[\buflib].kick[1010].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		)),
+		Pdef(\hat,Pbind(
+			\instrument, \playersec,
+			\bufnum, topEnvironment[\buflib].hat[1064].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,
+			],inf).coin.not,
+			\time, Ptime().trace(prefix:"time:"),
+			\dur, pdur,
+			\gain, 0.11,
+		)),
+	])
+};
+);
+
+Pdef(\part, ~testloop.(3/4)).play; // polyrythm
+Pdef(\part, ~testloop.(4/3)).play; // triolet: always fit in numerator
+
+Pdef(\part, ~testloop.(1/3)).play; // 3 notes in 1 beat
+Pdef(\part, ~testloop.(2/3)).play;
+Pdef(\part, ~testloop.(3/8)).play;
+Pdef(\part, ~testloop.(1/4)).play; // 4 notes in 1 beat
+Pdef(\part, ~testloop.(3/4)).play; // 4 notes in 3 beat, so 1.33 note per beat
+
+(
+// 3/4 is equivalent to
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\kick),
+		Pbind(
+			\isRest, Pseq([
+				1,0,0,
+			],inf).coin.not,
+			\dur, 1/4,
+		)<>Pdef(\hat),
+	])
+)).play;
+);
+
+(
+// 4/3 is equivalent to
+// so there is an extra 0 for each cycle of 3 notes
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\kick),
+		Pbind(
+			\isRest, Pseq([
+				1,0,0,0,
+			],inf).coin.not,
+			\dur, 1/3,
+		)<>Pdef(\hat),
+	])
+)).play;
+);

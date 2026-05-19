@@ -22,6 +22,7 @@ Builder(\oscbuilder, { arg def, oscType=\sin, numVoices=4;
 	}, metadata:(specs:(
 		pulseWidth: \unipolar,
 		fspread: ControlSpec(0.001,1,\exp),
+		out: ParamAudioBusSpec(numChannels:2),
 	))).add;
 
 
@@ -60,7 +61,7 @@ WindowDef(\oscbuilder, { arg def, name=\osc1;
 		PlayerWrapper(Pdef(name)).asView,
 		builder.asParamGroup.asView,
 		oscView,
-		Param(Message(pdef.source.at(\isRest).source), \list, ParamBoolSpec(true)).asMultiSlider.attachOverlayMenu,
+		Param(Message(pdef.source.at(\isRest).source), \list, ParamBoolSpec(true)).asMultiSlider.attachContextMenu,
 		nil,
 	)
 });
@@ -79,6 +80,7 @@ SynthDef(\modseq, { arg out=0, gate=1, seqrate=4, amp=1, lagTime=0;
 }, metadata:(specs:(
 	seqtab: ParamArraySpec(\unipolar),
 	lagTime: \unipolar,
+	out: ParamControlBusSpec(),
 ))).add;
 
 Pdef(\modseq1, 
@@ -131,6 +133,8 @@ Builder(\filterbuilder, { arg def, filterType=\lpf;
 		Out.ar(out, sig);
 	}, metadata:(specs:(
 		cutoff: \freq,
+		inbus: ParamAudioBusSpec(numChannels:2),
+		out: ParamAudioBusSpec(numChannels:2),
 	))).add;
 
 
@@ -180,12 +184,13 @@ Builder(\modoscbuilder, { arg def, oscType=\sin;
 		freq: \lofreq,
 		pulseWidth: \unipolar,
 		fspread: ControlSpec(0.001,1,\exp),
+		out: ParamControlBusSpec(),
 	))).add;
 
 
 	Pdef(def.key,
-		Pbind(
-			\instrument, def.key,
+		Pmono(
+			def.key,
 		),
 	);
 })
@@ -207,7 +212,10 @@ SynthDef(\fx_freeverb2, { arg out=0, gate=1;
 	sig = sig * EnvGen.ar(Env.adsr(0.01,0,1,0.01),gate,doneAction:2);
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
-}).add;
+}, metadata:(specs:(
+	inbus: ParamAudioBusSpec(numChannels:2),
+	out: ParamAudioBusSpec(numChannels:2),
+))).add;
 SynthDef(\fx_freqshift, { arg out=0, amp=0.1, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -216,7 +224,10 @@ SynthDef(\fx_freqshift, { arg out=0, amp=0.1, gate=1;
 	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
 	sig = sig * EnvGen.ar(\adsr.kr( Env.adsr(0.01,0.1,0.8,0.1) ),gate,doneAction:2);
 	Out.ar(out, sig);
-}).add;
+}, metadata:(specs:(
+	inbus: ParamAudioBusSpec(numChannels:2),
+	out: ParamAudioBusSpec(numChannels:2),
+))).add;
 SynthDef(\fx_simplecomp, { arg out=0, gate=1;
 	var sig;
 	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
@@ -228,7 +239,10 @@ SynthDef(\fx_simplecomp, { arg out=0, gate=1;
 	sig = sig * \gain.kr(1);
 	sig = sig * EnvGen.ar(Env.adsr(0.01,0.1,0.8,0.1),gate,doneAction:2);
 	Out.ar(out, sig);
-}).add;
+}, metadata:(specs:(
+	inbus: ParamAudioBusSpec(numChannels:2),
+	out: ParamAudioBusSpec(numChannels:2),
+))).add;
 TagSpecDef(\SynthDef_fx).addUnique(\fx_simplecomp);
 TagSpecDef(\SynthDef_fx).addUnique(\fx_freeverb2);
 TagSpecDef(\SynthDef_fx).addUnique(\fx_freqshift);
@@ -256,71 +270,71 @@ WindowDef(\fx_module, { arg def, ndef;
 ///////////////////////////////////////////////////
 // mod manager
 
-	ProtoTemplateDef(\ModulationTable, (
-		slots: { arg self;
-			self[\slots] = {
-				ProtoClass((
-					sourceBus:nil,
-					rangeValue:0,
-					dest:nil,
-				))
-			} ! 8;
-			self[\slots]
-		},
+ProtoTemplateDef(\ModulationTable, (
+	slots: { arg self;
+		self[\slots] = {
+			ProtoClass((
+				sourceBus:nil,
+				rangeValue:0,
+				dest:nil,
+			))
+		} ! 8;
+		self[\slots]
+	},
 
 
-		play: { arg self;
-			self.slots.collect({ arg slot;
-				if(slot.combinator.notNil) {
-					PlayerWrapper(slot.combinator.proxy).play;
-				}
-			});
-		},
+	play: { arg self;
+		self.slots.collect({ arg slot;
+			if(slot.combinator.notNil) {
+				PlayerWrapper(slot.combinator.proxy).play;
+			}
+		});
+	},
 
-		isPlaying: { arg self;
-			self.slots.select({ arg slot; slot.sourceBus.notNil and: {slot.dest.notNil} and: {slot.combinator.notNil} }).every({ arg slot;
-				slot.combinator.proxy.isPlaying;
-			});
-		},
+	isPlaying: { arg self;
+		self.slots.select({ arg slot; slot.sourceBus.notNil and: {slot.dest.notNil} and: {slot.combinator.notNil} }).every({ arg slot;
+			slot.combinator.proxy.isPlaying;
+		});
+	},
 
-		stop: { arg self;
-			self.slots.collect({ arg slot;
-				if(slot.combinator.notNil) {
-					PlayerWrapper(slot.combinator.proxy).stop;
-				}
-			});
-		},
-		paramTags: TagSpecDef(\modularRack_param),
-		paramTagLabels: TagSpecDef(\modularRack_paramlabel),
-		updateCombinators: { arg self;
-			var paramdict = Dictionary.new;
-			debug("updateCombinators");
-			self.slots.collect { arg slot, idx;
-				slot.index = idx;
-				slot.debug("sort slots");
-				if(slot.sourceBus.notNil and: {slot.dest.notNil}) {
-					paramdict[slot.dest] = paramdict[slot.dest].add(slot);
-				}
+	stop: { arg self;
+		self.slots.collect({ arg slot;
+			if(slot.combinator.notNil) {
+				PlayerWrapper(slot.combinator.proxy).stop;
+			}
+		});
+	},
+	paramTags: TagSpecDef(\modularRack_param),
+	paramTagLabels: TagSpecDef(\modularRack_paramlabel),
+	updateCombinators: { arg self;
+		var paramdict = Dictionary.new;
+		debug("updateCombinators");
+		self.slots.collect { arg slot, idx;
+			slot.index = idx;
+			slot.debug("sort slots");
+			if(slot.sourceBus.notNil and: {slot.dest.notNil}) {
+				paramdict[slot.dest] = paramdict[slot.dest].add(slot);
+			}
+		};
+		paramdict.keys.debug("paramdict.keys");
+		paramdict.keys.collect { arg paramkey, idx;
+			var pc, param;
+			paramkey.debug("creating combi");
+			param = self.paramTags.asDict[paramkey];
+			pc = ParamCombinator(param).setBusMode(true);
+			paramdict[paramkey].collect { arg slot, inputidx;
+				var bus = TagSpecDef(\BusDef).asDict[slot.sourceBus];
+				slot.combinator = pc;
+				pc.inputParam.at(inputidx).set(bus.asMap);
+				//pc.rangeParam.at(inputidx).set(slot.rangeValue ? 0);
+				slot.rangeParam = pc.rangeParam.at(inputidx);
+				slot.baseParam = pc.targetParam;
+				self.changed(\slot, slot.index);
 			};
-			paramdict.keys.debug("paramdict.keys");
-			paramdict.keys.collect { arg paramkey, idx;
-				var pc, param;
-				paramkey.debug("creating combi");
-				param = self.paramTags.asDict[paramkey];
-				pc = ParamCombinator(param).setBusMode(true);
-				paramdict[paramkey].collect { arg slot, inputidx;
-					var bus = TagSpecDef(\BusDef).asDict[slot.sourceBus];
-					slot.combinator = pc;
-					pc.inputParam.at(inputidx).set(bus.asMap);
-					//pc.rangeParam.at(inputidx).set(slot.rangeValue ? 0);
-					slot.rangeParam = pc.rangeParam.at(inputidx);
-					slot.baseParam = pc.targetParam;
-					self.changed(\slot, slot.index);
-				};
-			};
-		},
+		};
+	},
 
-	));
+));
 
 ProtoDef(\modmanager, ProtoTemplateDef(\ModulationTable));
 

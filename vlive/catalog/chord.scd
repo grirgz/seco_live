@@ -1053,6 +1053,7 @@ SynthDef(\gregrain_norm, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, mbufnum,
 )
 
 (
+// from sun23
 Pdef(\part, 
 	Pmono(
 		\gregrain_norm,

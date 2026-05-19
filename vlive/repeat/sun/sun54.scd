@@ -1,7 +1,9 @@
 
 // rocking time warp dub
+(
 ~t = 142/4/60; TempoClock.default.tempo = ~t;
-FileSystemProject.load("holis/synthdef.scd");
+FileSystemProject.loadOnce("holis/synthdef.scd");
+)
 
 ProtoDef(\piano).startControl(Pdef(\melo))
 (

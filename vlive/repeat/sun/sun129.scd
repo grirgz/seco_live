@@ -221,3 +221,73 @@ SynthDef(\fxkickdel, { arg out=0, gate=1;
 ))).add;
 Pdef(\part).reset;
 );
+
+//////// sdesign rise fm
+
+(
+SynthDef(\risefm, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
+	var rise;
+	rise = XLine.kr(1,500,4/~t);
+	rise = EnvGen.kr(Env([1,500],[16/~t],\sin), 1);
+	mod5 = SinOsc.ar(freq * 2) * rise;
+	mod4 = SinOsc.ar(freq *2+ mod5) * rise;
+	mod3 = SinOsc.ar(freq * 2+ mod4) * rise;
+	mod2 = SinOsc.ar(freq * 5 + mod3) * rise;
+	mod1 = SinOsc.ar(freq * 2 + mod2) * rise;
+	sig = SinOsc.ar(freq  + mod1);
+	//sig = HPF.ar(sig, freq*2);
+	sig = CombL.ar(sig, 4/~t, 1/freq,4/~t) + sig;
+	sig = sig * 0.01;
+	sig = sig * 1/2;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pmono( \risefm,
+			\note, 0,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pmono( \risefm,
+			\note, [0,4,7,12],
+			\octave, 5,
+			\dur, 1,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pmono( \risefm,
+			\note, Pseq([
+				[0-12,4-12,0,4,7,12],
+				[-1-12,4-12,-1,4,7,11],
+			],inf),
+			\octave, 5,
+			\dur, 4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
