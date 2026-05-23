@@ -85,11 +85,16 @@ SynthDef(\fx_freeverb2fil, { arg out=0, gate=1;
 	sig = in * \ingain.kr(1);
 	sig = FreeVerb2.ar(sig[0],sig[1], \verbmix.kr(1), \room.kr(0.5), \damp.kr(0.5));
 
-	sig1 = LPF.ar(sig, \lpf.kr(7301));
-	sig1 = HPF.ar(sig1, \hpf.kr(2301));
-	sig = SelectX.ar(\fmix.kr(1), [sig, sig1]);
+	sig1 = LPF.ar(sig, (\wetlpf.kr(7301)).clip(2,2e4));
+	sig1 = HPF.ar(sig1, (\wethpf.kr(2301)).clip(2,2e4));
+	sig = SelectX.ar(\wetfmix.kr(0), [sig, sig1]);
 
 	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+
+	sig1 = LPF.ar(sig, ( \lpf.kr(7301) ).clip(2,2e4));
+	sig1 = HPF.ar(sig1, (\hpf.kr(2301)).clip(2,2e4));
+	sig = SelectX.ar(\fmix.kr(1), [sig, sig1]);
+
 	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
 	sig = sig * \gain.kr(1);
 	Out.ar(out, sig);
@@ -461,7 +466,7 @@ SynthDef(\fx_echopass, { arg out=0, gate=1;
 	//sig = LocalIn.ar(2) * \fb.kr(0.4);
 	//sig = sig + in;
 	sig = in;
-	sig = AllpassC.ar(sig, 1, \delay.kr(1),\decay.kr(1));
+	sig = AllpassC.ar(sig, \maxdelay.kr(1), \delay.kr(1),\decay.kr(1));
 	sig1 = sig;
 	sig1 = LPF.ar(sig1, \lpf.kr(19000));
 	sig1 = HPF.ar(sig1, \hpf.kr(50));

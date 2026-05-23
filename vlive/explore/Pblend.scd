@@ -199,3 +199,51 @@ Pdef(\part).clear;
 	})
 }
 )
+
+/////////// sccode
+
+(
+SynthDef(\sin, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+// sequence Envs
+// need [] else it is inlined or does pattern multichannel expansion
+Pdef(\demo, 
+	Pbind(
+		\instrument, \sin,
+		\degree, Pseq([0, Pwhite(0,7,1)],inf),
+		\legato, 0.5,
+		\adsr, Pseq([
+			[ Env.adsr(1.1,0.1,0.8,1.01) ],
+			[ Env.adsr(0.01,0.1,0.8,0.01) ],
+			[ Env.adsr(0.01,1.1,0.3,0.01) ],
+		],inf),
+	)
+).play;
+);
+
+(
+// interpolate using Pseg
+// add .asArray
+Pdef(\demo, 
+	Pbind(
+		\instrument, \sin,
+		\degree, Pseq([0, Pwhite(0,7,1)],inf),
+		\legato, 0.5,
+		\adsr, Pseg(Pseq([
+			[ Env.adsr(1.1,0.1,0.8,1.01).asArray ],
+			[ Env.adsr(0.01,0.1,0.8,0.01).asArray ],
+			[ Env.adsr(0.01,1.1,0.3,0.01).asArray ],
+		],inf),8),
+	)
+).play;
+);
+
+

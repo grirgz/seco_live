@@ -1,3 +1,6 @@
+~t = 185/4/60; TempoClock.default.tempo = ~t;
+
+
 { [ Saw.ar(100), LFSaw.ar(100), LeakDC.ar(Saw.ar(100)) ] }.plot(0.1)
 { [ Pulse.ar(100), LFPulse.ar(100), LeakDC.ar(Pulse.ar(100)) ] }.plot(0.1)
 

@@ -2144,3 +2144,73 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+/////////////// just play a looped section of the buffer
+// add RLPF
+
+
+(
+SynthDef(\smploop, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, speed=1, pos=0, bufnum, loop=1;
+	var sig;
+	var trigger = Impulse.ar(freq);
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufFrames.kr(bufnum)), doneAction:2, loop: loop);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+(
+SynthDef(\smplooprlpf, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, speed=1, pos=0, bufnum, loop=1;
+	var sig;
+	var trigger = Impulse.ar(freq);
+	var lpenv, lpfreq;
+	sig = PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum) * speed, trigger, startPos: (pos*BufFrames.kr(bufnum)), doneAction:2, loop: loop);
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.01,0.4,0.1,0.2)), gate, doneAction:0) * \lpadsramt.kr(1) + 1;
+	lpfreq = freq * \kbamt.kr(0) + 1;
+	sig = RLPF.ar(sig, ( \lpf.kr(330) * lpenv * lpfreq ).clip(20,20000), \rq.kr(0.8));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \smploop,
+			\bufnum, BufDef('voices/feynman.flac'),
+			\note, Pseq([
+				0,3,4,5,
+			],inf),
+			\pos, 0.8,
+			\dur, 1/8,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \smplooprlpf,
+			\bufnum, BufDef('voices/feynman.flac'),
+			\note, Pseq([
+				0,3,4,5,
+			],inf),
+			\octave, 3,
+			\speed, 1/2,
+			\pos, Pseg(Pseq([0.1,0.101],inf),64) + 0.34,
+			\rq, 0.3,
+			\lpadsramt, 10,
+			\lpf, Pseg(Pseq([121,1700],1), 8).loop,
+			\dur, 1/2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);

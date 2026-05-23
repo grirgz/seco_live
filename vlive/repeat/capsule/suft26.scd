@@ -21,6 +21,7 @@ Pdef(\part).reset;
 )
 
 (
+// from suft23 / suft22
 ~lagpat = Pswitch1( [
 	Pseg(Pseq([0,0.071],inf),8.2),
 	Pseg(Pseq([0,0.1],inf),3),

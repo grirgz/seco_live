@@ -1,7 +1,8 @@
 
+(
 ~t = 150/2/60; TempoClock.default.tempo = ~t;
-
 FileSystemProject.loadOnce("holis/synthdef.scd");
+)
 
 
 (
@@ -1539,7 +1540,6 @@ Pdef(\bass,
 		\amp, 0.2,
 	),
 );
-
 Pdef(\swirlmel, 
 	Pbind(
 		\instrument, \swirl,
@@ -1612,6 +1612,130 @@ Pdef(\part, Pdef(\zedpart,
 		Pdef(\bass),
 		Pdef(\mela),
 		Pdef(\swirlmel),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\intro, 
+	Ppar([
+		Pbind(\out, BusDef(\kick, \audio)) <> Pdef(\kick),
+		Pmono(\fx_hpf,
+			\inbus, BusDef(\kick, \audio),
+			\addAction, \addToTail,
+			\hpf, PmodEnv(Pseq([10000,1000,30],1), 8).loop,
+			\lag, 0.0009,
+			\gain, Pseq([
+				PmodEnv(Pseq([0,1,1,1],1), 8),
+				Pn(1,16),
+			],inf),
+			\dur, 1,
+		),
+		//Pdef(\hat),
+		//Pdef(\bass),
+		Pbind(\out, BusDef(\mela, \audio)) <> Pdef(\mela),
+		Pbind(\out, BusDef(\swirlmel, \audio)) <> Pdef(\swirlmel),
+		Pmono(\fx_freeverb2fil,
+			\inbus, BusDef(\mela, \audio),
+			\addAction, \addToTail,
+			\room, 2,
+			\mix, Pseq([
+				PmodEnv(Pseq([1,0.5,0],1), 8),
+				Pn(0,16),
+			],inf),
+			\fmix, Pseq([
+				Pn(1,16),
+				Pn(0,16),
+			],inf),
+			\hpf, Pseq([
+				PmodEnv(Pseq([5000,1000,100],1), 8,\exp),
+				Pn(100,16),
+			],1),
+			//\lag, 0.0009,
+			\dur, 1,
+		).loop,
+	])
+)).play;
+);
+
+(
+// second
+Pdef(\part, Pdef(\intro2, 
+	Ppar([
+		Pbind(\out, BusDef(\kick, \audio)) <> Pdef(\kick),
+		Pmono(\fx_hpf,
+			\inbus, BusDef(\kick, \audio),
+			\addAction, \addToTail,
+			\hpf, Pseq([
+				PmodEnv(Pseq([10000,1000,30],1), 8),
+				Pn(10,16),
+				Pn(10,16),
+			],1),
+			\lag, 0.0009,
+			\gain, Pseq([
+				PmodEnv(Pseq([0,0,0,1,1],1), 8),
+				Pn(1,16),
+			],inf),
+			\dur, 1,
+		),
+		Ptpar([
+			4, Pdef(\hat),
+		]),
+		//Pbind(\out, BusDef(\bass, \audio)) <> 
+		Pseq([
+			Pfindur(16,Pbind(
+				\legato, Pseq([
+					4,0,0,0, 4,0,0,0,
+				],inf),
+				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			)),
+			Pfindur(32,Pbind(
+				\legato, Pseq([
+					Pser([
+						4,0,0,0, 4,0,0,0,
+						4,0,0,0, 4,0,0,0,
+						4,0,0,0, 2,0,2,0,
+						2,0,1,0, 1,1,1,0,
+					],8),
+				],inf),
+				\isRest, Pfunc({ arg ev; ev[\legato] <= 0 }),
+			)),
+			Pbind()
+		],1) <> Pdef(\bass),
+		Pbind(\out, BusDef(\mela, \audio)) <> Pdef(\mela),
+		//Pbind(\out, BusDef(\swirlmel, \audio)) <> 
+		Pdef(\swirlmel),
+		Pmono(\fx_freeverb2fil,
+			\inbus, BusDef(\mela, \audio),
+			\addAction, \addToTail,
+			\room, 2,
+			\mix, Pseq([
+				Pn(1,16),
+				PmodEnv(Pseq([1,0.5,0],1), 8),
+				Pn(0,16),
+				Pn(0,16),
+			],inf),
+			\fmix, Pseq([
+				Pn(1,16),
+				Pn(1,16),
+				Pn(0,16),
+				Pn(0,16),
+			],inf),
+			\hpf, Pseq([
+				Pn(5000,16),
+				PmodEnv(Pseq([5000,1000,100],1), 8,\exp),
+				Pn(100,16),
+				Pn(100,16),
+			],1),
+			//\lag, 0.0009,
+			\gain, 
+			Pseq([
+				PmodEnv(Pseq([0,0,0,1,1],1), 8).loop,
+				Pn(1,16),
+				Pn(1,16),
+			],1),
+			\dur, 1,
+		),
 	])
 )).play;
 );

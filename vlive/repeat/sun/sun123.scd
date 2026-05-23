@@ -623,6 +623,7 @@ Pdef(\part, Pdef(\apart2,
 );
 
 (
+// seq
 Pdef(\part, Pdef(\zedpart, 
 	Pseq([
 		Pfindur(32, Pdef(\apart1)),
@@ -1857,13 +1858,17 @@ Pdef(\part, Pdef(\zedpart,
 				1, Pseq([0.6],7),
 			],inf).coin.not,
 			\freq, PmodEnv(Pseq([60.midicps,55.midicps]*4,1), 1).loop,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.3,0.1) ],
+			],inf),
+			\legato, 0.4,
 			\dur, 1/8,
 			\octave, Pseq([
 				Plazy({ arg ev;
 					Pseq(4.collect({ arg x; [5,4].choose }))
 				})
 			],inf),
-			\octave, 5,
+			\octave, 4,
 			\amp, 0.1/4,
 		),
 	])
