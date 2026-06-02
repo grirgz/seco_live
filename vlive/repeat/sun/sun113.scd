@@ -7447,6 +7447,27 @@ SynthDef(\fx_ringz, { arg out=0, gate=1, freq=400;
 
 ///////////////
 
+(
+SynthDef(\fxshiftecho, { arg out=0, gate=1;
+	var sig;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	sig = in;
+	sig = Fb({ arg fb;
+		var isig;
+		isig = ( fb * \fb.kr(0.71) ) + sig;
+	
+		isig = DelayL.ar(isig, \maxdelay.kr(0.5), \delay.kr(0.3));
+		isig = FreqShift.ar(isig, \freqshift.kr(10));
+		//isig = Limiter.ar(isig);
+		isig;
+	});
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	sig = sig * \gain.kr(1);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
 
 (
 Pdef(\part, Pdef(\zedpart, 

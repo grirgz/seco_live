@@ -56,6 +56,34 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+///////////////// offset technique for sample breakbeat
+
+(
+// instead of specifying the abs pos, specify offset to a ramp
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef('vipere/amenbreak.wav'),
+			\legato, 1,
+			\st, 137/4/60,
+			\speed, 0.91 * ~t / Pkey(\st),
+			\pos, Pseq([
+				(0..7)
+			].flat,inf) + Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,1,-1,0,
+				0,3,1,4, 4,0,-5,3,
+				0,1,1,-1, 0,0,0,0,
+			],inf) /8/ Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+		)
+		
+	])
+)).play;
+);
+
 //////////////////////////////////////////////
 (
 Pdef(\part, Pdef(\zedpart, 

@@ -1098,8 +1098,8 @@ Pdef(\demo, Pdef(\demomo,
 				1,0.9, 1,0.5,
 				1,1.1, 0.51,0.5,
 			],inf),
-			\fspread, ~pmodenv.(Pseq([0.000001,2,1/21,4],inf), 1),
-			\selectffac, ~pmodenv.(Pseq([1,2,1,4,0.1],inf), 1/2),
+			\fspread, PmodEnv(Pseq([0.000001,2,1/21,4],inf), 1),
+			\selectffac, PmodEnv(Pseq([1,2,1,4,0.1],inf), 1/2),
 			\selectffac, Pseq([
 				1,2,2,2,
 				1,1,1,2,
@@ -1269,6 +1269,7 @@ Pdef(\zed,
 ).play;
 );
 
+Pdef(\zed).clear;
 
 ///////// fm bass
 
@@ -1288,7 +1289,7 @@ SynthDef(\fmtribass, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 );
 
 (
-Pdef(\zed, 
+Pdef(\part, 
 	Pmono(
 		 \fmtribass,
 		\degree, Pseq([0,2,-1,3],inf),
@@ -1421,7 +1422,7 @@ SynthDef(\fmbass2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 
 
 (
-Pdef(\zed, 
+Pdef(\part, 
 		Pbind(
 			\instrument, \fmbass2,
 			\note, Pstep(Pseq([

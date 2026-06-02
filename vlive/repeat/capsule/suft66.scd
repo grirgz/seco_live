@@ -1,6 +1,16 @@
 ~t = 65/60; TempoClock.default.tempo = ~t;
 
 (
+SynthDef(\traine, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq * SinOsc.ar( LFNoise1.kr(2).range(0.0,freq) ).range(1.5,1/2));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
 Pdef(\part, Pdef(\zed, 
 	Ppar([
 		Pbind(
@@ -77,12 +87,3 @@ Pdef(\part, Pdef(\zed,
 )).play;
 )
 
-(
-SynthDef(\traine, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
-	var sig;
-	sig = SinOsc.ar(freq * SinOsc.ar( LFNoise1.kr(2).range(0.0,freq) ).range(1.5,1/2));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-);

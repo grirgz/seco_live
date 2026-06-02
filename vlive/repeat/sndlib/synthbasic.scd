@@ -452,3 +452,18 @@ SynthDef(\sinkick, { |out=0, amp=0.1, pan=0, timeScale=1|
 ))).add;
 
 );
+
+////////////
+
+
+(
+SynthDef(\noisefil, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SelectX.ar(\color.kr(0)*2, [WhiteNoise.ar, PinkNoise.ar, BrownNoise.ar]);
+	sig = HPF.ar(sig, (\hpf.kr(10) ).clip(1,20000));
+	sig = LPF.ar(sig, ( \lpf.kr(20000) ).clip(1,20000));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);

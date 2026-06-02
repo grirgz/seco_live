@@ -3,6 +3,7 @@
 
 
 (
+ProtoDef(\FxManager).play;
 Pdef(\part, Pdef(\zed, 
 	Ppar([
 		Pbind(

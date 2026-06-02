@@ -39,6 +39,19 @@ ProtoTemplateDef(\PianoCenter, (
 		self[\playerGroup_obj];
 	},
 
+	startControl: { arg self;
+		self.playerGroup.controller = self.playerGroup.controller ?? {ControllerDef.getTagSpec(\piano).valueList.first};
+		self;
+	},
+
+	lowerAmpPreset: { arg self;
+		if(self.playerGroup.controller.isNil) {
+			// prevent changing amp if already initialized so not overwrite user change
+			self.proxy.set(\amp, 0.05);
+		};
+		self;
+	},
+
 	arp: { arg self;
 		self.playerGroup.arp;
 	},
@@ -173,7 +186,8 @@ ProtoTemplateDef(\PianoCenter, (
 		self.asParamGroup.getCombinatorCompileString;
 	},
 	edit: { arg self;
-		WindowDef(\PianoCenter).front(self)
+		WindowDef(\PianoCenter).front(self);
+		self;
 	},
 ));
 

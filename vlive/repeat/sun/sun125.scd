@@ -1001,6 +1001,29 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+SynthDef(\monopiano, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = SinOsc.ar(1/8.1*~t) * 1000; 
+	env2 = SinOsc.ar(1/9.1*~t) * 100; 
+	//env1 = 1000;
+	//freq = freq.lag(0.01);
+	mod1 = LFSaw.ar(freq * [1,1.01]) * env1;
+	mod1 = BPF.ar(mod1, SinOsc.ar(1/8 * ~t).exprange(10,8000),0.1 );
+	mod2 = SinOsc.ar(freq) * env2;
+	sig = SinOsc.ar(freq + mod1);
+	sig = sig + SinOsc.ar(freq/2 + mod2);
+	sig = SelectX.ar(0.5, [sig, sig.fold2(0.5)]);
+	sig = HPF.ar(sig, \hpf.kr(100));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(
@@ -1209,25 +1232,3 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 
-(
-SynthDef(\monopiano, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
-	var env1, env2, env3, env4, env5, env6, env7, env8;
-	env1 = SinOsc.ar(1/8.1*~t) * 1000; 
-	env2 = SinOsc.ar(1/9.1*~t) * 100; 
-	//env1 = 1000;
-	//freq = freq.lag(0.01);
-	mod1 = LFSaw.ar(freq * [1,1.01]) * env1;
-	mod1 = BPF.ar(mod1, SinOsc.ar(1/8 * ~t).exprange(10,8000),0.1 );
-	mod2 = SinOsc.ar(freq) * env2;
-	sig = SinOsc.ar(freq + mod1);
-	sig = sig + SinOsc.ar(freq/2 + mod2);
-	sig = SelectX.ar(0.5, [sig, sig.fold2(0.5)]);
-	sig = HPF.ar(sig, \hpf.kr(100));
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
-	Out.ar(out, sig);
-}).add;
-Pdef(\part).reset;
-);

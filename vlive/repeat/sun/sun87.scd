@@ -1152,6 +1152,7 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+// nice
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		
@@ -2199,3 +2200,25 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 
+//////////////////////////////////
+(
+// extend chord seq
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \snappad,
+			\note, Pseq([
+				[0,4,7],
+				[0,3,7]-5,
+				[0,4,7,10],
+				[0,3,6,9]-5,
+				[0,3,7]+2,
+				[0,4,7]-5,
+			],inf),
+			\dur, 2,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);

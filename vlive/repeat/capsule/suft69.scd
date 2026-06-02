@@ -355,8 +355,6 @@ Pdef(\part, Pdef(\zed,
 )).play;
 )
 
-(
-);
 
 
 (

@@ -1057,7 +1057,7 @@ Pdef(\part, Pdef(\ppart1,
 
 	]))
 )).play;
-)
+);
 
 
 (
@@ -1188,7 +1188,7 @@ Pdef(\part, Pdef(\main,
 		
 	])
 )).play;
-)
+);
 
 /// draft
 (

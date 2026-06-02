@@ -1,3 +1,4 @@
+// art decor jusqu'a la mort
 ~t = 146/2/60; TempoClock.default.tempo = ~t;
 (
 SynthDef(\ringz, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;

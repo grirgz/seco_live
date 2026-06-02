@@ -94,7 +94,7 @@ Pdef(\part, Pdef(\zedpart,
 			\instrument, \playersec_grain,
 			\mbufnum, BufDef.mono('voices/feynman.flac'),
 			//\pos, Ndef(\lfo1, { SinOsc.kr(0.1).range(0,5)  }).asMap,
-			\pos, BusDef(\smpos).asMap,
+			\pos, BusDef(\smpos, \control).asMap,
 			\legato, 1,
 			\dur, 1,
 			\gain, 1,
@@ -143,42 +143,6 @@ SynthDef(\amodsin, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 
 /////////
 
-(
-Pdef(\part, Pdef(\zedpart, 
-	Ppar([
-		Pbind(
-			\instrument, \playersec,
-			\bufnum, ~buflib.kick[64].value,
-			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
-			\isRest, Pseq([
-				1,0,0,0, 0,0,0,0,
-			],inf).coin.not,
-			\dur, 1/8,
-			\gain, 0.1,
-			\legato, 1,
-			\out, BusDef(\kicktrack, \audio),
-		),
-		Pmono(\fxkickdel,
-			\inbus, BusDef(\kicktrack, \audio),
-			\addAction, \addToTail,
-			//\delfac, BusDef(\delfac,\control).asMap,
-			\lag, 0.0009,
-			\dur, 1,
-			\out, BusDef(\kicktrack2, \audio),
-		) <>
-		Pdef(\fxkickdel, Pbind()),
-		Pmono(\fxkickdel,
-			\inbus, BusDef(\kicktrack2, \audio),
-			\addAction, \addToTail,
-			//\delfac, BusDef(\delfac,\control).asMap,
-			\lag, 0.0009,
-			\dur, 1,
-		) <>
-		Pdef(\fxkickdel, Pbind()),
-		
-	])
-)).play;
-);
 
 Param(BusDef(\delfac)).edit
 Pdef(\fxkickdel).addHalo(\instrument, \fxkickdel)
@@ -220,6 +184,43 @@ SynthDef(\fxkickdel, { arg out=0, gate=1;
 	ilpmix: \unipolar,
 ))).add;
 Pdef(\part).reset;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[64].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+			\legato, 1,
+			\out, BusDef(\kicktrack, \audio),
+		),
+		Pmono(\fxkickdel,
+			\inbus, BusDef(\kicktrack, \audio),
+			\addAction, \addToTail,
+			//\delfac, BusDef(\delfac,\control).asMap,
+			\lag, 0.0009,
+			\dur, 1,
+			\out, BusDef(\kicktrack2, \audio),
+		) <>
+		Pdef(\fxkickdel, Pbind()),
+		Pmono(\fxkickdel,
+			\inbus, BusDef(\kicktrack2, \audio),
+			\addAction, \addToTail,
+			//\delfac, BusDef(\delfac,\control).asMap,
+			\lag, 0.0009,
+			\dur, 1,
+		) <>
+		Pdef(\fxkickdel, Pbind()),
+		
+	])
+)).play;
 );
 
 //////// sdesign rise fm

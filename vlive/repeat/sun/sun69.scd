@@ -16,60 +16,60 @@ SynthDef(\doublegran, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_str
 }).add;
 )
 (
-	// generate fmc
-	~genfmc_long = {
+// generate fmc
+~genfmc_long = {
 
-		SynthDef(\fmc_ambientchords, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-			var sig;
-			var num=20;
-			thisThread.randSeed = 100000.rand.debug("seed");
-			sig = num.collect { arg idx;
-				var isig;
-				var oscgen = {
-					[SinOsc,LFSaw,LFPulse].wchoose([1,0.1,0.1].normalizeSum)
-				};
-				var harms = [1,2,4,1/2,1/4];
-				var fenv;
-				isig = oscgen.value.ar(oscgen.value.ar(freq * harms.choose) * freq * harms.choose + rrand(0.01,0.2));
-				isig = isig * EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2)),gate,doneAction:0);
-				fenv = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2)),gate,doneAction:0);
-				fenv = fenv * rrand(0.1,8) + rrand(0.1,2);
-				isig = RLPF.ar(isig, ( \lpfr.kr(1.1) * freq * fenv ).clip(20,20000), \rq.kr(0.5));
-				isig;
+	SynthDef(\fmc_ambientchords, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+		var sig;
+		var num=20;
+		thisThread.randSeed = 100000.rand.debug("seed");
+		sig = num.collect { arg idx;
+			var isig;
+			var oscgen = {
+				[SinOsc,LFSaw,LFPulse].wchoose([1,0.1,0.1].normalizeSum)
 			};
-			sig = sig.clump(2).flop.mean;
-			sig.debug("sig");
-			sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
-			//sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
-			sig = Splay.ar(sig, \spread.kr(0.1), amp, pan);
-			Out.ar(out, sig);
-		}).add;
-	};
-	~genfmc_long.();
+			var harms = [1,2,4,1/2,1/4];
+			var fenv;
+			isig = oscgen.value.ar(oscgen.value.ar(freq * harms.choose) * freq * harms.choose + rrand(0.01,0.2));
+			isig = isig * EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2)),gate,doneAction:0);
+			fenv = EnvGen.ar(Env.adsr(rrand(0.1,8),rrand(0.1,8),rrand(0.01,1),rrand(0.1,2)),gate,doneAction:0);
+			fenv = fenv * rrand(0.1,8) + rrand(0.1,2);
+			isig = RLPF.ar(isig, ( \lpfr.kr(1.1) * freq * fenv ).clip(20,20000), \rq.kr(0.5));
+			isig;
+		};
+		sig = sig.clump(2).flop.mean;
+		sig.debug("sig");
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
+		//sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+		sig = Splay.ar(sig, \spread.kr(0.1), amp, pan);
+		Out.ar(out, sig);
+	}).add;
+};
+~genfmc_long.();
 
-	~genfmc = {
+~genfmc = {
 
-		SynthDef(\fmc_short, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-			var sig;
-			var num=10;
-			sig = num.collect { arg idx;
-				var isig;
-				var oscgen = {
-					[SinOsc,LFSaw,LFPulse].wchoose([1,0.1,0.1].normalizeSum)
-				};
-				isig = oscgen.value.ar(oscgen.value.ar(freq * [1,2,1/2,1/4].choose) * freq * [1,2,1/2,1/4].choose + rrand(0.001,0.1));
-				isig;
+	SynthDef(\fmc_short, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+		var sig;
+		var num=10;
+		sig = num.collect { arg idx;
+			var isig;
+			var oscgen = {
+				[SinOsc,LFSaw,LFPulse].wchoose([1,0.1,0.1].normalizeSum)
 			};
-			sig = RLPF.ar(sig, ( \lpfr.kr(5.1) * freq ).clip(20,20000), \rq.kr(0.5));
-			sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
-			//sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
-			sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
-			//sig = HPF.ar(sig, freq/4);
-			sig = sig * \gain.kr(1);
-			Out.ar(out, sig);
-		}).add;
-	};
-	~genfmc.();
+			isig = oscgen.value.ar(oscgen.value.ar(freq * [1,2,1/2,1/4].choose) * freq * [1,2,1/2,1/4].choose + rrand(0.001,0.1));
+			isig;
+		};
+		sig = RLPF.ar(sig, ( \lpfr.kr(5.1) * freq ).clip(20,20000), \rq.kr(0.5));
+		sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,2.1)), gate, doneAction:2);
+		//sig = Pan2.ar(sig, pan, amp); // pan is transparent here 
+		sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+		//sig = HPF.ar(sig, freq/4);
+		sig = sig * \gain.kr(1);
+		Out.ar(out, sig);
+	}).add;
+};
+~genfmc.();
 );
 
 (
@@ -159,6 +159,7 @@ NoteTimeline('mel2').eventList = TimelineEventList.newFrom([
 //////////////
 
 (
+// from suft69
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 

@@ -5677,7 +5677,7 @@ Pdef(\part, Pdef(\zedpart,
 			Pfindur(16, Pdef(\build)),
 			Pfindur(16, Pdef(\part2)),
 			Pfindur(32, Pdef(\part3)),
-		],4),
+		],1),
 	])
 )).play;
 );

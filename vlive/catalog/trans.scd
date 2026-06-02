@@ -1907,3 +1907,78 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 
+/////////////////
+
+
+(
+SynthDef(\fmspot, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([400,41,40],[0.4,0.8]), 1);
+	env2 = EnvGen.kr(Env([90,41,40],[0.1,0.8]), 1);
+	mod2 = SinOsc.ar(freq)* 10 * env2 ;
+	mod1 = SinOsc.ar(freq + mod2)* 10 * env1 ;
+	sig = SinOsc.ar(freq + mod1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+SynthDef(\fmspot2, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([400,41,140],[0.4,0.8]), 1);
+	env2 = EnvGen.kr(Env([90,41,40],[0.1,0.8]), 1);
+	mod2 = SinOsc.ar(freq)* 10 * env2 ;
+	mod1 = SinOsc.ar(freq + mod2)* 10 * env1 ;
+	sig = SinOsc.ar(freq + mod1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+)
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind( // alien shot
+			\instrument, Pseq([
+				\fmspot,
+				\fmspot2,
+			],inf).stutter(8*8),
+			\note, Pseq([
+				0,5,
+			],inf),
+			\octave, 5,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 1,1,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				//Pseq([ 0,0,0,0, 0,0,0,0, ],8),
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				[ Env.adsr(0.04,0.1,0.8,5.1) ],
+			],inf),
+			\dur, 1/8,
+			\amp, 0.1/4,
+			\out, BusDef(\spot, \audio),
+		),
+		Pmono(\fx_greyhole,
+			\inbus, BusDef(\spot, \audio),
+			\addAction, \addToTail,
+			\size, 1,
+			\delay, 1/8/~t,
+			\mix, 0.2,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+	])
+)).play;
+);

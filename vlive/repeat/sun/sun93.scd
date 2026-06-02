@@ -1848,6 +1848,7 @@ Pdef(\part, Pdef(\zedpart,
 
 (
 // algo chords
+// nice!
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(
@@ -3287,6 +3288,35 @@ SynthDef(\fxshiftband, { arg out=0, gate=1;
 	Out.ar(out, sig);
 }).add;
 Pdef(\part).reset;
+);
+
+(
+// nice
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \sh101,
+			\note, Pseq([
+				0,7,12,19,24,31,
+			],inf),
+			\root, Pstep(Pseq([0,3,-4],inf),2),
+			\octave, 3,
+			\dur, 1/8,
+			\amp, 0.1,
+			\out, BusDef(\ifx1, \audio),
+		),
+		Pmono(\fxshiftband,
+			\inbus, BusDef(\ifx1, \audio),
+			\addAction, \addToTail,
+			\shiftFac, 4,
+			\shiftBase, 1.1,
+			\mix, 0.5,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		
+	])
+)).play;
 );
 
 (

@@ -29,6 +29,23 @@ SynthDef(\fmrfe, { arg out=0, amp=0.1, gate=1, pan=0;
 	sig = sig * amp;
 	Out.ar(out, sig);
 }).add;
+SynthDef(\fxechotab, { arg out=0, gate=1;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
+	var num = 5;
+	sig = in;
+	sig = CombC.ar(sig, \maxdelay.kr(1), \delay.kr(1) * (1..num),\decay.kr(1));
+	sig = SelectX.ar(\delmix.kr(0)*(num-1), sig);
+	sig1 = sig;
+	sig1 = LPF.ar(sig1, \lpf.kr(19000));
+	sig1 = HPF.ar(sig1, \hpf.kr(50));
+	sig = SelectX.ar(\pfmix.kr(0.5), [sig, sig1]);
+	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
+	sig = sig * \gain.kr(1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
+	Out.ar(out, sig);
+}).add;
 );
 
 (
@@ -1505,6 +1522,7 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+///////////////////////// sdesign
 ////////////////////
 
 (
@@ -2648,25 +2666,6 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-(
-SynthDef(\fxechotab, { arg out=0, gate=1;
-	var sig;
-	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
-	var in = InFeedback.ar(\inbus.kr(BusDef(\zero, \audio)), 2); 
-	var num = 5;
-	sig = in;
-	sig = CombC.ar(sig, \maxdelay.kr(1), \delay.kr(1) * (1..num),\decay.kr(1));
-	sig = SelectX.ar(\delmix.kr(0)*(num-1), sig);
-	sig1 = sig;
-	sig1 = LPF.ar(sig1, \lpf.kr(19000));
-	sig1 = HPF.ar(sig1, \hpf.kr(50));
-	sig = SelectX.ar(\pfmix.kr(0.5), [sig, sig1]);
-	sig = SelectX.ar(\mix.kr(0.5), [in, sig]);
-	sig = sig * \gain.kr(1);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0,1,0.1)), gate, doneAction:2);
-	Out.ar(out, sig);
-}).add;
-)
 
 (
 Pdef(\part, Pdef(\zedpart, 

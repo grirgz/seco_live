@@ -1,3 +1,5 @@
+~t = 135/4/60; TempoClock.default.tempo = ~t;
+
 (
 SynthDef(\dubdrone3, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	var sig;
@@ -133,7 +135,6 @@ SynthDef(\bassgrise, { arg out=0, amp=0.1, gate=1, pan=0, freq=200;
 	Out.ar(out, sig);
 }).add;
 )
-~t = 135/4/60; TempoClock.default.tempo = ~t;
 
 // from suft52.scd
 (
