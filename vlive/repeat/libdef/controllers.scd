@@ -28,9 +28,10 @@ ControllerDef(\icon_sliders, { arg def, params;
 
 ControllerDef(\piano_generic, { arg def, target; 
 	var playergroup;
+	target.debug("ControllerDef piano_generic target");
 	if(target.isNil) {
-		MIDIdef.noteOff(\piano).remove;
-		MIDIdef.noteOff(\piano_off).remove;
+		MIDIdef.noteOn(\piano).free;
+		MIDIdef.noteOff(\piano_off).free;
 	} {
 		playergroup = ProtoTemplateDef(\SeqPlayerGroup).new(target);
 		MIDIdef.noteOn(\piano, { arg ... args;
@@ -50,8 +51,8 @@ ControllerDef(\piano_generic, { arg def, target;
 ControllerDef(\nektar_piano, { arg def, target; 
 	var playergroup;
 	if(target.isNil) {
-		MIDIdef.noteOff(\piano).remove;
-		MIDIdef.noteOff(\piano_off).remove;
+		MIDIdef.noteOn(\piano).free;
+		MIDIdef.noteOff(\piano_off).free;
 	} {
 		playergroup = ProtoTemplateDef(\SeqPlayerGroup).new(target);
 		MIDIdef.noteOn(\piano, { arg ... args;
@@ -92,8 +93,8 @@ ControllerDef(\apc40, { arg def, target;
 
 ControllerDef(\piano_generic_drumpad, { arg def, target; 
 	if(target.isNil) {
-		MIDIdef.noteOff(\piano).remove;
-		MIDIdef.noteOff(\piano_off).remove;
+		MIDIdef.noteOn(\piano).free;
+		MIDIdef.noteOff(\piano_off).free;
 	} {
 		MIDIdef.noteOn(\piano, { arg ... args;
 			var midinote = args[1] - 48 % 48;

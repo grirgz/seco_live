@@ -253,7 +253,8 @@
 	
 
 ~inline_editor = { arg cmd, start, end, line, col, code, vistart, viend, visual;
-	~class_inline_editor.compute_code(cmd, start, end, line, col, code, vistart, viend, visual);
+	// col is 13 in vim but line[12] here, don't know why, maybe start at 1
+	~class_inline_editor.compute_code(cmd, start, end, line, col-1, code, vistart, viend, visual);
 };
 
 ~class_inline_editor = (
@@ -342,7 +343,7 @@
 			//self.replace_vim_block(start, end, self.escape_code(res_code));
 			self.replace_vim_block(start, end, line, col, res_code);
 		};
-		[start, end, line, col, code].debug("HHHHHHHHHHHHHHH");
+		[start, end, line, col, code.split($\n)[line][col].asCompileString, code].debug("===== edit_number: start, end, line, col, char, code");
 		dyn_code = self.replace_number(line, col, code, {arg x; "~class_number_editor_gui.new_pattern(~inline_editor_on_exit, "++ x ++")"});
 		debug("CURRES("++dyn_code++")");
 		dyn_code.interpret;
@@ -373,7 +374,7 @@
 	},
 
 	edit_sample: { arg self;
-		WindowDef(\filedialog).front(nil, { arg path; 
+		WindowDef(\FileDialog).front(nil, { arg path; 
 			path.debug("choosen path");
 			path = BufDef.abspath_to_relpath(path.asString);
 			path.debug("choosen path unresolved");
@@ -463,12 +464,12 @@
 					break.value;
 				};
 				char = line[pos];
-				char.debug("current char");
+				[char.asCompileString, pos, direction].debug("current char");
 				if( charlist.includes(char) ) {
 					char.debug("continue");
 					// continue
 				} {
-					char.debug("found limit");
+					[char.asCompileString, pos, direction].debug("found limit");
 					break.value;
 				}
 			}
@@ -493,6 +494,7 @@
 		rightpos = self.find_token_limit(line, col, charlist, \right);
 		token = line.copyRange(leftpos,rightpos);
 		line = line.replace(token, replace.(token));
+		[col, leftpos, rightpos, token, lines[linenum], line].debug("col, left, right, token, line, replacedline");
 		lines[linenum] = line;
 		code = lines.join($\n);
 		code;

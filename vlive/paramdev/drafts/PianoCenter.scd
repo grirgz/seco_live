@@ -258,7 +258,7 @@ WindowDef(\PianoCenter, (
 					Message(model.playerGroup),
 					\controller, 
 					ControllerDef.getTagSpec(\piano),
-				).asPopUpMenu,
+				).asPopUpMenu.allowsReselection_(true),
 				nil,
 			).spacing_(5),
 			HLayout (

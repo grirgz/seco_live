@@ -109,6 +109,25 @@ SynthDef(\oscsmp, { arg out=0, gate=1, amp=0.1, pan=0, freq=200, bufnum;
 	sig = Pan2.ar(sig, pan, amp);
 	Out.ar(out, sig);
 }).add;
+SynthDef(\notegranrfe, { arg out=0, freq=200, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, normpos=0, gdur=0.2, pan;
+	var sig;
+	var clk;
+	var phase;
+	var lpenv, lpfreq;
+	clk = Impulse.ar(\gfreq.kr(90));
+	pitch_stretch = freq/60.midicps * pitch_stretch * \samplenote.kr(0).neg.midiratio;
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = ( normpos.fold(0,1) * BufDur.kr(mbufnum) ) + \pos.kr(0) + LFNoise0.kr(\gfreq.kr,mul:\range.kr(0.01));
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch, phase , gdur, pan, 1);
+
+	lpenv = EnvGen.kr(\lpadsr.kr(Env.adsr(0.01,0.4,0.1,0.2)), gate, doneAction:0) * \lpadsramt.kr(1) + 1;
+	lpfreq = freq * \kbamt.kr(0) + 1;
+	sig = RLPF.ar(sig, ( \lpf.kr(330) * lpenv * lpfreq ).clip(20,20000), \rq.kr(0.8));
+
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
 );
 
 /////////////////////////////////////////////

@@ -32,6 +32,31 @@ Pdef(\vbreaks_drums, Ppar([
 ]));
 );
 
+(
+// 2x faster
+Pdef(\vbreaks_drums, Ppar([
+	Pbind(
+		\instrument, \playersec,
+		\bufnum, ~buflib.kick[1010].value,
+		\isRest, Pseq([
+			1,0,0,0, 0,0,0,0,
+		],inf).coin.not,
+		\dur, 1/8/2,
+		\gain, 0.2,
+	),
+	Pbind(
+		\instrument, \playersec,
+		\bufnum, ~buflib.snare[1719].value,
+		\isRest, Pseq([
+			0,0,0,0, 1,0,0,0,
+		],inf).coin.not,
+		\dur, 1/8/2,
+		\gain, 0.21,
+	),
+
+]));
+);
+
 ////
 // using buffer duration when loop is seemless
 (
@@ -530,8 +555,8 @@ Pdef(\part, Pdef(\zedpart,
 			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
 			\speed, 1/8 * ~t * Pkey(\bufdur),
 			\pos, Pseg(Pseq([
-				0, 8,
-			]+0,1),8).loop * Pkey(\bufdur) * 1/8,
+				0, 1,
+			]+0,1),8).loop * Pkey(\bufdur),
 			\dur, 1/8,
 			\gain, 1/8,
 		),
@@ -552,8 +577,8 @@ Pdef(\part, Pdef(\zedpart,
 			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
 			\speed, 1/2 * ~t * Pkey(\bufdur),
 			\pos, Pseg(Pseq([
-				0, 8,
-			]+0,1),2).loop * Pkey(\bufdur) * 1/8,
+				0, 1,
+			]+0,1),2).loop * Pkey(\bufdur),
 			\dur, 1/8,
 			\gain, 1/8,
 		),
@@ -574,8 +599,8 @@ Pdef(\part, Pdef(\zedpart,
 			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
 			\speed, 1/4 * ~t * Pkey(\bufdur),
 			\pos, Pseg(Pseq([
-				0, 8,
-			]+0,1),4).loop * Pkey(\bufdur) * 1/8,
+				0, 1,
+			]+0,1),4).loop * Pkey(\bufdur),
 			\dur, 1/8,
 			\gain, 1/8,
 		),
@@ -596,12 +621,225 @@ Pdef(\part, Pdef(\zedpart,
 			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
 			\speed, 1/2 * ~t * Pkey(\bufdur),
 			\pos, Pseg(Pseq([
-				0, 8,
-			]+0,1),2).loop * Pkey(\bufdur) * 1/8,
+				0, 1,
+			]+0,1),2).loop * Pkey(\bufdur),
 			\dur, 1/8,
 			\gain, 1/8,
 		),
 		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		//Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/The Montereys - Get Down.wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/4 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 1,
+			]+0,1),4).loop * Pkey(\bufdur),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		//Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/The Bar-Kays - Do You See What I See.wav'),
+			\legato, 1,
+			\st, 129/4/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseg(Pseq([
+				0, 4,
+			]+0,1),4).loop / Pkey(\st),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		//Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Michael Viner\'s Incredible Bongo Band - Sing Sing (part1).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/8 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 1,
+			]+0,1),2).loop * Pkey(\bufdur),
+			\dur, 1/8/2,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		//Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Michael Viner\'s Incredible Bongo Band - Sing Sing (part2).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/8 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 1,
+			]+0,1),8).loop * Pkey(\bufdur),
+			\dur, 1/8/2,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		//Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Michael Viner\'s Incredible Bongo Band - Sing Sing (part3).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/8 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 1,
+			]+0,1),8).loop * Pkey(\bufdur),
+			\dur, 1/8/2,
+			\gain, 1/8,
+		),
+		
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		//Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Michael Viner\'s Incredible Bongo Band - Apache (part1).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/4 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 1,
+			]+0,1),4).loop * Pkey(\bufdur),
+			\dur, 1/8/2,
+			\gain, 1/8,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		//Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Melvin Bliss - Synthetic Substitution.wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/8 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 1,
+			]+0,1),8).loop * Pkey(\bufdur),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		//Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Chuck Jackson - Through All Times.wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/8 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 1,
+			]+0,1),8).loop * Pkey(\bufdur),
+			\dur, 1/8,
+			\gain, 1/2,
+		),
+	])
+)).play;
+);
+
+
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Bernard Purdie - Soul Drums (part2).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/8 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 1,
+			]+0,1),8).loop * Pkey(\bufdur),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
+	])
+)).play;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pdef(\vbreaks_drums),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Bernard Purdie - Soul Drums (part3).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/8 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 1,
+			]+0,1),8).loop * Pkey(\bufdur),
+			\dur, 1/8,
+			\gain, 1/8,
+		),
 	])
 )).play;
 );

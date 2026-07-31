@@ -274,6 +274,7 @@ Pdef(\glitch,
 
 ////////////
 // hear the sampled voice pitched
+// has clicks
 
 (
 SynthDef(\playersec_osczig_stereo, { arg out=0, amp=0.1, gate=1, pan=0, freq=200, bufnum, speed=1, pos=0, doneAction=2, loop=0, velamp=1;
@@ -2025,6 +2026,25 @@ Pdef(\part, Pdef(\zedpart,
 );
 
 (
+SynthDef(\randgranpitch, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, pos=0, gdur=0.2, pan;
+	var sig;
+	var clk;
+	var phase;
+	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
+	clk = Impulse.ar(\gfreq.kr(90));
+	mod1 = Demand.ar(clk, 0, Dseq([
+		1,1,1,2,
+	],inf));
+	//phase = Phasor.ar(1, 1,0,BufDur.kr(bufnum)) + pos;
+	phase = pos + LFNoise0.kr(\gfreq.kr,mul:\range.kr(0.01));
+	sig = TGrains.ar(2, clk, mbufnum, pitch_stretch * mod1, phase % BufDur.kr(mbufnum), gdur, pan, 1);
+	sig = sig * EnvGen.ar(\adsr.kr(Env.adsr(0.01,0.1,0.8,0.01)),gate,doneAction:2);
+	sig = sig * gain;
+	Out.ar(out, sig);
+}).add;
+)
+
+(
 SynthDef(\notegran, { arg out=0, mix=0.5, gain=1, gate=1, mbufnum=0, pitch_stretch=1, normpos=0, gdur=0.2, pan;
 	var sig;
 	var clk;
@@ -2238,7 +2258,7 @@ Pdef(\part, Pdef(\zedpart,
 			],inf) /8/ Pkey(\st),
 			\dur, 1/8,
 			\gain, 1/8,
-		)
+		),
 		
 	])
 )).play;

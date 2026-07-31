@@ -1306,3 +1306,135 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+/////////////////////////
+
+
+(
+SynthDef(\fmspread, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
+	mod1 = SinOsc.ar(freq * ((0..7)/7 - 0.5 * \fspread.kr(1/16/~t) + 1)) * \fma.kr(1700);
+	sig = SinOsc.ar(freq + mod1);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \fmspread,
+			\note, Pseq([
+				//[-4,0,4, 8],
+				//[-5,0,4, 7],
+				//[-4,0,4, 8],
+				//[-3,0,4, 9],
+
+				[-2,0,4, 10],
+				[-3,0,5, 9],
+				[-4,0,5, 8],
+				[-5,0,4, 7],
+			],inf),
+			\fma, PmodEnv(Pseq([100,2000,10000],1), 8,\exp).loop,
+			//\note, 0,
+			\dur, 4,
+			\amp, 0.1/3,
+		),
+		
+	])
+)).play;
+);
+
+//////////////////////
+
+(
+SynthDef(\pulsepad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var sig1, sig2, sig3, sig4, sig5, sig6, sig7, sig8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
+	mod1 = SinOsc.ar(freq/2) * 40;
+	sig1 = LFPulse.ar(freq + mod1 * ((0..7)/7 - 0.5 * \fspread.kr(0.02) + 1)).bipolar;
+	sig2 = LFPulse.ar(freq/2 + mod1 * ((0..7)/7 - 0.5 * \fspread.kr(0.02) + 1)).bipolar;
+	sig3 = LFPulse.ar(freq + mod1) * EnvGen.kr(Env([0,1,0],[0.01,0.08]), Impulse.kr((freq % 4 ).poll));
+	sig = sig1 + ( sig2 * 0.3) + sig3  /2;
+	env1 = EnvGen.kr(\lpenv.kr(Env([0,1,0],[0.4,1.8])), 1);
+	sig = RLPF.ar(sig, \lpf.kr(1000) * (env1 * \lpenvamt.kr(3.2) + 1), \rq.kr(0.5));
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+
+		Pbind(
+			\instrument, \pulsepad,
+			\note, Pseq([
+				Pser([0,3,7],16*4),
+				Pser([2,5,10],16*4),
+			],inf),
+			\octave, 6,
+			\fspread, Pseg(Pseq([0.001,0.05],1),4).loop,
+			\adsr, Pseq([
+				[ Env.adsr(1.1,0.1,0.8,4/~t) ],
+			],inf),
+			\lpenvamt, Pseg(Pseq([1,11],1),32).loop,
+			\dur, 1/8,
+			\amp, 0.1/4,
+			\out, BusDef(\pul, \audio),
+		),
+		Pmono(\fx_freeverb2,
+			\inbus, BusDef(\pul, \audio),
+			\addAction, \addToTail,
+			\room, 2,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		
+	])
+)).play;
+);
+
+//////////////
+
+
+(
+SynthDef(\evpad, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var mod1, mod2, mod3, mod4, mod5, mod6, mod7, mod8;
+	var env1, env2, env3, env4, env5, env6, env7, env8;
+	env1 = EnvGen.kr(Env([1,2,2400],[0.1,0.1]), 1);
+	env2 = EnvGen.kr(Env([0,1,800],[1.1,2.1]), 1);
+	mod2 = SinOsc.ar(freq) * 10 * env1;
+	mod3 = Pulse.ar(freq * SinOsc.ar(1*~t,mul:0.01,add:1) ).bipolar * 1 * env2.poll;
+	mod1 = SinOsc.ar(freq + mod2) * 100;
+	sig = SinOsc.ar(freq * [0.99,1,1.01] + mod1 + mod3);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,1.1)), gate, doneAction:2);
+	sig = sig / 2;
+	sig = Splay.ar(sig, \spread.kr(0.8), amp, pan);
+	Out.ar(out, sig);
+}).add;
+);
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pbind(
+			\instrument, \evpad,
+			\note, Pseq([
+				[0,3,7],
+				[0,5,9],
+			],inf),
+			\dur, 4,
+			\amp, 0.1,
+		),
+		
+	])
+)).play;
+);

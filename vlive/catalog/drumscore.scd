@@ -2586,3 +2586,82 @@ Pdef(\part, Pdef(\zedpart,
 	])
 )).play;
 );
+
+
+////////// dnb
+
+~t = 185/4/60; TempoClock.default.tempo = ~t;
+
+(
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[407].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				1,0,0,0, 0,1,0,0,
+				1,0,0,0, 0,1,0,0,
+				1,0,0,1, 0,1,0,0,
+				1,0,0,0, 0,1,0,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[684].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,1,0, 0,0,1,0,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.01) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec_hlpf,
+			\bufnum, ~buflib.snare[684].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,1,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,1,
+				0,1,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\lpf, 1000 * Pseq([1,1.3],inf),
+			\hpf, 500,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.01) ],
+			],inf),
+			\dur, 1/8/2,
+			\gain, 0.05,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.hat[1004].value,
+			//\bufnum, ~buflib.hat[~buflib.hat.size.rand.debug("h")].value,
+			\isRest, Pseq([
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 1,0,1,0,
+				1,0,1,0, 0.8,0.81,1,0.8,
+				1,0,1,0, 1,0,1,1,
+			],inf).coin.not,
+			\dur, 1/8/2,
+			\legato, 0.6,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+				[ Env.adsr(0.1,0.051,0.4,0.01) ],
+			],inf),
+			\gain, 0.11,
+		),
+	])
+)).play;
+);
