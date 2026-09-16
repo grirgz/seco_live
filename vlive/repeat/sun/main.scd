@@ -227,3 +227,246 @@ Pfin
 /////////////
 
 
+
+Ndef(\xxx, { arg amp=1; SinOsc.ar(100 * amp.poll)*0.1!2;  }).play
+
+(
+SynthDef(\xzed, { arg out=0, gate=1, amp, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	amp.poll;
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+Ndef(\aze).source = \xzed
+Ndef(\aze).play
+
+
+(
+Ndef(\zed, { arg out=0,freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(2, sig);
+	Out.ar(out, sig);
+}).play;
+);
+
+
+(
+Ndef(\bass, { arg freq=200, pan=0, amp=0.1;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = Pan2.ar(sig, pan, amp.poll(100));
+}).play;
+);
+
+Ndef(\bass).set(\amp, 0.1);
+(
+s.bind {
+	var env = Ndef(\env, { Line.kr(0.1, 0.0, 1)  });
+	s.sync;
+	Ndef(\bass).set(\amp, env);
+}
+)
+
+Ndef(\env).fadeTime
+Ndef(\env).fadeTime = 0
+(
+s.bind {
+	Ndef(\bass).set(\amp, Ndef(\env, { Line.kr(0.1, 0, 1)  }).asMap);
+}
+)
+(
+s.bind {
+	Ndef(\bass).set(\amp, Ndef(\env, { Line.kr(0.1, 0.01, 1)  }).asMap);
+}
+)
+
+(
+s.bind {
+	Ndef(\bass).set(\amp, Ndef(\env, { Line.kr(0.1, 0.2, 1)  }).asMap);
+}
+)
+Ndef(\bass).set(\amp, 0.1);
+Ndef(\bass).set(\amp, 0.3);
+Ndef(\bass).quant = 1
+Ndef(\env).quant = 1;
+
+	Ndef(\bass).set(\amp, Ndef(\env, { Line.kr(0.1, 0.2, 1)  }).asMap);
+	Ndef(\bass).set(\amp, Ndef(\env, { Line.kr(0.1, 0.2, 1)  }));
+	Ndef(\bass).set(\amp, Ndef(\env, { Line.kr(0.1, 0.1, 1)  }));
+
+
+(
+	TempoClock.default.schedAbs(TempoClock.default.nextTimeOnGrid(1), {
+		Ndef(\bass).set(\amp, Ndef(\env, { Line.kr(0.1, 0.2, 1)  }));
+	})
+
+)
+
+Ndef(\env, { Line.kr(0.1, 0, 1)  }).getBundle
+MixedBundle
+(
+
+s.bind {
+	a = Ndef(\env, { Line.kr(0.1, 0.01, 1)  }).getBundle;
+	a.send(s);
+	Ndef(\bass).set(\amp, Ndef(\env));
+}
+)
+
+//I can't get the code to work when I use busses via variables
+
+~verbL = Bus.audio;
+~verbR = Bus.audio;
+
+(
+SynthDef(\sinesine, {
+    arg bus, freq = 440, dur = 1, level = 0.2;
+    Out.ar(bus, SinOsc.ar(freq, 0, EnvGen.kr(Env.sine(dur, level), doneAction: 2)))}).add;
+)
+
+(
+Tdef(\sinesinetdef, {
+    var freq = PdegreeToKey(Pbrown.new(-2, 12, 1, inf), Scale.major, 12).asStream;
+    loop{
+        var dur = exprand(0.1, 1);
+        var bus = [~verbL, ~verbR].choose;
+        Synth(\sinesine, [dur: dur, bus: bus, freq: (freq.next + 60).midicps]);
+        dur.wait;
+    }
+}).play;
+);
+
+{FreeVerb.ar(In.ar(~verbL), 1, 5)}.play;
+{Out.ar(1, FreeVerb.ar(In.ar(~verbR), 1, 5))}.play
+
+//However when I specify the bus by index it works fine.
+
+(
+Tdef(\sinesinetdef, {
+    var freq = PdegreeToKey(Pbrown.new(-2, 12, 1, inf), Scale.major, 12).asStream;
+    loop{
+        var dur = exprand(0.1, 1);
+        var bus = {[8, 9].choose};
+        Synth(\sinesine, [dur: dur, bus: bus, freq: (freq.next + 60).midicps]);
+        dur.wait;
+    }
+}).play;
+);
+
+{FreeVerb.ar(In.ar(8), 1, 5)}.play;
+{Out.ar(1, FreeVerb.ar(In.ar(9), 1, 5))}.play
+
+
+(
+{
+    var freq = PdegreeToKey(Pbrown(0, 7, 1, inf), Scale.major, 12).asStream; 
+	var sig = 5.collect {
+		SinOsc.ar((freq.next + 60).midicps, 0, EnvGen.kr(Env.perc, Impulse.kr(1)));
+	};
+	Splay.ar(sig, 0.8, 0.1, 0);
+}.play;
+)
+
+
+(
+~rhythmRoutine = Prout({
+    var a = [
+    Pseq([0.5, 0.5], 1),
+    Pseq([0.25, 0.25, 0.5], 1),
+    Pseq([0.25, 0.25, 0.25, 0.25, 0.5, 0.5], 1),
+    Pseq([0.25, 0.25, 0.25, 0.25, 0.5, 0.25, 0.25], 1),
+    Pseq([0.5, 0.25, 0.25], 1)
+    ].choose.asStream;
+    a.do{
+        arg item;
+        item.postln;
+        item.wait;
+    }
+});
+
+
+(
+Routine({
+    loop{
+        ~rhythmRoutine.embedInStream;
+        1.wait;
+    }
+}).play;
+)
+)
+
+(
+~rhythmRoutine = Routine({
+    var a = [
+    Pseq([0.5, 0.5], 1),
+    Pseq([0.25, 0.25, 0.5], 1),
+    Pseq([0.25, 0.25, 0.25, 0.25, 0.5, 0.5], 1),
+    Pseq([0.25, 0.25, 0.25, 0.25, 0.5, 0.25, 0.25], 1),
+    Pseq([0.5, 0.25, 0.25], 1)
+    ].choose.asStream;
+    a.do{
+        arg item;
+        item.postln;
+        item.wait;
+    }
+});
+)
+
+
+(
+Routine({
+    loop{
+        ~rhythmRoutine.reset.embedInStream;
+        1.wait;
+    }
+}).play;
+)
+
+
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var pitch_sets= [
+        Drand([18, 18, 18, 18, 18, 18, 18, 18, 24, 24], inf),
+        Drand([12, 12, 12, 12, 12, 12, 18, 18, 18, 24], inf),
+        Drand([ 18, 18, 12, 12, 12, 12, 12, 6, 6, 6], inf)
+    ];
+	freq = Demand.ar(Impulse.ar(1), 0, pitch_sets.at(0));
+	sig = SinOsc.ar(( freq+50 ).midicps.poll);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+Synth(\zed)
+
+
+(
+SynthDef(\zed, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	var pitch_sets= [
+        Drand([20,19], inf),
+        Drand([10,9], inf),
+        Drand([ 18, 18, 12, 12, 12, 12, 12, 6, 6, 6], inf)
+    ];
+	freq = Demand.ar(Impulse.ar(1), 0, Dswitch1(pitch_sets, \idx.kr(0)));
+	sig = SinOsc.ar(( freq+50 ).midicps);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+);
+
+~a = Synth(\zed)
+~a.set(\idx, 1)
+
+thisThread.randSeed = 1
+thisThread.randSeed
+thisThread.randData

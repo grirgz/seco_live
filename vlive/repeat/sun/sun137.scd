@@ -1449,7 +1449,7 @@ SynthDef(\sindel, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
 
 (
 // base chords
-Pdef(\part, Pdef(\zedpart, 
+Pdef(\part, Pdef(\redempchord, 
 	Ppar([
 		Pbind(
 			\instrument, \sindel,
@@ -1601,6 +1601,314 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
+(
+Pdef(\part, Pdef(\redempchord2, 
+	Ppar([
+		Pbind(
+			\instrument, \sindel,
+			\note, Pseq([
+				[0,4,7],
+				[0,4,6],
+				[0,3,6],
+				[-1,4,7],
+
+				[-1,4,7],
+				[-2,4,7],
+				[-2,4,6],
+				[-1,3,6],
+
+				[-1,3,6],
+				[-1,3,9],
+				[-1,3,6],
+				[0,4,7],
+			],inf),
+			\legato,1,
+			\adsr, Pseq([
+				[ Env.adsr(1.1,0.1,0.8,1.01) ],
+			],inf),
+			\fmf, Pstep(Pseq([1/2,1,2],inf),32),
+			\fma, PmodEnv(Pseq([0.001,0.02,0.04],1), 8).loop,
+			\dur, 2,
+			\amp, 0.1,
+		),
+		Pbind(
+			\instrument, \sh101,
+			\cnote, Pstep(Pseq([
+				[0,4,7],
+				[0,4,6],
+				[0,3,6],
+				[-1,4,7],
+
+				[-1,4,7],
+				[-2,4,7],
+				[-2,4,6],
+				[-1,3,6],
+
+				[-1,3,6],
+				[-1,3,9],
+				[-1,3,6],
+				[0,4,7],
+			],inf),2),
+			\note, Plazy({ arg ev;
+				Pseq(ev[\cnote]);
+			}).loop + Pseq([0,-12,0,-12],inf).stutter(1),
+			\octave, 6,
+			\lpf, PmodEnv(Pseq([400,2400,9000],1), 16,\exp).loop,
+			\adsr, Pseq([
+				PpatEnv.adsr( Pseg(Pseq([0.1,0.01],inf),32),0.1,0.8,0.1),
+			],inf),
+			\dur, 1/8,
+			\amp, 0.1/2,
+		),
+		
+	])
+)).play;
+);
+
+(
+// with drums
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pseq([
+			Pfindur(32, Pdef(\redempchord)),
+			Pfindur(32*7, Pdef(\redempchord2)),
+		],inf),
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1194].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				Pser([
+					1,0,0,0, 0,0,0,0,
+					0,0,1,0, 0,0,0,0,
+				],14*8),
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1568].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				Pser([
+					0,0,0,0, 1,0,0,0,
+				],14*8),
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/The New Mastersounds - Dusty Groove 2.wav'),
+			\legato, 1,
+			\st, 119/2/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseq([
+				(0..15)
+			].flat,inf) + Pseq([
+				//0,0,-1,-3, 0,0,0,0, 
+				//-4,-4,-4,-4, 0,0,0,0, 
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,2,2,0, 0,2,2,0,
+				0,2,2,0, 0,2,2,0,
+				0,0,0,0, 0,0,0,0,
+				0,-2,-2,0, 0,0,0,0,
+				//0,0,-2,0, 4,0,-5,3,
+				//0,1,1,-1, 0,0,0,0,
+			]/2,inf) /8/ Pkey(\st),
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 1/12,
+			\out, BusDef(\mxx, \audio),
+		),
+		Pmono(\fx_rlpfrhpf,
+			\inbus, BusDef(\mxx, \audio),
+			\addAction, \addToTail,
+			\hpf, PmodEnv(Pseq([1000,2000,104],1), 16).loop,
+			\lpf, PmodEnv(Pseq([10000,12000,3001],1), 16).loop,
+			\mix, PmodEnv(Pseq([0.5,1,0.2,1],1), 8).loop,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Bernard Purdie - Soul Drums (part3).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/8 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 1,
+			]+0,1),8).loop * Pkey(\bufdur),
+			\dur, 1/8,
+			\gain, 1/8 * Pstep(Pseq([1,1,1,1],inf),1),
+			\out, BusDef(\smf, \audio),
+		),
+		Pmono(\fx_rlpfrhpf,
+			\inbus, BusDef(\smf, \audio),
+			\addAction, \addToTail,
+			\lpf, PmodEnv(Pseq([100,2000,10000],1), 16).loop,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+
+	])
+)).play;
+);
+
+(
+// with bass
+Pdef(\part, Pdef(\zedpart, 
+	Ppar([
+		Pseq([
+			Pfindur(32, Pdef(\redempchord)),
+			Pfindur(32*7, Pdef(\redempchord2)),
+		],inf),
+		
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.kick[1194].value,
+			//\bufnum, ~buflib.kick[~buflib.kick.size.rand.debug("k")].value,
+			\isRest, Pseq([
+				Pser([
+					1,0,0,0, 0,0,0,0,
+					0,0,1,0, 0,0,0,0,
+				],14*8),
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 0.1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, ~buflib.snare[1568].value,
+			//\bufnum, ~buflib.snare[~buflib.snare.size.rand.debug("s")].value,
+			\isRest, Pseq([
+				Pser([
+					0,0,0,0, 1,0,0,0,
+				],14*8),
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+			],inf).coin.not,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\dur, 1/8,
+			\gain, 0.11,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/The New Mastersounds - Dusty Groove 2.wav'),
+			\legato, 1,
+			\st, 119/2/60,
+			\speed, 1 * ~t / Pkey(\st),
+			\pos, Pseq([
+				(0..15)
+			].flat,inf) + Pseq([
+				//0,0,-1,-3, 0,0,0,0, 
+				//-4,-4,-4,-4, 0,0,0,0, 
+				0,0,0,0, 0,0,0,0,
+				0,0,0,0, 0,0,0,0,
+				0,2,2,0, 0,2,2,0,
+				0,2,2,0, 0,2,2,0,
+				0,0,0,0, 0,0,0,0,
+				0,-2,-2,0, 0,0,0,0,
+				//0,0,-2,0, 4,0,-5,3,
+				//0,1,1,-1, 0,0,0,0,
+			]/2,inf) /8/ Pkey(\st),
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf).coin.not,
+			\dur, 1/8,
+			\gain, 1/12,
+			\out, BusDef(\mxx, \audio),
+		),
+		Pmono(\fx_rlpfrhpf,
+			\inbus, BusDef(\mxx, \audio),
+			\addAction, \addToTail,
+			\hpf, PmodEnv(Pseq([1000,2000,104],1), 16).loop,
+			\lpf, PmodEnv(Pseq([10000,12000,3001],1), 16).loop,
+			\mix, PmodEnv(Pseq([0.5,1,0.2,1],1), 8).loop,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \playersec,
+			\bufnum, BufDef.stereo('vbreaks/Bernard Purdie - Soul Drums (part3).wav'),
+			\legato, 1,
+			\bufdur, Pfunc({ arg ev; ev[\bufnum].duration }),
+			\speed, 1/8 * ~t * Pkey(\bufdur),
+			\pos, Pseg(Pseq([
+				0, 1,
+			]+0,1),8).loop * Pkey(\bufdur),
+			\dur, 1/8,
+			\gain, 1/8 * Pstep(Pseq([1,1,1,1],inf),1),
+			\out, BusDef(\smf, \audio),
+		),
+		Pmono(\fx_rlpfrhpf,
+			\inbus, BusDef(\smf, \audio),
+			\addAction, \addToTail,
+			\lpf, PmodEnv(Pseq([100,2000,10000],1), 16).loop,
+			\lag, 0.0009,
+			\dur, 1,
+		),
+		Pbind(
+			\instrument, \bassnono,
+			\note, Pseq([
+				Pseq([ -4,-1, ],4),
+				Pseq([ -4,4, ],4),
+				Pseq([ -5,4, ],4),
+				//Pseq([ -6,3, ],4),
+				-6,3,-6,2,1,-1,-6,3,
+			],inf).stutter(Pseq([6,2],inf)),
+			\octave, 3,
+			\adsr, Pseq([
+				[ Env.adsr(0.01,0.1,0.8,0.1) ],
+			],inf),
+			\legato, 0.51 * Pseq([
+				1/2,1,1,1/2, 1/2,1,1,1/2,
+			],inf),
+			\moda, PmodEnv(Pseq([10,200],1), 32).loop,
+			\dur, 1/8,
+			\isRest, Pseq([
+				1,1,1,1, 1,1,1,1,
+			],inf).coin.not,
+			\gamp, Pseg(Pseq([0.1,0.9,0.1,0.5],inf),8),
+			\gamp2, Pseg(Pseq([0.1,0.9],inf),32),
+			\gamp3, Pseg(Pseq([0.1,0.7],inf),16),
+			\amp, 0.2 * Pseq([
+				Plazy({ arg ev;
+					var gh = ev[\gamp];
+					var gh2 = ev[\gamp2];
+					var gh3 = ev[\gamp3];
+					Pseq([
+						gh3,gh,0.8,gh2, gh3,gh,1,gh2,
+					],1)
+				}).loop,
+			],inf),
+			\amp, 0.2,
+			\amp, 0.2 * Pseq([
+				4,1,9,2, 1,1,9,1,
+				4,3,9,2, 8,4,9,3,
+				
+			]/10,inf),
+		),
+
+	])
+)).play;
+);
 
 //////// chromatic chords movement
 

@@ -1,7 +1,9 @@
 // ver2
 
+(
 ~t = 92/4/60; TempoClock.default.tempo = ~t;
 FileSystemProject.loadOnce("holis/synthdef.scd");
+)
 
 
 

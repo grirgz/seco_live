@@ -3,6 +3,17 @@
 ~t = 185/4/60; TempoClock.default.tempo = ~t;
 
 (
+SynthDef(\drone1, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
+	var sig;
+	sig = SinOsc.ar(freq);
+	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
+	sig = Pan2.ar(sig, pan, amp);
+	Out.ar(out, sig);
+}).add;
+Pdef(\part).reset;
+);
+
+(
 Pdef(\part, Pdef(\zedpart, 
 	Ppar([
 		Pbind(
@@ -56,16 +67,6 @@ Pdef(\part, Pdef(\zedpart,
 )).play;
 );
 
-(
-SynthDef(\drone1, { arg out=0, gate=1, amp=0.1, pan=0, freq=200;
-	var sig;
-	sig = SinOsc.ar(freq);
-	sig = sig * EnvGen.kr(\adsr.kr(Env.adsr(0.1,0.1,0.8,0.1)), gate, doneAction:2);
-	sig = Pan2.ar(sig, pan, amp);
-	Out.ar(out, sig);
-}).add;
-Pdef(\part).reset;
-);
 
 
 SampleTimeline(\culp).edit
